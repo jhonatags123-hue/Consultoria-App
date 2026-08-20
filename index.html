@@ -34,23 +34,12 @@
 
   header{
     display:flex;justify-content:space-between;align-items:center;
-    padding:20px 24px;
+    padding:16px 24px;
     border-bottom:1px solid var(--line);
     flex-wrap:wrap;gap:12px;
   }
   .brand{font-family:'JetBrains Mono',monospace;font-size:13px;}
   .brand b{color:var(--accent);}
-  .mode-toggle{
-    display:flex;background:var(--card);border:1px solid var(--card-border);
-    border-radius:100px;padding:3px;font-size:12.5px;
-  }
-  .mode-toggle button{
-    background:none;border:none;color:var(--muted);
-    padding:7px 16px;border-radius:100px;cursor:pointer;
-    font-family:'Inter',sans-serif;font-weight:600;
-    transition:background .2s, color .2s;
-  }
-  .mode-toggle button.active{background:var(--accent);color:#fff;}
 
   .wrap{max-width:760px;margin:0 auto;padding:28px 20px;}
 
@@ -75,7 +64,7 @@
     text-transform:uppercase;margin-bottom:6px;margin-top:14px;
   }
   label:first-of-type{margin-top:0;}
-  input[type=text], input[type=number], input[type=date], textarea, select{
+  input[type=text], input[type=number], input[type=date], input[type=password], textarea, select{
     width:100%;background:var(--input-bg);border:1px solid var(--card-border);
     color:var(--text);padding:11px 12px;border-radius:10px;
     font-family:'Inter',sans-serif;font-size:14.5px;
@@ -325,9 +314,10 @@
 
 <header id="mainHeader">
   <div class="brand">JHONATA <b>/ TREINO & DIETA</b></div>
+  <button class="btn btn-ghost btn-sm" id="coachAccessBtn">Área do Personal 🔒</button>
 </header>
 
-<div class="wrap" id="coachView">
+<div class="wrap hidden" id="coachView">
 
   <div id="dashboardView">
     <div class="eyebrow">VISÃO GERAL</div>
@@ -441,9 +431,9 @@
 
 </div>
 
-<div class="wrap hidden" id="studentView">
+<div class="wrap" id="studentView">
   
-  <div id="anamneseView" class="hidden">
+  <div id="anamneseView">
     <div class="student-header">
       <div class="eyebrow">CONSULTORIA FITNESS</div>
       <h1>Anamnese & Pré-Cadastro</h1>
@@ -521,7 +511,7 @@
     </form>
   </div>
 
-  <div id="studentContent"></div>
+  <div id="studentContent" class="hidden"></div>
 </div>
 
 <div class="sticky-save hidden" id="stickySave">
@@ -543,6 +533,7 @@ window.storage = {
 
 (function(){
   const MEU_WHATSAPP = "5551990169026"; 
+  const SENHA_PERSONAL = "1234"; // SENHA PARA ACESSAR A ÁREA DO PERSONAL
 
   const TACO_FOODS = [
     {id:'f1',cat:'Proteínas',name:'Peito de frango grelhado',kcal:159,protein:31,carb:0,fat:3.6},
@@ -1748,36 +1739,26 @@ window.storage = {
     });
   }
 
+  // BOTÃO E LÓGICA DE SENHA DO PERSONAL
+  document.getElementById('coachAccessBtn').addEventListener('click', ()=>{
+    const pass = prompt("Digite a senha do Personal:");
+    if(pass === SENHA_PERSONAL){
+      document.getElementById('coachView').classList.remove('hidden');
+      studentView.classList.add('hidden');
+      document.getElementById('coachAccessBtn').classList.add('hidden');
+      showDashboard();
+      renderDashboard();
+    }else if(pass !== null){
+      alert("Senha incorreta!");
+    }
+  });
+
   window.addEventListener('beforeunload', (e)=>{
     if(studentDirty){
       e.preventDefault();
       e.returnValue = '';
     }
   });
-
-  const mainHeader = document.getElementById('mainHeader');
-
-  function switchMode(mode, code, inlineData){
-    if(mode === 'student'){
-      document.getElementById('coachView').classList.add('hidden');
-      studentView.classList.remove('hidden');
-      const c = code || studentCode;
-      if(c){
-        anamneseView.classList.add('hidden');
-        studentContent.classList.remove('hidden');
-        loadStudentView(c, inlineData);
-      }else{
-        studentContent.classList.add('hidden');
-        anamneseView.classList.remove('hidden');
-      }
-    }else{
-      studentView.classList.add('hidden');
-      stickySave.classList.add('hidden');
-      document.getElementById('coachView').classList.remove('hidden');
-      showDashboard();
-      renderDashboard();
-    }
-  }
 
   function init(){
     const params = new URLSearchParams(window.location.search);
@@ -1793,12 +1774,18 @@ window.storage = {
     renderBillingTab();
 
     if(code){
-      if(mainHeader) mainHeader.classList.add('hidden');
-      switchMode('student', code, inlineData);
-    }else{
-      if(mainHeader) mainHeader.classList.remove('hidden');
-      showDashboard();
-      renderDashboard();
+      // LINK COM CÓDIGO DO TREINO -> ABRE O TREINO DO ALUNO
+      document.getElementById('coachView').classList.add('hidden');
+      studentView.classList.remove('hidden');
+      anamneseView.classList.add('hidden');
+      studentContent.classList.remove('hidden');
+      loadStudentView(code, inlineData);
+    } else {
+      // LINK LIMPO -> ABRE A ANAMNESE DO ALUNO COM O BOTÃO DE ACESSO POR SENHA
+      document.getElementById('coachView').classList.add('hidden');
+      studentView.classList.remove('hidden');
+      anamneseView.classList.remove('hidden');
+      studentContent.classList.add('hidden');
     }
   }
   init();
