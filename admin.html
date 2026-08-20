@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jhonata — Painel do Personal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#210309;--card:#340712;--card-border:#5a1120;--line:#5a1120;
+    --accent:#c4324f;--gold:#d4a02a;--green:#7fd68a;--text:#ffffff;
+    --muted:#d8b3bb;--input-bg:#2a0710;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:80px;}
+  header{padding:20px 24px;border-bottom:1px solid var(--card-border);font-family:'JetBrains Mono',monospace;font-size:13px;}
+  header b{color:var(--accent);}
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px;}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
+  h1{font-size:26px;font-weight:800;margin-bottom:4px;}
+  .subtext{color:var(--muted);font-size:14px;margin-bottom:24px;}
+  .card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:20px;margin-bottom:18px;}
+  .card h2{font-size:16px;font-weight:700;margin-bottom:14px;color:var(--gold);}
+  label{display:block;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin:14px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input, textarea{width:100%;background:var(--input-bg);border:1px solid var(--card-border);color:var(--text);padding:11px 12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14.5px;}
+  textarea{resize:vertical;min-height:140px;font-family:'JetBrains Mono',monospace;}
+  .row{display:flex;gap:10px;}
+  .row > div{flex:1;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:100px;font-weight:700;font-size:14px;cursor:pointer;border:none;background:var(--accent);color:#fff;width:100%;}
+  .btn-gold{background:var(--gold);color:#210309;}
+  .result-panel{background:linear-gradient(135deg,#3d0a18,#2c0810);border:1px solid var(--accent);border-radius:16px;padding:22px;margin-top:18px;}
+  .link-box{background:var(--input-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all;margin:12px 0;color:var(--gold);}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<header>JHONATA <b>/ PAINEL DO PERSONAL</b></header>
+
+<div class="wrap">
+  <div class="eyebrow">IMPORTAÇÃO DIRETA DE DOCUMENTOS</div>
+  <h1>Montar Treino via Texto / Google Docs</h1>
+  <p class="subtext">Cole o texto do seu documento abaixo e o app organiza tudo automaticamente.</p>
+
+  <div class="card">
+    <h2>1. Dados do Aluno</h2>
+    <div class="row">
+      <div>
+        <label>Código do Aluno (ex: erick)</label>
+        <input type="text" id="studentCode" placeholder="ex: erick">
+      </div>
+      <div>
+        <label>Nome do Aluno</label>
+        <input type="text" id="clientName" placeholder="Ex: Erick Silva">
+      </div>
+    </div>
+    <label>Título do Plano</label>
+    <input type="text" id="workoutTitle" placeholder="Ex: Hipertrofia — Mês 1">
+  </div>
+
+  <div class="card">
+    <h2>2. Cole o Treino do Documento / Google Docs</h2>
+    <label>Cole o texto completo do treino abaixo</label>
+    <textarea id="rawDocText" placeholder="Treino A - Peito e Tríceps&#10;Supino reto 4x10 60kg&#10;Desenvolvimento 3x12&#10;&#10;Treino B - Costas e Bíceps&#10;Puxada alta 4x10&#10;Remada curvada 4x12"></textarea>
+  </div>
+
+  <button class="btn" id="saveWorkoutBtn">Converter, Salvar e Atualizar App do Aluno</button>
+
+  <div id="resultPanel" class="result-panel hidden">
+    <div class="eyebrow">LINK GERADO DO ALUNO</div>
+    <div class="link-box" id="linkBox"></div>
+    <button class="btn btn-gold" id="copyBtn">Copiar Link para Enviar no WhatsApp</button>
+  </div>
+</div>
+
+<script>
+  // ==========================================================
+  // DIGITE SUAS CREDENCIAIS DO GITHUB AQUI:
+  // ==========================================================
+  const GH_USER = "jhonatags123";     
+  const GH_REPO = "ConsultoriaApp";  
+  const GH_TOKEN = "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"; 
+  // ==========================================================
+
+  function parseDocToDays(text) {
+    const lines = text.split('\n');
+    const days = [];
+    let currentDay = { id: "d1", title: "Treino Geral", exercises: [] };
+
+    lines.forEach((line, idx) => {
+      const raw = line.trim();
+      if(!raw) return;
+
+      // Se a linha parecer um título de dia (ex: "Treino A", "Segunda - Treino B")
+      if(raw.toLowerCase().includes('treino') || raw.toLowerCase().includes('segunda') || raw.toLowerCase().includes('terça') || raw.toLowerCase().includes('quarta') || raw.toLowerCase().includes('quinta') || raw.toLowerCase().includes('sexta') || raw.toLowerCase().includes('sábado')){
+        if(currentDay.exercises.length > 0){
+          days.push(currentDay);
+        }
+        currentDay = {
+          id: "d" + (days.length + 1),
+          title: raw,
+          exercises: []
+        };
+      } else {
+        // Trata como exercício
+        let setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
+        let name = raw.replace(setsMatch ? setsMatch[0] : '', '').trim();
+        
+        currentDay.exercises.push({
+          id: "e" + idx,
+          name: name || raw,
+          series: setsMatch ? setsMatch[1] : "4",
+          repsAlvo: setsMatch ? setsMatch[2] : "10"
+        });
+      }
+    });
+
+    if(currentDay.exercises.length > 0){
+      days.push(currentDay);
+    }
+
+    return days.length > 0 ? days : [{ id: "d1", title: "Treino Geral", exercises: [] }];
+  }
+
+  document.getElementById('saveWorkoutBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('saveWorkoutBtn');
+    const code = document.getElementById('studentCode').value.trim().toLowerCase().replace(/\s+/g, '-');
+    const clientName = document.getElementById('clientName').value.trim();
+    const title = document.getElementById('workoutTitle').value.trim();
+    const rawText = document.getElementById('rawDocText').value;
+
+    if(!code || !clientName || !rawText.trim()){
+      alert('Preencha o código, o nome e cole o texto do treino!');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Processando e Salvando...";
+
+    const parsedDays = parseDocToDays(rawText);
+
+    const payload = {
+      code,
+      clientName,
+      title: title || "Plano de Treino",
+      updatedAt: new Date().toISOString(),
+      days: parsedDays
+    };
+
+    const path = `data/${code}.json`;
+    const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${path}`;
+
+    try {
+      let sha = null;
+      const getRes = await fetch(url, { headers: { 'Authorization': `token ${GH_TOKEN}` } });
+      if(getRes.ok){
+        const getData = await getRes.json();
+        sha = getData.sha;
+      }
+
+      const body = {
+        message: `Importando treino do documento para: ${code}`,
+        content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),
+        sha: sha || undefined
+      };
+
+      const putRes = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${GH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      if(putRes.ok){
+        const baseUrl = window.location.href.replace('admin.html', 'index.html');
+        const studentUrl = `${baseUrl}?a=${code}`;
+        document.getElementById('linkBox').textContent = studentUrl;
+        document.getElementById('resultPanel').classList.remove('hidden');
+        alert('Treino importado e salvo no app do aluno com sucesso!');
+      } else {
+        alert('Erro ao sincronizar. Verifique suas credenciais do GitHub no código.');
+      }
+    } catch(e) {
+      alert('Erro de conexão ao salvar.');
+    }
+
+    btn.disabled = false;
+    btn.textContent = "Converter, Salvar e Atualizar App do Aluno";
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(document.getElementById('linkBox').textContent);
+    alert('Link copiado!');
+  });
+</script>
+</body>
+</html>
