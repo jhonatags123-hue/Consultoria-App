@@ -1,0 +1,1808 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jhonata — Alunos, Treino, Dieta & Cobrança</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#210309;
+    --card:#340712;
+    --card-border:#5a1120;
+    --line:#5a1120;
+    --accent:#c4324f;
+    --gold:#d4a02a;
+    --green:#7fd68a;
+    --text:#ffffff;
+    --muted:#d8b3bb;
+    --muted2:#8a4457;
+    --input-bg:#2a0710;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;}
+
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 24px;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;gap:12px;
+  }
+  .brand{font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .brand b{color:var(--accent);}
+  .mode-toggle{
+    display:flex;background:var(--card);border:1px solid var(--card-border);
+    border-radius:100px;padding:3px;font-size:12.5px;
+  }
+  .mode-toggle button{
+    background:none;border:none;color:var(--muted);
+    padding:7px 16px;border-radius:100px;cursor:pointer;
+    font-family:'Inter',sans-serif;font-weight:600;
+    transition:background .2s, color .2s;
+  }
+  .mode-toggle button.active{background:var(--accent);color:#fff;}
+
+  .wrap{max-width:760px;margin:0 auto;padding:28px 20px;}
+
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;
+    text-transform:uppercase;color:var(--accent);
+    display:flex;align-items:center;gap:10px;margin-bottom:10px;
+  }
+  .eyebrow::before{content:'';width:20px;height:1px;background:var(--accent);}
+  h1{font-size:26px;font-weight:800;margin-bottom:4px;}
+  .subtext{color:var(--muted);font-size:14px;margin-bottom:24px;line-height:1.5;}
+
+  .card{
+    background:var(--card);border:1px solid var(--card-border);
+    border-radius:16px;padding:20px;margin-bottom:18px;
+  }
+  .card h2{font-size:16px;font-weight:700;margin-bottom:14px;}
+
+  label{
+    display:block;font-size:11.5px;color:var(--muted);
+    font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;
+    text-transform:uppercase;margin-bottom:6px;margin-top:14px;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=number], input[type=date], textarea, select{
+    width:100%;background:var(--input-bg);border:1px solid var(--card-border);
+    color:var(--text);padding:11px 12px;border-radius:10px;
+    font-family:'Inter',sans-serif;font-size:14.5px;
+    transition:border-color .2s;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none;border-color:var(--accent);
+  }
+  textarea{resize:vertical;min-height:80px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.6;}
+  .row{display:flex;gap:10px;}
+  .row > div{flex:1;}
+
+  .subtabs{display:flex;gap:8px;margin-bottom:22px;border-bottom:1px solid var(--card-border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .subtab-btn{
+    background:none;border:none;color:var(--muted);font-weight:700;font-size:14px;
+    padding:10px 4px;cursor:pointer;border-bottom:2px solid transparent;margin-right:18px;
+    transition:color .2s, border-color .2s;white-space:nowrap;flex-shrink:0;
+  }
+  .subtab-btn.active{color:var(--text);border-color:var(--accent);}
+
+  .day-block{
+    border:1px solid var(--card-border);border-radius:14px;
+    padding:16px;margin-bottom:14px;background:#2c0810;
+  }
+  .day-head{display:flex;gap:10px;align-items:center;margin-bottom:12px;}
+  .day-head input{flex:1;}
+  .icon-btn{
+    background:none;border:1px solid var(--card-border);color:var(--muted);
+    width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:15px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:border-color .2s, color .2s;
+  }
+  .icon-btn:hover{border-color:var(--accent);color:var(--text);}
+
+  .ex-wrap{margin-bottom:10px;}
+  .ex-row{
+    display:grid;grid-template-columns:2fr 0.7fr 0.7fr 1fr 0.4fr;
+    gap:8px;margin-bottom:6px;align-items:center;
+  }
+  .ex-row input{padding:8px 10px;font-size:13px;}
+  @media(max-width:640px){
+    .ex-row{grid-template-columns:1fr 1fr;}
+    .ex-row .del-col{grid-column:span 2;justify-self:end;}
+  }
+  .ex-labels{
+    display:grid;grid-template-columns:2fr 0.7fr 0.7fr 1fr 0.4fr;
+    gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:0.06em;text-transform:uppercase;color:var(--muted2);
+    margin-bottom:6px;
+  }
+  @media(max-width:640px){.ex-labels{display:none;}}
+
+  .hist-line{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);margin:0 0 8px 2px;}
+  .hist-toggle{background:none;border:none;color:var(--gold);font-size:11px;font-family:'JetBrains Mono',monospace;cursor:pointer;padding:0;margin-left:6px;text-decoration:underline;}
+  .hist-panel{background:var(--input-bg);border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;margin:-2px 0 10px 0;font-size:12px;}
+  .hist-panel .hist-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;}
+  .hist-empty{color:var(--muted2);font-size:12px;}
+
+  .paste-box{margin-top:12px;}
+  .paste-actions{display:flex;gap:8px;margin-top:8px;}
+
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:12px 20px;border-radius:100px;font-weight:700;font-size:14px;
+    cursor:pointer;border:none;text-decoration:none;transition:transform .15s, opacity .2s;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-gold{background:var(--gold);color:#210309;}
+  .btn-ghost{background:transparent;border:1px solid var(--card-border);color:var(--text);}
+  .btn-sm{padding:8px 14px;font-size:12.5px;}
+  .btn-block{width:100%;}
+  .btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+  .add-day-btn{width:100%;background:none;border:1px dashed var(--card-border);color:var(--muted);
+    padding:12px;border-radius:12px;cursor:pointer;font-size:13.5px;font-weight:600;margin-top:4px;
+    transition:border-color .2s,color .2s;}
+  .add-day-btn:hover{border-color:var(--accent);color:var(--text);}
+
+  .result-panel{
+    background:linear-gradient(135deg,#3d0a18,#2c0810);
+    border:1px solid var(--accent);border-radius:16px;padding:22px;margin-top:8px;
+  }
+  .result-panel .link-box{
+    background:var(--input-bg);border:1px solid var(--card-border);border-radius:10px;
+    padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    word-break:break-all;margin:12px 0;color:var(--gold);
+  }
+  .result-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .dash-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+  @media(max-width:560px){.dash-stats{grid-template-columns:1fr 1fr;}}
+  .dash-stat{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;text-align:center;}
+  .dash-stat b{display:block;font-family:'JetBrains Mono',monospace;font-size:19px;}
+  .dash-stat span{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
+
+  .student-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:16px;margin-bottom:12px;display:flex;gap:14px;align-items:center;}
+  .avatar{width:44px;height:44px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0;}
+  .sc-info{flex:1;min-width:0;}
+  .sc-info b{display:block;font-size:15px;}
+  .sc-info .plan{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:4px 9px;border-radius:100px;margin-top:7px;}
+  .badge.ok{background:rgba(127,214,138,0.14);color:var(--green);}
+  .badge.warn{background:rgba(212,160,42,0.16);color:var(--gold);}
+  .badge.over{background:rgba(212,58,58,0.16);color:#ff8080;}
+  .badge.none{background:var(--input-bg);color:var(--muted2);}
+  .sc-actions{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+
+  .kcal-target-card{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  }
+  .kcal-target-card > div:first-child{flex:1;min-width:160px;}
+  .totals-summary{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;
+  }
+  @media(max-width:560px){.totals-summary{grid-template-columns:1fr 1fr;}}
+  .stat-box{
+    background:var(--input-bg);border:1px solid var(--card-border);border-radius:12px;
+    padding:12px;text-align:center;
+  }
+  .stat-box b{
+    display:block;font-family:'JetBrains Mono',monospace;font-size:19px;
+  }
+  .stat-box span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.04em;}
+  .diff-line{
+    margin-top:14px;text-align:center;font-family:'JetBrains Mono',monospace;
+    font-size:13px;padding:10px;border-radius:10px;
+  }
+  .diff-line.under{background:rgba(127,214,138,0.12);color:var(--green);}
+  .diff-line.over{background:rgba(212,58,58,0.15);color:#ff8080;}
+  .diff-line.neutral{background:var(--input-bg);color:var(--muted);}
+
+  .billing-status-line{margin-top:14px;padding:12px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13.5px;text-align:center;}
+  .pay-history-item{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--card-border);font-size:13px;}
+  .pay-history-item:last-child{border-bottom:none;}
+
+  .meal-block{
+    border:1px solid var(--card-border);border-radius:14px;
+    padding:16px;margin-bottom:14px;background:#2c0810;
+  }
+  .meal-head{display:flex;gap:10px;align-items:center;margin-bottom:6px;}
+  .meal-head input{flex:1;}
+  .meal-subtotal{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);
+    margin-bottom:12px;
+  }
+  .food-row{
+    display:grid;grid-template-columns:2fr 0.7fr 0.6fr 1.4fr 0.4fr;
+    gap:8px;margin-bottom:8px;align-items:center;
+  }
+  @media(max-width:640px){
+    .food-row{grid-template-columns:1.4fr 0.6fr 0.4fr;}
+    .food-row .macro-preview{display:none;}
+  }
+  .food-row input{padding:8px 10px;font-size:13px;}
+  .macro-preview{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);
+    white-space:nowrap;
+  }
+  .food-search-wrap{position:relative;}
+  .food-suggestions{
+    position:absolute;top:100%;left:0;right:0;z-index:20;
+    background:#2c0810;border:1px solid var(--card-border);border-radius:10px;
+    margin-top:4px;max-height:220px;overflow-y:auto;
+  }
+  .food-suggestions div{
+    padding:9px 12px;font-size:13px;cursor:pointer;
+    border-bottom:1px solid var(--card-border);
+    display:flex;justify-content:space-between;gap:10px;
+  }
+  .food-suggestions div:last-child{border-bottom:none;}
+  .food-suggestions div:hover{background:var(--input-bg);}
+  .food-suggestions .fs-macro{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap;}
+  .add-food-row{display:flex;gap:8px;margin-top:10px;}
+  .add-food-row .food-search-wrap{flex:1;}
+  .add-food-row input[type=number]{width:80px;flex:none;}
+
+  .add-meal-btn{width:100%;background:none;border:1px dashed var(--card-border);color:var(--muted);
+    padding:12px;border-radius:12px;cursor:pointer;font-size:13.5px;font-weight:600;margin-top:4px;
+    transition:border-color .2s,color .2s;}
+  .add-meal-btn:hover{border-color:var(--accent);color:var(--text);}
+
+  .student-header{margin-bottom:24px;}
+  .student-header h1{font-size:24px;}
+  .student-header .meta{color:var(--muted);font-size:13px;margin-top:4px;}
+  .section-divider{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.12em;
+    text-transform:uppercase;color:var(--gold);margin:34px 0 4px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .section-divider::before{content:'';width:22px;height:1px;background:var(--gold);}
+  .day-title{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.1em;
+    text-transform:uppercase;color:var(--accent);margin:26px 0 12px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .day-title::before{content:'';width:18px;height:1px;background:var(--accent);}
+  .ex-card{
+    background:var(--card);border:1px solid var(--card-border);border-radius:14px;
+    padding:16px;margin-bottom:12px;
+  }
+  .ex-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px;}
+  .ex-name{font-size:15.5px;font-weight:700;}
+  .ex-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.04em;
+    background:var(--input-bg);border:1px solid var(--card-border);color:var(--muted);
+    padding:4px 9px;border-radius:100px;white-space:nowrap;
+  }
+  .edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .edit-grid .full{grid-column:1/-1;}
+  .edit-grid label{margin-top:0;}
+  .edit-grid textarea{min-height:50px;font-family:'Inter',sans-serif;font-size:13.5px;}
+
+  .meal-view-block{margin-bottom:18px;}
+  .meal-view-title{font-size:15px;font-weight:700;margin-bottom:8px;}
+  .food-view-row{
+    display:flex;justify-content:space-between;align-items:center;
+    background:var(--card);border:1px solid var(--card-border);border-radius:12px;
+    padding:11px 14px;margin-bottom:7px;font-size:14px;
+  }
+  .food-view-row .fname{font-weight:600;}
+  .food-view-row .fqty{color:var(--muted);font-size:12.5px;}
+  .food-view-row .fkcal{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--gold);white-space:nowrap;}
+
+  .sticky-save{
+    position:fixed;bottom:0;left:0;right:0;
+    background:rgba(33,3,9,0.92);backdrop-filter:blur(10px);
+    border-top:1px solid var(--card-border);
+    padding:14px 20px;display:flex;justify-content:center;gap:12px;align-items:center;z-index:50;
+  }
+  .save-status{font-size:12.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+  .save-status.ok{color:var(--green);}
+
+  .empty-state{
+    text-align:center;padding:60px 20px;color:var(--muted);
+  }
+  .empty-state h2{color:var(--text);margin-bottom:8px;font-size:18px;}
+
+  .loading{text-align:center;padding:60px 20px;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:13px;}
+
+  .hidden{display:none !important;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+</style>
+</head>
+<body>
+
+<header id="mainHeader">
+  <div class="brand">JHONATA <b>/ TREINO & DIETA</b></div>
+</header>
+
+<div class="wrap" id="coachView">
+
+  <div id="dashboardView">
+    <div class="eyebrow">VISÃO GERAL</div>
+    <h1>Seus alunos</h1>
+    <p class="subtext">Acompanhe treino, dieta e cobrança de cada aluno num só lugar.</p>
+
+    <div class="card" style="border-color: var(--gold); background: linear-gradient(135deg, #340712, #210309);">
+      <h2>📋 Link de Anamnese para Novos Alunos</h2>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Envie este link para potenciais clientes preencherem o cadastro inicial:</p>
+      <div class="row" style="align-items: center;">
+        <input type="text" id="anamneseShareLink" readonly style="font-size: 12px; font-family: 'JetBrains Mono', monospace; color: var(--gold);">
+        <button class="btn btn-gold btn-sm" id="copyAnamneseLinkBtn" style="flex: none;">Copiar Link</button>
+      </div>
+    </div>
+
+    <div id="birthdayPanel" class="hidden"></div>
+
+    <div class="dash-stats" id="dashStats"></div>
+
+    <button class="btn btn-primary btn-block" id="newStudentBtn" style="margin-bottom:22px;">+ Novo aluno</button>
+
+    <div id="studentsList"><div class="loading">Carregando alunos...</div></div>
+  </div>
+
+  <div id="editorView" class="hidden">
+    <button class="btn btn-ghost btn-sm" id="backToDashBtn" style="margin-bottom:18px;">← Voltar pros alunos</button>
+
+    <div class="eyebrow">MONTAR PLANO</div>
+    <h1 id="coachTitle">Novo plano</h1>
+    <p class="subtext">Defina treino, dieta e cobrança do aluno. Ele recebe tudo em um único link.</p>
+
+    <div class="card">
+      <label>Nome do cliente</label>
+      <input type="text" id="clientName" placeholder="Ex: Erick">
+      <label>Data de Nascimento</label>
+      <input type="date" id="clientBirthDate">
+      <label>Título do plano</label>
+      <input type="text" id="workoutTitle" placeholder="Ex: Plano de Agosto — Cutting">
+    </div>
+
+    <div class="subtabs">
+      <button class="subtab-btn active" id="tabBtnTreino">Treino</button>
+      <button class="subtab-btn" id="tabBtnDieta">Dieta</button>
+      <button class="subtab-btn" id="tabBtnCobranca">Cobrança</button>
+    </div>
+
+    <div id="tabTreino">
+      <div id="daysContainer"></div>
+      <button class="add-day-btn" id="addDayBtn">+ Adicionar dia de treino</button>
+    </div>
+
+    <div id="tabDieta" class="hidden">
+      <div class="card kcal-target-card">
+        <div>
+          <label>Meta calórica diária (opcional)</label>
+          <input type="number" id="kcalTarget" placeholder="Ex: 1800">
+        </div>
+      </div>
+
+      <div class="card" id="dietTotalsCard">
+        <h2>Total do dia</h2>
+        <div class="totals-summary">
+          <div class="stat-box"><b id="totalKcal">0</b><span>kcal</span></div>
+          <div class="stat-box"><b id="totalProtein">0g</b><span>proteína</span></div>
+          <div class="stat-box"><b id="totalCarb">0g</b><span>carbo</span></div>
+          <div class="stat-box"><b id="totalFat">0g</b><span>gordura</span></div>
+        </div>
+        <div class="diff-line neutral" id="diffLine">Defina uma meta calórica pra comparar</div>
+      </div>
+
+      <div id="mealsContainer"></div>
+      <button class="add-meal-btn" id="addMealBtn">+ Adicionar refeição</button>
+    </div>
+
+    <div id="tabCobranca" class="hidden">
+      <div class="card">
+        <h2>Cobrança mensal</h2>
+        <div class="row">
+          <div>
+            <label>Valor mensal (R$)</label>
+            <input type="number" id="billingValor" placeholder="Ex: 250">
+          </div>
+          <div>
+            <label>Dia de vencimento</label>
+            <input type="number" id="billingDueDay" min="1" max="31" placeholder="Ex: 10">
+          </div>
+        </div>
+        <div class="billing-status-line neutral" id="billingStatusLine">Configure valor e dia de vencimento</div>
+        <button class="btn btn-gold btn-sm" style="margin-top:12px;" id="markPaidBtn">Marcar mês atual como pago</button>
+      </div>
+      <div class="card">
+        <h2>Histórico de pagamentos</h2>
+        <div id="paymentHistoryList"><p style="color:var(--muted2);font-size:13px;">Nenhum pagamento registrado ainda.</p></div>
+      </div>
+    </div>
+
+    <div style="margin-top:22px;">
+      <button class="btn btn-primary btn-block" id="generateLinkBtn">Gerar link para o cliente</button>
+    </div>
+
+    <div id="resultPanel" class="result-panel hidden">
+      <div class="eyebrow" style="margin-bottom:8px;">LINK GERADO</div>
+      <div style="font-size:14px;color:var(--muted);">Envie este link pro cliente. Treino, dieta e cobrança chegam juntos — ele só edita carga, reps e observações do treino.</div>
+      <div class="link-box" id="linkBox"></div>
+      <div class="result-actions">
+        <button class="btn btn-gold btn-sm" id="copyLinkBtn">Copiar link</button>
+        <a class="btn btn-primary btn-sm" id="wppSendBtn" href="#" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="wrap hidden" id="studentView">
+  
+  <div id="anamneseView" class="hidden">
+    <div class="student-header">
+      <div class="eyebrow">CONSULTORIA FITNESS</div>
+      <h1>Anamnese & Pré-Cadastro</h1>
+      <p class="subtext">Preencha os dados abaixo para que eu possa montar seu protocolo exclusivo de treino e dieta.</p>
+    </div>
+
+    <form id="anamneseForm">
+      <div class="card">
+        <h2>1. Dados Pessoais</h2>
+        <label>Nome Completo</label>
+        <input type="text" id="anaNome" placeholder="Ex: Roberto Silva" required>
+        
+        <div class="row">
+          <div>
+            <label>Data de Nascimento</label>
+            <input type="date" id="anaNasc" required>
+          </div>
+          <div>
+            <label>WhatsApp</label>
+            <input type="text" id="anaWhats" placeholder="(00) 00000-0000" required>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Peso Atual (kg)</label>
+            <input type="number" step="0.1" id="anaPeso" placeholder="Ex: 75.5" required>
+          </div>
+          <div>
+            <label>Altura (cm)</label>
+            <input type="number" id="anaAltura" placeholder="Ex: 175" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2. Objetivos & Rotina</h2>
+        <label>Objetivo Principal</label>
+        <select id="anaObjetivo">
+          <option value="Emagrecimento / Definição">Emagrecimento / Definição</option>
+          <option value="Ganho de Massa Muscular (Hipertrofia)">Ganho de Massa Muscular (Hipertrofia)</option>
+          <option value="Recomposição Corporal">Recomposição Corporal</option>
+          <option value="Condicionamento & Saúde">Condicionamento & Saúde</option>
+        </select>
+
+        <label>Nível de Experiência na Musculação</label>
+        <select id="anaNivel">
+          <option value="Iniciante (nunca treinou ou parado há meses)">Iniciante (nunca treinou ou parado há meses)</option>
+          <option value="Intermediário (treina de 6 meses a 2 anos)">Intermediário (treina de 6 meses a 2 anos)</option>
+          <option value="Avançado (treina há mais de 2 anos com constância)">Avançado (treina há mais de 2 anos com constância)</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label>Dias disponíveis/semana</label>
+            <input type="number" id="anaDias" min="1" max="7" placeholder="Ex: 5" required>
+          </div>
+          <div>
+            <label>Tempo por treino (min)</label>
+            <input type="number" id="anaTempo" placeholder="Ex: 60" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3. Saúde & Restrições</h2>
+        <label>Possui lesões, dores articulares ou restrições médicas?</label>
+        <textarea id="anaLesoes" placeholder="Ex: Condromalácia no joelho, hérnia L5-S1, ou 'Nenhuma'"></textarea>
+
+        <label>Alergias, intolerâncias alimentares ou aversões</label>
+        <textarea id="anaDieta" placeholder="Ex: Intolerância à lactose, não como peixe, ou 'Nenhuma'"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">Enviar Anamnese pelo WhatsApp</button>
+    </form>
+  </div>
+
+  <div id="studentContent"></div>
+</div>
+
+<div class="sticky-save hidden" id="stickySave">
+  <span class="save-status" id="saveStatus">Alterações não salvas</span>
+  <button class="btn btn-primary btn-sm" id="saveEditsBtn">Salvar alterações da semana</button>
+</div>
+
+<script>
+window.storage = {
+  get: async (key, isJson) => {
+    const val = localStorage.getItem(key);
+    return val ? { value: val } : null;
+  },
+  set: async (key, val, isJson) => {
+    localStorage.setItem(key, val);
+    return true;
+  }
+};
+
+(function(){
+  const MEU_WHATSAPP = "5551990169026"; 
+
+  const TACO_FOODS = [
+    {id:'f1',cat:'Proteínas',name:'Peito de frango grelhado',kcal:159,protein:31,carb:0,fat:3.6},
+    {id:'f2',cat:'Proteínas',name:'Coxa/sobrecoxa de frango assada',kcal:215,protein:26,carb:0,fat:11},
+    {id:'f3',cat:'Proteínas',name:'Patinho bovino cozido',kcal:219,protein:35.9,carb:0,fat:7.3},
+    {id:'f4',cat:'Proteínas',name:'Acém bovino moído cozido',kcal:212,protein:26,carb:0,fat:11},
+    {id:'f5',cat:'Proteínas',name:'Lombo suíno assado',kcal:210,protein:28,carb:0,fat:10},
+    {id:'f6',cat:'Proteínas',name:'Ovo cozido (inteiro)',kcal:146,protein:13,carb:0.6,fat:9.5},
+    {id:'f7',cat:'Proteínas',name:'Clara de ovo',kcal:52,protein:11,carb:0.7,fat:0.2},
+    {id:'f8',cat:'Proteínas',name:'Tilápia grelhada',kcal:128,protein:26,carb:0,fat:2.5},
+    {id:'f9',cat:'Proteínas',name:'Salmão grelhado',kcal:208,protein:20,carb:0,fat:13},
+    {id:'f10',cat:'Proteínas',name:'Atum em água (lata)',kcal:116,protein:25.5,carb:0,fat:1},
+    {id:'f11',cat:'Proteínas',name:'Whey protein (pó)',kcal:400,protein:80,carb:8,fat:7},
+    {id:'f12',cat:'Proteínas',name:'Tofu',kcal:76,protein:8,carb:1.9,fat:4.8},
+    {id:'f13',cat:'Carboidratos',name:'Arroz branco cozido',kcal:128,protein:2.5,carb:28.1,fat:0.2},
+    {id:'f14',cat:'Carboidratos',name:'Arroz integral cozido',kcal:124,protein:2.6,carb:25.8,fat:1},
+    {id:'f15',cat:'Carboidratos',name:'Batata doce cozida',kcal:77,protein:0.6,carb:18.4,fat:0.1},
+    {id:'f16',cat:'Carboidratos',name:'Batata inglesa cozida',kcal:52,protein:1.2,carb:11.9,fat:0.1},
+    {id:'f17',cat:'Carboidratos',name:'Mandioca cozida',kcal:125,protein:0.6,carb:30.1,fat:0.3},
+    {id:'f18',cat:'Carboidratos',name:'Macarrão cozido',kcal:111,protein:3.3,carb:23,fat:0.9},
+    {id:'f19',cat:'Carboidratos',name:'Aveia em flocos',kcal:394,protein:13.9,carb:67,fat:8.5},
+    {id:'f20',cat:'Carboidratos',name:'Pão francês',kcal:300,protein:8,carb:58.6,fat:3.1},
+    {id:'f21',cat:'Carboidratos',name:'Pão integral',kcal:253,protein:9.4,carb:49.9,fat:3.4},
+    {id:'f22',cat:'Carboidratos',name:'Tapioca (goma hidratada)',kcal:130,protein:0.5,carb:32,fat:0.2},
+    {id:'f23',cat:'Carboidratos',name:'Quinoa cozida',kcal:120,protein:4.4,carb:21.3,fat:1.9},
+    {id:'f24',cat:'Carboidratos',name:'Feijão carioca cozido',kcal:76,protein:4.8,carb:13.6,fat:0.5},
+    {id:'f25',cat:'Carboidratos',name:'Lentilha cozida',kcal:93,protein:6.3,carb:16.3,fat:0.5},
+    {id:'f26',cat:'Carboidratos',name:'Grão de bico cozido',kcal:164,protein:8.9,carb:27.4,fat:2.6},
+    {id:'f27',cat:'Carboidratos',name:'Milho cozido',kcal:138,protein:3.4,carb:29,fat:1.5},
+    {id:'f28',cat:'Gorduras',name:'Azeite de oliva',kcal:884,protein:0,carb:0,fat:100},
+    {id:'f29',cat:'Gorduras',name:'Óleo de coco',kcal:862,protein:0,carb:0,fat:99.1},
+    {id:'f30',cat:'Gorduras',name:'Abacate',kcal:96,protein:1.2,carb:6,fat:8.4},
+    {id:'f31',cat:'Gorduras',name:'Castanha do pará',kcal:656,protein:14.3,carb:12.3,fat:63.5},
+    {id:'f32',cat:'Gorduras',name:'Castanha de caju',kcal:570,protein:18.2,carb:29,fat:46},
+    {id:'f33',cat:'Gorduras',name:'Amendoim',kcal:544,protein:27.2,carb:20,fat:43.9},
+    {id:'f34',cat:'Gorduras',name:'Pasta de amendoim',kcal:588,protein:25,carb:20,fat:50},
+    {id:'f35',cat:'Gorduras',name:'Amêndoas',kcal:579,protein:21,carb:22,fat:50},
+    {id:'f36',cat:'Vegetais',name:'Brócolis cozido',kcal:25,protein:2.1,carb:4.4,fat:0.3},
+    {id:'f37',cat:'Vegetais',name:'Alface',kcal:15,protein:1.4,carb:2.4,fat:0.2},
+    {id:'f38',cat:'Vegetais',name:'Tomate',kcal:18,protein:0.9,carb:3.9,fat:0.2},
+    {id:'f39',cat:'Vegetais',name:'Cenoura crua',kcal:41,protein:0.9,carb:9.6,fat:0.2},
+    {id:'f40',cat:'Vegetais',name:'Abobrinha cozida',kcal:20,protein:1.2,carb:4.3,fat:0.2},
+    {id:'f41',cat:'Vegetais',name:'Couve refogada',kcal:60,protein:2.4,carb:4,fat:4},
+    {id:'f42',cat:'Vegetais',name:'Pepino',kcal:15,protein:0.7,carb:3.6,fat:0.1},
+    {id:'f43',cat:'Laticínios',name:'Leite desnatado',kcal:35,protein:3.4,carb:4.9,fat:0.2},
+    {id:'f44',cat:'Laticínios',name:'Leite integral',kcal:61,protein:3.2,carb:4.7,fat:3.2},
+    {id:'f45',cat:'Laticínios',name:'Queijo minas frescal',kcal:264,protein:17.4,carb:3.2,fat:20.2},
+    {id:'f46',cat:'Laticínios',name:'Iogurte natural desnatado',kcal:41,protein:4,carb:6,fat:0.2},
+    {id:'f47',cat:'Laticínios',name:'Queijo cottage',kcal:98,protein:11,carb:3.4,fat:4.3},
+    {id:'f48',cat:'Frutas',name:'Banana',kcal:89,protein:1.1,carb:22.8,fat:0.3},
+    {id:'f49',cat:'Frutas',name:'Maçã',kcal:52,protein:0.3,carb:13.8,fat:0.2},
+    {id:'f50',cat:'Frutas',name:'Morango',kcal:30,protein:0.9,carb:6.8,fat:0.3},
+    {id:'f51',cat:'Frutas',name:'Mamão',kcal:40,protein:0.5,carb:10.4,fat:0.1},
+    {id:'f52',cat:'Frutas',name:'Laranja',kcal:46,protein:0.9,carb:11.5,fat:0.1},
+    {id:'f53',cat:'Frutas',name:'Abacaxi',kcal:48,protein:0.9,carb:12.3,fat:0.1}
+  ];
+
+  function uid(len){
+    len = len || 6;
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let s = "";
+    for(let i=0;i<len;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+  function exId(){ return "e" + Math.random().toString(36).slice(2,9); }
+  function dayId(){ return "d" + Math.random().toString(36).slice(2,9); }
+  function mealId(){ return "m" + Math.random().toString(36).slice(2,9); }
+  function foodRowId(){ return "fr" + Math.random().toString(36).slice(2,9); }
+  function escapeHtml(str){
+    return (str||"").toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+  function formatDate(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit'});
+    }catch(e){ return ""; }
+  }
+  function formatDateShort(iso){
+    try{
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit'});
+    }catch(e){ return ""; }
+  }
+  function round1(n){ return Math.round(n*10)/10; }
+  function initials(name){
+    if(!name || !name.trim()) return '?';
+    const parts = name.trim().split(/\s+/);
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+  function parseLoadNumber(str){
+    if(!str) return null;
+    const m = String(str).replace(',','.').match(/(\d+(\.\d+)?)/);
+    return m ? parseFloat(m[1]) : null;
+  }
+
+  function parsePasteLine(line){
+    let raw = line.trim();
+    if(!raw) return null;
+    let weightMatch = raw.match(/(\d+[.,]?\d*)\s*kg/i);
+    let carga = weightMatch ? weightMatch[1].replace(',','.') + "kg" : "";
+    let setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
+    let series = setsMatch ? setsMatch[1] : "";
+    let repsAlvo = setsMatch ? setsMatch[2] : "";
+    let name = raw;
+    if(weightMatch) name = name.replace(weightMatch[0], "");
+    if(setsMatch) name = name.replace(setsMatch[0], "");
+    name = name.replace(/^[\s\-–:]+|[\s\-–:]+$/g, "").replace(/\s{2,}/g, " ").trim();
+    if(!name) name = raw;
+    return {id: exId(), name, series, repsAlvo, tecnica:"", carga, repsFeitas:"", obs:"", history:[]};
+  }
+
+  function newBilling(){ return {valor:null, dueDay:null, history:[]}; }
+  function ymNow(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+  }
+  function billingStatus(billing){
+    if(!billing || !billing.valor || !billing.dueDay){
+      return {level:'none', label:'Sem cobrança configurada'};
+    }
+    const ym = ymNow();
+    const entry = (billing.history||[]).find(h=>h.ym===ym);
+    if(entry && entry.paid){
+      return {level:'ok', label:'Pago em ' + formatDateShort(entry.paidAt)};
+    }
+    const today = new Date();
+    const due = new Date(today.getFullYear(), today.getMonth(), billing.dueDay);
+    const diffDays = Math.round((due - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000);
+    if(diffDays < 0) return {level:'over', label:`Vencido há ${Math.abs(diffDays)}d`};
+    if(diffDays === 0) return {level:'warn', label:'Vence hoje'};
+    if(diffDays <= 3) return {level:'warn', label:`Vence em ${diffDays}d`};
+    return {level:'ok', label:`Vence dia ${billing.dueDay}`};
+  }
+
+  function checkBirthdayNextDays(birthDateStr){
+    if(!birthDateStr) return null;
+    const parts = birthDateStr.split('-');
+    if(parts.length!==3) return null;
+    const now = new Date();
+    const bMonth = parseInt(parts[1], 10) - 1;
+    const bDay = parseInt(parts[2], 10);
+    
+    let nextBday = new Date(now.getFullYear(), bMonth, bDay);
+    if(nextBday < new Date(now.getFullYear(), now.getMonth(), now.getDate())){
+      nextBday.setFullYear(now.getFullYear() + 1);
+    }
+    const diffTime = nextBday - new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if(diffDays <= 7){
+      return { daysLeft: diffDays, dateStr: `${String(bDay).padStart(2,'0')}/${String(bMonth+1).padStart(2,'0')}` };
+    }
+    return null;
+  }
+
+  function buildSparkline(history){
+    const pts = history.map(h=>parseLoadNumber(h.carga)).filter(v=>v!=null);
+    if(pts.length<2) return '';
+    const w=260, h=50, pad=6;
+    const min=Math.min(...pts), max=Math.max(...pts);
+    const range = (max-min) || 1;
+    const stepX = (w-2*pad)/(pts.length-1);
+    const coords = pts.map((v,i)=>{
+      const x = pad+i*stepX;
+      const y = h-pad-((v-min)/range)*(h-2*pad);
+      return [x,y];
+    });
+    const path = coords.map((c,i)=> (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+    const last = coords[coords.length-1];
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" style="margin-bottom:6px;">
+      <path d="${path}" fill="none" stroke="#d4a02a" stroke-width="2"/>
+      <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="#d4a02a"/>
+    </svg>`;
+  }
+  function buildHistPanelContent(history){
+    const spark = buildSparkline(history);
+    const rows = history.slice().reverse().slice(0,10).map((h, i)=>`
+      <div class="hist-row"><span>Semana ${history.length - i} (${formatDateShort(h.date)})</span><span><b>${escapeHtml(h.carga||'-')}</b> · <b>${escapeHtml(h.repsFeitas||'-')} reps</b></span></div>
+    `).join('');
+    return spark + (rows || '<div class="hist-empty">Sem registros de semanas anteriores</div>');
+  }
+
+  let days = [];
+  let meals = [];
+  let billing = newBilling();
+  let editingCode = null;
+  let studentData = null;
+  let studentCode = null;
+  let studentDirty = false;
+
+  function newExercise(){
+    return {id: exId(), name:"", series:"", repsAlvo:"", tecnica:"", carga:"", repsFeitas:"", obs:"", history:[]};
+  }
+  function newDay(title){
+    return {id: dayId(), title: title || ("Treino " + String.fromCharCode(65 + days.length)), exercises:[newExercise()]};
+  }
+  function newMeal(title){
+    return {id: mealId(), title: title || "Refeição", foods:[]};
+  }
+  function newFoodRow(food, qty){
+    return {
+      id: foodRowId(),
+      name: food.name,
+      qty: qty || 100,
+      per100: {kcal:food.kcal, protein:food.protein, carb:food.carb, fat:food.fat},
+      custom: !!food.custom
+    };
+  }
+  function rowMacros(row){
+    const f = row.qty / 100;
+    return {
+      kcal: Math.round(row.per100.kcal * f),
+      protein: round1(row.per100.protein * f),
+      carb: round1(row.per100.carb * f),
+      fat: round1(row.per100.fat * f)
+    };
+  }
+
+  const daysContainer = document.getElementById('daysContainer');
+
+  function renderDays(){
+    daysContainer.innerHTML = "";
+    days.forEach(day => {
+      const block = document.createElement('div');
+      block.className = 'day-block';
+
+      const head = document.createElement('div');
+      head.className = 'day-head';
+      head.innerHTML = `
+        <input type="text" value="${escapeHtml(day.title)}" data-day="${day.id}" class="day-title-input">
+        <button class="icon-btn del-day" data-day="${day.id}" aria-label="Remover dia">✕</button>
+      `;
+      block.appendChild(head);
+
+      const labels = document.createElement('div');
+      labels.className = 'ex-labels';
+      labels.innerHTML = `<span>Exercício</span><span>Séries</span><span>Reps alvo</span><span>Técnica</span><span></span>`;
+      block.appendChild(labels);
+
+      day.exercises.forEach(ex => {
+        if(!ex.history) ex.history = [];
+        const wrap = document.createElement('div');
+        wrap.className = 'ex-wrap';
+
+        const row = document.createElement('div');
+        row.className = 'ex-row';
+        row.innerHTML = `
+          <input type="text" placeholder="Nome do exercício" value="${escapeHtml(ex.name)}" data-field="name" data-day="${day.id}" data-ex="${ex.id}">
+          <input type="text" placeholder="4" value="${escapeHtml(ex.series)}" data-field="series" data-day="${day.id}" data-ex="${ex.id}">
+          <input type="text" placeholder="10" value="${escapeHtml(ex.repsAlvo)}" data-field="repsAlvo" data-day="${day.id}" data-ex="${ex.id}">
+          <input type="text" placeholder="Myo-reps" value="${escapeHtml(ex.tecnica)}" data-field="tecnica" data-day="${day.id}" data-ex="${ex.id}">
+          <button class="icon-btn del-col del-ex" data-day="${day.id}" data-ex="${ex.id}" aria-label="Remover exercício">✕</button>
+        `;
+        wrap.appendChild(row);
+
+        if(ex.history.length > 0){
+          const last = ex.history[ex.history.length-1];
+          const histLine = document.createElement('div');
+          histLine.className = 'hist-line';
+          histLine.innerHTML = `Última carga registrada: ${escapeHtml(last.carga||'-')} · ${escapeHtml(last.repsFeitas||'-')} reps
+            <button class="hist-toggle" data-hist="${ex.id}" data-count="${ex.history.length}">ver histórico de cargas (${ex.history.length})</button>`;
+          wrap.appendChild(histLine);
+
+          const panel = document.createElement('div');
+          panel.className = 'hist-panel hidden';
+          panel.dataset.histPanel = ex.id;
+          panel.innerHTML = buildHistPanelContent(ex.history);
+          wrap.appendChild(panel);
+        }
+
+        block.appendChild(wrap);
+      });
+
+      const addExBtn = document.createElement('button');
+      addExBtn.className = 'btn btn-ghost btn-sm';
+      addExBtn.style.marginTop = '6px';
+      addExBtn.textContent = '+ Exercício';
+      addExBtn.addEventListener('click', () => {
+        day.exercises.push(newExercise());
+        renderDays();
+      });
+      block.appendChild(addExBtn);
+
+      const pasteWrap = document.createElement('div');
+      pasteWrap.className = 'paste-box';
+      pasteWrap.innerHTML = `
+        <label>Ou cole a lista de exercícios (1 por linha, ex: "Supino reto 4x10 60kg")</label>
+        <textarea placeholder="Supino reto 4x10 60kg&#10;Remada curvada 4x12&#10;Elevação lateral 3x15" data-paste="${day.id}"></textarea>
+        <div class="paste-actions">
+          <button class="btn btn-ghost btn-sm parse-btn" data-day="${day.id}">Adicionar da lista</button>
+        </div>
+      `;
+      block.appendChild(pasteWrap);
+
+      daysContainer.appendChild(block);
+    });
+
+    daysContainer.querySelectorAll('.day-title-input').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const d = days.find(x=>x.id===e.target.dataset.day);
+        if(d) d.title = e.target.value;
+      });
+    });
+    daysContainer.querySelectorAll('.del-day').forEach(el=>{
+      el.addEventListener('click', e=>{
+        days = days.filter(x=>x.id!==e.currentTarget.dataset.day);
+        renderDays();
+      });
+    });
+    daysContainer.querySelectorAll('[data-field]').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const {day:dId, ex:eId, field} = e.target.dataset;
+        const d = days.find(x=>x.id===dId);
+        if(!d) return;
+        const ex = d.exercises.find(x=>x.id===eId);
+        if(ex) ex[field] = e.target.value;
+      });
+    });
+    daysContainer.querySelectorAll('.del-ex').forEach(el=>{
+      el.addEventListener('click', e=>{
+        const {day:dId, ex:eId} = e.currentTarget.dataset;
+        const d = days.find(x=>x.id===dId);
+        if(!d) return;
+        d.exercises = d.exercises.filter(x=>x.id!==eId);
+        if(d.exercises.length===0) d.exercises.push(newExercise());
+        renderDays();
+      });
+    });
+    daysContainer.querySelectorAll('.parse-btn').forEach(el=>{
+      el.addEventListener('click', e=>{
+        const dId = e.currentTarget.dataset.day;
+        const ta = daysContainer.querySelector(`[data-paste="${dId}"]`);
+        const lines = ta.value.split('\n');
+        const parsed = lines.map(parsePasteLine).filter(Boolean);
+        if(parsed.length===0) return;
+        const d = days.find(x=>x.id===dId);
+        d.exercises = d.exercises.filter(x=>x.name.trim()!=="");
+        d.exercises = d.exercises.concat(parsed);
+        if(d.exercises.length===0) d.exercises.push(newExercise());
+        ta.value = "";
+        renderDays();
+      });
+    });
+    daysContainer.querySelectorAll('.hist-toggle').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.preventDefault();
+        const id = btn.dataset.hist;
+        const panel = daysContainer.querySelector(`[data-hist-panel="${id}"]`);
+        if(!panel) return;
+        panel.classList.toggle('hidden');
+        const count = btn.dataset.count;
+        btn.textContent = panel.classList.contains('hidden') ? `ver histórico de cargas (${count})` : 'ocultar histórico';
+      });
+    });
+  }
+
+  document.getElementById('addDayBtn').addEventListener('click', ()=>{
+    days.push(newDay());
+    renderDays();
+  });
+
+  const mealsContainer = document.getElementById('mealsContainer');
+  const kcalTargetInput = document.getElementById('kcalTarget');
+
+  function findFoodMatches(query){
+    const q = query.trim().toLowerCase();
+    if(q.length < 2) return [];
+    return TACO_FOODS.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
+  }
+
+  function computeDietTotals(){
+    let kcal=0, protein=0, carb=0, fat=0;
+    meals.forEach(m=>{
+      m.foods.forEach(row=>{
+        const rm = rowMacros(row);
+        kcal += rm.kcal; protein += rm.protein; carb += rm.carb; fat += rm.fat;
+      });
+    });
+    return {kcal: Math.round(kcal), protein: round1(protein), carb: round1(carb), fat: round1(fat)};
+  }
+
+  function renderDietTotals(){
+    const t = computeDietTotals();
+    document.getElementById('totalKcal').textContent = t.kcal;
+    document.getElementById('totalProtein').textContent = t.protein + 'g';
+    document.getElementById('totalCarb').textContent = t.carb + 'g';
+    document.getElementById('totalFat').textContent = t.fat + 'g';
+
+    const diffLine = document.getElementById('diffLine');
+    const target = parseFloat(kcalTargetInput.value);
+    if(!target || isNaN(target)){
+      diffLine.className = 'diff-line neutral';
+      diffLine.textContent = 'Defina uma meta calórica pra comparar';
+      return;
+    }
+    const diff = t.kcal - target;
+    if(Math.abs(diff) <= 15){
+      diffLine.className = 'diff-line under';
+      diffLine.textContent = `Na meta (${t.kcal} de ${target}kcal)`;
+    }else if(diff < 0){
+      diffLine.className = 'diff-line under';
+      diffLine.textContent = `Faltam ${Math.abs(diff)}kcal pra bater a meta de ${target}kcal`;
+    }else{
+      diffLine.className = 'diff-line over';
+      diffLine.textContent = `Excedeu a meta em ${diff}kcal (meta: ${target}kcal)`;
+    }
+  }
+
+  kcalTargetInput.addEventListener('input', renderDietTotals);
+
+  function renderMeals(){
+    mealsContainer.innerHTML = "";
+    meals.forEach(meal=>{
+      const block = document.createElement('div');
+      block.className = 'meal-block';
+
+      let mealKcal = 0;
+      meal.foods.forEach(row => mealKcal += rowMacros(row).kcal);
+
+      const head = document.createElement('div');
+      head.className = 'meal-head';
+      head.innerHTML = `
+        <input type="text" value="${escapeHtml(meal.title)}" data-meal="${meal.id}" class="meal-title-input">
+        <button class="icon-btn del-meal" data-meal="${meal.id}" aria-label="Remover refeição">✕</button>
+      `;
+      block.appendChild(head);
+
+      const subtotal = document.createElement('div');
+      subtotal.className = 'meal-subtotal';
+      subtotal.textContent = `${meal.foods.length} ${meal.foods.length===1?'item':'itens'} · ${Math.round(mealKcal)}kcal`;
+      block.appendChild(subtotal);
+
+      meal.foods.forEach(row=>{
+        const rm = rowMacros(row);
+        const fr = document.createElement('div');
+        fr.className = 'food-row';
+        fr.innerHTML = `
+          <input type="text" value="${escapeHtml(row.name)}" data-ffield="name" data-meal="${meal.id}" data-row="${row.id}">
+          <input type="number" value="${row.qty}" min="0" data-ffield="qty" data-meal="${meal.id}" data-row="${row.id}">
+          <span class="macro-preview">g</span>
+          <span class="macro-preview">${rm.kcal}kcal · P${rm.protein} C${rm.carb} G${rm.fat}</span>
+          <button class="icon-btn del-col del-food" data-meal="${meal.id}" data-row="${row.id}" aria-label="Remover alimento">✕</button>
+        `;
+        block.appendChild(fr);
+      });
+
+      const addRow = document.createElement('div');
+      addRow.className = 'add-food-row';
+      addRow.innerHTML = `
+        <div class="food-search-wrap">
+          <input type="text" placeholder="Buscar alimento (ex: arroz, frango, batata doce...)" class="food-search-input" data-meal="${meal.id}" autocomplete="off">
+          <div class="food-suggestions hidden" data-meal-sugg="${meal.id}"></div>
+        </div>
+        <input type="number" placeholder="100" class="food-qty-input" data-meal="${meal.id}" value="100">
+        <button class="btn btn-ghost btn-sm add-manual-food" data-meal="${meal.id}">+ Manual</button>
+      `;
+      block.appendChild(addRow);
+
+      mealsContainer.appendChild(block);
+    });
+
+    mealsContainer.querySelectorAll('.meal-title-input').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const m = meals.find(x=>x.id===e.target.dataset.meal);
+        if(m) m.title = e.target.value;
+      });
+    });
+    mealsContainer.querySelectorAll('.del-meal').forEach(el=>{
+      el.addEventListener('click', e=>{
+        meals = meals.filter(x=>x.id!==e.currentTarget.dataset.meal);
+        renderMeals();
+        renderDietTotals();
+      });
+    });
+
+    mealsContainer.querySelectorAll('[data-ffield]').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const {meal:mId, row:rId, ffield} = e.target.dataset;
+        const m = meals.find(x=>x.id===mId);
+        if(!m) return;
+        const row = m.foods.find(x=>x.id===rId);
+        if(!row) return;
+        if(ffield==='qty'){
+          row.qty = parseFloat(e.target.value) || 0;
+        }else{
+          row[ffield] = e.target.value;
+        }
+        renderMeals();
+        renderDietTotals();
+      });
+    });
+    mealsContainer.querySelectorAll('.del-food').forEach(el=>{
+      el.addEventListener('click', e=>{
+        const {meal:mId, row:rId} = e.currentTarget.dataset;
+        const m = meals.find(x=>x.id===mId);
+        if(!m) return;
+        m.foods = m.foods.filter(x=>x.id!==rId);
+        renderMeals();
+        renderDietTotals();
+      });
+    });
+
+    mealsContainer.querySelectorAll('.food-search-input').forEach(input=>{
+      input.addEventListener('input', e=>{
+        const mId = e.target.dataset.meal;
+        const sugg = mealsContainer.querySelector(`[data-meal-sugg="${mId}"]`);
+        const matches = findFoodMatches(e.target.value);
+        if(matches.length===0){
+          sugg.classList.add('hidden');
+          sugg.innerHTML = "";
+          return;
+        }
+        sugg.innerHTML = matches.map(f=>`
+          <div data-pick-food="${f.id}" data-pick-meal="${mId}">
+            <span>${escapeHtml(f.name)}</span>
+            <span class="fs-macro">${f.kcal}kcal/100g</span>
+          </div>
+        `).join("");
+        sugg.classList.remove('hidden');
+      });
+      input.addEventListener('blur', ()=>{
+        setTimeout(()=>{
+          const mId = input.dataset.meal;
+          const sugg = mealsContainer.querySelector(`[data-meal-sugg="${mId}"]`);
+          if(sugg) sugg.classList.add('hidden');
+        }, 200);
+      });
+    });
+
+    mealsContainer.querySelectorAll('[data-pick-food]').forEach(el=>{
+      el.addEventListener('mousedown', e=>{
+        e.preventDefault();
+        const foodId = el.dataset.pickFood;
+        const mId = el.dataset.pickMeal;
+        const food = TACO_FOODS.find(f=>f.id===foodId);
+        const m = meals.find(x=>x.id===mId);
+        if(!food || !m) return;
+        const qtyInput = mealsContainer.querySelector(`.food-qty-input[data-meal="${mId}"]`);
+        const qty = parseFloat(qtyInput.value) || 100;
+        m.foods.push(newFoodRow(food, qty));
+        renderMeals();
+        renderDietTotals();
+      });
+    });
+
+    mealsContainer.querySelectorAll('.add-manual-food').forEach(el=>{
+      el.addEventListener('click', e=>{
+        const mId = e.currentTarget.dataset.meal;
+        const m = meals.find(x=>x.id===mId);
+        if(!m) return;
+        m.foods.push(newFoodRow({name:'Novo alimento', kcal:0, protein:0, carb:0, fat:0, custom:true}, 100));
+        renderMeals();
+        renderDietTotals();
+      });
+    });
+  }
+
+  document.getElementById('addMealBtn').addEventListener('click', ()=>{
+    meals.push(newMeal());
+    renderMeals();
+    renderDietTotals();
+  });
+
+  const billingValorInput = document.getElementById('billingValor');
+  const billingDueDayInput = document.getElementById('billingDueDay');
+  const billingStatusLine = document.getElementById('billingStatusLine');
+  const markPaidBtn = document.getElementById('markPaidBtn');
+  const paymentHistoryList = document.getElementById('paymentHistoryList');
+
+  function renderBillingTab(){
+    billingValorInput.value = billing.valor || '';
+    billingDueDayInput.value = billing.dueDay || '';
+
+    const status = billingStatus(billing);
+    billingStatusLine.className = 'billing-status-line ' + (status.level==='ok' ? 'under' : status.level==='over' ? 'over' : 'neutral');
+    billingStatusLine.textContent = status.label;
+    markPaidBtn.disabled = !(billing.valor && billing.dueDay);
+
+    const hist = (billing.history||[]).slice().reverse();
+    if(hist.length===0){
+      paymentHistoryList.innerHTML = '<p style="color:var(--muted2);font-size:13px;">Nenhum pagamento registrado ainda.</p>';
+    }else{
+      paymentHistoryList.innerHTML = hist.map(h=>`
+        <div class="pay-history-item">
+          <span>${h.ym}</span>
+          <span style="color:var(--green);">${h.paid ? 'Pago em ' + formatDate(h.paidAt) : 'Pendente'}</span>
+        </div>
+      `).join('');
+    }
+  }
+
+  billingValorInput.addEventListener('input', e=>{
+    billing.valor = parseFloat(e.target.value) || null;
+    renderBillingTab();
+  });
+  billingDueDayInput.addEventListener('input', e=>{
+    let v = parseInt(e.target.value, 10);
+    if(isNaN(v)) v = null;
+    else v = Math.min(31, Math.max(1, v));
+    billing.dueDay = v;
+    renderBillingTab();
+  });
+  markPaidBtn.addEventListener('click', ()=>{
+    if(!billing.valor || !billing.dueDay) return;
+    markPaid(billing);
+    renderBillingTab();
+  });
+
+  const tabBtnTreino = document.getElementById('tabBtnTreino');
+  const tabBtnDieta = document.getElementById('tabBtnDieta');
+  const tabBtnCobranca = document.getElementById('tabBtnCobranca');
+  const tabTreino = document.getElementById('tabTreino');
+  const tabDieta = document.getElementById('tabDieta');
+  const tabCobranca = document.getElementById('tabCobranca');
+
+  function setActiveSubtab(name){
+    const map = {
+      treino: [tabBtnTreino, tabTreino],
+      dieta: [tabBtnDieta, tabDieta],
+      cobranca: [tabBtnCobranca, tabCobranca]
+    };
+    Object.keys(map).forEach(k=>{
+      const [btn, panel] = map[k];
+      if(k===name){ btn.classList.add('active'); panel.classList.remove('hidden'); }
+      else{ btn.classList.remove('active'); panel.classList.add('hidden'); }
+    });
+  }
+  tabBtnTreino.addEventListener('click', ()=>setActiveSubtab('treino'));
+  tabBtnDieta.addEventListener('click', ()=>setActiveSubtab('dieta'));
+  tabBtnCobranca.addEventListener('click', ()=>setActiveSubtab('cobranca'));
+
+  const dashboardView = document.getElementById('dashboardView');
+  const editorView = document.getElementById('editorView');
+  const coachTitleEl = document.getElementById('coachTitle');
+
+  function showDashboard(){
+    editorView.classList.add('hidden');
+    dashboardView.classList.remove('hidden');
+  }
+  function showEditor(){
+    dashboardView.classList.add('hidden');
+    editorView.classList.remove('hidden');
+  }
+
+  document.getElementById('backToDashBtn').addEventListener('click', ()=>{
+    showDashboard();
+    renderDashboard();
+  });
+
+  document.getElementById('newStudentBtn').addEventListener('click', ()=>{
+    editingCode = null;
+    document.getElementById('clientName').value = "";
+    document.getElementById('clientBirthDate').value = "";
+    document.getElementById('workoutTitle').value = "";
+    days = [newDay('Treino A')];
+    meals = [newMeal('Café da manhã'), newMeal('Almoço'), newMeal('Lanche da tarde'), newMeal('Jantar')];
+    billing = newBilling();
+    kcalTargetInput.value = "";
+    coachTitleEl.textContent = "Novo plano";
+    document.getElementById('resultPanel').classList.add('hidden');
+    renderDays();
+    renderMeals();
+    renderDietTotals();
+    renderBillingTab();
+    setActiveSubtab('treino');
+    showEditor();
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  const resultPanel = document.getElementById('resultPanel');
+  const linkBox = document.getElementById('linkBox');
+  const wppSendBtn = document.getElementById('wppSendBtn');
+
+  async function saveRecentEntry(entry){
+    try{
+      let list = [];
+      try{
+        const res = await window.storage.get('treinos:list', false);
+        if(res && res.value) list = JSON.parse(res.value);
+      }catch(e){ list = []; }
+      list = list.filter(x=>x.code!==entry.code);
+      list.unshift(entry);
+      list = list.slice(0,30);
+      await window.storage.set('treinos:list', JSON.stringify(list), false);
+    }catch(e){ console.error('Erro ao salvar lista recente', e); }
+  }
+
+  const studentsListEl = document.getElementById('studentsList');
+  const dashStatsEl = document.getElementById('dashStats');
+  const birthdayPanelEl = document.getElementById('birthdayPanel');
+
+  async function getRecentList(){
+    try{
+      const res = await window.storage.get('treinos:list', false);
+      return (res && res.value) ? JSON.parse(res.value) : [];
+    }catch(e){ return []; }
+  }
+
+  async function renderDashboard(){
+    studentsListEl.innerHTML = '<div class="loading">Carregando alunos...</div>';
+    
+    const anamneseUrl = new URL(window.location.href);
+    anamneseUrl.searchParams.delete('a');
+    anamneseUrl.searchParams.delete('data');
+    document.getElementById('anamneseShareLink').value = anamneseUrl.toString();
+
+    const list = await getRecentList();
+
+    if(list.length===0){
+      dashStatsEl.innerHTML = "";
+      birthdayPanelEl.className = 'hidden';
+      studentsListEl.innerHTML = `
+        <div class="empty-state">
+          <h2>Nenhum aluno ainda</h2>
+          <p>Crie o primeiro plano pra começar a acompanhar treino, dieta e cobrança.</p>
+        </div>`;
+      return;
+    }
+
+    const results = await Promise.allSettled(list.map(item => window.storage.get('treino:' + item.code, true)));
+
+    const students = list.map((item, i) => {
+      let data = null;
+      const r = results[i];
+      if(r.status==='fulfilled' && r.value && r.value.value){
+        try{ data = JSON.parse(r.value.value); }catch(e){ data = null; }
+      }
+      return {
+        code: item.code,
+        clientName: (data && data.clientName) || item.clientName || "",
+        birthDate: (data && data.birthDate) || (data && data.anamnese && data.anamnese.nasc) || "",
+        title: (data && data.title) || item.title || "",
+        updatedAt: (data && data.updatedAt) || item.updatedAt,
+        billing: (data && data.billing) || newBilling(),
+        anamnese: (data && data.anamnese) || null
+      };
+    });
+
+    let bdayHtml = '';
+    students.forEach(s=>{
+      const bInfo = checkBirthdayNextDays(s.birthDate);
+      if(bInfo){
+        const msg = `Parabéns ${s.clientName}! 🎉 Desejo um feliz aniversário, muita saúde e foco nos treinos! 💪🏼`;
+        const whenTxt = bInfo.daysLeft === 0 ? "HOJE! 🎉" : `em ${bInfo.daysLeft} dia(s) (${bInfo.dateStr})`;
+        bdayHtml += `
+          <div class="card" style="border-color: var(--gold); background: rgba(212,160,42,0.1); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="color:var(--gold);">🎂 Aniversariante Próximo: ${escapeHtml(s.clientName)}</b>
+              <div style="font-size:12px; color:var(--muted);">Aniversário ${whenTxt}</div>
+            </div>
+            <a class="btn btn-gold btn-sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Dar Parabéns</a>
+          </div>
+        `;
+      }
+    });
+
+    if(bdayHtml){
+      birthdayPanelEl.innerHTML = bdayHtml;
+      birthdayPanelEl.classList.remove('hidden');
+    }else{
+      birthdayPanelEl.classList.add('hidden');
+    }
+
+    let overCount = 0, warnCount = 0, receita = 0;
+    students.forEach(s=>{
+      const st = billingStatus(s.billing);
+      if(st.level==='over') overCount++;
+      if(st.level==='warn') warnCount++;
+      if(s.billing && s.billing.valor) receita += s.billing.valor;
+    });
+
+    dashStatsEl.innerHTML = `
+      <div class="dash-stat"><b>${students.length}</b><span>Alunos</span></div>
+      <div class="dash-stat"><b style="color:${overCount>0?'#ff8080':'inherit'}">${overCount}</b><span>Vencidos</span></div>
+      <div class="dash-stat"><b>R$ ${receita.toFixed(0)}</b><span>Receita mensal</span></div>
+    `;
+
+    studentsListEl.innerHTML = "";
+    students.forEach(s=>{
+      const status = billingStatus(s.billing);
+      const wrap = document.createElement('div');
+      wrap.className = 'student-card';
+
+      let cobrarBtnHtml = '';
+      if(status.level==='over' || status.level==='warn'){
+        const valorTxt = s.billing.valor ? `R$ ${s.billing.valor}` : '';
+        const msg = `Olá, ${s.clientName || 'tudo bem'}! Passando pra lembrar da mensalidade da consultoria${valorTxt ? ' (' + valorTxt + ')' : ''}, com vencimento dia ${s.billing.dueDay}. Qualquer dúvida me chama por aqui 💪`;
+        cobrarBtnHtml = `<a class="btn btn-gold btn-sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Cobrar</a>`;
+      }
+
+      const isAnamnese = !!s.anamnese;
+
+      wrap.innerHTML = `
+        <div class="avatar">${initials(s.clientName)}</div>
+        <div class="sc-info">
+          <b>${escapeHtml(s.clientName || 'Sem nome')}</b>
+          <span class="plan">${escapeHtml(s.title || '')} · ${formatDateShort(s.updatedAt)}</span>
+          <span class="badge ${isAnamnese ? 'warn' : status.level}">${isAnamnese ? 'Nova Anamnese' : status.label}</span>
+        </div>
+        <div class="sc-actions">
+          <button class="btn btn-ghost btn-sm edit-student-btn" data-code="${s.code}">Editar</button>
+          ${cobrarBtnHtml}
+        </div>
+      `;
+      studentsListEl.appendChild(wrap);
+    });
+
+    studentsListEl.querySelectorAll('.edit-student-btn').forEach(btn=>{
+      btn.addEventListener('click', ()=> reopenTreino(btn.dataset.code));
+    });
+  }
+
+  document.getElementById('copyAnamneseLinkBtn').addEventListener('click', ()=>{
+    const linkInput = document.getElementById('anamneseShareLink');
+    navigator.clipboard.writeText(linkInput.value).then(()=>{
+      const b = document.getElementById('copyAnamneseLinkBtn');
+      const orig = b.textContent;
+      b.textContent = 'Copiado!';
+      setTimeout(()=> b.textContent = orig, 1500);
+    });
+  });
+
+  async function reopenTreino(code){
+    try{
+      const res = await window.storage.get('treino:' + code, true);
+      if(!res || !res.value) return;
+      const data = JSON.parse(res.value);
+      document.getElementById('clientName').value = data.clientName || "";
+      document.getElementById('clientBirthDate').value = data.birthDate || (data.anamnese && data.anamnese.nasc) || "";
+      document.getElementById('workoutTitle').value = data.title || "";
+      days = data.days || [];
+      days.forEach(d => d.exercises.forEach(ex => { if(!ex.history) ex.history = []; }));
+      meals = (data.diet && data.diet.meals) ? data.diet.meals : [];
+      kcalTargetInput.value = (data.diet && data.diet.kcalTarget) ? data.diet.kcalTarget : "";
+      billing = data.billing || newBilling();
+      editingCode = code;
+      coachTitleEl.textContent = "Editando plano";
+      renderDays();
+      renderMeals();
+      renderDietTotals();
+      renderBillingTab();
+      setActiveSubtab('treino');
+      resultPanel.classList.add('hidden');
+      showEditor();
+      window.scrollTo({top:0, behavior:'smooth'});
+    }catch(e){
+      alert('Não foi possível abrir esse plano.');
+    }
+  }
+
+  function buildResultPanel(code, fullData){
+    const url = new URL(window.location.href);
+    url.searchParams.set('a', code);
+    if(fullData){
+      url.searchParams.set('data', btoa(encodeURIComponent(JSON.stringify(fullData))));
+    }
+    const link = url.toString();
+    linkBox.textContent = link;
+    const clientName = document.getElementById('clientName').value || "tudo bem";
+    const msg = `Olá, ${clientName}! Segue o link do seu treino e dieta atualizados:\n${link}\n\nQualquer dúvida me chama por aqui.`;
+    wppSendBtn.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+    resultPanel.classList.remove('hidden');
+  }
+
+  document.getElementById('generateLinkBtn').addEventListener('click', async ()=>{
+    const btn = document.getElementById('generateLinkBtn');
+    const clientName = document.getElementById('clientName').value.trim();
+    const birthDate = document.getElementById('clientBirthDate').value;
+    const title = document.getElementById('workoutTitle').value.trim();
+    const cleanDays = days
+      .map(d => ({...d, exercises: d.exercises.filter(ex => ex.name.trim()!=="")}))
+      .filter(d => d.exercises.length>0);
+    const cleanMeals = meals
+      .map(m => ({...m, foods: m.foods.filter(f => f.name.trim()!=="")}))
+      .filter(m => m.foods.length>0);
+
+    if(cleanDays.length===0 && cleanMeals.length===0){
+      alert('Adicione pelo menos um exercício ou um alimento antes de gerar o link.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Gerando...';
+
+    const code = editingCode || uid(6);
+    const now = new Date().toISOString();
+    const target = parseFloat(kcalTargetInput.value);
+    const data = {
+      code,
+      clientName,
+      birthDate,
+      title: title || "Treino e dieta",
+      days: cleanDays,
+      diet: {
+        kcalTarget: (!isNaN(target) && target>0) ? target : null,
+        meals: cleanMeals
+      },
+      billing: billing,
+      createdAt: undefined,
+      updatedAt: now
+    };
+
+    try{
+      if(editingCode){
+        try{
+          const prev = await window.storage.get('treino:' + code, true);
+          if(prev && prev.value){
+            const prevData = JSON.parse(prev.value);
+            data.createdAt = prevData.createdAt || now;
+            if(prevData.anamnese) data.anamnese = prevData.anamnese;
+          }
+        }catch(e){}
+      }
+      if(!data.createdAt) data.createdAt = now;
+
+      await window.storage.set('treino:' + code, JSON.stringify(data), true);
+      editingCode = code;
+      await saveRecentEntry({code, clientName, title: data.title, updatedAt: now});
+      buildResultPanel(code, data);
+    }catch(e){
+      alert('Erro ao salvar o plano. Verifique sua conexão e tente novamente.');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Gerar link para o cliente';
+  });
+
+  document.getElementById('copyLinkBtn').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(linkBox.textContent).then(()=>{
+      const b = document.getElementById('copyLinkBtn');
+      const original = b.textContent;
+      b.textContent = 'Copiado!';
+      setTimeout(()=> b.textContent = original, 1500);
+    });
+  });
+
+  const studentView = document.getElementById('studentView');
+  const studentContent = document.getElementById('studentContent');
+  const anamneseView = document.getElementById('anamneseView');
+  const stickySave = document.getElementById('stickySave');
+  const saveStatus = document.getElementById('saveStatus');
+
+  async function loadStudentView(code, inlineData){
+    studentCode = code;
+    studentContent.innerHTML = '<div class="loading">Carregando seu plano...</div>';
+    stickySave.classList.add('hidden');
+    try{
+      if(inlineData){
+        studentData = JSON.parse(decodeURIComponent(atob(inlineData)));
+        await window.storage.set('treino:' + code, JSON.stringify(studentData), true);
+      }else{
+        const res = await window.storage.get('treino:' + code, true);
+        if(!res || !res.value){
+          studentContent.innerHTML = `
+            <div class="empty-state">
+              <h2>Plano não encontrado</h2>
+              <p>Confira se o link está completo e correto, ou peça um novo link pro seu personal.</p>
+            </div>`;
+          return;
+        }
+        studentData = JSON.parse(res.value);
+      }
+
+      if(studentData.days){
+        studentData.days.forEach(d => d.exercises.forEach(ex => { if(!ex.history) ex.history = []; }));
+      }
+      renderStudentView();
+    }catch(e){
+      studentContent.innerHTML = `
+        <div class="empty-state">
+          <h2>Não foi possível carregar</h2>
+          <p>Verifique sua conexão e tente atualizar a página.</p>
+        </div>`;
+    }
+  }
+
+  function renderStudentView(){
+    let html = `
+      <div class="student-header">
+        <div class="eyebrow">SEU PLANO DE TREINO</div>
+        <h1>${escapeHtml(studentData.title || "Treino e dieta")}</h1>
+        <div class="meta">${escapeHtml(studentData.clientName || "")} · atualizado em ${formatDate(studentData.updatedAt)}</div>
+      </div>
+    `;
+
+    const hasDays = studentData.days && studentData.days.length>0;
+    const diet = studentData.diet;
+    const hasDiet = diet && diet.meals && diet.meals.length>0;
+
+    if(hasDays){
+      html += `<div class="section-divider">Treino</div>`;
+      studentData.days.forEach(day=>{
+        html += `<div class="day-title">${escapeHtml(day.title)}</div>`;
+        day.exercises.forEach(ex=>{
+          const historyHtml = ex.history && ex.history.length > 0 ? buildHistPanelContent(ex.history) : '<div class="hist-empty">Sem registros de semanas anteriores</div>';
+          html += `
+            <div class="ex-card">
+              <div class="ex-card-top">
+                <div>
+                  <div class="ex-name">${escapeHtml(ex.name)}</div>
+                  <div class="ex-tags">
+                    ${ex.series ? `<span class="tag">${escapeHtml(ex.series)} séries</span>` : ''}
+                    ${ex.repsAlvo ? `<span class="tag">${escapeHtml(ex.repsAlvo)} reps (alvo)</span>` : ''}
+                    ${ex.tecnica ? `<span class="tag">${escapeHtml(ex.tecnica)}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+              
+              <div style="margin-bottom: 12px;">
+                <button class="hist-toggle" data-student-hist="${ex.id}">📊 Ver Histórico de Cargas das Semanas (${(ex.history||[]).length})</button>
+                <div class="hist-panel hidden" data-student-hist-panel="${ex.id}">
+                  ${historyHtml}
+                </div>
+              </div>
+
+              <div class="edit-grid">
+                <div>
+                  <label>Carga da Semana</label>
+                  <input type="text" placeholder="Ex: 20kg" value="${escapeHtml(ex.carga)}" data-sfield="carga" data-day="${day.id}" data-ex="${ex.id}">
+                </div>
+                <div>
+                  <label>Repetições feitas</label>
+                  <input type="text" placeholder="Ex: 10" value="${escapeHtml(ex.repsFeitas)}" data-sfield="repsFeitas" data-day="${day.id}" data-ex="${ex.id}">
+                </div>
+                <div class="full">
+                  <label>Observações do Treino</label>
+                  <textarea placeholder="Como se sentiu, dor, ajuste..." data-sfield="obs" data-day="${day.id}" data-ex="${ex.id}">${escapeHtml(ex.obs)}</textarea>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      });
+    }
+
+    if(hasDiet){
+      let dTotal = {kcal:0, protein:0, carb:0, fat:0};
+      diet.meals.forEach(m=>{
+        m.foods.forEach(row=>{
+          const rm = rowMacros(row);
+          dTotal.kcal += rm.kcal; dTotal.protein += rm.protein; dTotal.carb += rm.carb; dTotal.fat += rm.fat;
+        });
+      });
+      dTotal.kcal = Math.round(dTotal.kcal);
+      dTotal.protein = round1(dTotal.protein);
+      dTotal.carb = round1(dTotal.carb);
+      dTotal.fat = round1(dTotal.fat);
+
+      html += `<div class="section-divider">Dieta</div>`;
+      html += `
+        <div class="card">
+          <h2>Total do dia</h2>
+          <div class="totals-summary">
+            <div class="stat-box"><b>${dTotal.kcal}</b><span>kcal</span></div>
+            <div class="stat-box"><b>${dTotal.protein}g</b><span>proteína</span></div>
+            <div class="stat-box"><b>${dTotal.carb}g</b><span>carbo</span></div>
+            <div class="stat-box"><b>${dTotal.fat}g</b><span>gordura</span></div>
+          </div>
+          ${diet.kcalTarget ? `<div class="diff-line neutral" style="margin-top:12px;">Meta: ${diet.kcalTarget}kcal</div>` : ''}
+        </div>
+      `;
+
+      diet.meals.forEach(meal=>{
+        html += `<div class="meal-view-block"><div class="meal-view-title">${escapeHtml(meal.title)}</div>`;
+        meal.foods.forEach(row=>{
+          const rm = rowMacros(row);
+          html += `
+            <div class="food-view-row">
+              <div>
+                <div class="fname">${escapeHtml(row.name)}</div>
+                <div class="fqty">${row.qty}g</div>
+              </div>
+              <div class="fkcal">${rm.kcal}kcal · P${rm.protein} C${rm.carb} G${rm.fat}</div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+      });
+    }
+
+    studentContent.innerHTML = html;
+
+    studentContent.querySelectorAll('.hist-toggle').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        e.preventDefault();
+        const id = btn.dataset.studentHist;
+        const panel = studentContent.querySelector(`[data-student-hist-panel="${id}"]`);
+        if(panel) panel.classList.toggle('hidden');
+      });
+    });
+
+    studentContent.querySelectorAll('[data-sfield]').forEach(el=>{
+      el.addEventListener('input', e=>{
+        const {day:dId, ex:eId, sfield} = e.target.dataset;
+        const d = studentData.days.find(x=>x.id===dId);
+        if(!d) return;
+        const ex = d.exercises.find(x=>x.id===eId);
+        if(!ex) return;
+        ex[sfield] = e.target.value;
+        studentDirty = true;
+        saveStatus.textContent = 'Alterações não salvas';
+        saveStatus.classList.remove('ok');
+      });
+    });
+
+    if(hasDays){
+      stickySave.classList.remove('hidden');
+    }
+  }
+
+  document.getElementById('saveEditsBtn').addEventListener('click', async ()=>{
+    if(!studentData || !studentCode) return;
+    const btn = document.getElementById('saveEditsBtn');
+    btn.disabled = true;
+    try{
+      if(studentData.days){
+        studentData.days.forEach(d=>{
+          d.exercises.forEach(ex=>{
+            const hasCarga = ex.carga && ex.carga.trim();
+            const hasReps = ex.repsFeitas && ex.repsFeitas.trim();
+            if(hasCarga || hasReps){
+              ex.history = ex.history || [];
+              const last = ex.history[ex.history.length-1];
+              const changed = !last || last.carga!==ex.carga || last.repsFeitas!==ex.repsFeitas;
+              if(changed){
+                ex.history.push({date: new Date().toISOString(), carga: ex.carga, repsFeitas: ex.repsFeitas, obs: ex.obs});
+                if(ex.history.length>20) ex.history = ex.history.slice(-20);
+              }
+            }
+          });
+        });
+      }
+      studentData.updatedAt = new Date().toISOString();
+      const result = await window.storage.set('treino:' + studentCode, JSON.stringify(studentData), true);
+      if(result){
+        studentDirty = false;
+        saveStatus.textContent = 'Salvo ✓';
+        saveStatus.classList.add('ok');
+        renderStudentView();
+      }else{
+        saveStatus.textContent = 'Erro ao salvar, tente de novo';
+      }
+    }catch(e){
+      saveStatus.textContent = 'Erro ao salvar, tente de novo';
+    }
+    btn.disabled = false;
+  });
+
+  const anamneseForm = document.getElementById('anamneseForm');
+  if(anamneseForm){
+    anamneseForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+
+      const dadosAnamnese = {
+        code: uid(6),
+        clientName: document.getElementById('anaNome').value.trim(),
+        nasc: document.getElementById('anaNasc').value,
+        whats: document.getElementById('anaWhats').value,
+        peso: document.getElementById('anaPeso').value,
+        altura: document.getElementById('anaAltura').value,
+        objetivo: document.getElementById('anaObjetivo').value,
+        nivel: document.getElementById('anaNivel').value,
+        dias: document.getElementById('anaDias').value,
+        tempo: document.getElementById('anaTempo').value,
+        lesoes: document.getElementById('anaLesoes').value || "Nenhuma",
+        dieta: document.getElementById('anaDieta').value || "Nenhuma",
+        createdAt: new Date().toISOString()
+      };
+
+      await saveRecentEntry({
+        code: dadosAnamnese.code,
+        clientName: dadosAnamnese.clientName,
+        title: "Anamnese — " + dadosAnamnese.objetivo,
+        updatedAt: dadosAnamnese.createdAt
+      });
+
+      await window.storage.set('treino:' + dadosAnamnese.code, JSON.stringify({
+        code: dadosAnamnese.code,
+        clientName: dadosAnamnese.clientName,
+        birthDate: dadosAnamnese.nasc,
+        title: "Plano Inicial — " + dadosAnamnese.objetivo,
+        days: [newDay('Treino A')],
+        diet: { kcalTarget: null, meals: [] },
+        billing: newBilling(),
+        anamnese: dadosAnamnese,
+        updatedAt: dadosAnamnese.createdAt
+      }), true);
+
+      const msg = `📋 *NOVA ANAMNESE RECEBIDA* 📋\n\n` +
+        `*Nome:* ${dadosAnamnese.clientName}\n` +
+        `*Data Nasc:* ${dadosAnamnese.nasc} | *Whats:* ${dadosAnamnese.whats}\n` +
+        `*Peso:* ${dadosAnamnese.peso}kg | *Altura:* ${dadosAnamnese.altura}cm\n\n` +
+        `🎯 *Objetivo:* ${dadosAnamnese.objetivo}\n` +
+        `🏋️ *Nível:* ${dadosAnamnese.nivel}\n` +
+        `⏱️ *Frequência:* ${dadosAnamnese.dias}x na semana (${dadosAnamnese.tempo} min/dia)\n\n` +
+        `⚠️ *Lesões/Dores:* ${dadosAnamnese.lesoes}\n` +
+        `🥗 *Restrições Alimentares:* ${dadosAnamnese.dieta}\n\n` +
+        `🔗 *Código do Aluno:* ${dadosAnamnese.code}`;
+
+      const wppUrl = `https://wa.me/${MEU_WHATSAPP}?text=${encodeURIComponent(msg)}`;
+      window.open(wppUrl, '_blank');
+
+      alert('Anamnese registrada! Abrindo WhatsApp para envio ao Personal...');
+    });
+  }
+
+  window.addEventListener('beforeunload', (e)=>{
+    if(studentDirty){
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  const mainHeader = document.getElementById('mainHeader');
+
+  function switchMode(mode, code, inlineData){
+    if(mode === 'student'){
+      document.getElementById('coachView').classList.add('hidden');
+      studentView.classList.remove('hidden');
+      const c = code || studentCode;
+      if(c){
+        anamneseView.classList.add('hidden');
+        studentContent.classList.remove('hidden');
+        loadStudentView(c, inlineData);
+      }else{
+        studentContent.classList.add('hidden');
+        anamneseView.classList.remove('hidden');
+      }
+    }else{
+      studentView.classList.add('hidden');
+      stickySave.classList.add('hidden');
+      document.getElementById('coachView').classList.remove('hidden');
+      showDashboard();
+      renderDashboard();
+    }
+  }
+
+  function init(){
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('a');
+    const inlineData = params.get('data');
+
+    days = [newDay('Treino A')];
+    meals = [newMeal('Café da manhã'), newMeal('Almoço'), newMeal('Lanche da tarde'), newMeal('Jantar')];
+    billing = newBilling();
+    renderDays();
+    renderMeals();
+    renderDietTotals();
+    renderBillingTab();
+
+    if(code){
+      if(mainHeader) mainHeader.classList.add('hidden');
+      switchMode('student', code, inlineData);
+    }else{
+      if(mainHeader) mainHeader.classList.remove('hidden');
+      showDashboard();
+      renderDashboard();
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
