@@ -1,0 +1,23 @@
+{
+  "code": "leonardo",
+  "clientName": "Leonardo",
+  "title": "Plano de Ganho de Massa",
+  "updatedAt": "2026-08-20T15:13:00Z",
+  "days": [
+    {
+      "id": "d1",
+      "title": "Treino Geral",
+      "exercises": [
+        { "id": "e1", "name": "Consultar planilha: Treino Leo Novo", "series": "4", "repsAlvo": "10-12" }
+      ]
+    }
+  ],
+  "diet": {
+    "kcalTarget": "3140",
+    "protein": "185",
+    "carb": "393",
+    "fat": "79",
+    "observacao": "Segunda e Quinta (dias de corrida): adicionar pós-treino com Pão branco + Mel/Malto (+285 kcal)."
+  },
+  "billing": { "valor": "200", "dueDay": "10" }
+}
