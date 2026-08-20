@@ -1,0 +1,70 @@
+{
+  "code": "otavio",
+  "clientName": "Otavio",
+  "title": "Protocolo de Definição (Déficit Calórico)",
+  "updatedAt": "2026-08-20T15:45:00Z",
+  "days": [
+    {
+      "id": "d1",
+      "title": "Upper A",
+      "exercises": [
+        { "id": "e1", "name": "Supino Inclinado com Halter", "series": "2", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e2", "name": "Remada Cavalinho", "series": "3", "repsAlvo": "8-12 (2min desc)" },
+        { "id": "e3", "name": "Desenvolvimento Máquina", "series": "2", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e4", "name": "Voador", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e5", "name": "Puxada Frontal", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e6", "name": "Elevação Lateral Cabo", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e7", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e8", "name": "Tríceps Francês", "series": "2", "repsAlvo": "10-12" },
+        { "id": "e9", "name": "Rosca Barra W ou Scott Unilateral", "series": "2", "repsAlvo": "10-12" }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "Lower A",
+      "exercises": [
+        { "id": "e10", "name": "Stiff", "series": "2", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e11", "name": "Hack", "series": "2", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e12", "name": "Pélvica", "series": "2", "repsAlvo": "8-12 (2min desc)" },
+        { "id": "e13", "name": "Mesa Flexora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e14", "name": "Extensora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e15", "name": "Adutora", "series": "2", "repsAlvo": "12-15" }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "Upper B",
+      "exercises": [
+        { "id": "e16", "name": "Supino Reto Barra", "series": "2", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e17", "name": "Remada Máquina Articulada (cotovelos rente ao corpo)", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e18", "name": "Elevação Lateral Cabo", "series": "3", "repsAlvo": "12-15" },
+        { "id": "e19", "name": "Cross (baixo p/ cima) ou Crucifixo Inclinado", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e20", "name": "Remada Baixa Barra Reta", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e21", "name": "Elevação Lateral Halter", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e22", "name": "Tríceps Testa", "series": "2", "repsAlvo": "10-12" },
+        { "id": "e23", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e24", "name": "Rosca Direta Cabo", "series": "2", "repsAlvo": "10-12" }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "Lower B",
+      "exercises": [
+        { "id": "e25", "name": "Cadeira Flexora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e26", "name": "Leg-Press 45", "series": "3", "repsAlvo": "8-10 (2min desc)" },
+        { "id": "e27", "name": "Adutora", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e28", "name": "Abdutora", "series": "3", "repsAlvo": "12-15" },
+        { "id": "e29", "name": "Extensora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e30", "name": "Mesa Flexora", "series": "2", "repsAlvo": "10-12" }
+      ]
+    }
+  ],
+  "diet": {
+    "kcalTarget": "Déficit Calórico",
+    "protein": "Alta",
+    "carb": "Controlado",
+    "fat": "Moderado",
+    "observacao": "Meta de água: 50ml por kg (4,75L/dia). Opções de carbo: Arroz/Feijão, Massa, Batata Inglesa ou Doce."
+  },
+  "billing": { "valor": "80", "dueDay": "06" }
+}
