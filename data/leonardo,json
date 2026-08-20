@@ -1,14 +1,58 @@
 {
   "code": "leonardo",
   "clientName": "Leonardo",
-  "title": "Plano de Ganho de Massa",
-  "updatedAt": "2026-08-20T15:13:00Z",
+  "title": "Protocolo de Ganho de Massa",
+  "updatedAt": "2026-08-20T15:30:00Z",
   "days": [
     {
       "id": "d1",
-      "title": "Treino Geral",
+      "title": "Treino A - Empurrar",
       "exercises": [
-        { "id": "e1", "name": "Consultar planilha: Treino Leo Novo", "series": "4", "repsAlvo": "10-12" }
+        { "id": "e1", "name": "Supino com Halteres Inclinado", "series": "3", "repsAlvo": "6-8" },
+        { "id": "e2", "name": "Supino Reto (Máquina ou Barra)", "series": "2", "repsAlvo": "6-8" },
+        { "id": "e3", "name": "Voador", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e4", "name": "Desenvolvimento (Máquina ou halter)", "series": "3", "repsAlvo": "6-8" },
+        { "id": "e5", "name": "Elevação Lateral", "series": "3", "repsAlvo": "8-12" },
+        { "id": "e6", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "8-10" }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "Treino B - Puxar",
+      "exercises": [
+        { "id": "e7", "name": "Remada Cavalinho (peito apoiado)", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e8", "name": "Remada Baixa com Triangulo", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e9", "name": "Puxada Alta pegada Neutra", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e10", "name": "Voador Invertido", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e11", "name": "Rosca Direta no Cabo", "series": "3", "repsAlvo": "10" },
+        { "id": "e12", "name": "Rosca Direta barra W ou Scott", "series": "3", "repsAlvo": "10" }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "Treino C - Pernas",
+      "exercises": [
+        { "id": "e13", "name": "Stiff RDL", "series": "4", "repsAlvo": "6-8" },
+        { "id": "e14", "name": "Leg-Press", "series": "4", "repsAlvo": "6-8" },
+        { "id": "e15", "name": "Elevação pelvica", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e16", "name": "Cadeira Flexora", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e17", "name": "Extensora", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e18", "name": "Abdutora", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e19", "name": "Adutora", "series": "3", "repsAlvo": "8-10" }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "Treino Upper (Bônus)",
+      "exercises": [
+        { "id": "e20", "name": "Supino Inclinado Máquina", "series": "2", "repsAlvo": "6-8" },
+        { "id": "e21", "name": "Remada Cavalinho", "series": "2", "repsAlvo": "8-10" },
+        { "id": "e22", "name": "Desenvolvimento Máquina ou halter", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e23", "name": "Voador", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e24", "name": "Puxada Alta Neutra", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e25", "name": "Elevação Lateral", "series": "3", "repsAlvo": "8-12" },
+        { "id": "e26", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e27", "name": "Rosca Direta Scott ou barra W", "series": "3", "repsAlvo": "8-10" }
       ]
     }
   ],
@@ -17,7 +61,7 @@
     "protein": "185",
     "carb": "393",
     "fat": "79",
-    "observacao": "Segunda e Quinta (dias de corrida): adicionar pós-treino com Pão branco + Mel/Malto (+285 kcal)."
+    "observacao": "Seg/Qui (pós-corrida): adicionar 2 fatias pão + 50g mel/malto. Ajuste conforme ganho de peso."
   },
-  "billing": { "valor": "200", "dueDay": "10" }
+  "billing": { "valor": "80", "dueDay": "Segundo Sábado" }
 }
