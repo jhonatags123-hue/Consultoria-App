@@ -1,23 +1,71 @@
 {
   "code": "erick",
   "clientName": "Erick",
-  "title": "Treino & Dieta (Ciclo de Carbo)",
-  "updatedAt": "2026-08-20T15:13:00Z",
+  "title": "Protocolo de Treino Intensidade (Cluster/Myo-reps)",
+  "updatedAt": "2026-08-20T15:40:00Z",
   "days": [
     {
       "id": "d1",
-      "title": "Treino A",
+      "title": "Segunda - Upper 1",
       "exercises": [
-        { "id": "e1", "name": "Consultar planilha de treino (Alto/Baixo)", "series": "4", "repsAlvo": "10-12" }
+        { "id": "e1", "name": "Supino Reto Barra (Cluster + Back Off set)", "series": "3", "repsAlvo": "Cluster" },
+        { "id": "e2", "name": "Remada Baixa Barra Reta (Cluster)", "series": "3", "repsAlvo": "Cluster" },
+        { "id": "e3", "name": "Desenvolvimento (Cluster + Back Off)", "series": "3", "repsAlvo": "Cluster" },
+        { "id": "e4", "name": "Crucifixo Máquina (Cluster)", "series": "2", "repsAlvo": "8-12" },
+        { "id": "e5", "name": "Puxada Triângulo (Cluster)", "series": "3", "repsAlvo": "Cluster" },
+        { "id": "e6", "name": "Elevação Lateral Polia (Cluster + Back Off)", "series": "3", "repsAlvo": "Cluster" },
+        { "id": "e7", "name": "Tríceps Máquina", "series": "2", "repsAlvo": "10-12" },
+        { "id": "e8", "name": "Rosca Direta Barra W (Opcional Cluster)", "series": "2", "repsAlvo": "10-12" },
+        { "id": "e9", "name": "Tríceps Corda (Opcional Cluster)", "series": "2", "repsAlvo": "10-12" }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "Terça - Lower 1",
+      "exercises": [
+        { "id": "e10", "name": "Cadeira Flexora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e11", "name": "Leg-press 45", "series": "2", "repsAlvo": "8-10" },
+        { "id": "e12", "name": "Elevação Pélvica", "series": "2", "repsAlvo": "8-12" },
+        { "id": "e13", "name": "Extensora (Myo-reps)", "series": "1", "repsAlvo": "Myo" },
+        { "id": "e14", "name": "Mesa Flexora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e15", "name": "Adutora", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e16", "name": "Panturrilha em pé", "series": "2", "repsAlvo": "15-20" }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "Quarta - Upper 2",
+      "exercises": [
+        { "id": "e17", "name": "Supino Inclinado", "series": "2", "repsAlvo": "8-10" },
+        { "id": "e18", "name": "Remada Cavalinho (Cluster)", "series": "2", "repsAlvo": "Cluster" },
+        { "id": "e19", "name": "Desenvolvimento", "series": "2", "repsAlvo": "8-10" },
+        { "id": "e20", "name": "Voador (Myo-reps)", "series": "1", "repsAlvo": "Myo" },
+        { "id": "e21", "name": "Puxada Barra Reta", "series": "2", "repsAlvo": "8-12" },
+        { "id": "e22", "name": "Elevação Lateral Halter (Myo-reps)", "series": "1", "repsAlvo": "Myo" },
+        { "id": "e23", "name": "Bíceps Unilateral Halter", "series": "2", "repsAlvo": "10-12" },
+        { "id": "e24", "name": "Tríceps Corda (Cluster)", "series": "2", "repsAlvo": "Cluster" }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "Sexta - Lower 2",
+      "exercises": [
+        { "id": "e25", "name": "Stiff", "series": "2", "repsAlvo": "8-10" },
+        { "id": "e26", "name": "Leg-press", "series": "3", "repsAlvo": "8-10" },
+        { "id": "e27", "name": "Mesa Flexora", "series": "3", "repsAlvo": "10-12" },
+        { "id": "e28", "name": "Extensora (Myo-reps)", "series": "1", "repsAlvo": "Myo" },
+        { "id": "e29", "name": "Adutora", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e30", "name": "Abdutora", "series": "2", "repsAlvo": "12-15" },
+        { "id": "e31", "name": "Elevação Lateral (Cluster)", "series": "3", "repsAlvo": "Cluster" }
       ]
     }
   ],
   "diet": {
-    "kcalTarget": "Variável",
-    "protein": "180",
-    "carb": "Variável",
-    "fat": "60",
-    "observacao": "Carbo Alto nas Terças, Sextas e Domingos. Carbo Baixo nos demais dias."
+    "kcalTarget": "Manutenção",
+    "protein": "Alta",
+    "carb": "Variado",
+    "fat": "Moderado",
+    "observacao": "Ref 1: 4 pães, 4 ovos, queijo, café c/ leite, 120g mamão. Ref 2: 200g arroz, 150g feijão, 180g carne vermelha + vegetais. Ref 3: 40g whey, 200ml leite, 2 bananas. Ref 4: 150g arroz, 150g feijão, 200g frango + vegetais."
   },
-  "billing": { "valor": "200", "dueDay": "10" }
+  "billing": { "valor": "80", "dueDay": "Consultar Vencimento" }
 }
