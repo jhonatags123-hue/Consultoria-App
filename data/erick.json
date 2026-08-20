@@ -1,0 +1,23 @@
+{
+  "code": "erick",
+  "clientName": "Erick",
+  "title": "Treino & Dieta (Ciclo de Carbo)",
+  "updatedAt": "2026-08-20T15:13:00Z",
+  "days": [
+    {
+      "id": "d1",
+      "title": "Treino A",
+      "exercises": [
+        { "id": "e1", "name": "Consultar planilha de treino (Alto/Baixo)", "series": "4", "repsAlvo": "10-12" }
+      ]
+    }
+  ],
+  "diet": {
+    "kcalTarget": "Variável",
+    "protein": "180",
+    "carb": "Variável",
+    "fat": "60",
+    "observacao": "Carbo Alto nas Terças, Sextas e Domingos. Carbo Baixo nos demais dias."
+  },
+  "billing": { "valor": "200", "dueDay": "10" }
+}
