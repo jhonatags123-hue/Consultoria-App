@@ -1,70 +1,86 @@
 {
   "code": "otavio",
-  "clientName": "Otavio",
-  "title": "Protocolo de Definição (Déficit Calórico)",
-  "updatedAt": "2026-08-20T15:45:00Z",
+  "clientName": "Otávio",
+  "title": "Protocolo de Treino & Nutrição",
+  "updatedAt": "2026-08-21T15:00:00Z",
+  "senha": "otavio",
   "days": [
     {
       "id": "d1",
       "title": "Upper A",
-      "exercises": [
-        { "id": "e1", "name": "Supino Inclinado com Halter", "series": "2", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e2", "name": "Remada Cavalinho", "series": "3", "repsAlvo": "8-12 (2min desc)" },
-        { "id": "e3", "name": "Desenvolvimento Máquina", "series": "2", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e4", "name": "Voador", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e5", "name": "Puxada Frontal", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e6", "name": "Elevação Lateral Cabo", "series": "2", "repsAlvo": "12-15" },
-        { "id": "e7", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e8", "name": "Tríceps Francês", "series": "2", "repsAlvo": "10-12" },
-        { "id": "e9", "name": "Rosca Barra W ou Scott Unilateral", "series": "2", "repsAlvo": "10-12" }
+      "exercicios": [
+        { "id": "e1", "nome": "Supino Inclinado com Halter (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e2", "nome": "Remada Cavalinho (Intervalo: 2 min)", "series": "3", "reps": "Com intervalo de 2 min" },
+        { "id": "e3", "nome": "Desenvolvimento Máquina (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e4", "nome": "Voador", "series": "3", "reps": "8-12" },
+        { "id": "e5", "nome": "Puxada Frontal", "series": "3", "reps": "8-12" },
+        { "id": "e6", "nome": "Elevação Lateral no Cabo", "series": "2", "reps": "10-12" },
+        { "id": "e7", "nome": "Tríceps Pulley", "series": "3", "reps": "8-12" },
+        { "id": "e8", "nome": "Tríceps Francês", "series": "2", "reps": "8-12" },
+        { "id": "e9", "nome": "Rosca Barra W ou Scott Unilateral", "series": "2", "reps": "8-12" }
       ]
     },
     {
       "id": "d2",
       "title": "Lower A",
-      "exercises": [
-        { "id": "e10", "name": "Stiff", "series": "2", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e11", "name": "Hack", "series": "2", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e12", "name": "Pélvica", "series": "2", "repsAlvo": "8-12 (2min desc)" },
-        { "id": "e13", "name": "Mesa Flexora", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e14", "name": "Extensora", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e15", "name": "Adutora", "series": "2", "repsAlvo": "12-15" }
+      "exercicios": [
+        { "id": "e10", "nome": "Stiff (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e11", "nome": "Agachamento Hack (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e12", "nome": "Elevação Pélvica (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e13", "nome": "Mesa Flexora", "series": "3", "reps": "8-12" },
+        { "id": "e14", "nome": "Extensora", "series": "3", "reps": "8-12" },
+        { "id": "e15", "nome": "Adutora", "series": "2", "reps": "10-12" }
       ]
     },
     {
       "id": "d3",
       "title": "Upper B",
-      "exercises": [
-        { "id": "e16", "name": "Supino Reto Barra", "series": "2", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e17", "name": "Remada Máquina Articulada (cotovelos rente ao corpo)", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e18", "name": "Elevação Lateral Cabo", "series": "3", "repsAlvo": "12-15" },
-        { "id": "e19", "name": "Cross (baixo p/ cima) ou Crucifixo Inclinado", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e20", "name": "Remada Baixa Barra Reta", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e21", "name": "Elevação Lateral Halter", "series": "2", "repsAlvo": "12-15" },
-        { "id": "e22", "name": "Tríceps Testa", "series": "2", "repsAlvo": "10-12" },
-        { "id": "e23", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e24", "name": "Rosca Direta Cabo", "series": "2", "repsAlvo": "10-12" }
+      "exercicios": [
+        { "id": "e16", "nome": "Supino Reto Barra (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
+        { "id": "e17", "nome": "Remada Máquina Articulada (Cotovelos rente ao corpo)", "series": "3", "reps": "8-12" },
+        { "id": "e18", "nome": "Elevação Lateral no Cabo", "series": "3", "reps": "10-12" },
+        { "id": "e19", "nome": "Crossover de Baixo para Cima ou Crucifixo Inclinado", "series": "3", "reps": "8-12" },
+        { "id": "e20", "nome": "Remada Baixa Barra Reta", "series": "3", "reps": "8-12" },
+        { "id": "e21", "nome": "Elevação Lateral com Halter", "series": "2", "reps": "10-12" },
+        { "id": "e22", "nome": "Tríceps Testa", "series": "2", "reps": "8-12" },
+        { "id": "e23", "nome": "Tríceps Pulley", "series": "3", "reps": "8-12" },
+        { "id": "e24", "nome": "Rosca Direta no Cabo", "series": "2", "reps": "10-12" }
       ]
     },
     {
       "id": "d4",
       "title": "Lower B",
-      "exercises": [
-        { "id": "e25", "name": "Cadeira Flexora", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e26", "name": "Leg-Press 45", "series": "3", "repsAlvo": "8-10 (2min desc)" },
-        { "id": "e27", "name": "Adutora", "series": "2", "repsAlvo": "12-15" },
-        { "id": "e28", "name": "Abdutora", "series": "3", "repsAlvo": "12-15" },
-        { "id": "e29", "name": "Extensora", "series": "3", "repsAlvo": "10-12" },
-        { "id": "e30", "name": "Mesa Flexora", "series": "2", "repsAlvo": "10-12" }
+      "exercicios": [
+        { "id": "e25", "nome": "Cadeira Flexora", "series": "3", "reps": "8-12" },
+        { "id": "e26", "nome": "Leg-Press 45 (Intervalo: 2 min)", "series": "3", "reps": "Com intervalo de 2 min" },
+        { "id": "e27", "nome": "Adutora", "series": "2", "reps": "10-12" },
+        { "id": "e28", "nome": "Abdutora", "series": "3", "reps": "10-12" },
+        { "id": "e29", "nome": "Extensora", "series": "3", "reps": "8-12" },
+        { "id": "e30", "nome": "Mesa Flexora", "series": "2", "reps": "8-12" }
       ]
     }
   ],
-  "diet": {
-    "kcalTarget": "Déficit Calórico",
-    "protein": "Alta",
-    "carb": "Controlado",
-    "fat": "Moderado",
-    "observacao": "Meta de água: 50ml por kg (4,75L/dia). Opções de carbo: Arroz/Feijão, Massa, Batata Inglesa ou Doce."
-  },
-  "billing": { "valor": "80", "dueDay": "06" }
+  "refeicoes": [
+    {
+      "titulo": "Refeição 1",
+      "alimentos": "120g de frango + 4 fatias de pão + 1 fatia de queijo mussarela + 100g de mamão"
+    },
+    {
+      "titulo": "Refeição 2 (Almoço)",
+      "alimentos": "200g de arroz + 220g de frango + legumes à vontade\n(Substituições permitidas: Arroz com feijão nas porções equivalentes, massa, batata inglesa ou batata doce)"
+    },
+    {
+      "titulo": "Refeição 3 (Lanche)",
+      "alimentos": "Opção A: 60g de aveia + 40g de whey + 1 banana\nOpção B: 4 ovos + 30g de aveia + 1 banana"
+    },
+    {
+      "titulo": "Refeição 4 (Jantar)",
+      "alimentos": "180g de arroz + 180g de carne vermelha + 1 laranja (ou outra fruta ácida)\n(Substituições permitidas: Arroz com feijão nas porções equivalentes, massa, batata inglesa ou batata doce)"
+    },
+    {
+      "titulo": "Meta de Hidratação",
+      "alimentos": "💧 Beber 50ml de água por quilo corporal ao longo do dia"
+    }
+  ],
+  "billing": { "valor": "80", "dueDay": "10" }
 }
