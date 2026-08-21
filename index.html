@@ -167,12 +167,9 @@
   let loggedCode = localStorage.getItem('logged_user');
 
   window.onload = () => {
-    if (loggedCode) {
-      if (loggedCode === ADMIN_USER) {
-        window.location.href = "admin.html";
-      } else {
-        loadStudentData(loggedCode);
-      }
+    // Apenas carrega dados do aluno se NÃO for admin e já estiver salvo
+    if (loggedCode && loggedCode !== ADMIN_USER) {
+      loadStudentData(loggedCode);
     }
   };
 
