@@ -8,12 +8,22 @@
 <style>
   :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px; }
-  h1 { font-size:20px; font-weight:800; color:var(--text); }
-  .sub { color:var(--gold); font-size:12px; margin-top:4px; font-weight:600; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
+  h1 { font-size:22px; font-weight:800; color:var(--text); text-align:center; }
+  .sub { color:var(--gold); font-size:12px; margin-top:4px; font-weight:600; text-align:center; }
   
-  /* Menu Principal */
+  /* Tela de Login & Modais */
+  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
+  .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
+  .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
+  .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
+  .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
+  .success-msg { color:#7fd68a; font-size:12px; text-align:center; margin-top:8px; }
+
+  /* App Principal */
+  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .header-actions { display:flex; gap:6px; }
   .menu { display:flex; gap:6px; margin-bottom:16px; }
   .menu-btn { flex:1; padding:10px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:12px; border-radius:10px; cursor:pointer; text-align:center; }
   .menu-btn.active { background:var(--accent); border-color:var(--accent); }
@@ -31,7 +41,7 @@
   .input-load { width:100%; margin-top:8px; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:6px 10px; border-radius:6px; font-size:12px; }
 
   /* Chat da IA */
-  .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:320px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
+  .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:300px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
   .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
   .msg-user { background:var(--accent); color:#fff; align-self:flex-end; }
   .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; }
@@ -40,16 +50,45 @@
   .chat-btn { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
 
   .hidden { display:none !important; }
-  .center { text-align:center; padding:30px; color:var(--muted); }
 </style>
 </head>
 <body>
 
-<div id="statusMsg" class="center">Carregando dados...</div>
+<!-- TELA DE LOGIN -->
+<div id="loginScreen" class="card">
+  <h1>JHONATA CONSULTORIA</h1>
+  <div class="sub">Acesse sua área exclusiva</div>
+  
+  <form onsubmit="handleLogin(event)" class="login-box">
+    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: erick ou admin)" required>
+    <input type="password" id="loginPass" class="input-field" placeholder="Senha" required>
+    <button type="submit" class="btn-login">ENTRAR</button>
+  </form>
+  <div id="loginError" class="error-msg hidden"></div>
+</div>
 
+<!-- MODAL ALTERAR SENHA -->
+<div id="passModal" class="card hidden">
+  <h1 style="font-size:18px;">Alterar Senha</h1>
+  <div class="sub">Digite sua nova senha abaixo</div>
+  <form onsubmit="saveNewPassword(event)" class="login-box">
+    <input type="password" id="newPassInput" class="input-field" placeholder="Nova Senha" required>
+    <button type="submit" class="btn-login" style="background:var(--gold); color:#210309;">SALVAR SENHA</button>
+    <button type="button" class="btn-header" onclick="togglePassModal(false)" style="margin-top:4px;">Cancelar</button>
+  </form>
+  <div id="passMsg" class="success-msg hidden"></div>
+</div>
+
+<!-- TELA PRINCIPAL DO ALUNO -->
 <div id="mainContent" class="hidden">
   <div class="card">
-    <h1 id="clientName">Consultoria</h1>
+    <div class="header-app">
+      <h1 id="clientName">Consultoria</h1>
+      <div class="header-actions">
+        <button class="btn-header" onclick="togglePassModal(true)">Senha</button>
+        <button class="btn-header" onclick="logout()">Sair</button>
+      </div>
+    </div>
     <div class="sub" id="billingInfo"></div>
   </div>
 
@@ -81,35 +120,119 @@
 </div>
 
 <script>
-  // CHAVE DA API DO GEMINI
   const GEMINI_API_KEY = "AQ.Ab8RN6I4RpbzJYvCf8p76u63928McOLftJTOF9R7Ar8bNjws1A";
-
-  const params = new URLSearchParams(window.location.search);
-  const code = params.get('a') || params.get('aluno');
+  
+  const ADMIN_USER = "admin";
+  const ADMIN_PASS = "1234";
 
   let currentData = null;
+  let loggedCode = localStorage.getItem('logged_user');
 
-  if (!code) {
-    document.getElementById('statusMsg').innerHTML = 'Acesse com o link do aluno.<br><small>Ex: index.html?a=erick</small>';
-  } else {
-    fetch(`data/${code.toLowerCase()}.json?t=${Date.now()}`)
-      .then(res => res.json())
-      .then(data => {
-        currentData = data;
-        document.getElementById('statusMsg').classList.add('hidden');
-        document.getElementById('mainContent').classList.remove('hidden');
-        
-        document.getElementById('clientName').textContent = data.clientName || 'Aluno';
-        if(data.billing) {
-          document.getElementById('billingInfo').textContent = `Mensalidade: R$ ${data.billing.valor || '80'} | Vencimento: Dia ${data.billing.dueDay || '10'}`;
-        }
+  window.onload = () => {
+    if (loggedCode) {
+      if (loggedCode === ADMIN_USER) {
+        window.location.href = "admin.html";
+      } else {
+        loadStudentData(loggedCode);
+      }
+    }
+  };
 
-        setupWorkout(data.days || []);
-        setupDiet(data.refeicoes || []);
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim().toLowerCase();
+    const pass = document.getElementById('loginPass').value.trim();
+    const errorDiv = document.getElementById('loginError');
+
+    errorDiv.classList.add('hidden');
+
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
+      localStorage.setItem('logged_user', ADMIN_USER);
+      window.location.href = "admin.html";
+      return;
+    }
+
+    fetch(`data/${user}.json?t=${Date.now()}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Usuário não encontrado");
+        return res.json();
       })
-      .catch(err => {
-        document.getElementById('statusMsg').innerHTML = `<b style="color:var(--accent)">Erro ao carregar data/${code}.json</b><br><small>Verifique se o arquivo existe na pasta data/ no GitHub.</small>`;
+      .then(data => {
+        // Verifica se o aluno já definiu uma senha personalizada no aparelho dele
+        const customPass = localStorage.getItem(`pass_${user}`);
+        const validPass = customPass || data.senha || user;
+
+        if (pass === validPass) {
+          localStorage.setItem('logged_user', user);
+          loadStudentData(user, data);
+        } else {
+          errorDiv.textContent = "Senha incorreta.";
+          errorDiv.classList.remove('hidden');
+        }
+      })
+      .catch(() => {
+        errorDiv.textContent = "Usuário não encontrado.";
+        errorDiv.classList.remove('hidden');
       });
+  }
+
+  function togglePassModal(show) {
+    const modal = document.getElementById('passModal');
+    const app = document.getElementById('mainContent');
+    if (show) {
+      modal.classList.remove('hidden');
+      app.classList.add('hidden');
+    } else {
+      modal.classList.add('hidden');
+      app.classList.remove('hidden');
+    }
+  }
+
+  function saveNewPassword(e) {
+    e.preventDefault();
+    const newPass = document.getElementById('newPassInput').value.trim();
+    const user = localStorage.getItem('logged_user');
+    const msg = document.getElementById('passMsg');
+
+    if (newPass && user) {
+      localStorage.setItem(`pass_${user}`, newPass);
+      msg.textContent = "Senha alterada com sucesso!";
+      msg.classList.remove('hidden');
+      setTimeout(() => {
+        msg.classList.add('hidden');
+        document.getElementById('newPassInput').value = '';
+        togglePassModal(false);
+      }, 1200);
+    }
+  }
+
+  function loadStudentData(code, dataLoaded = null) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+
+    const processData = (data) => {
+      currentData = data;
+      document.getElementById('clientName').textContent = data.clientName || 'Aluno';
+      if(data.billing) {
+        document.getElementById('billingInfo').textContent = `Mensalidade: R$ ${data.billing.valor || '80'} | Vencimento: Dia ${data.billing.dueDay || '10'}`;
+      }
+      setupWorkout(data.days || []);
+      setupDiet(data.refeicoes || []);
+    };
+
+    if (dataLoaded) {
+      processData(dataLoaded);
+    } else {
+      fetch(`data/${code}.json?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => processData(data))
+        .catch(() => logout());
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('logged_user');
+    location.reload();
   }
 
   function showTab(tab) {
@@ -154,7 +277,7 @@
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
     (day.exercicios || []).forEach((ex, idx) => {
-      const key = `c_${code}_${day.id}_${idx}`;
+      const key = `c_${localStorage.getItem('logged_user')}_${day.id}_${idx}`;
       const div = document.createElement('div');
       div.className = 'item';
       div.innerHTML = `
@@ -211,48 +334,31 @@
     const systemPrompt = `Você é o "Jhonata AI", assistente virtual inteligente do Personal Trainer Jhonata.
 Sua missão é responder dúvidas de alunos sobre treino e nutrição com respostas diretas e precisas.
 
-DIETA ATUAL DO ALUNO (Consulte esta lista para entender qual é a refeição ou alimento que o aluno mencionou):
+DIETA ATUAL DO ALUNO:
 ${dietaAtual}
 
-REGRAS RÍGIDAS DE EQUIVALÊNCIA E SUBSTITUIÇÃO DE MACRONUTRIENTES:
-1. CARBOIDRATOS (Base para ~25g de Carboidrato):
-   - 100g Arroz cozido = 120g Batata doce/inglesa cozida = 100g Mandioca = 100g Macarrão = 2 fatias Pão de forma = 30g Aveia.
-2. PROTEÍNAS (Base para ~20g-25g de Proteína):
-   - 100g Frango grelhado = 100g Carne vermelha magra = 120g Peixe = 3 a 4 Ovos inteiros = 30g Whey Protein.
-3. GORDURAS (Base para ~10g de Gordura):
-   - 10g Azeite de oliva = 15g Pasta de amendoim = 15g Castanhas/Nozes.
+REGRAS DE EQUIVALÊNCIA:
+1. CARBOIDRATOS (~25g): 100g Arroz = 120g Batata doce/inglesa = 100g Mandioca = 100g Macarrão = 2 fatias Pão = 30g Aveia.
+2. PROTEÍNAS (~20g-25g): 100g Frango = 100g Carne vermelha = 120g Peixe = 3 a 4 Ovos = 30g Whey.
+3. GORDURAS (~10g): 10g Azeite = 15g Pasta de amendoim = 15g Castanhas.
 
-INSTRUÇÕES DE RESPOSTA:
-- Quando o aluno solicitar a troca de um alimento em uma refeição específica (ex: almoço, café), consulte a DIETA ATUAL DO ALUNO para identificar o alimento e a quantidade.
-- Calcule proporcionalmente a quantidade equivalente para os substitutos.
-- Apresente 2 a 3 opções de forma limpa usando marcadores.
-- Seja objetivo (máximo 3 parágrafos). Para dores articulares ou alterações estruturais, peça para chamar o Jhonata no WhatsApp.`;
+Calcule proporcionalmente quando o aluno pedir trocas e responda de forma motivadora e em no máximo 3 parágrafos.`;
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemPrompt }]
-          },
-          contents: [{
-            parts: [{ text: text }]
-          }]
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ parts: [{ text: text }] }]
         })
       });
 
       const data = await response.json();
-      
-      if (data.error) {
-        loadingMsg.textContent = `Erro: ${data.error.message || 'Verifique a chave de API.'}`;
-        return;
-      }
-
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui formular uma resposta no momento. Tente novamente!";
+      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui responder no momento.";
       loadingMsg.textContent = reply;
     } catch(err) {
-      loadingMsg.textContent = "Erro ao conectar com o assistente. Verifique sua conexão.";
+      loadingMsg.textContent = "Erro ao conectar com a IA.";
     }
     chatBox.scrollTop = chatBox.scrollHeight;
   }
