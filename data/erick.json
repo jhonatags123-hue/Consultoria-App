@@ -1,8 +1,8 @@
 {
   "code": "erick",
   "clientName": "Erick",
-  "title": "Protocolo de Treino Intensidade (Cluster/Myo-reps)",
-  "updatedAt": "2026-08-20T15:40:00Z",
+  "title": "Protocolo de Treino & Dieta",
+  "updatedAt": "2026-08-21T15:00:00Z",
   "days": [
     {
       "id": "d1",
@@ -60,8 +60,23 @@
       ]
     }
   ],
-  "diet": {
-    "observacao": "Ref 1: 4 pães, 4 ovos, queijo, café c/ leite, 120g mamão. Ref 2: 200g arroz, 150g feijão, 180g carne vermelha + vegetais. Ref 3: 40g whey, 200ml leite, 2 bananas. Ref 4: 150g arroz, 150g feijão, 200g frango + vegetais."
-  },
+  "refeicoes": [
+    {
+      "titulo": "Refeição 1",
+      "alimentos": "4 fatias de pão, 4 ovos, 1 fatia de queijo mussarela, 1 xícara de café com leite, 120g de mamão"
+    },
+    {
+      "titulo": "Refeição 2",
+      "alimentos": "200g de arroz, 150g de feijão, 180g de carne vermelha, saladas e legumes à vontade"
+    },
+    {
+      "titulo": "Refeição 3",
+      "alimentos": "40g de whey, 200ml de leite (1 copo), 2 bananas"
+    },
+    {
+      "titulo": "Refeição 4",
+      "alimentos": "150g de arroz, 150g de feijão, 200g de frango, saladas e legumes à vontade"
+    }
+  ],
   "billing": { "valor": "80", "dueDay": "10" }
 }
