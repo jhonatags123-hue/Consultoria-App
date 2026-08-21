@@ -62,9 +62,7 @@
     <div class="card">
       <div class="label-title">📋 Seus Alunos</div>
       <div class="student-list" id="studentSidebarList">
-        <button class="student-btn active" onclick="selectStudent('erick', this)">Erick <span>👤</span></button>
-        <button class="student-btn" onclick="selectStudent('leonardo', this)">Leonardo <span>👤</span></button>
-        <button class="student-btn" onclick="selectStudent('otavio', this)">Otavio <span>👤</span></button>
+        <div style="font-size:12px; color:var(--muted);">Carregando alunos...</div>
       </div>
     </div>
 
@@ -178,12 +176,62 @@
   }
 
   window.onload = () => {
-    loadStudentData(selectedStudent);
+    loadStudentsList();
   };
+
+  // CARREGAMENTO AUTOMÁTICO DA LISTA DE ALUNOS
+  function loadStudentsList() {
+    fetch(`data/students.json?t=${Date.now()}`)
+      .then(res => res.json())
+      .then(students => {
+        const sidebar = document.getElementById('studentSidebarList');
+        sidebar.innerHTML = '';
+
+        // Carrega também alunos criados localmente via anamnese
+        const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
+        const fullList = [...students, ...localStudents];
+
+        // Remove duplicados
+        const uniqueStudents = Array.from(new Map(fullList.map(item => [item.code, item])).values());
+
+        uniqueStudents.forEach((st, idx) => {
+          const btn = document.createElement('button');
+          btn.className = `student-btn ${idx === 0 ? 'active' : ''}`;
+          btn.innerHTML = `${st.name} <span>👤</span>`;
+          btn.onclick = () => selectStudent(st.code, btn);
+          sidebar.appendChild(btn);
+        });
+
+        if (uniqueStudents.length > 0) {
+          selectedStudent = uniqueStudents[0].code;
+          loadStudentData(selectedStudent);
+        }
+      })
+      .catch(() => {
+        // Fallback caso não encontre data/students.json
+        const fallback = [
+          { code: 'erick', name: 'Erick' },
+          { code: 'leonardo', name: 'Leonardo' },
+          { code: 'otavio', name: 'Otavio' },
+          { code: 'vini', name: 'Vini' },
+          { code: 'saimon', name: 'Saimon' }
+        ];
+        const sidebar = document.getElementById('studentSidebarList');
+        sidebar.innerHTML = '';
+        fallback.forEach((st, idx) => {
+          const btn = document.createElement('button');
+          btn.className = `student-btn ${idx === 0 ? 'active' : ''}`;
+          btn.innerHTML = `${st.name} <span>👤</span>`;
+          btn.onclick = () => selectStudent(st.code, btn);
+          sidebar.appendChild(btn);
+        });
+        loadStudentData('erick');
+      });
+  }
 
   function selectStudent(code, btnElement) {
     selectedStudent = code;
-    currentStudentData = null; // Reseta objeto em memória ao trocar de aluno
+    currentStudentData = null;
     if (btnElement) {
       document.querySelectorAll('.student-btn').forEach(btn => btn.classList.remove('active'));
       btnElement.classList.add('active');
@@ -197,9 +245,7 @@
     fetch(`data/${code}.json?t=${Date.now()}`)
       .then(res => res.json())
       .then(rawData => {
-        // Cria uma cópia totalmente isolada em memória para evitar interferências
         let data = JSON.parse(JSON.stringify(rawData));
-        
         if (localWorkout) {
           data.days = JSON.parse(localWorkout);
         }
@@ -260,7 +306,7 @@
       return;
     }
 
-    data.days.forEach((day, dIdx) => {
+    data.days.forEach((day) => {
       const btn = document.createElement('button');
       btn.className = 'accordion-btn';
       btn.innerHTML = `<span>${day.title}</span> <span>▼</span>`;
@@ -443,14 +489,15 @@
     document.getElementById('anamOutputJson').value = JSON.stringify(newStudentData, null, 2);
     document.getElementById('anamResultContainer').classList.remove('hidden');
 
-    const sidebar = document.getElementById('studentSidebarList');
-    const newBtn = document.createElement('button');
-    newBtn.className = 'student-btn';
-    newBtn.onclick = function() { selectStudent(code, newBtn); };
-    newBtn.innerHTML = `${name} <span>👤</span>`;
-    sidebar.appendChild(newBtn);
+    // Salva o novo aluno no storage local para aparecer no menu do Admin
+    const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
+    localStudents.push({ code: code, name: name });
+    localStorage.setItem('admin_created_students', JSON.stringify(localStudents));
 
     localStorage.setItem(`custom_workout_${code}`, JSON.stringify(parsedDays));
+    
+    // Recarrega a lista do menu
+    loadStudentsList();
     alert(`Ficha do aluno ${name} criada! Salve o arquivo na pasta data/ no GitHub.`);
   }
 
