@@ -36,7 +36,10 @@
   .item-title { font-weight:700; font-size:14px; color:#fff; }
   .item-meta { color:var(--gold); font-size:12px; font-weight:600; margin-top:2px; }
   .item-body { color:var(--text); font-size:13px; line-height:1.4; margin-top:4px; }
-  .input-load { width:100%; margin-top:8px; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:6px 10px; border-radius:6px; font-size:12px; }
+  
+  /* Inputs Lado a Lado para Carga e Reps */
+  .inputs-row { display:flex; gap:8px; margin-top:8px; }
+  .input-load { flex:1; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:8px 10px; border-radius:6px; font-size:12px; }
 
   .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:300px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
   .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
@@ -53,7 +56,6 @@
 </head>
 <body>
 
-<!-- TELA DE ANAMNESE PARA NOVOS ALUNOS -->
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE DE CONSULTORIA</h1>
   <div class="sub">Preencha seus dados para a montagem do seu treino</div>
@@ -76,7 +78,7 @@
 
     <div>
       <label class="label-fdb">Quantos dias por semana pode treinar?</label>
-      <input type="text" id="anamDias" class="input-field" placeholder="Ex: 4 dias (Segunda, Terça, Quinta, Sexta)" required>
+      <input type="text" id="anamDias" class="input-field" placeholder="Ex: 4 dias" required>
     </div>
 
     <div>
@@ -88,7 +90,6 @@
   </form>
 </div>
 
-<!-- TELA DE LOGIN -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
   <div class="sub">Acesse sua área exclusiva</div>
@@ -101,7 +102,6 @@
   <div id="loginError" class="error-msg hidden"></div>
 </div>
 
-<!-- MODAL ALTERAR SENHA -->
 <div id="passModal" class="card hidden">
   <h1 style="font-size:18px;">Alterar Senha</h1>
   <div class="sub">Digite sua nova senha abaixo</div>
@@ -113,7 +113,6 @@
   <div id="passMsg" class="success-msg hidden"></div>
 </div>
 
-<!-- TELA PRINCIPAL DO ALUNO -->
 <div id="mainContent" class="hidden">
   <div class="card">
     <div class="header-app">
@@ -192,7 +191,6 @@
 
   let currentData = null;
 
-  // VERIFICA SE O LINK É DE ANAMNESE DIRETA
   window.onload = () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('modo') === 'anamnese') {
@@ -209,7 +207,6 @@
     const dias = document.getElementById('anamDias').value.trim();
     const obs = document.getElementById('anamObs').value.trim() || 'Nenhuma';
 
-    // Cria sugestão de usuário (primeiro nome em minúsculo)
     const userSuggest = nome.split(' ')[0].toLowerCase();
 
     const text = `📋 *NOVA ANAMNESE - CONSULTORIA*%0A` +
@@ -370,13 +367,19 @@
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
     (day.exercicios || []).forEach((ex, idx) => {
-      const key = `c_${localStorage.getItem('logged_user')}_${day.id}_${idx}`;
+      const user = localStorage.getItem('logged_user');
+      const keyLoad = `c_${user}_${day.id}_${idx}`;
+      const keyReps = `r_${user}_${day.id}_${idx}`;
+
       const div = document.createElement('div');
       div.className = 'item';
       div.innerHTML = `
         <div class="item-title">${ex.nome}</div>
         <div class="item-meta">${ex.series}x (${ex.reps})</div>
-        <input class="input-load" placeholder="Carga (ex: 20kg)" value="${localStorage.getItem(key) || ''}" onchange="localStorage.setItem('${key}', this.value)">
+        <div class="inputs-row">
+          <input class="input-load" placeholder="Carga (ex: 20kg)" value="${localStorage.getItem(keyLoad) || ''}" onchange="localStorage.setItem('${keyLoad}', this.value)">
+          <input class="input-load" placeholder="Reps (ex: 10)" value="${localStorage.getItem(keyReps) || ''}" onchange="localStorage.setItem('${keyReps}', this.value)">
+        </div>
       `;
       list.appendChild(div);
     });
