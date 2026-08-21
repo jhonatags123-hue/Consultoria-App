@@ -25,7 +25,7 @@
 
   /* Barra de Progresso da Anamnese */
   .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
-  .progress-bar-fill { width:20%; background:var(--gold); height:100%; transition:width 0.3s ease; }
+  .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
   .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
 
   .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
@@ -61,56 +61,57 @@
 </head>
 <body>
 
-<!-- TELA DE ANAMNESE POR ETAPAS -->
+<!-- TELA DE ANAMNESE DETALHADA POR ETAPAS -->
 <div id="anamneseScreen" class="card hidden">
-  <h1>ANAMNESE DE CONSULTORIA</h1>
-  <div class="sub">Responda as perguntas abaixo</div>
+  <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
+  <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
   
   <div class="progress-bar-bg">
     <div id="progressBar" class="progress-bar-fill"></div>
   </div>
-  <div id="stepCounter" class="step-counter">Etapa 1 de 5</div>
+  <div id="stepCounter" class="step-counter">Etapa 1 de 7</div>
 
   <form onsubmit="event.preventDefault();" class="login-box">
     
     <!-- ETAPA 1: DADOS PESSOAIS -->
     <div id="anamStep1">
-      <label class="label-fdb">1. Qual é o seu nome completo?</label>
+      <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
 
-      <div style="display:flex; gap:8px; margin-top:10px;">
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
+      <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
-          <label class="label-fdb">Idade</label>
-          <input type="text" id="anamIdade" class="input-field" placeholder="Ex: 25" required>
+          <label class="label-fdb">Data Nascimento</label>
+          <input type="text" id="anamNasc" class="input-field" placeholder="DD/MM/AAAA" required>
         </div>
         <div style="flex:1;">
-          <label class="label-fdb">Peso (kg)</label>
-          <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75kg" required>
-        </div>
-        <div style="flex:1;">
-          <label class="label-fdb">Altura (m)</label>
-          <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75" required>
+          <label class="label-fdb">Peso e Altura</label>
+          <input type="text" id="anamMedidas" class="input-field" placeholder="Ex: 70kg e 1.75m" required>
         </div>
       </div>
       <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
     </div>
 
-    <!-- ETAPA 2: OBJETIVO & EXPERIÊNCIA -->
+    <!-- ETAPA 2: MOTIVAÇÃO & OBJETIVOS -->
     <div id="anamStep2" class="hidden">
-      <label class="label-fdb">2. Qual é o seu objetivo principal?</label>
+      <label class="label-fdb">2. O que te motivou a buscar ajuda nutricional?</label>
+      <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética e ter mais disposição" required>
+
+      <label class="label-fdb" style="margin-top:8px;">Quais são as suas expectativas com o atendimento?</label>
+      <input type="text" id="anamExpectativas" class="input-field" placeholder="Ex: Ter uma dieta sustentável que consiga seguir">
+
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu objetivo principal?</label>
       <select id="anamObjetivo" class="input-field" required>
         <option value="Hipertrofia / Ganho de Massa">Hipertrofia / Ganho de Massa Muscular</option>
         <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
-        <option value="Recomposição Corporal">Recomposição Corporal (Massa + Perda de Gordura)</option>
-        <option value="Condicionamento & Saúde">Condicionamento Físico & Saúde</option>
+        <option value="Recomposição Corporal">Recomposição Corporal</option>
+        <option value="Saúde e Performance">Saúde e Performance Esportiva</option>
       </select>
 
-      <label class="label-fdb" style="margin-top:10px;">Há quanto tempo você treina?</label>
-      <select id="anamExperiencia" class="input-field" required>
-        <option value="Iniciante (menos de 6 meses)">Iniciante (Menos de 6 meses)</option>
-        <option value="Intermediário (6 meses a 2 anos)">Intermediário (6 meses a 2 anos)</option>
-        <option value="Avançado (Mais de 2 anos consistente)">Avançado (Mais de 2 anos consistente)</option>
-      </select>
+      <label class="label-fdb" style="margin-top:8px;">O que te impede hoje de chegar nesse objetivo?</label>
+      <input type="text" id="anamObstaculo" class="input-field" placeholder="Ex: Falta de tempo, ansiedade nos finais de semana">
 
       <div style="display:flex; gap:8px;">
         <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
@@ -118,21 +119,26 @@
       </div>
     </div>
 
-    <!-- ETAPA 3: ROTINA DE TREINO -->
+    <!-- ETAPA 3: HISTÓRICO DE DIETA & ROTINA -->
     <div id="anamStep3" class="hidden">
-      <label class="label-fdb">3. Quantos dias por semana você vai treinar?</label>
-      <select id="anamDias" class="input-field" required>
-        <option value="3 dias">3 Dias por semana</option>
-        <option value="4 dias">4 Dias por semana</option>
-        <option value="5 dias">5 Dias por semana</option>
-        <option value="6 dias">6 Dias por semana</option>
-      </select>
+      <label class="label-fdb">3. Já fez dieta antes? Conte experiências positivas/negativas:</label>
+      <textarea id="anamHistoricoDieta" class="input-field" rows="2" placeholder="Ex: Já fiz Low Carb, perdi peso rápido mas não consegui manter..."></textarea>
 
-      <label class="label-fdb" style="margin-top:10px;">Quanto tempo tem disponível por treino?</label>
-      <select id="anamTempo" class="input-field" required>
-        <option value="45 minutos">45 minutos</option>
-        <option value="60 minutos (1 hora)">1 hora</option>
-        <option value="Mais de 1h15">1 hora e 15 minutos ou mais</option>
+      <label class="label-fdb" style="margin-top:8px;">Faz quantas refeições por dia atualmente?</label>
+      <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 refeições por dia">
+
+      <label class="label-fdb" style="margin-top:8px;">O que você acha que deve mudar na alimentação atual?</label>
+      <input type="text" id="anamMudancaAlimentar" class="input-field" placeholder="Ex: Reduzir os doces à noite, comer mais salada">
+
+      <label class="label-fdb" style="margin-top:8px;">Qual horário você dorme e acorda?</label>
+      <input type="text" id="anamHorarioSono" class="input-field" placeholder="Ex: Durmo às 23h e acordo às 06h30">
+
+      <label class="label-fdb" style="margin-top:8px;">Nota para a qualidade do seu sono (0 a 10):</label>
+      <select id="anamNotaSono" class="input-field">
+        <option value="10 - Excelente">10 - Sono excelente</option>
+        <option value="8-9 - Muito bom">8 a 9 - Muito bom</option>
+        <option value="5-7 - Regular">5 a 7 - Regular</option>
+        <option value="0-4 - Ruim">0 a 4 - Sono muito ruim</option>
       </select>
 
       <div style="display:flex; gap:8px;">
@@ -141,13 +147,29 @@
       </div>
     </div>
 
-    <!-- ETAPA 4: SAÚDE & LESÕES -->
+    <!-- ETAPA 4: ROTINA DE TREINO & ATIVIDADE FÍSICA -->
     <div id="anamStep4" class="hidden">
-      <label class="label-fdb">4. Possui alguma lesão, dor articular ou limitação física?</label>
-      <input type="text" id="anamLesoes" class="input-field" placeholder="Ex: Dor no joelho direito, hérnia de disco (ou 'Nenhuma')" required>
+      <label class="label-fdb">4. Qual horário do seu treino e tempo disponível?</label>
+      <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: Treino às 18h / 1 hora disponível" required>
 
-      <label class="label-fdb" style="margin-top:10px;">Usa alguma medicação contínua ou suplemento?</label>
-      <input type="text" id="anamSuplementos" class="input-field" placeholder="Ex: Whey, Creatina (ou 'Nenhum')">
+      <label class="label-fdb" style="margin-top:8px;">Quantas vezes na semana treina musculação?</label>
+      <input type="text" id="anamFreqTreino" class="input-field" placeholder="Ex: 5 vezes na semana">
+
+      <label class="label-fdb" style="margin-top:8px;">Pratica outra atividade física fora musculação?</label>
+      <input type="text" id="anamOutroEsporte" class="input-field" placeholder="Ex: Corrida 2x na semana / Futebol no sábado (ou Nenhuma)">
+
+      <label class="label-fdb" style="margin-top:8px;">Nota para o seu treinamento atual (0 a 10):</label>
+      <select id="anamNotaTreino" class="input-field">
+        <option value="10 - Excelente">10 - Treino excelente</option>
+        <option value="7-9 - Bom">7 a 9 - Treino bom</option>
+        <option value="0-6 - Ruim">0 a 6 - Treino ruim / Precisa melhorar</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:8px;">No trabalho/faculdade tem disponibilidade para comer?</label>
+      <select id="anamDispRefeicao" class="input-field">
+        <option value="Sim">Sim, consigo fazer refeições tranquilamente</option>
+        <option value="Não">Não, rotina corrida / Pouco tempo</option>
+      </select>
 
       <div style="display:flex; gap:8px;">
         <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
@@ -155,14 +177,86 @@
       </div>
     </div>
 
-    <!-- ETAPA 5: ALIMENTAÇÃO & FINALIZAÇÃO -->
+    <!-- ETAPA 5: PREFERÊNCIAS & HÁBITOS ALIMENTARES -->
     <div id="anamStep5" class="hidden">
-      <label class="label-fdb">5. Como é sua rotina alimentar e aversões?</label>
-      <textarea id="anamDieta" class="input-field" rows="3" placeholder="Ex: Faço 4 refeições ao dia. Não gosto de peixe e tenho alergia a leite." required></textarea>
+      <label class="label-fdb">5. Alimentos da sua preferência (sabor e custo-benefício):</label>
+      <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, ovos, arroz, banana, aveia, paçoca..."></textarea>
+
+      <label class="label-fdb" style="margin-top:8px;">Alimentos que tem aversão / não gosta / sem acesso:</label>
+      <textarea id="anamAversoes" class="input-field" rows="2" placeholder="Ex: Peixe, batata-doce, fígado..."></textarea>
+
+      <label class="label-fdb" style="margin-top:8px;">Alergia ou intolerância alimentar?</label>
+      <input type="text" id="anamAlergias" class="input-field" placeholder="Ex: Intolerância à lactose (ou Nenhuma)">
+
+      <label class="label-fdb" style="margin-top:8px;">Tem o costume de pesar os alimentos?</label>
+      <select id="anamPesaAlimentos" class="input-field">
+        <option value="Sim, já peso">Sim, já peso meus alimentos</option>
+        <option value="Não, mas estou disposto(a) a pesar">Não, mas estou disposto(a) a pesar</option>
+        <option value="Não e prefiro não pesar">Não e prefiro medições caseiras</option>
+      </select>
+
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 6: SAÚDE, BEBIDAS & HISTÓRICO CLÍNICO -->
+    <div id="anamStep6" class="hidden">
+      <label class="label-fdb">6. Uso de remédio contínuo, suplemento ou esteroides?</label>
+      <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina e Whey / Medicamento para pressão (ou Nenhum)">
+
+      <label class="label-fdb" style="margin-top:8px;">Histórico de cirurgias ou obesidade na família?</label>
+      <input type="text" id="anamHistoricoSaude" class="input-field" placeholder="Ex: Cirurgia no joelho em 2021 / Mãe com obesidade (ou Nenhum)">
+
+      <label class="label-fdb" style="margin-top:8px;">Consome bebida alcoólica? Qual frequência?</label>
+      <select id="anamAlcool" class="input-field">
+        <option value="Não consumo">Não consumo bebida alcoólica</option>
+        <option value="1x na semana (finais de semana)">1x na semana (aos finais de semana)</option>
+        <option value="2x na semana (finais de semana)">2x na semana (aos finais de semana)</option>
+        <option value="3x na semana (Sexta a Domingo)">3x na semana (Sexta a Domingo)</option>
+        <option value="Mais de 4x na semana">Mais de 4x na semana</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:8px;">Habito de fumar / Vaper / Pod / Cigarro?</label>
+      <select id="anamFumo" class="input-field">
+        <option value="Não">Não</option>
+        <option value="Sim">Sim</option>
+        <option value="Às vezes">Às vezes</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:8px;">Exposição ao sol diária:</label>
+      <select id="anamSol" class="input-field">
+        <option value="Todos os dias, cerca de 15 min">Todos os dias, cerca de 15 minutos</option>
+        <option value="Todos os dias, mais de 15 min">Todos os dias, mais de 15 minutos</option>
+        <option value="3 a 4x na semana">Cerca de 3 a 4x na semana</option>
+        <option value="Menos que 3x na semana">Menos que 3x na semana</option>
+      </select>
+
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 7: FINAIS DE SEMANA, FOTOS & EXAMES -->
+    <div id="anamStep7" class="hidden">
+      <label class="label-fdb">7. Como é a sua rotina aos finais de semana (comida/bebida)?</label>
+      <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Sábado costumo comer pizza à noite..."></textarea>
+
+      <label class="label-fdb" style="margin-top:8px;">Possui exames de sangue recentes?</label>
+      <select id="anamExames" class="input-field">
+        <option value="Sim, enviarei no WhatsApp">Sim (Anexarei no WhatsApp)</option>
+        <option value="Não possuo exames recentes">Não possuo no momento</option>
+      </select>
+
+      <div style="background:#2a0710; border:1px dashed var(--border); border-radius:8px; padding:10px; margin-top:10px; font-size:12px; color:var(--muted); line-height:1.4;">
+        📸 <b>Fotos de Avaliação & Exames:</b> Ao clicar no botão abaixo, a anamnese será enviada formatada ao seu WhatsApp. Anexe as 3 fotos (Frente, Lado e Costas) e seu exame em seguida!
+      </div>
 
       <div style="display:flex; gap:8px; margin-top:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
-        <button type="button" class="btn-login btn-wpp" onclick="sendAnamneseWhatsApp()">🚀 ENVIAR ANAMNESE</button>
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
+        <button type="button" class="btn-login btn-wpp" onclick="sendAnamneseWhatsApp()">🚀 ENVIAR ANAMNESE COMPLETA</button>
       </div>
     </div>
 
@@ -278,56 +372,93 @@
     }
   };
 
-  // NAVEGAÇÃO ENTRE AS ETAPAS DA ANAMNESE
+  // CONTROLE DAS 7 ETAPAS DA ANAMNESE
   function nextAnamStep(step) {
-    if (step === 2) {
-      if (!document.getElementById('anamNome').value.trim()) { alert('Por favor, digite seu nome.'); return; }
+    if (step === 2 && !document.getElementById('anamNome').value.trim()) {
+      alert('Por favor, digite seu nome completo.'); return;
     }
-    
-    for (let i = 1; i <= 5; i++) {
+
+    for (let i = 1; i <= 7; i++) {
       document.getElementById(`anamStep${i}`).classList.add('hidden');
     }
     document.getElementById(`anamStep${step}`).classList.remove('hidden');
-    
-    // Atualiza Barra de Progresso
-    const pct = (step / 5) * 100;
+
+    const pct = (step / 7) * 100;
     document.getElementById('progressBar').style.width = `${pct}%`;
-    document.getElementById('stepCounter').textContent = `Etapa ${step} de 5`;
+    document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
   }
 
   function sendAnamneseWhatsApp() {
     const nome = document.getElementById('anamNome').value.trim();
-    const idade = document.getElementById('anamIdade').value.trim();
-    const peso = document.getElementById('anamPeso').value.trim();
-    const altura = document.getElementById('anamAltura').value.trim();
+    const email = document.getElementById('anamEmail').value.trim();
+    const nasc = document.getElementById('anamNasc').value.trim();
+    const medidas = document.getElementById('anamMedidas').value.trim();
+    
+    const motivacao = document.getElementById('anamMotivacao').value.trim();
+    const expectativas = document.getElementById('anamExpectativas').value.trim();
     const objetivo = document.getElementById('anamObjetivo').value;
-    const exp = document.getElementById('anamExperiencia').value;
-    const dias = document.getElementById('anamDias').value;
-    const tempo = document.getElementById('anamTempo').value;
-    const lesoes = document.getElementById('anamLesoes').value.trim();
-    const dieta = document.getElementById('anamDieta').value.trim();
-    const suplementos = document.getElementById('anamSuplementos').value.trim() || 'Nenhum';
+    const obstaculo = document.getElementById('anamObstaculo').value.trim();
 
-    if (!nome || !dieta) {
-      alert('Por favor, preencha todos os campos obrigatórios antes de enviar.');
+    const histDieta = document.getElementById('anamHistoricoDieta').value.trim() || 'Nenhum';
+    const numRefeicoes = document.getElementById('anamNumRefeicoes').value.trim() || 'Não informado';
+    const mudancaAlimentar = document.getElementById('anamMudancaAlimentar').value.trim() || 'Não informado';
+    const horSono = document.getElementById('anamHorarioSono').value.trim();
+    const notaSono = document.getElementById('anamNotaSono').value;
+
+    const horTreino = document.getElementById('anamHorarioTreino').value.trim();
+    const freqTreino = document.getElementById('anamFreqTreino').value.trim();
+    const outroEsporte = document.getElementById('anamOutroEsporte').value.trim() || 'Nenhum';
+    const notaTreino = document.getElementById('anamNotaTreino').value;
+    const dispRefeicao = document.getElementById('anamDispRefeicao').value;
+
+    const gostos = document.getElementById('anamGostos').value.trim() || 'Sem preferência';
+    const aversoes = document.getElementById('anamAversoes').value.trim() || 'Nenhuma';
+    const alergias = document.getElementById('anamAlergias').value.trim() || 'Nenhuma';
+    const pesaAlim = document.getElementById('anamPesaAlimentos').value;
+
+    const remedios = document.getElementById('anamMedicamentos').value.trim() || 'Nenhum';
+    const histSaude = document.getElementById('anamHistoricoSaude').value.trim() || 'Nenhum';
+    const alcool = document.getElementById('anamAlcool').value;
+    const fumo = document.getElementById('anamFumo').value;
+    const sol = document.getElementById('anamSol').value;
+
+    const fds = document.getElementById('anamFimDeSemana').value.trim() || 'Não informado';
+    const exames = document.getElementById('anamExames').value;
+
+    if (!nome || !email) {
+      alert('Preencha seu nome e e-mail antes de enviar.');
       return;
     }
 
     const userSuggest = nome.split(' ')[0].toLowerCase();
 
-    const text = `📋 *ANAMNESE COMPLETA - CONSULTORIA*%0A` +
+    const text = `📋 *ANAMNESE NUTRICIONAL COMPLETA*%0A` +
                  `👤 *Nome:* ${nome}%0A` +
-                 `📏 *Dados:* ${idade} anos | ${peso} | ${altura}m%0A` +
-                 `🎯 *Objetivo:* ${objetivo}%0A` +
-                 `🏋️ *Nível:* ${exp}%0A` +
-                 `📅 *Frequência:* ${dias} (${tempo}/treino)%0A` +
-                 `⚠️ *Lesões/Dores:* ${lesoes}%0A` +
-                 `🥗 *Alimentação/Rotina:* ${dieta}%0A` +
-                 `💊 *Suplementos:* ${suplementos}%0A` +
+                 `📧 *Email:* ${email}%0A` +
+                 `🎂 *Nascimento:* ${nasc} | *Medidas:* ${medidas}%0A` +
                  `----------------------------------%0A` +
-                 `🔑 *Solicitação de Cadastro:*%0A` +
-                 `Usuário Sugerido: *${userSuggest}*%0A` +
-                 `Senha Padrão: *${userSuggest}*`;
+                 `🎯 *Objetivo:* ${objetivo}%0A` +
+                 `💡 *Motivação:* ${motivacao}%0A` +
+                 `🚀 *Expectativas:* ${expectativas}%0A` +
+                 `🚧 *Obstáculo:* ${obstaculo}%0A` +
+                 `----------------------------------%0A` +
+                 `🥗 *Dieta Atual:* ${numRefeicoes} | Pesa alimentos: ${pesaAlim}%0A` +
+                 `👍 *Gosta:* ${gostos}%0A` +
+                 `👎 *Aversões:* ${aversoes} | Alergias: ${alergias}%0A` +
+                 `----------------------------------%0A` +
+                 `🏋️ *Treino:* ${horTreino} | Musculação: ${freqTreino}%0A` +
+                 `⚽ *Outros Esportes:* ${outroEsporte} | Nota Treino: ${notaTreino}%0A` +
+                 `----------------------------------%0A` +
+                 `😴 *Sono:* ${horSono} (Nota: ${notaSono})%0A` +
+                 `🍷 *Álcool:* ${alcool} | Cigarro/Vaper: ${fumo}%0A` +
+                 `☀️ *Sol:* ${sol}%0A` +
+                 `💊 *Medicamentos/Suplementos:* ${remedios}%0A` +
+                 `🏥 *Histórico/Cirurgias:* ${histSaude}%0A` +
+                 `🍕 *Finais de Semana:* ${fds}%0A` +
+                 `🩺 *Exames de Sangue:* ${exames}%0A` +
+                 `----------------------------------%0A` +
+                 `📸 _(Anexando as 3 fotos de avaliação e exames em seguida...)_%0A` +
+                 `🔑 *Usuário Sugerido:* ${userSuggest}`;
 
     window.open(`https://wa.me/${PHONE_WHATSAPP}?text=${text}`, '_blank');
   }
