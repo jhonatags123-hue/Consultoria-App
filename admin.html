@@ -5,35 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel do Personal — Jhonata</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<!-- Biblioteca para Gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root { --bg: #140206; --card: #27050d; --border: #4a0d1a; --accent: #c4324f; --gold: #d4a02a; --green: #7fd68a; --text: #fff; --muted: #d8b3bb; }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:800px; margin:0 auto; padding-bottom:50px; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; min-height:100vh; }
   
   header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px; }
   h1 { font-size:20px; font-weight:800; color:var(--text); }
   .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
   
+  /* Layout de Duas Colunas */
+  .admin-grid { display:grid; grid-template-columns: 220px 1fr; gap:16px; }
+  @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+
   .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:16px; }
-  .label-title { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+  .label-title { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
   
-  select, input { width:100%; background:#1a0308; border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:12px; }
-  
-  /* Tabs do Admin */
+  /* Menu Lateral de Alunos */
+  .student-list { display:flex; flex-direction:column; gap:6px; }
+  .student-btn { background:#1a0308; border:1px solid var(--border); color:var(--text); padding:10px; border-radius:8px; font-weight:600; font-size:13px; text-align:left; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .student-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  /* Submenus do Painel Principal */
   .admin-nav { display:flex; gap:8px; margin-bottom:16px; }
   .nav-btn { flex:1; padding:10px; background:var(--card); border:1px solid var(--border); color:var(--muted); font-weight:700; font-size:12px; border-radius:8px; cursor:pointer; text-align:center; }
   .nav-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 
-  /* Cards de Conteúdo */
+  /* Formulários e Cards */
+  input, select, textarea { width:100%; background:#1a0308; border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:10px; }
+  textarea { resize:none; font-family:'Inter',sans-serif; }
+  .btn-action { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; width:100%; }
+  .btn-wpp { background:#25d366; color:#000; font-weight:800; margin-top:6px; }
+
   .item-box { background:#1a0308; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; }
   .item-header { display:flex; justify-content:space-between; align-items:center; }
   .item-title { font-weight:700; font-size:14px; color:#fff; }
   .item-meta { color:var(--gold); font-size:12px; font-weight:600; }
   .item-body { font-size:13px; color:var(--text); margin-top:6px; line-height:1.4; }
   
-  .chart-container { position:relative; width:100%; height:250px; margin-top:10px; }
+  .chart-container { position:relative; width:100%; height:220px; margin-top:10px; }
   .hidden { display:none !important; }
 </style>
 </head>
@@ -41,63 +52,104 @@
 
 <header>
   <div>
-    <h1>Painel do Personal</h1>
-    <div style="font-size:12px; color:var(--gold);">Gestão de Alunos & Cargas</div>
+    <h1>Painel de Controle do Personal</h1>
+    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas, Alunos e Cargas</div>
   </div>
   <button class="btn-logout" onclick="logoutAdmin()">Sair</button>
 </header>
 
-<!-- SELEÇÃO DE ALUNO -->
-<div class="card">
-  <div class="label-title">Selecione o Aluno</div>
-  <select id="studentSelect" onchange="loadStudentOverview()">
-    <option value="erick">Erick</option>
-    <option value="leonardo">Leonardo</option>
-    <option value="otavio">Otavio</option>
-  </select>
-</div>
-
-<!-- NAVEGAÇÃO INTERNA DO ALUNO -->
-<div class="admin-nav">
-  <button class="nav-btn active" id="btnOverviewTreino" onclick="switchAdminTab('treino')">🏋️ Treino</button>
-  <button class="nav-btn" id="btnOverviewDieta" onclick="switchAdminTab('dieta')">🥗 Dieta</button>
-  <button class="nav-btn" id="btnOverviewGrafico" onclick="switchAdminTab('grafico')">📈 Progresso de Carga</button>
-</div>
-
-<!-- CONTEÚDO: TREINOS DO ALUNO -->
-<div id="tabAdminTreino">
-  <div id="workoutDetails" class="card">
-    <div class="label-title">Ficha de Treino Cadastrada</div>
-    <div id="workoutContent">Carregando treino...</div>
-  </div>
-</div>
-
-<!-- CONTEÚDO: DIETA DO ALUNO -->
-<div id="tabAdminDieta" class="hidden">
-  <div id="dietDetails" class="card">
-    <div class="label-title">Plano Alimentar Cadastrado</div>
-    <div id="dietContent">Carregando dieta...</div>
-  </div>
-</div>
-
-<!-- CONTEÚDO: GRÁFICO DE CARGAS -->
-<div id="tabAdminGrafico" class="hidden">
-  <div class="card">
-    <div class="label-title">Evolução de Cargas Registradas</div>
-    <select id="exerciseSelect" onchange="updateChart()">
-      <option value="">Selecione um exercício...</option>
-    </select>
-    <div class="chart-container">
-      <canvas id="loadChart"></canvas>
+<div class="admin-grid">
+  <!-- COLUNA LATERAL: ABA DE ALUNOS -->
+  <aside>
+    <div class="card">
+      <div class="label-title">📋 Seus Alunos</div>
+      <div class="student-list">
+        <button class="student-btn active" onclick="selectStudent('erick', this)">Erick <span>👤</span></button>
+        <button class="student-btn" onclick="selectStudent('leonardo', this)">Leonardo <span>👤</span></button>
+        <button class="student-btn" onclick="selectStudent('otavio', this)">Otavio <span>👤</span></button>
+      </div>
     </div>
-  </div>
+
+    <!-- ÁREA COMPACTA DE LINK PARA NOVOS ALUNOS -->
+    <div class="card">
+      <div class="label-title">🔗 Link para Novos Alunos</div>
+      <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">Envie para novos alunos preencherem a anamnese inicial:</div>
+      <button class="btn-action btn-wpp" onclick="copyNewStudentLink()">Copiar Link Anamnese</button>
+    </div>
+  </aside>
+
+  <!-- COLUNA PRINCIPAL: DETALHES E MONTAGEM DE TREINO -->
+  <main>
+    <!-- NAVEGAÇÃO SUPERIOR -->
+    <div class="admin-nav">
+      <button class="nav-btn active" id="btnAdminTreino" onclick="switchTab('treino')">🏋️ Treinos Cadastrados</button>
+      <button class="nav-btn" id="btnAdminDieta" onclick="switchTab('dieta')">🥗 Dieta Cadastrada</button>
+      <button class="nav-btn" id="btnAdminGrafico" onclick="switchTab('grafico')">📈 Evolução de Cargas</button>
+    </div>
+
+    <!-- CONTEÚDO: FICHA DE TREINOS -->
+    <div id="tabAdminTreino">
+      <div class="card">
+        <div class="label-title" id="studentWorkoutTitle">Ficha de Treino</div>
+        <div id="workoutContent">Carregando dados...</div>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO: FICHA DE DIETA -->
+    <div id="tabAdminDieta" class="hidden">
+      <div class="card">
+        <div class="label-title" id="studentDietTitle">Plano Alimentar</div>
+        <div id="dietContent">Carregando dados...</div>
+      </div>
+    </div>
+
+    <!-- CONTEÚDO: GRÁFICO DE CARGAS -->
+    <div id="tabAdminGrafico" class="hidden">
+      <div class="card">
+        <div class="label-title">Gráfico de Cargas do Aluno</div>
+        <select id="exerciseSelect" onchange="updateChart()">
+          <option value="">Selecione um exercício...</option>
+        </select>
+        <div class="chart-container">
+          <canvas id="loadChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SESSÃO INFERIOR: PAINEL DE MONTAGEM E EDIÇÃO DE TREINO -->
+    <div class="card" style="margin-top:20px; border-color:var(--gold);">
+      <div class="label-title" style="color:var(--gold);">🛠️ Montagem & Edição de Treino / Dieta</div>
+      <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Altere as informações abaixo e gere a estrutura atualizada para o JSON do aluno:</div>
+      
+      <label style="font-size:12px; color:var(--muted);">Nome do Exercício / Novo Item</label>
+      <input type="text" id="newExName" placeholder="Ex: Supino Inclinado com Halteres">
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label style="font-size:12px; color:var(--muted);">Séries</label>
+          <input type="text" id="newExSeries" placeholder="Ex: 3">
+        </div>
+        <div style="flex:1;">
+          <label style="font-size:12px; color:var(--muted);">Repetições / Técnica</label>
+          <input type="text" id="newExReps" placeholder="Ex: 8-12 ou Cluster">
+        </div>
+      </div>
+
+      <button class="btn-action" onclick="generateJsonPreview()">Adicionar ao Rascunho da Ficha</button>
+
+      <div id="jsonPreviewContainer" class="hidden" style="margin-top:12px;">
+        <label style="font-size:12px; color:var(--green);">Código Gerado para Atualização no GitHub:</label>
+        <textarea id="jsonOutput" rows="5" readonly style="font-family:monospace; font-size:11px;"></textarea>
+      </div>
+    </div>
+  </main>
 </div>
 
 <script>
+  let selectedStudent = 'erick';
   let currentStudentData = null;
   let chartInstance = null;
 
-  // Trava de segurança do Painel Admin
   if (localStorage.getItem('logged_user') !== 'admin') {
     window.location.href = "index.html";
   }
@@ -108,46 +160,53 @@
   }
 
   window.onload = () => {
-    loadStudentOverview();
+    loadStudentData(selectedStudent);
   };
 
-  function switchAdminTab(tab) {
-    document.getElementById('tabAdminTreino').classList.add('hidden');
-    document.getElementById('tabAdminDieta').classList.add('hidden');
-    document.getElementById('tabAdminGrafico').classList.add('hidden');
-
-    document.getElementById('btnOverviewTreino').classList.remove('active');
-    document.getElementById('btnOverviewDieta').classList.remove('active');
-    document.getElementById('btnOverviewGrafico').classList.remove('active');
-
-    if (tab === 'treino') {
-      document.getElementById('tabAdminTreino').classList.remove('hidden');
-      document.getElementById('btnOverviewTreino').classList.add('active');
-    } else if (tab === 'dieta') {
-      document.getElementById('tabAdminDieta').classList.remove('hidden');
-      document.getElementById('btnOverviewDieta').classList.add('active');
-    } else {
-      document.getElementById('tabAdminGrafico').classList.remove('hidden');
-      document.getElementById('btnOverviewGrafico').classList.add('active');
-      populateExerciseSelect();
-    }
+  function selectStudent(code, btnElement) {
+    selectedStudent = code;
+    document.querySelectorAll('.student-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    loadStudentData(code);
   }
 
-  function loadStudentOverview() {
-    const studentCode = document.getElementById('studentSelect').value;
-
-    fetch(`data/${studentCode}.json?t=${Date.now()}`)
+  function loadStudentData(code) {
+    fetch(`data/${code}.json?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         currentStudentData = data;
+        document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${data.clientName || code}`;
+        document.getElementById('studentDietTitle').textContent = `Plano Alimentar — ${data.clientName || code}`;
         renderWorkoutOverview(data);
         renderDietOverview(data);
         populateExerciseSelect();
       })
       .catch(err => {
-        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${studentCode}.json</span>`;
-        document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados de dieta.</span>`;
+        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${code}.json</span>`;
+        document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dieta.</span>`;
       });
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabAdminTreino').classList.add('hidden');
+    document.getElementById('tabAdminDieta').classList.add('hidden');
+    document.getElementById('tabAdminGrafico').classList.add('hidden');
+
+    document.getElementById('btnAdminTreino').classList.remove('active');
+    document.getElementById('btnAdminDieta').classList.remove('active');
+    document.getElementById('btnAdminGrafico').classList.remove('active');
+
+    if (tab === 'treino') {
+      document.getElementById('tabAdminTreino').classList.remove('hidden');
+      document.getElementById('btnAdminTreino').classList.add('active');
+    } else if (tab === 'dieta') {
+      document.getElementById('tabAdminDieta').classList.remove('hidden');
+      document.getElementById('btnAdminDieta').classList.add('active');
+    } else {
+      document.getElementById('tabAdminGrafico').classList.remove('hidden');
+      document.getElementById('btnAdminGrafico').classList.add('active');
+      populateExerciseSelect();
+    }
   }
 
   function renderWorkoutOverview(data) {
@@ -155,14 +214,14 @@
     container.innerHTML = '';
 
     if (!data.days || data.days.length === 0) {
-      container.innerHTML = 'Nenhum dia de treino cadastrado.';
+      container.innerHTML = 'Nenhum treino cadastrado.';
       return;
     }
 
     data.days.forEach(day => {
-      let html = `<div style="font-weight:700; color:var(--gold); margin:12px 0 6px 0; font-size:14px;">${day.title}</div>`;
+      let html = `<div style="font-weight:700; color:var(--gold); margin:10px 0 6px 0; font-size:13px;">${day.title}</div>`;
       (day.exercicios || []).forEach((ex, idx) => {
-        const savedLoad = localStorage.getItem(`c_${data.code}_${day.id}_${idx}`) || 'Nenhuma carga anotada neste aparelho';
+        const savedLoad = localStorage.getItem(`c_${data.code}_${day.id}_${idx}`) || 'Nenhuma carga anotada';
         html += `
           <div class="item-box">
             <div class="item-header">
@@ -214,18 +273,14 @@
 
   function updateChart() {
     const exKey = document.getElementById('exerciseSelect').value;
-    const studentCode = document.getElementById('studentSelect').value;
-    
     if (!exKey) return;
 
-    const rawLoad = localStorage.getItem(`c_${studentCode}_${exKey}`) || '0';
+    const rawLoad = localStorage.getItem(`c_${selectedStudent}_${exKey}`) || '0';
     const parsedLoad = parseFloat(rawLoad.replace(/[^0-9.]/g, '')) || 0;
 
     const ctx = document.getElementById('loadChart').getContext('2d');
 
-    if (chartInstance) {
-      chartInstance.destroy();
-    }
+    if (chartInstance) chartInstance.destroy();
 
     chartInstance = new Chart(ctx, {
       type: 'line',
@@ -248,11 +303,30 @@
           y: { beginAtZero: true, grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } },
           x: { grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } }
         },
-        plugins: {
-          legend: { labels: { color: '#fff' } }
-        }
+        plugins: { legend: { labels: { color: '#fff' } } }
       }
     });
+  }
+
+  function copyNewStudentLink() {
+    const baseUrl = window.location.href.replace('admin.html', 'index.html');
+    navigator.clipboard.writeText(baseUrl);
+    alert('Link de anamnese para novos alunos copiado com sucesso!');
+  }
+
+  function generateJsonPreview() {
+    const name = document.getElementById('newExName').value.trim();
+    const series = document.getElementById('newExSeries').value.trim();
+    const reps = document.getElementById('newExReps').value.trim();
+
+    if (!name) {
+      alert('Digite ao menos o nome do exercício.');
+      return;
+    }
+
+    const newItem = { nome: name, series: series || "3", reps: reps || "10-12" };
+    document.getElementById('jsonOutput').value = JSON.stringify(newItem, null, 2);
+    document.getElementById('jsonPreviewContainer').classList.remove('hidden');
   }
 </script>
 </body>
