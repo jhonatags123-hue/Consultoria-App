@@ -1,67 +1,87 @@
 {
   "code": "leonardo",
   "clientName": "Leonardo",
-  "title": "Protocolo de Ganho de Massa",
-  "updatedAt": "2026-08-20T15:30:00Z",
+  "title": "Protocolo Hipertrofia & Ganho de Peso",
+  "updatedAt": "2026-08-21T15:00:00Z",
+  "senha": "leonardo",
   "days": [
     {
       "id": "d1",
-      "title": "Treino A - Empurrar",
-      "exercises": [
-        { "id": "e1", "name": "Supino com Halteres Inclinado", "series": "3", "repsAlvo": "6-8" },
-        { "id": "e2", "name": "Supino Reto (Máquina ou Barra)", "series": "2", "repsAlvo": "6-8" },
-        { "id": "e3", "name": "Voador", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e4", "name": "Desenvolvimento (Máquina ou halter)", "series": "3", "repsAlvo": "6-8" },
-        { "id": "e5", "name": "Elevação Lateral", "series": "3", "repsAlvo": "8-12" },
-        { "id": "e6", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "8-10" }
+      "title": "A - Empurrar (Segunda)",
+      "exercicios": [
+        { "id": "e1", "nome": "Supino com Halteres Inclinado", "series": "3", "reps": "6-8" },
+        { "id": "e2", "nome": "Supino Reto (Máquina ou Barra)", "series": "2", "reps": "6-8" },
+        { "id": "e3", "nome": "Voador", "series": "3", "reps": "8-10" },
+        { "id": "e4", "nome": "Desenvolvimento (Máquina ou Halter)", "series": "3", "reps": "6-8" },
+        { "id": "e5", "nome": "Elevação Lateral", "series": "3", "reps": "8-12" },
+        { "id": "e6", "nome": "Tríceps Pulley", "series": "3", "reps": "8-10" }
       ]
     },
     {
       "id": "d2",
-      "title": "Treino B - Puxar",
-      "exercises": [
-        { "id": "e7", "name": "Remada Cavalinho (peito apoiado)", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e8", "name": "Remada Baixa com Triangulo", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e9", "name": "Puxada Alta pegada Neutra", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e10", "name": "Voador Invertido", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e11", "name": "Rosca Direta no Cabo", "series": "3", "repsAlvo": "10" },
-        { "id": "e12", "name": "Rosca Direta barra W ou Scott", "series": "3", "repsAlvo": "10" }
+      "title": "B - Puxar (Terça)",
+      "exercicios": [
+        { "id": "e7", "nome": "Remada Cavalinho Peito Apoiado (Pegada Pronada)", "series": "3", "reps": "8-10" },
+        { "id": "e8", "nome": "Remada Baixa com Triângulo", "series": "3", "reps": "8-10" },
+        { "id": "e9", "nome": "Puxada Alta (Pegada Neutra)", "series": "3", "reps": "8-10" },
+        { "id": "e10", "nome": "Voador Invertido", "series": "3", "reps": "8-10" },
+        { "id": "e11", "nome": "Rosca Direta no Cabo", "series": "3", "reps": "10" },
+        { "id": "e12", "nome": "Rosca Direta (Barra W ou Máquina Scott)", "series": "3", "reps": "8-10" }
       ]
     },
     {
       "id": "d3",
-      "title": "Treino C - Pernas",
-      "exercises": [
-        { "id": "e13", "name": "Stiff RDL", "series": "4", "repsAlvo": "6-8" },
-        { "id": "e14", "name": "Leg-Press", "series": "4", "repsAlvo": "6-8" },
-        { "id": "e15", "name": "Elevação pelvica", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e16", "name": "Cadeira Flexora", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e17", "name": "Extensora", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e18", "name": "Abdutora", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e19", "name": "Adutora", "series": "3", "repsAlvo": "8-10" }
+      "title": "C - Pernas (Quarta)",
+      "exercicios": [
+        { "id": "e13", "nome": "Stiff RDL", "series": "4", "reps": "6-8" },
+        { "id": "e14", "nome": "Leg-Press", "series": "4", "reps": "6-8" },
+        { "id": "e15", "nome": "Elevação Pélvica", "series": "3", "reps": "8-10" },
+        { "id": "e16", "nome": "Cadeira Flexora", "series": "3", "reps": "8-10" },
+        { "id": "e17", "nome": "Extensora", "series": "3", "reps": "8-10" },
+        { "id": "e18", "nome": "Abdutora", "series": "3", "reps": "8-10" },
+        { "id": "e19", "nome": "Adutora", "series": "3", "reps": "8-10" }
       ]
     },
     {
       "id": "d4",
-      "title": "Treino Upper (Bônus)",
-      "exercises": [
-        { "id": "e20", "name": "Supino Inclinado Máquina", "series": "2", "repsAlvo": "6-8" },
-        { "id": "e21", "name": "Remada Cavalinho", "series": "2", "repsAlvo": "8-10" },
-        { "id": "e22", "name": "Desenvolvimento Máquina ou halter", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e23", "name": "Voador", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e24", "name": "Puxada Alta Neutra", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e25", "name": "Elevação Lateral", "series": "3", "repsAlvo": "8-12" },
-        { "id": "e26", "name": "Tríceps Pulley", "series": "3", "repsAlvo": "8-10" },
-        { "id": "e27", "name": "Rosca Direta Scott ou barra W", "series": "3", "repsAlvo": "8-10" }
+      "title": "Upper (Sexta)",
+      "exercicios": [
+        { "id": "e20", "nome": "Supino Inclinado Máquina", "series": "2", "reps": "6-8" },
+        { "id": "e21", "nome": "Remada Cavalinho (Pegada Pronada)", "series": "2", "reps": "8-10" },
+        { "id": "e22", "nome": "Desenvolvimento (Máquina ou Halter)", "series": "2", "reps": "8-10" },
+        { "id": "e23", "nome": "Voador", "series": "3", "reps": "8-10" },
+        { "id": "e24", "nome": "Puxada Alta Neutra", "series": "3", "reps": "8-10" },
+        { "id": "e25", "nome": "Elevação Lateral", "series": "3", "reps": "8-12" },
+        { "id": "e26", "nome": "Tríceps Pulley", "series": "3", "reps": "8-10" },
+        { "id": "e27", "nome": "Rosca Direta (Scott ou Barra W)", "series": "3", "reps": "8-10" }
       ]
     }
   ],
-  "diet": {
-    "kcalTarget": "3140",
-    "protein": "185",
-    "carb": "393",
-    "fat": "79",
-    "observacao": "Seg/Qui (pós-corrida): adicionar 2 fatias pão + 50g mel/malto. Ajuste conforme ganho de peso."
-  },
-  "billing": { "valor": "80", "dueDay": "Segundo Sábado" }
+  "refeicoes": [
+    {
+      "titulo": "07:00 – Refeição 1 (Café da Manhã)",
+      "alimentos": "4 ovos + 2 pães franceses + 10g de pasta de amendoim + 1 banana + café com 20g de açúcar"
+    },
+    {
+      "titulo": "10:00 – Lanche da Manhã",
+      "alimentos": "100ml de iogurte grego + 2 castanhas-do-pará + 1 fruta"
+    },
+    {
+      "titulo": "12:00 – Refeição 2 (Almoço)",
+      "alimentos": "250g de arroz + 150g de carne vermelha + 100g de moranga + salada à vontade + 4 quadradinhos de chocolate"
+    },
+    {
+      "titulo": "16:30 – Refeição 3 (Lanche da Tarde)",
+      "alimentos": "200ml de leite integral + 100g de aveia + 1 colher (30g) de whey protein + 2 bananas"
+    },
+    {
+      "titulo": "Pós-Corrida (Segunda & Quinta)",
+      "alimentos": "2 fatias de pão branco + 50g de mel (ou 50g de maltodextrina)"
+    },
+    {
+      "titulo": "20:30 – Refeição 4 (Jantar)",
+      "alimentos": "200g de arroz + 180g de peito de frango grelhado + couve à vontade"
+    }
+  ],
+  "billing": { "valor": "80", "dueDay": "10" }
 }
