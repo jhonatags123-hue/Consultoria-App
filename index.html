@@ -16,7 +16,9 @@
   /* Tela de Login & Modais */
   .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
   .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
+  textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
   .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
+  .btn-wpp { background:#25d366; color:#000; font-weight:800; }
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
   .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
   .success-msg { color:#7fd68a; font-size:12px; text-align:center; margin-top:8px; }
@@ -24,8 +26,8 @@
   /* App Principal */
   .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .header-actions { display:flex; gap:6px; }
-  .menu { display:flex; gap:6px; margin-bottom:16px; }
-  .menu-btn { flex:1; padding:10px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:12px; border-radius:10px; cursor:pointer; text-align:center; }
+  .menu { display:flex; gap:4px; margin-bottom:16px; }
+  .menu-btn { flex:1; padding:10px 2px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:10px; cursor:pointer; text-align:center; }
   .menu-btn.active { background:var(--accent); border-color:var(--accent); }
 
   /* Submenus / Dias */
@@ -48,6 +50,9 @@
   .chat-input-row { display:flex; gap:8px; }
   .chat-input { flex:1; background:var(--card); border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; }
   .chat-btn { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
+
+  /* Feedback */
+  .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:4px; }
 
   .hidden { display:none !important; }
 </style>
@@ -96,6 +101,7 @@
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
     <button class="menu-btn" id="btnIa" onclick="showTab('ia')">🤖 ASSISTENTE</button>
+    <button class="menu-btn" id="btnFdb" onclick="showTab('fdb')">💬 FEEDBACK</button>
   </div>
 
   <div id="tabTreino">
@@ -117,13 +123,47 @@
       <button class="chat-btn" onclick="sendAiMessage()">Enviar</button>
     </div>
   </div>
+
+  <!-- ABA DE FEEDBACK & FOTOS -->
+  <div id="tabFdb" class="hidden">
+    <div class="card">
+      <h1 style="font-size:18px; text-align:left;">Relatório Semanal</h1>
+      <div class="sub" style="text-align:left; margin-bottom:14px;">Envie o resumo do seu treino e fotos diretamente para o Personal</div>
+      
+      <form onsubmit="sendFeedbackWhatsApp(event)" class="login-box" style="margin-top:0;">
+        <div>
+          <label class="label-fdb">Como foi o cumprimento do treino e dieta?</label>
+          <input type="text" id="fdbCump" class="input-field" placeholder="Ex: 100% focado / Falhei 1 refeição" required>
+        </div>
+
+        <div>
+          <label class="label-fdb">Nível de Energia & Disposição (0 a 10)</label>
+          <input type="text" id="fdbEnergia" class="input-field" placeholder="Ex: 8/10 - Muito bom" required>
+        </div>
+
+        <div>
+          <label class="label-fdb">Observações, Dores ou Dificuldades</label>
+          <textarea id="fdbObs" class="input-field" rows="3" placeholder="Ex: Senti um leve desconforto no ombro no supino..."></textarea>
+        </div>
+
+        <div style="background:#2a0710; border:1px dashed var(--border); border-radius:8px; padding:10px; font-size:12px; color:var(--muted); line-height:1.4;">
+          📸 <b>Fotos de Evolução:</b> Ao clicar no botão abaixo, o WhatsApp abrirá com o seu relatório formatado. Basta anexa as fotos do seu shape diretamente na conversa!
+        </div>
+
+        <button type="submit" class="btn-login btn-wpp">ENVIAR FEEDBACK NO WHATSAPP</button>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
   const GEMINI_API_KEY = "AQ.Ab8RN6I4RpbzJYvCf8p76u63928McOLftJTOF9R7Ar8bNjws1A";
   
-  const ADMIN_USER = "admin";
-  const ADMIN_PASS = "1234";
+  // 5551990169026 (Ex:51990169026)
+  const PHONE_WHATSAPP = "5551990169026";
+
+  const ADMIN_USER = "Jhonata28";
+  const ADMIN_PASS = "0304";
 
   let currentData = null;
   let loggedCode = localStorage.getItem('logged_user');
@@ -158,7 +198,6 @@
         return res.json();
       })
       .then(data => {
-        // Verifica se o aluno já definiu uma senha personalizada no aparelho dele
         const customPass = localStorage.getItem(`pass_${user}`);
         const validPass = customPass || data.senha || user;
 
@@ -239,10 +278,12 @@
     document.getElementById('tabTreino').classList.add('hidden');
     document.getElementById('tabDieta').classList.add('hidden');
     document.getElementById('tabIa').classList.add('hidden');
+    document.getElementById('tabFdb').classList.add('hidden');
     
     document.getElementById('btnTreino').classList.remove('active');
     document.getElementById('btnDieta').classList.remove('active');
     document.getElementById('btnIa').classList.remove('active');
+    document.getElementById('btnFdb').classList.remove('active');
 
     if(tab === 'treino') {
       document.getElementById('tabTreino').classList.remove('hidden');
@@ -250,9 +291,12 @@
     } else if(tab === 'dieta') {
       document.getElementById('tabDieta').classList.remove('hidden');
       document.getElementById('btnDieta').classList.add('active');
-    } else {
+    } else if(tab === 'ia') {
       document.getElementById('tabIa').classList.remove('hidden');
       document.getElementById('btnIa').classList.add('active');
+    } else {
+      document.getElementById('tabFdb').classList.remove('hidden');
+      document.getElementById('btnFdb').classList.add('active');
     }
   }
 
@@ -305,6 +349,26 @@
     } else {
       list.innerHTML = '<div class="item"><div class="item-body">Nenhuma refeição cadastrada no momento.</div></div>';
     }
+  }
+
+  function sendFeedbackWhatsApp(e) {
+    e.preventDefault();
+    const cump = document.getElementById('fdbCump').value;
+    const energia = document.getElementById('fdbEnergia').value;
+    const obs = document.getElementById('fdbObs').value || 'Nenhuma';
+    const name = currentData ? currentData.clientName : 'Aluno';
+
+    const text = `🏋️ *FEEDBACK SEMANAL - CONSULTORIA*%0A` +
+                 `👤 *Aluno:* ${name}%0A` +
+                 `----------------------------------%0A` +
+                 `✅ *Cumprimento Plano:* ${cump}%0A` +
+                 `⚡ *Disposição/Energia:* ${energia}%0A` +
+                 `📝 *Observações/Dores:* ${obs}%0A` +
+                 `----------------------------------%0A` +
+                 `📸 _(Anexando fotos da evolução abaixo...)_`;
+
+    const targetPhone = PHONE_WHATSAPP !== "SEU_NUMERO_AQUI" ? PHONE_WHATSAPP : "";
+    window.open(`https://wa.me/${targetPhone}?text=${text}`, '_blank');
   }
 
   async function sendAiMessage() {
