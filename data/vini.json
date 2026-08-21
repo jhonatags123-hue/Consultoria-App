@@ -7,7 +7,7 @@
   "days": [
     {
       "id": "d1",
-      "title": "Perna",
+      "title": "Perna (Segunda) ",
       "exercicios": [
         { "id": "e1", "nome": "Stiff", "series": "3", "reps": "8-12" },
         { "id": "e2", "nome": "Agachamento Hack", "series": "3", "reps": "8-12" },
@@ -19,7 +19,7 @@
     },
     {
       "id": "d2",
-      "title": "Push",
+      "title": "Push (Terça) ",
       "exercicios": [
         { "id": "e7", "nome": "Supino Inclinado Barra", "series": "3", "reps": "8-12" },
         { "id": "e8", "nome": "Voador", "series": "3", "reps": "8-12" },
@@ -31,7 +31,7 @@
     },
     {
       "id": "d3",
-      "title": "Pull",
+      "title": "Pull(Quarta) ",
       "exercicios": [
         { "id": "e13", "nome": "Remada Cavalinho Pronada", "series": "3", "reps": "8-12" },
         { "id": "e14", "nome": "Puxada Frontal Aberta", "series": "3", "reps": "8-12" },
@@ -42,7 +42,7 @@
     },
     {
       "id": "d4",
-      "title": "Fullbody",
+      "title": "Fullbody (Sexta) ",
       "exercicios": [
         { "id": "e18", "nome": "Supino Inclinado com Halter", "series": "3", "reps": "8-12" },
         { "id": "e19", "nome": "Remada Máquina Articulada Supinada", "series": "3", "reps": "8-12" },
