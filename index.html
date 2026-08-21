@@ -53,6 +53,41 @@
 </head>
 <body>
 
+<!-- TELA DE ANAMNESE PARA NOVOS ALUNOS -->
+<div id="anamneseScreen" class="card hidden">
+  <h1>ANAMNESE DE CONSULTORIA</h1>
+  <div class="sub">Preencha seus dados para a montagem do seu treino</div>
+  
+  <form onsubmit="sendAnamneseWhatsApp(event)" class="login-box">
+    <div>
+      <label class="label-fdb">Seu Nome Completo</label>
+      <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
+    </div>
+
+    <div>
+      <label class="label-fdb">Idade, Peso e Altura</label>
+      <input type="text" id="anamMedidas" class="input-field" placeholder="Ex: 25 anos, 70kg, 1.75m" required>
+    </div>
+
+    <div>
+      <label class="label-fdb">Objetivo Principal</label>
+      <input type="text" id="anamObjetivo" class="input-field" placeholder="Ex: Emagrecimento / Hipertrofia" required>
+    </div>
+
+    <div>
+      <label class="label-fdb">Quantos dias por semana pode treinar?</label>
+      <input type="text" id="anamDias" class="input-field" placeholder="Ex: 4 dias (Segunda, Terça, Quinta, Sexta)" required>
+    </div>
+
+    <div>
+      <label class="label-fdb">Lesões, Dores ou Restrições Alimentares</label>
+      <textarea id="anamObs" class="input-field" rows="3" placeholder="Ex: Dor no joelho direito / Não como peixe"></textarea>
+    </div>
+
+    <button type="submit" class="btn-login btn-wpp">ENVIAR ANAMNESE & SOLICITAR LOGIN</button>
+  </form>
+</div>
+
 <!-- TELA DE LOGIN -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
@@ -107,7 +142,6 @@
     <div id="mealsList"></div>
   </div>
 
-  <!-- ABA DA IA -->
   <div id="tabIa" class="hidden">
     <div class="chat-box" id="chatBox">
       <div class="msg msg-ai">Olá! Sou o assistente do Personal Jhonata. Como posso te ajudar com dúvidas de treino ou trocas na sua dieta hoje?</div>
@@ -118,7 +152,6 @@
     </div>
   </div>
 
-  <!-- ABA DE FEEDBACK & FOTOS -->
   <div id="tabFdb" class="hidden">
     <div class="card">
       <h1 style="font-size:18px; text-align:left;">Relatório Semanal</h1>
@@ -158,6 +191,40 @@
   const ADMIN_PASS = "0304";
 
   let currentData = null;
+
+  // VERIFICA SE O LINK É DE ANAMNESE DIRETA
+  window.onload = () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('modo') === 'anamnese') {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('anamneseScreen').classList.remove('hidden');
+    }
+  };
+
+  function sendAnamneseWhatsApp(e) {
+    e.preventDefault();
+    const nome = document.getElementById('anamNome').value.trim();
+    const medidas = document.getElementById('anamMedidas').value.trim();
+    const objetivo = document.getElementById('anamObjetivo').value.trim();
+    const dias = document.getElementById('anamDias').value.trim();
+    const obs = document.getElementById('anamObs').value.trim() || 'Nenhuma';
+
+    // Cria sugestão de usuário (primeiro nome em minúsculo)
+    const userSuggest = nome.split(' ')[0].toLowerCase();
+
+    const text = `📋 *NOVA ANAMNESE - CONSULTORIA*%0A` +
+                 `👤 *Nome:* ${nome}%0A` +
+                 `📏 *Medidas/Idade:* ${medidas}%0A` +
+                 `🎯 *Objetivo:* ${objetivo}%0A` +
+                 `📅 *Frequência:* ${dias}%0A` +
+                 `⚠️ *Restrições/Obs:* ${obs}%0A` +
+                 `----------------------------------%0A` +
+                 `🔑 *Solicitação de Cadastro:*%0A` +
+                 `Usuário Sugerido: *${userSuggest}*%0A` +
+                 `Senha Padrão: *${userSuggest}*`;
+
+    window.open(`https://wa.me/${PHONE_WHATSAPP}?text=${text}`, '_blank');
+  }
 
   function handleLogin(e) {
     e.preventDefault();
@@ -228,6 +295,7 @@
 
   function loadStudentData(code, dataLoaded = null) {
     document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.add('hidden');
     document.getElementById('mainContent').classList.remove('hidden');
 
     const processData = (data) => {
