@@ -7,7 +7,7 @@
   "days": [
     {
       "id": "d1",
-      "title": "Upper A",
+      "title": "Upper A (Segunda)",
       "exercicios": [
         { "id": "e1", "nome": "Supino Inclinado com Halter (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
         { "id": "e2", "nome": "Remada Cavalinho (Intervalo: 2 min)", "series": "3", "reps": "Com intervalo de 2 min" },
@@ -22,7 +22,7 @@
     },
     {
       "id": "d2",
-      "title": "Lower A",
+      "title": "Lower A (Terça)",
       "exercicios": [
         { "id": "e10", "nome": "Stiff (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
         { "id": "e11", "nome": "Agachamento Hack (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
@@ -34,7 +34,7 @@
     },
     {
       "id": "d3",
-      "title": "Upper B",
+      "title": "Upper B (Quinta)",
       "exercicios": [
         { "id": "e16", "nome": "Supino Reto Barra (Intervalo: 2 min)", "series": "2", "reps": "Com intervalo de 2 min" },
         { "id": "e17", "nome": "Remada Máquina Articulada (Cotovelos rente ao corpo)", "series": "3", "reps": "8-12" },
@@ -49,7 +49,7 @@
     },
     {
       "id": "d4",
-      "title": "Lower B",
+      "title": "Lower B (Sexta)",
       "exercicios": [
         { "id": "e25", "nome": "Cadeira Flexora", "series": "3", "reps": "8-12" },
         { "id": "e26", "nome": "Leg-Press 45 (Intervalo: 2 min)", "series": "3", "reps": "Com intervalo de 2 min" },
