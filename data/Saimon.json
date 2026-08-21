@@ -1,0 +1,59 @@
+{
+  "code": "saimon",
+  "clientName": "Saimon",
+  "title": "Protocolo de Treino & Nutrição",
+  "updatedAt": "2026-08-21T15:00:00Z",
+  "senha": "saimon",
+  "days": [
+    {
+      "id": "d1",
+      "title": "Perna",
+      "exercicios": [
+        { "id": "e1", "nome": "Stiff", "series": "3", "reps": "8-12" },
+        { "id": "e2", "nome": "Agachamento Hack", "series": "3", "reps": "8-12" },
+        { "id": "e3", "nome": "Elevação Pélvica", "series": "3", "reps": "8-12" },
+        { "id": "e4", "nome": "Mesa Flexora", "series": "3", "reps": "8-12" },
+        { "id": "e5", "nome": "Adutora", "series": "3", "reps": "10-12" },
+        { "id": "e6", "nome": "Extensora", "series": "3", "reps": "8-12" }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "Push",
+      "exercicios": [
+        { "id": "e7", "nome": "Supino Inclinado Barra", "series": "3", "reps": "8-12" },
+        { "id": "e8", "nome": "Voador", "series": "3", "reps": "8-12" },
+        { "id": "e9", "nome": "Desenvolvimento", "series": "3", "reps": "8-12" },
+        { "id": "e10", "nome": "Elevação Lateral Halter", "series": "3", "reps": "10-12" },
+        { "id": "e11", "nome": "Tríceps Pulley", "series": "3", "reps": "8-12" },
+        { "id": "e12", "nome": "Tríceps Francês", "series": "2", "reps": "8-12" }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "Pull",
+      "exercicios": [
+        { "id": "e13", "nome": "Remada Cavalinho Pronada", "series": "3", "reps": "8-12" },
+        { "id": "e14", "nome": "Puxada Frontal Aberta", "series": "3", "reps": "8-12" },
+        { "id": "e15", "nome": "Remada Baixa Triângulo", "series": "3", "reps": "8-12" },
+        { "id": "e16", "nome": "Rosca Direta Barra W", "series": "3", "reps": "8-12" },
+        { "id": "e17", "nome": "Rosca Direta com Halter", "series": "3", "reps": "8-12" }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "Fullbody",
+      "exercicios": [
+        { "id": "e18", "nome": "Supino Inclinado com Halter", "series": "3", "reps": "8-12" },
+        { "id": "e19", "nome": "Remada Máquina Articulada Supinada", "series": "3", "reps": "8-12" },
+        { "id": "e20", "nome": "Elevação Lateral Halter", "series": "3", "reps": "10-12" },
+        { "id": "e21", "nome": "Cadeira Flexora", "series": "3", "reps": "8-12" },
+        { "id": "e22", "nome": "Cadeira Extensora", "series": "3", "reps": "8-12" },
+        { "id": "e23", "nome": "Abdutora", "series": "3", "reps": "10-12" },
+        { "id": "e24", "nome": "Adutora", "series": "3", "reps": "10-12" }
+      ]
+    }
+  ],
+  "refeicoes": [],
+  "billing": { "valor": "40", "dueDay": "25" }
+}
