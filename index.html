@@ -15,12 +15,18 @@
   
   .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
   .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
+  select.input-field { color:#fff; cursor:pointer; }
   textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
   .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
   .btn-wpp { background:#25d366; color:#000; font-weight:800; }
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
   .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
   .success-msg { color:#7fd68a; font-size:12px; text-align:center; margin-top:8px; }
+
+  /* Barra de Progresso da Anamnese */
+  .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
+  .progress-bar-fill { width:20%; background:var(--gold); height:100%; transition:width 0.3s ease; }
+  .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
 
   .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .header-actions { display:flex; gap:6px; }
@@ -37,7 +43,6 @@
   .item-meta { color:var(--gold); font-size:12px; font-weight:600; margin-top:2px; }
   .item-body { color:var(--text); font-size:13px; line-height:1.4; margin-top:4px; }
   
-  /* Inputs Lado a Lado para Carga e Reps */
   .inputs-row { display:flex; gap:8px; margin-top:8px; }
   .input-load { flex:1; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:8px 10px; border-radius:6px; font-size:12px; }
 
@@ -56,37 +61,111 @@
 </head>
 <body>
 
+<!-- TELA DE ANAMNESE POR ETAPAS -->
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE DE CONSULTORIA</h1>
-  <div class="sub">Preencha seus dados para a montagem do seu treino</div>
+  <div class="sub">Responda as perguntas abaixo</div>
   
-  <form onsubmit="sendAnamneseWhatsApp(event)" class="login-box">
-    <div>
-      <label class="label-fdb">Seu Nome Completo</label>
+  <div class="progress-bar-bg">
+    <div id="progressBar" class="progress-bar-fill"></div>
+  </div>
+  <div id="stepCounter" class="step-counter">Etapa 1 de 5</div>
+
+  <form onsubmit="event.preventDefault();" class="login-box">
+    
+    <!-- ETAPA 1: DADOS PESSOAIS -->
+    <div id="anamStep1">
+      <label class="label-fdb">1. Qual é o seu nome completo?</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
+
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        <div style="flex:1;">
+          <label class="label-fdb">Idade</label>
+          <input type="text" id="anamIdade" class="input-field" placeholder="Ex: 25" required>
+        </div>
+        <div style="flex:1;">
+          <label class="label-fdb">Peso (kg)</label>
+          <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75kg" required>
+        </div>
+        <div style="flex:1;">
+          <label class="label-fdb">Altura (m)</label>
+          <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75" required>
+        </div>
+      </div>
+      <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
     </div>
 
-    <div>
-      <label class="label-fdb">Idade, Peso e Altura</label>
-      <input type="text" id="anamMedidas" class="input-field" placeholder="Ex: 25 anos, 70kg, 1.75m" required>
+    <!-- ETAPA 2: OBJETIVO & EXPERIÊNCIA -->
+    <div id="anamStep2" class="hidden">
+      <label class="label-fdb">2. Qual é o seu objetivo principal?</label>
+      <select id="anamObjetivo" class="input-field" required>
+        <option value="Hipertrofia / Ganho de Massa">Hipertrofia / Ganho de Massa Muscular</option>
+        <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
+        <option value="Recomposição Corporal">Recomposição Corporal (Massa + Perda de Gordura)</option>
+        <option value="Condicionamento & Saúde">Condicionamento Físico & Saúde</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:10px;">Há quanto tempo você treina?</label>
+      <select id="anamExperiencia" class="input-field" required>
+        <option value="Iniciante (menos de 6 meses)">Iniciante (Menos de 6 meses)</option>
+        <option value="Intermediário (6 meses a 2 anos)">Intermediário (6 meses a 2 anos)</option>
+        <option value="Avançado (Mais de 2 anos consistente)">Avançado (Mais de 2 anos consistente)</option>
+      </select>
+
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar ➔</button>
+      </div>
     </div>
 
-    <div>
-      <label class="label-fdb">Objetivo Principal</label>
-      <input type="text" id="anamObjetivo" class="input-field" placeholder="Ex: Emagrecimento / Hipertrofia" required>
+    <!-- ETAPA 3: ROTINA DE TREINO -->
+    <div id="anamStep3" class="hidden">
+      <label class="label-fdb">3. Quantos dias por semana você vai treinar?</label>
+      <select id="anamDias" class="input-field" required>
+        <option value="3 dias">3 Dias por semana</option>
+        <option value="4 dias">4 Dias por semana</option>
+        <option value="5 dias">5 Dias por semana</option>
+        <option value="6 dias">6 Dias por semana</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:10px;">Quanto tempo tem disponível por treino?</label>
+      <select id="anamTempo" class="input-field" required>
+        <option value="45 minutos">45 minutos</option>
+        <option value="60 minutos (1 hora)">1 hora</option>
+        <option value="Mais de 1h15">1 hora e 15 minutos ou mais</option>
+      </select>
+
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar ➔</button>
+      </div>
     </div>
 
-    <div>
-      <label class="label-fdb">Quantos dias por semana pode treinar?</label>
-      <input type="text" id="anamDias" class="input-field" placeholder="Ex: 4 dias" required>
+    <!-- ETAPA 4: SAÚDE & LESÕES -->
+    <div id="anamStep4" class="hidden">
+      <label class="label-fdb">4. Possui alguma lesão, dor articular ou limitação física?</label>
+      <input type="text" id="anamLesoes" class="input-field" placeholder="Ex: Dor no joelho direito, hérnia de disco (ou 'Nenhuma')" required>
+
+      <label class="label-fdb" style="margin-top:10px;">Usa alguma medicação contínua ou suplemento?</label>
+      <input type="text" id="anamSuplementos" class="input-field" placeholder="Ex: Whey, Creatina (ou 'Nenhum')">
+
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar ➔</button>
+      </div>
     </div>
 
-    <div>
-      <label class="label-fdb">Lesões, Dores ou Restrições Alimentares</label>
-      <textarea id="anamObs" class="input-field" rows="3" placeholder="Ex: Dor no joelho direito / Não como peixe"></textarea>
+    <!-- ETAPA 5: ALIMENTAÇÃO & FINALIZAÇÃO -->
+    <div id="anamStep5" class="hidden">
+      <label class="label-fdb">5. Como é sua rotina alimentar e aversões?</label>
+      <textarea id="anamDieta" class="input-field" rows="3" placeholder="Ex: Faço 4 refeições ao dia. Não gosto de peixe e tenho alergia a leite." required></textarea>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
+        <button type="button" class="btn-login btn-wpp" onclick="sendAnamneseWhatsApp()">🚀 ENVIAR ANAMNESE</button>
+      </div>
     </div>
 
-    <button type="submit" class="btn-login btn-wpp">ENVIAR ANAMNESE & SOLICITAR LOGIN</button>
   </form>
 </div>
 
@@ -199,22 +278,52 @@
     }
   };
 
-  function sendAnamneseWhatsApp(e) {
-    e.preventDefault();
+  // NAVEGAÇÃO ENTRE AS ETAPAS DA ANAMNESE
+  function nextAnamStep(step) {
+    if (step === 2) {
+      if (!document.getElementById('anamNome').value.trim()) { alert('Por favor, digite seu nome.'); return; }
+    }
+    
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById(`anamStep${i}`).classList.add('hidden');
+    }
+    document.getElementById(`anamStep${step}`).classList.remove('hidden');
+    
+    // Atualiza Barra de Progresso
+    const pct = (step / 5) * 100;
+    document.getElementById('progressBar').style.width = `${pct}%`;
+    document.getElementById('stepCounter').textContent = `Etapa ${step} de 5`;
+  }
+
+  function sendAnamneseWhatsApp() {
     const nome = document.getElementById('anamNome').value.trim();
-    const medidas = document.getElementById('anamMedidas').value.trim();
-    const objetivo = document.getElementById('anamObjetivo').value.trim();
-    const dias = document.getElementById('anamDias').value.trim();
-    const obs = document.getElementById('anamObs').value.trim() || 'Nenhuma';
+    const idade = document.getElementById('anamIdade').value.trim();
+    const peso = document.getElementById('anamPeso').value.trim();
+    const altura = document.getElementById('anamAltura').value.trim();
+    const objetivo = document.getElementById('anamObjetivo').value;
+    const exp = document.getElementById('anamExperiencia').value;
+    const dias = document.getElementById('anamDias').value;
+    const tempo = document.getElementById('anamTempo').value;
+    const lesoes = document.getElementById('anamLesoes').value.trim();
+    const dieta = document.getElementById('anamDieta').value.trim();
+    const suplementos = document.getElementById('anamSuplementos').value.trim() || 'Nenhum';
+
+    if (!nome || !dieta) {
+      alert('Por favor, preencha todos os campos obrigatórios antes de enviar.');
+      return;
+    }
 
     const userSuggest = nome.split(' ')[0].toLowerCase();
 
-    const text = `📋 *NOVA ANAMNESE - CONSULTORIA*%0A` +
+    const text = `📋 *ANAMNESE COMPLETA - CONSULTORIA*%0A` +
                  `👤 *Nome:* ${nome}%0A` +
-                 `📏 *Medidas/Idade:* ${medidas}%0A` +
+                 `📏 *Dados:* ${idade} anos | ${peso} | ${altura}m%0A` +
                  `🎯 *Objetivo:* ${objetivo}%0A` +
-                 `📅 *Frequência:* ${dias}%0A` +
-                 `⚠️ *Restrições/Obs:* ${obs}%0A` +
+                 `🏋️ *Nível:* ${exp}%0A` +
+                 `📅 *Frequência:* ${dias} (${tempo}/treino)%0A` +
+                 `⚠️ *Lesões/Dores:* ${lesoes}%0A` +
+                 `🥗 *Alimentação/Rotina:* ${dieta}%0A` +
+                 `💊 *Suplementos:* ${suplementos}%0A` +
                  `----------------------------------%0A` +
                  `🔑 *Solicitação de Cadastro:*%0A` +
                  `Usuário Sugerido: *${userSuggest}*%0A` +
