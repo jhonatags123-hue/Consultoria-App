@@ -35,7 +35,6 @@
   .btn-wpp { background:#25d366; color:#000; font-weight:800; margin-top:6px; }
   .btn-danger { background:var(--accent); color:#fff; padding:4px 8px; border:none; border-radius:4px; font-size:11px; cursor:pointer; }
 
-  /* Accordion / Dias Retráteis */
   .accordion-btn { width:100%; background:#1a0308; border:1px solid var(--border); color:var(--gold); padding:12px; border-radius:8px; font-weight:700; font-size:13px; text-align:left; cursor:pointer; margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
   .accordion-content { background:#120206; border:1px solid var(--border); border-top:none; border-radius:0 0 8px 8px; padding:10px; margin-bottom:8px; }
 
@@ -184,6 +183,7 @@
 
   function selectStudent(code, btnElement) {
     selectedStudent = code;
+    currentStudentData = null; // Reseta objeto em memória ao trocar de aluno
     if (btnElement) {
       document.querySelectorAll('.student-btn').forEach(btn => btn.classList.remove('active'));
       btnElement.classList.add('active');
@@ -196,14 +196,19 @@
     
     fetch(`data/${code}.json?t=${Date.now()}`)
       .then(res => res.json())
-      .then(data => {
+      .then(rawData => {
+        // Cria uma cópia totalmente isolada em memória para evitar interferências
+        let data = JSON.parse(JSON.stringify(rawData));
+        
         if (localWorkout) {
           data.days = JSON.parse(localWorkout);
         }
         currentStudentData = data;
+        
         document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${data.clientName || code}`;
         document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${data.clientName || code}`;
         document.getElementById('studentDietTitle').textContent = `Plano Alimentar — ${data.clientName || code}`;
+        
         renderWorkoutOverview(data);
         renderDietOverview(data);
         setupEditDaysList(data);
@@ -246,7 +251,6 @@
     }
   }
 
-  // --- RENDEREIZAÇÃO DOS DIAS RETRÁTEIS (ACORDEÃO) ---
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
@@ -320,6 +324,8 @@
       opt.textContent = day.title;
       select.appendChild(opt);
     });
+    
+    loadDayEditList();
   }
 
   function loadDayEditList() {
@@ -383,6 +389,7 @@
   }
 
   function saveWorkoutChanges() {
+    if (!selectedStudent || !currentStudentData) return;
     localStorage.setItem(`custom_workout_${selectedStudent}`, JSON.stringify(currentStudentData.days));
     alert(`Mudanças no treino do aluno ${selectedStudent.toUpperCase()} salvas com sucesso!`);
     renderWorkoutOverview(currentStudentData);
