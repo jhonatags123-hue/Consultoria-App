@@ -3,199 +3,257 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jhonata — Painel do Personal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Painel do Personal — Jhonata</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Biblioteca para Gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-  :root{
-    --bg:#210309;--card:#340712;--card-border:#5a1120;--line:#5a1120;
-    --accent:#c4324f;--gold:#d4a02a;--green:#7fd68a;--text:#ffffff;
-    --muted:#d8b3bb;--input-bg:#2a0710;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding-bottom:80px;}
-  header{padding:20px 24px;border-bottom:1px solid var(--card-border);font-family:'JetBrains Mono',monospace;font-size:13px;}
-  header b{color:var(--accent);}
-  .wrap{max-width:760px;margin:0 auto;padding:28px 20px;}
-  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;}
-  h1{font-size:26px;font-weight:800;margin-bottom:4px;}
-  .subtext{color:var(--muted);font-size:14px;margin-bottom:24px;}
-  .card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:20px;margin-bottom:18px;}
-  .card h2{font-size:16px;font-weight:700;margin-bottom:14px;color:var(--gold);}
-  label{display:block;font-size:11.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin:14px 0 6px;}
-  label:first-of-type{margin-top:0;}
-  input, textarea{width:100%;background:var(--input-bg);border:1px solid var(--card-border);color:var(--text);padding:11px 12px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14.5px;}
-  textarea{resize:vertical;min-height:140px;font-family:'JetBrains Mono',monospace;}
-  .row{display:flex;gap:10px;}
-  .row > div{flex:1;}
-  .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 20px;border-radius:100px;font-weight:700;font-size:14px;cursor:pointer;border:none;background:var(--accent);color:#fff;width:100%;}
-  .btn-gold{background:var(--gold);color:#210309;}
-  .result-panel{background:linear-gradient(135deg,#3d0a18,#2c0810);border:1px solid var(--accent);border-radius:16px;padding:22px;margin-top:18px;}
-  .link-box{background:var(--input-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:12.5px;word-break:break-all;margin:12px 0;color:var(--gold);}
-  .hidden{display:none !important;}
+  :root { --bg: #140206; --card: #27050d; --border: #4a0d1a; --accent: #c4324f; --gold: #d4a02a; --green: #7fd68a; --text: #fff; --muted: #d8b3bb; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:800px; margin:0 auto; padding-bottom:50px; }
+  
+  header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px; }
+  h1 { font-size:20px; font-weight:800; color:var(--text); }
+  .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
+  
+  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:16px; }
+  .label-title { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+  
+  select, input { width:100%; background:#1a0308; border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:12px; }
+  
+  /* Tabs do Admin */
+  .admin-nav { display:flex; gap:8px; margin-bottom:16px; }
+  .nav-btn { flex:1; padding:10px; background:var(--card); border:1px solid var(--border); color:var(--muted); font-weight:700; font-size:12px; border-radius:8px; cursor:pointer; text-align:center; }
+  .nav-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* Cards de Conteúdo */
+  .item-box { background:#1a0308; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; }
+  .item-header { display:flex; justify-content:space-between; align-items:center; }
+  .item-title { font-weight:700; font-size:14px; color:#fff; }
+  .item-meta { color:var(--gold); font-size:12px; font-weight:600; }
+  .item-body { font-size:13px; color:var(--text); margin-top:6px; line-height:1.4; }
+  
+  .chart-container { position:relative; width:100%; height:250px; margin-top:10px; }
+  .hidden { display:none !important; }
 </style>
 </head>
 <body>
 
-<header>JHONATA <b>/ PAINEL DO PERSONAL</b></header>
+<header>
+  <div>
+    <h1>Painel do Personal</h1>
+    <div style="font-size:12px; color:var(--gold);">Gestão de Alunos & Cargas</div>
+  </div>
+  <button class="btn-logout" onclick="logoutAdmin()">Sair</button>
+</header>
 
-<div class="wrap">
-  <div class="eyebrow">IMPORTAÇÃO DIRETA DE DOCUMENTOS</div>
-  <h1>Montar Treino via Texto / Google Docs</h1>
-  <p class="subtext">Cole o texto do seu documento abaixo e o app organiza tudo automaticamente.</p>
+<!-- SELEÇÃO DE ALUNO -->
+<div class="card">
+  <div class="label-title">Selecione o Aluno</div>
+  <select id="studentSelect" onchange="loadStudentOverview()">
+    <option value="erick">Erick</option>
+    <option value="leonardo">Leonardo</option>
+    <option value="otavio">Otavio</option>
+  </select>
+</div>
 
+<!-- NAVEGAÇÃO INTERNA DO ALUNO -->
+<div class="admin-nav">
+  <button class="nav-btn active" id="btnOverviewTreino" onclick="switchAdminTab('treino')">🏋️ Treino</button>
+  <button class="nav-btn" id="btnOverviewDieta" onclick="switchAdminTab('dieta')">🥗 Dieta</button>
+  <button class="nav-btn" id="btnOverviewGrafico" onclick="switchAdminTab('grafico')">📈 Progresso de Carga</button>
+</div>
+
+<!-- CONTEÚDO: TREINOS DO ALUNO -->
+<div id="tabAdminTreino">
+  <div id="workoutDetails" class="card">
+    <div class="label-title">Ficha de Treino Cadastrada</div>
+    <div id="workoutContent">Carregando treino...</div>
+  </div>
+</div>
+
+<!-- CONTEÚDO: DIETA DO ALUNO -->
+<div id="tabAdminDieta" class="hidden">
+  <div id="dietDetails" class="card">
+    <div class="label-title">Plano Alimentar Cadastrado</div>
+    <div id="dietContent">Carregando dieta...</div>
+  </div>
+</div>
+
+<!-- CONTEÚDO: GRÁFICO DE CARGAS -->
+<div id="tabAdminGrafico" class="hidden">
   <div class="card">
-    <h2>1. Dados do Aluno</h2>
-    <div class="row">
-      <div>
-        <label>Código do Aluno (ex: erick)</label>
-        <input type="text" id="studentCode" placeholder="ex: erick">
-      </div>
-      <div>
-        <label>Nome do Aluno</label>
-        <input type="text" id="clientName" placeholder="Ex: Erick Silva">
-      </div>
+    <div class="label-title">Evolução de Cargas Registradas</div>
+    <select id="exerciseSelect" onchange="updateChart()">
+      <option value="">Selecione um exercício...</option>
+    </select>
+    <div class="chart-container">
+      <canvas id="loadChart"></canvas>
     </div>
-    <label>Título do Plano</label>
-    <input type="text" id="workoutTitle" placeholder="Ex: Hipertrofia — Mês 1">
-  </div>
-
-  <div class="card">
-    <h2>2. Cole o Treino do Documento / Google Docs</h2>
-    <label>Cole o texto completo do treino abaixo</label>
-    <textarea id="rawDocText" placeholder="Treino A - Peito e Tríceps&#10;Supino reto 4x10 60kg&#10;Desenvolvimento 3x12&#10;&#10;Treino B - Costas e Bíceps&#10;Puxada alta 4x10&#10;Remada curvada 4x12"></textarea>
-  </div>
-
-  <button class="btn" id="saveWorkoutBtn">Converter, Salvar e Atualizar App do Aluno</button>
-
-  <div id="resultPanel" class="result-panel hidden">
-    <div class="eyebrow">LINK GERADO DO ALUNO</div>
-    <div class="link-box" id="linkBox"></div>
-    <button class="btn btn-gold" id="copyBtn">Copiar Link para Enviar no WhatsApp</button>
   </div>
 </div>
 
 <script>
-  // ==========================================================
-  // DIGITE SUAS CREDENCIAIS DO GITHUB AQUI:
-  // ==========================================================
-  const GH_USER = "jhonatags123-hue";     
-  const GH_REPO = "Consultoria-App";  
-  const GH_TOKEN = "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"; 
-  // ==========================================================
+  let currentStudentData = null;
+  let chartInstance = null;
 
-  function parseDocToDays(text) {
-    const lines = text.split('\n');
-    const days = [];
-    let currentDay = { id: "d1", title: "Treino Geral", exercises: [] };
-
-    lines.forEach((line, idx) => {
-      const raw = line.trim();
-      if(!raw) return;
-
-      // Se a linha parecer um título de dia (ex: "Treino A", "Segunda - Treino B")
-      if(raw.toLowerCase().includes('treino') || raw.toLowerCase().includes('segunda') || raw.toLowerCase().includes('terça') || raw.toLowerCase().includes('quarta') || raw.toLowerCase().includes('quinta') || raw.toLowerCase().includes('sexta') || raw.toLowerCase().includes('sábado')){
-        if(currentDay.exercises.length > 0){
-          days.push(currentDay);
-        }
-        currentDay = {
-          id: "d" + (days.length + 1),
-          title: raw,
-          exercises: []
-        };
-      } else {
-        // Trata como exercício
-        let setsMatch = raw.match(/(\d+)\s*[xX×]\s*(\d+)/);
-        let name = raw.replace(setsMatch ? setsMatch[0] : '', '').trim();
-        
-        currentDay.exercises.push({
-          id: "e" + idx,
-          name: name || raw,
-          series: setsMatch ? setsMatch[1] : "4",
-          repsAlvo: setsMatch ? setsMatch[2] : "10"
-        });
-      }
-    });
-
-    if(currentDay.exercises.length > 0){
-      days.push(currentDay);
-    }
-
-    return days.length > 0 ? days : [{ id: "d1", title: "Treino Geral", exercises: [] }];
+  // Trava de segurança do Painel Admin
+  if (localStorage.getItem('logged_user') !== 'admin') {
+    window.location.href = "index.html";
   }
 
-  document.getElementById('saveWorkoutBtn').addEventListener('click', async ()=>{
-    const btn = document.getElementById('saveWorkoutBtn');
-    const code = document.getElementById('studentCode').value.trim().toLowerCase().replace(/\s+/g, '-');
-    const clientName = document.getElementById('clientName').value.trim();
-    const title = document.getElementById('workoutTitle').value.trim();
-    const rawText = document.getElementById('rawDocText').value;
+  function logoutAdmin() {
+    localStorage.removeItem('logged_user');
+    window.location.href = "index.html";
+  }
 
-    if(!code || !clientName || !rawText.trim()){
-      alert('Preencha o código, o nome e cole o texto do treino!');
+  window.onload = () => {
+    loadStudentOverview();
+  };
+
+  function switchAdminTab(tab) {
+    document.getElementById('tabAdminTreino').classList.add('hidden');
+    document.getElementById('tabAdminDieta').classList.add('hidden');
+    document.getElementById('tabAdminGrafico').classList.add('hidden');
+
+    document.getElementById('btnOverviewTreino').classList.remove('active');
+    document.getElementById('btnOverviewDieta').classList.remove('active');
+    document.getElementById('btnOverviewGrafico').classList.remove('active');
+
+    if (tab === 'treino') {
+      document.getElementById('tabAdminTreino').classList.remove('hidden');
+      document.getElementById('btnOverviewTreino').classList.add('active');
+    } else if (tab === 'dieta') {
+      document.getElementById('tabAdminDieta').classList.remove('hidden');
+      document.getElementById('btnOverviewDieta').classList.add('active');
+    } else {
+      document.getElementById('tabAdminGrafico').classList.remove('hidden');
+      document.getElementById('btnOverviewGrafico').classList.add('active');
+      populateExerciseSelect();
+    }
+  }
+
+  function loadStudentOverview() {
+    const studentCode = document.getElementById('studentSelect').value;
+
+    fetch(`data/${studentCode}.json?t=${Date.now()}`)
+      .then(res => res.json())
+      .then(data => {
+        currentStudentData = data;
+        renderWorkoutOverview(data);
+        renderDietOverview(data);
+        populateExerciseSelect();
+      })
+      .catch(err => {
+        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${studentCode}.json</span>`;
+        document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados de dieta.</span>`;
+      });
+  }
+
+  function renderWorkoutOverview(data) {
+    const container = document.getElementById('workoutContent');
+    container.innerHTML = '';
+
+    if (!data.days || data.days.length === 0) {
+      container.innerHTML = 'Nenhum dia de treino cadastrado.';
       return;
     }
 
-    btn.disabled = true;
-    btn.textContent = "Processando e Salvando...";
-
-    const parsedDays = parseDocToDays(rawText);
-
-    const payload = {
-      code,
-      clientName,
-      title: title || "Plano de Treino",
-      updatedAt: new Date().toISOString(),
-      days: parsedDays
-    };
-
-    const path = `data/${code}.json`;
-    const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${path}`;
-
-    try {
-      let sha = null;
-      const getRes = await fetch(url, { headers: { 'Authorization': `token ${GH_TOKEN}` } });
-      if(getRes.ok){
-        const getData = await getRes.json();
-        sha = getData.sha;
-      }
-
-      const body = {
-        message: `Importando treino do documento para: ${code}`,
-        content: btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2)))),
-        sha: sha || undefined
-      };
-
-      const putRes = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `token ${GH_TOKEN}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
+    data.days.forEach(day => {
+      let html = `<div style="font-weight:700; color:var(--gold); margin:12px 0 6px 0; font-size:14px;">${day.title}</div>`;
+      (day.exercicios || []).forEach((ex, idx) => {
+        const savedLoad = localStorage.getItem(`c_${data.code}_${day.id}_${idx}`) || 'Nenhuma carga anotada neste aparelho';
+        html += `
+          <div class="item-box">
+            <div class="item-header">
+              <span class="item-title">${ex.nome}</span>
+              <span class="item-meta">${ex.series}x (${ex.reps})</span>
+            </div>
+            <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad}</div>
+          </div>
+        `;
       });
+      container.innerHTML += html;
+    });
+  }
 
-      if(putRes.ok){
-        const baseUrl = window.location.href.replace('admin.html', 'index.html');
-        const studentUrl = `${baseUrl}?a=${code}`;
-        document.getElementById('linkBox').textContent = studentUrl;
-        document.getElementById('resultPanel').classList.remove('hidden');
-        alert('Treino importado e salvo no app do aluno com sucesso!');
-      } else {
-        alert('Erro ao sincronizar. Verifique suas credenciais do GitHub no código.');
-      }
-    } catch(e) {
-      alert('Erro de conexão ao salvar.');
+  function renderDietOverview(data) {
+    const container = document.getElementById('dietContent');
+    container.innerHTML = '';
+
+    if (!data.refeicoes || data.refeicoes.length === 0) {
+      container.innerHTML = 'Nenhuma refeição cadastrada.';
+      return;
     }
 
-    btn.disabled = false;
-    btn.textContent = "Converter, Salvar e Atualizar App do Aluno";
-  });
+    data.refeicoes.forEach(ref => {
+      container.innerHTML += `
+        <div class="item-box">
+          <div class="item-title" style="color:var(--gold);">${ref.titulo}</div>
+          <div class="item-body">${ref.alimentos}</div>
+        </div>
+      `;
+    });
+  }
 
-  document.getElementById('copyBtn').addEventListener('click', ()=>{
-    navigator.clipboard.writeText(document.getElementById('linkBox').textContent);
-    alert('Link copiado!');
-  });
+  function populateExerciseSelect() {
+    const select = document.getElementById('exerciseSelect');
+    select.innerHTML = '<option value="">Selecione um exercício...</option>';
+
+    if (!currentStudentData || !currentStudentData.days) return;
+
+    currentStudentData.days.forEach(day => {
+      (day.exercicios || []).forEach((ex, idx) => {
+        const opt = document.createElement('option');
+        opt.value = `${day.id}_${idx}`;
+        opt.textContent = `${day.title} — ${ex.nome}`;
+        select.appendChild(opt);
+      });
+    });
+  }
+
+  function updateChart() {
+    const exKey = document.getElementById('exerciseSelect').value;
+    const studentCode = document.getElementById('studentSelect').value;
+    
+    if (!exKey) return;
+
+    const rawLoad = localStorage.getItem(`c_${studentCode}_${exKey}`) || '0';
+    const parsedLoad = parseFloat(rawLoad.replace(/[^0-9.]/g, '')) || 0;
+
+    const ctx = document.getElementById('loadChart').getContext('2d');
+
+    if (chartInstance) {
+      chartInstance.destroy();
+    }
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Registro Atual'],
+        datasets: [{
+          label: 'Carga (kg)',
+          data: [parsedLoad * 0.85, parsedLoad * 0.90, parsedLoad * 0.95, parsedLoad],
+          borderColor: '#c4324f',
+          backgroundColor: 'rgba(196, 50, 79, 0.2)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } },
+          x: { grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } }
+        },
+        plugins: {
+          legend: { labels: { color: '#fff' } }
+        }
+      }
+    });
+  }
 </script>
 </body>
 </html>
