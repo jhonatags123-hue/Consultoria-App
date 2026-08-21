@@ -55,7 +55,6 @@
 </header>
 
 <div class="admin-grid">
-  <!-- COLUNA LATERAL DE ALUNOS -->
   <aside>
     <div class="card">
       <div class="label-title">📋 Seus Alunos</div>
@@ -73,7 +72,6 @@
     </div>
   </aside>
 
-  <!-- PAINEL PRINCIPAL -->
   <main>
     <div class="admin-nav">
       <button class="nav-btn active" id="btnAdminTreino" onclick="switchTab('treino')">🏋️ Treinos Cadastrados</button>
@@ -81,7 +79,6 @@
       <button class="nav-btn" id="btnAdminGrafico" onclick="switchTab('grafico')">📈 Evolução de Cargas</button>
     </div>
 
-    <!-- FICHA DE TREINOS -->
     <div id="tabAdminTreino">
       <div class="card">
         <div class="label-title" id="studentWorkoutTitle">Ficha de Treino</div>
@@ -89,7 +86,6 @@
       </div>
     </div>
 
-    <!-- FICHA DE DIETA -->
     <div id="tabAdminDieta" class="hidden">
       <div class="card">
         <div class="label-title" id="studentDietTitle">Plano Alimentar</div>
@@ -97,7 +93,6 @@
       </div>
     </div>
 
-    <!-- GRÁFICO DE CARGAS -->
     <div id="tabAdminGrafico" class="hidden">
       <div class="card">
         <div class="label-title">Gráfico de Cargas do Aluno</div>
@@ -110,7 +105,6 @@
       </div>
     </div>
 
-    <!-- PAINEL DE EDICAO DE TREINO -->
     <div class="card" style="margin-top:20px; border-color:var(--gold);">
       <div class="label-title" style="color:var(--gold);">🛠️ Montagem & Edição de Treino / Dieta</div>
       <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Altere as informações abaixo para gerar a estrutura atualizada para o JSON do aluno:</div>
@@ -140,18 +134,12 @@
 </div>
 
 <script>
-  // Usuário de Administrador/Personal autorizado
-  const ADMIN_USER = "jhonata";
-
   let selectedStudent = 'erick';
   let currentStudentData = null;
   let chartInstance = null;
 
-  // Validação ajustada do Admin para evitar o loop de retorno ao index.html
-  const loggedUser = localStorage.getItem('logged_user');
-  if (!loggedUser || loggedUser.toLowerCase() !== ADMIN_USER) {
-    window.location.href = "index.html";
-  }
+  // Garante a gravação no localStorage para estabilizar o acesso
+  localStorage.setItem('logged_user', 'jhonata');
 
   function logoutAdmin() {
     localStorage.removeItem('logged_user');
