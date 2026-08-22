@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Inteligente — Área do Aluno</title>
+<title>Consultoria Inteligente — App do Aluno</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -31,7 +30,6 @@
     gap: 16px;
   }
 
-  /* LOGIN & MODAL CONTAINER */
   .card {
     background: var(--card);
     backdrop-filter: blur(12px);
@@ -41,7 +39,7 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   }
   
-  .title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 12px; text-transform: uppercase; }
+  .title { font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 12px; text-transform: uppercase; }
   
   input, select, textarea {
     width: 100%;
@@ -74,8 +72,52 @@
     color: #fff;
     box-shadow: 0 4px 20px rgba(255, 42, 42, 0.5);
   }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: #fff; }
 
-  /* CHAT DA IA COM CHIPS */
+  /* NAVEGAÇÃO DE ABAS */
+  .tabs-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border-radius: 10px;
+    background: rgba(15, 2, 5, 0.8);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+  }
+  .tab-btn.active {
+    background: var(--border);
+    color: #fff;
+    border-color: var(--gold);
+  }
+
+  /* LISTA DE TREINOS E EXERCÍCIOS */
+  .exercise-item {
+    background: rgba(15, 2, 5, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .exercise-name { font-weight: 800; font-size: 14px; color: #fff; }
+  .exercise-details { font-size: 12px; color: var(--gold); margin-top: 4px; font-weight: 700; }
+  .load-input {
+    width: 90px;
+    padding: 6px 10px;
+    margin-bottom: 0;
+    margin-top: 8px;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  /* CHAT IA */
   .chat-box {
     display: flex;
     flex-direction: column;
@@ -85,17 +127,14 @@
     border-radius: 16px;
     padding: 12px;
   }
-  
   .chat-messages {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding-right: 4px;
     margin-bottom: 10px;
   }
-
   .chat-bubble {
     max-width: 85%;
     padding: 12px 14px;
@@ -103,92 +142,99 @@
     font-size: 13px;
     line-height: 1.4;
   }
-  .chat-bubble.user {
-    background: var(--border);
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 2px;
-  }
-  .chat-bubble.assistant {
-    background: rgba(56, 6, 18, 0.9);
-    border: 1px solid var(--gold);
-    color: #fff;
-    align-self: flex-start;
-    border-bottom-left-radius: 2px;
-  }
+  .chat-bubble.user { background: var(--border); color: #fff; align-self: flex-end; }
+  .chat-bubble.assistant { background: rgba(56, 6, 18, 0.9); border: 1px solid var(--gold); color: #fff; align-self: flex-start; }
 
-  /* CHIPS DE PERGUNTAS RÁPIDAS */
   .chat-chips-container {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding: 6px 0;
-    margin-bottom: 8px;
-    scrollbar-width: none;
+    display: flex; gap: 8px; overflow-x: auto; padding: 6px 0; margin-bottom: 8px; scrollbar-width: none;
   }
   .chat-chips-container::-webkit-scrollbar { display: none; }
-  
   .chip-btn {
-    background: rgba(110, 19, 39, 0.6);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 800;
-    padding: 6px 12px;
-    border-radius: 20px;
-    white-space: nowrap;
-    cursor: pointer;
+    background: rgba(110, 19, 39, 0.6); border: 1px solid var(--border); color: var(--muted);
+    font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer;
   }
-  .chip-btn:active { background: var(--accent); color: #fff; }
-
   .chat-input-row { display: flex; gap: 8px; }
   .chat-input-row input { margin-bottom: 0; }
 </style>
 </head>
 <body>
 
-  <!-- TELA DE LOGIN -->
+  <!-- TELA DE LOGIN DO ALUNO -->
   <div id="loginSection" class="card">
     <div class="title">🔑 Área do Aluno</div>
-    <input type="text" id="userCodeInput" placeholder="Digite seu código ou nome de usuário">
+    <input type="text" id="userCodeInput" placeholder="Digite seu código (ex: erick, julia)">
     <button class="btn btn-primary" onclick="fazerLogin()">ENTRAR NO APLICATIVO</button>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="mostrarAnamnese()">PREENCHER ANAMNESE</button>
   </div>
 
-  <!-- PAINEL DO ALUNO (OCULTO ATÉ O LOGIN) -->
-  <div id="appSection" style="display:none; display:flex; flex-direction:column; gap:16px;">
+  <!-- TELA DE ANAMNESE -->
+  <div id="anamneseSection" class="card" style="display:none;">
+    <div class="title">📋 Anamnese Inicial</div>
+    <input type="text" id="anaNome" placeholder="Seu nome completo">
+    <input type="text" id="anaObjetivo" placeholder="Seu objetivo principal (Ex: Hipertrofia, Emagrecimento)">
+    <select id="anaNivel">
+      <option value="Iniciante">Iniciante (Nunca treinou / Parado)</option>
+      <option value="Intermediario">Intermediário (Treina mas estagnou)</option>
+      <option value="Avançado">Avançado (Busca alta performance)</option>
+    </select>
+    <input type="text" id="anaFrequencia" placeholder="Quantos dias por semana pode treinar?">
+    <textarea id="anaLesoes" placeholder="Possui alguma dor, lesão ou limitação física?"></textarea>
     
-    <!-- CABEÇALHO DO ALUNO -->
+    <button class="btn btn-primary" onclick="enviarAnamneseWhatsApp()">ENVIAR ANAMNESE PARA O PERSONAL</button>
+    <button class="btn btn-outline" style="margin-top:10px;" onclick="voltarParaLogin()">VOLTAR AO LOGIN</button>
+  </div>
+
+  <!-- APP DO ALUNO (TELA PRINCIPAL) -->
+  <div id="appSection" style="display:none; flex-direction:column; gap:16px;">
+    
+    <!-- CABEÇALHO -->
     <div class="card">
       <div class="title" id="studentWelcome">Bem-vindo(a)!</div>
       <p style="font-size:13px; color:var(--muted);" id="protocolTitle">Protocolo de Treino & Nutrição</p>
     </div>
 
-    <!-- CHAT COM JHONATA AI -->
-    <div class="card">
-      <div class="title" style="color:var(--gold); font-size:16px;">🤖 JHONATA AI — ASSISTENTE VIRTUAL</div>
+    <!-- ABAS DE NAVEGAÇÃO -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="trocarAba('treinosTab', this)">🏋️ TREINOS</button>
+      <button class="tab-btn" onclick="trocarAba('dietaTab', this)">🥗 DIETA</button>
+      <button class="tab-btn" onclick="trocarAba('iaTab', this)">🤖 ASSISTENTE IA</button>
+    </div>
+
+    <!-- ABA 1: TREINOS -->
+    <div id="treinosTab" class="card">
+      <div class="title" style="color:var(--gold);">Ficha de Exercícios</div>
+      <div id="treinosContainer">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </div>
+
+    <!-- ABA 2: DIETA -->
+    <div id="dietaTab" class="card" style="display:none;">
+      <div class="title" style="color:var(--gold);">Plano Alimentar</div>
+      <div id="dietaContainer">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </div>
+
+    <!-- ABA 3: CHAT IA -->
+    <div id="iaTab" class="card" style="display:none;">
+      <div class="title" style="color:var(--gold); font-size:16px;">🤖 JHONATA AI</div>
       
       <div class="chat-box">
         <div class="chat-messages" id="chatMessages">
           <div class="chat-bubble assistant">
-            Olá! Sou o Jhonata AI. Tenho acesso completo à sua ficha de treinos e dieta. Como posso te ajudar hoje?
+            Olá! Sou o Jhonata AI. Tenho acesso ao seu treino e dieta. Como posso te ajudar hoje?
           </div>
         </div>
 
-        <!-- PERGUNTAS RÁPIDAS (CHIPS) -->
         <div class="chat-chips-container">
-          <button class="chip-btn" onclick="enviarMensagemIA('Como posso substituir o arroz da minha refeição hoje?')">
-            💡 Trocar arroz
-          </button>
-          <button class="chip-btn" onclick="enviarMensagemIA('A academia está cheia, qual exercício substitui o primeiro do meu treino?')">
-            🏋️ Substituir exercício
-          </button>
-          <button class="chip-btn" onclick="enviarMensagemIA('O que posso comer de pré-treino rápido 30 minutos antes de ir treinar?')">
-            ⚡ Pré-treino rápido (<1h)
-          </button>
+          <button class="chip-btn" onclick="enviarMensagemIA('Como posso substituir o arroz do meu almoço hoje?')">💡 Trocar arroz</button>
+          <button class="chip-btn" onclick="enviarMensagemIA('A academia tá cheia, qual exercício substitui o primeiro do meu treino?')">🏋️ Substituir exercício</button>
+          <button class="chip-btn" onclick="enviarMensagemIA('O que posso comer de pré-treino rápido 30min antes de treinar?')">⚡ Pré-treino rápido</button>
         </div>
 
         <div class="chat-input-row">
-          <input type="text" id="chatInput" placeholder="Pergunte algo sobre seu treino ou dieta..." onkeypress="if(event.key==='Enter') enviarMensagemIA()">
+          <input type="text" id="chatInput" placeholder="Pergunte sobre seu treino ou dieta..." onkeypress="if(event.key==='Enter') enviarMensagemIA()">
           <button class="btn btn-primary" style="width: auto; padding: 0 18px;" onclick="enviarMensagemIA()">➔</button>
         </div>
       </div>
@@ -200,7 +246,25 @@
 let studentData = {};
 let chatHistory = [];
 
-// FUNCIONALIDADE DE LOGIN
+// VERIFICA SE A URL PEDE ANAMNESE DIRETA
+window.onload = function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('modo') === 'anamnese') {
+    mostrarAnamnese();
+  }
+};
+
+function mostrarAnamnese() {
+  document.getElementById("loginSection").style.display = "none";
+  document.getElementById("anamneseSection").style.display = "block";
+}
+
+function voltarParaLogin() {
+  document.getElementById("anamneseSection").style.display = "none";
+  document.getElementById("loginSection").style.display = "block";
+}
+
+// LOGIN E CARREGAMENTO DOS DADOS DO ALUNO
 async function fazerLogin() {
   const code = document.getElementById("userCodeInput").value.trim().toLowerCase();
   if(!code) return alert("Digite seu código de aluno!");
@@ -216,12 +280,110 @@ async function fazerLogin() {
     document.getElementById("studentWelcome").innerText = `Olá, ${studentData.clientName || code}!`;
     if(studentData.title) document.getElementById("protocolTitle").innerText = studentData.title;
 
+    renderizarTreinos();
+    renderizarDieta();
+
   } catch(e) {
-    alert("Código ou usuário não encontrado! Verifique se digitou corretamente.");
+    alert("Código não encontrado! Verifique se digitou corretamente.");
   }
 }
 
-// INTEGRAÇÃO COMPLETA DA IA COM HISTÓRICO E CONTEXTO
+// RENDERIZA OS TREINOS DO ALUNO
+function renderizarTreinos() {
+  const container = document.getElementById("treinosContainer");
+  container.innerHTML = "";
+
+  if(!studentData.days || studentData.days.length === 0) {
+    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum treino cadastrado ainda.</p>";
+    return;
+  }
+
+  studentData.days.forEach(day => {
+    let html = `<div style='margin-bottom:18px;'><h4 style='color:var(--gold); margin-bottom:8px;'>${day.title}</h4>`;
+    
+    day.exercicios.forEach(ex => {
+      html += `
+        <div class="exercise-item">
+          <div class="exercise-name">${ex.nome}</div>
+          <div class="exercise-details">${ex.series} séries x ${ex.reps} reps</div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <span style="font-size:11px; color:var(--muted);">Carga salva:</span>
+            <input type="text" class="load-input" placeholder="Ex: 20kg" value="${ex.carga || ''}" onchange="salvarCarga('${ex.id}', this.value)">
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+    container.innerHTML += html;
+  });
+}
+
+function salvarCarga(exId, valor) {
+  // Salva no localStorage do navegador do aluno
+  localStorage.setItem(`carga_${studentData.code}_${exId}`, valor);
+}
+
+// RENDERIZA A DIETA DO ALUNO
+function renderizarDieta() {
+  const container = document.getElementById("dietaContainer");
+  container.innerHTML = "";
+
+  if(!studentData.refeicoes || studentData.refeicoes.length === 0) {
+    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum plano alimentar cadastrado no momento.</p>";
+    return;
+  }
+
+  studentData.refeicoes.forEach(ref => {
+    container.innerHTML += `
+      <div class="exercise-item">
+        <div class="exercise-name" style="color:var(--gold);">${ref.titulo}</div>
+        <div style="font-size:13px; color:#fff; margin-top:6px; line-height:1.4;">${ref.alimentos}</div>
+      </div>
+    `;
+  });
+}
+
+// CONTROLE DE ABAS
+function trocarAba(tabId, btn) {
+  document.getElementById("treinosTab").style.display = "none";
+  document.getElementById("dietaTab").style.display = "none";
+  document.getElementById("iaTab").style.display = "none";
+
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  
+  document.getElementById(tabId).style.display = "block";
+  btn.classList.add("active");
+}
+
+// ENVIO DE ANAMNESE COM LINK PARA O SEU AGENTE DE IA
+function enviarAnamneseWhatsApp() {
+  const nome = document.getElementById("anaNome").value.trim() || "Não informado";
+  const objetivo = document.getElementById("anaObjetivo").value.trim() || "Não informado";
+  const nivel = document.getElementById("anaNivel").value || "Não informado";
+  const frequencia = document.getElementById("anaFrequencia").value.trim() || "Não informado";
+  const lesoes = document.getElementById("anaLesoes").value.trim() || "Nenhuma";
+  
+  // SEU LINK DO NOTEBOOKLM OU AGENTE DE IA PARA MONTAR TREINOS:
+  const linkSeuNotebookIA = "https://notebooklm.google.com/"; 
+
+  const textoMensagem = 
+`🚨 *NOVA ANAMNESE RECEBIDA!*
+
+👤 *Aluno:* ${nome}
+🎯 *Objetivo:* ${objetivo}
+🏋️ *Nível:* ${nivel}
+📅 *Frequência:* ${frequencia}
+⚠️ *Lesões/Observações:* ${lesoes}
+
+🧠 *Agente de IA (Montar Treino):*
+${linkSeuNotebookIA}`;
+
+  const urlWhatsApp = `https://wa.me/5551990169026?text=${encodeURIComponent(textoMensagem)}`;
+  window.open(urlWhatsApp, "_blank");
+}
+
+// CHAT IA COM CONTEXTO E MEMÓRIA
 async function enviarMensagemIA(textoPronto = null) {
   const inputEl = document.getElementById("chatInput");
   const msgText = textoPronto || inputEl.value.trim();
@@ -231,7 +393,6 @@ async function enviarMensagemIA(textoPronto = null) {
   adicionarMensagemNaTela("user", msgText);
   if(!textoPronto) inputEl.value = "";
 
-  // System Prompt Inteligente
   const systemPrompt = {
     role: "system",
     content: `Você é o Jhonata AI, assistente virtual de Educação Física e Nutrição Esportiva da Consultoria Inteligente.
@@ -244,8 +405,7 @@ DADOS ATUAIS DO ALUNO:
 DIRETRIZES:
 1. LEITURA DE TREINOS: Para substituição de exercícios, consulte a ficha de treinos do aluno e sugira variações com mesmo padrão de movimento.
 2. LEITURA DE DIETA: Para trocas de alimentos, consulte as refeições dele e faça trocas com macronutrientes equivalentes.
-3. PRÉ/PÓS-TREINO: Dê sugestões de rápida digestão (carboidratos simples) para refeições em menos de 1h antes do treino.
-4. Mantenha o contexto recente. Responda de forma objetiva, direta e motivadora.`
+3. PRÉ/PÓS-TREINO: Dê sugestões de rápida digestão (carboidratos simples) para refeições em menos de 1h antes do treino.`
   };
 
   chatHistory.push({ role: "user", content: msgText });
@@ -254,7 +414,6 @@ DIRETRIZES:
   const loadingBubble = adicionarMensagemNaTela("assistant", "⏳ Processando...");
 
   try {
-    // Chamada para a API (exemplo estruturado com modelo Groq / OpenAI)
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -275,7 +434,6 @@ DIRETRIZES:
     chatHistory.push({ role: "assistant", content: respostaIA });
 
   } catch(err) {
-    console.error(err);
     loadingBubble.innerText = "Assistente offline no momento. Tente novamente em alguns instantes!";
   }
 }
