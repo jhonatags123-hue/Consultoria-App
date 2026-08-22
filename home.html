@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jhonata Consultoria — Físico de Alta Performance</title>
+<title>Consultoria Esportiva — Físico de Alta Performance</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root { 
@@ -30,7 +30,6 @@
     gap: 22px;
   }
 
-  /* BADGE DE ATENÇÃO */
   .badge-top {
     background: linear-gradient(90deg, rgba(255,204,0,0.25) 0%, rgba(255,42,42,0.25) 100%);
     border: 2px solid var(--gold);
@@ -47,7 +46,7 @@
 
   .header-brand { text-align: center; padding: 10px 0; }
   .header-brand h1 { 
-    font-size: 34px; 
+    font-size: 32px; 
     font-weight: 900; 
     letter-spacing: -1px; 
     line-height: 1.1;
@@ -75,7 +74,7 @@
     box-shadow: 0 12px 35px rgba(0,0,0,0.8);
   }
 
-  .section-title { font-size: 21px; font-weight: 900; color: #fff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: -0.5px; }
+  .section-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: -0.5px; }
 
   /* MENTALIDADE DE TREINO INTELIGENTE */
   .method-highlight {
@@ -88,19 +87,20 @@
   .method-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; }
   .method-text { font-size: 14px; color: #fff; line-height: 1.6; }
 
-  /* PERFIS DE ALUNOS */
+  /* PERFIS DE ALUNOS (VERSÃO REFINADA E CHAMATIVA) */
   .profile-box {
     background: rgba(15, 2, 5, 0.85);
     border: 1.5px solid var(--border);
     border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
   }
   .profile-box.advanced {
     border-color: var(--gold);
-    background: rgba(50, 6, 16, 0.65);
+    background: rgba(50, 6, 16, 0.75);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.1);
   }
-  .profile-tag { font-size: 13px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .profile-tag { font-size: 14px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
   .profile-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
 
   /* CARDS DE PLANOS */
@@ -184,8 +184,27 @@
   <!-- CABEÇALHO -->
   <div class="header-brand">
     <div class="badge-top">🔥 VAGAS LIMITADAS PARA ESTE MÊS</div>
-    <h1>JHONATA CONSULTORIA</h1>
+    <h1>CONSULTORIA ESPORTIVA</h1>
     <div class="subhead">CONSTRUA UM FÍSICO FORTE, DENSO E DEFINIDO</div>
+  </div>
+
+  <!-- SEÇÃO: PARA QUEM É A CONSULTORIA (NOVA VERSÃO MAIS POTENTE) -->
+  <div class="card">
+    <div class="section-title">🎯 PARA QUEM É ESTA CONSULTORIA?</div>
+
+    <div class="profile-box">
+      <div class="profile-tag">🔰 Para quem está começando do zero</div>
+      <div class="profile-desc">
+        Chega de se sentir perdido na academia sem saber a ordem dos aparelhos ou o que comer. Você terá um passo a passo desenhado para o seu corpo, evitando lesões e garantindo evolução visível desde o primeiro mês.
+      </div>
+    </div>
+
+    <div class="profile-box advanced">
+      <div class="profile-tag">⚡ Para quem já treina mas ESTAGNOU</div>
+      <div class="profile-desc">
+        Cansado de treinar pesado todos os dias e ver o mesmo físico no espelho? Nós quebramos a sua estagnação aplicando periodização inteligente, progressão de carga real e ajustes finos na dieta para buscar a sua melhor versão.
+      </div>
+    </div>
   </div>
 
   <!-- SEÇÃO: TREINO INTELIGENTE -->
@@ -225,21 +244,6 @@
         <div class="feature-icon">🤖</div>
         <span><b>Assistente de Nutrição com IA:</b> Calcule substituições de alimentos em segundos diretamente no app[cite: 1].</span>
       </div>
-    </div>
-  </div>
-
-  <!-- PARA QUEM É -->
-  <div class="card">
-    <div class="section-title">🎯 PARA QUEM É A CONSULTORIA?</div>
-
-    <div class="profile-box">
-      <div class="profile-tag">🔰 INICIANTE NA ACADEMIA</div>
-      <div class="profile-desc">Sente-se perdido entre os aparelhos e exercícios, sem saber a ordem correta, cargas ideais nem como montar a dieta certa para seu tipo físico[cite: 1].</div>
-    </div>
-
-    <div class="profile-box advanced">
-      <div class="profile-tag">⚡ JÁ TREINA MAS ESTAGNOU</div>
-      <div class="profile-desc">Treina pesado há meses ou anos, mas o físico parou de evoluir. Precisa de sobrecarga progressiva estruturada e técnicas avançadas para atingir a melhor versão[cite: 1].</div>
     </div>
   </div>
 
@@ -289,13 +293,13 @@
       🔑 ÁREA DO ALUNO (LOGIN)
     </a>
 
-    <a href="https://wa.me/5551990169026?text=Olá%20Jhonata!%20Vim%20pelo%20site%20e%20quero%20tirar%20uma%20dúvida%20sobre%20os%20planos!" target="_blank" class="btn btn-wpp">
+    <a href="https://wa.me/5551990169026?text=Olá!%20Vim%20pelo%20site%20e%20quero%20tirar%20uma%20dúvida%20sobre%20os%20planos%20da%20consultoria!" target="_blank" class="btn btn-wpp">
       💬 DÚVIDAS? FALAR DIRETO NO WHATSAPP
     </a>
   </div>
 
   <div class="footer">
-    © Jhonata Consultoria Esportiva. Todos os direitos reservados.
+    © Consultoria Esportiva. Todos os direitos reservados.
   </div>
 
 </body>
