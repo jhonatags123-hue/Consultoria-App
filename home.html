@@ -101,18 +101,6 @@
   .profile-tag { font-size: 14px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
   .profile-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
 
-  /* DEPOIMENTO EM DESTAQUE */
-  .testimonial-card {
-    background: linear-gradient(135deg, rgba(40, 5, 14, 0.95) 0%, rgba(15, 2, 5, 0.95) 100%);
-    border: 2px solid var(--gold);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
-  }
-  .stars { color: var(--gold); font-size: 16px; margin-bottom: 8px; }
-  .testimonial-text { font-size: 14px; color: #fff; line-height: 1.6; font-style: italic; }
-  .testimonial-author { font-size: 13px; font-weight: 800; color: var(--gold); margin-top: 12px; text-align: right; }
-
   /* COMPARATIVO APP VS PDF */
   .comparison-box {
     display: flex;
@@ -130,6 +118,18 @@
   }
   .comp-item.bad { border-left: 4px solid var(--accent); color: var(--muted); }
   .comp-item.good { border-left: 4px solid #7fd68a; color: #fff; }
+
+  /* DEPOIMENTO EM DESTAQUE */
+  .testimonial-card {
+    background: linear-gradient(135deg, rgba(40, 5, 14, 0.95) 0%, rgba(15, 2, 5, 0.95) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
+  }
+  .stars { color: var(--gold); font-size: 16px; margin-bottom: 8px; }
+  .testimonial-text { font-size: 14px; color: #fff; line-height: 1.6; font-style: italic; }
+  .testimonial-author { font-size: 13px; font-weight: 800; color: var(--gold); margin-top: 12px; text-align: right; }
 
   /* CARDS DE PLANOS */
   .plan-card {
@@ -226,19 +226,33 @@
     <div class="subhead">CONSTRUA UM FÍSICO FORTE, DENSO E DEFINIDO</div>
   </div>
 
-  <!-- SEÇÃO: DEPOIMENTO REAL (NOVO) -->
+  <!-- 1. POR QUE O NOSSO MÉTODO FUNCIONA -->
   <div class="card">
-    <div class="section-title">💬 RESULTADO REAL DE ALUNO</div>
-    <div class="testimonial-card">
-      <div class="stars">★★★★★</div>
-      <div class="testimonial-text">
-        "Notei bastante diferença sim! Principalmente no corpo, sinto que tô ganhando massa magra e ao mesmo tempo diminuindo o percentual de gordura. E uma coisa que gostei bastante é que mesmo aumentando a quantidade de carboidrato pra conseguir ter mais energia e aguentar melhor as corridas, os resultados continuam aparecendo. O acompanhamento também tem sido muito bom, principalmente por ter esse suporte e ajuste conforme vou evoluindo. Tô bem satisfeito com o processo e com a evolução até aqui!"
+    <div class="section-title">💡 POR QUE O NOSSO MÉTODO FUNCIONA?</div>
+    
+    <div class="comparison-box">
+      <div class="comp-item bad">
+        ❌ <b>Fichas em PDF e Papel:</b> Você esquece as cargas do treino passado, não sabe se evoluiu e treina no piloto automático sem ver resultado real.
       </div>
-      <div class="testimonial-author">— Aluno da Consultoria</div>
+      <div class="comp-item good">
+        ✅ <b>App Próprio e Inteligente:</b> Seu histórico de cargas é salvo treino a treino. O sistema calcula sua sobrecarga progressiva para garantir ganho muscular constante.
+      </div>
     </div>
   </div>
 
-  <!-- PARA QUEM É -->
+  <!-- 2. ALTA PERFORMANCE & CIÊNCIA -->
+  <div class="card">
+    <div class="section-title">🧠 ALTA PERFORMANCE & CIÊNCIA</div>
+    
+    <div class="method-highlight">
+      <div class="method-title">⚡ Treine com Estratégia, Não no Improviso!</div>
+      <div class="method-text">
+        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. PARA QUEM É ESTA CONSULTORIA -->
   <div class="card">
     <div class="section-title">🎯 PARA QUEM É ESTA CONSULTORIA?</div>
 
@@ -257,33 +271,19 @@
     </div>
   </div>
 
-  <!-- POR QUE O APP INTELIGENTE SUPERA PLANILHAS EM PDF -->
+  <!-- 4. RESULTADO REAL DE ALUNO -->
   <div class="card">
-    <div class="section-title">💡 POR QUE O NOSSO MÉTODO FUNCIONA?</div>
-    
-    <div class="comparison-box">
-      <div class="comp-item bad">
-        ❌ <b>Fichas em PDF e Papel:</b> Você esquece as cargas do treino passado, não sabe se evoluiu e treina no piloto automático sem ver resultado real.
+    <div class="section-title">💬 RESULTADO REAL DE ALUNO</div>
+    <div class="testimonial-card">
+      <div class="stars">★★★★★</div>
+      <div class="testimonial-text">
+        "Notei bastante diferença sim! Principalmente no corpo, sinto que tô ganhando massa magra e ao mesmo tempo diminuindo o percentual de gordura. E uma coisa que gostei bastante é que mesmo aumentando a quantidade de carboidrato pra conseguir ter mais energia e aguentar melhor as corridas, os resultados continuam aparecendo. O acompanhamento também tem sido muito bom, principalmente por ter esse suporte e ajuste conforme vou evoluindo. Tô bem satisfeito com o processo e com a evolução até aqui!"
       </div>
-      <div class="comp-item good">
-        ✅ <b>App Próprio e Inteligente:</b> Seu histórico de cargas é salvo treino a treino. O sistema calcula sua sobrecarga progressiva para garantir ganho muscular constante.
-      </div>
+      <div class="testimonial-author">— Aluno da Consultoria</div>
     </div>
   </div>
 
-  <!-- TREINO INTELIGENTE -->
-  <div class="card">
-    <div class="section-title">🧠 ALTA PERFORMANCE & CIÊNCIA</div>
-    
-    <div class="method-highlight">
-      <div class="method-title">⚡ Treine com Estratégia, Não no Improviso!</div>
-      <div class="method-text">
-        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível.
-      </div>
-    </div>
-  </div>
-
-  <!-- RECURSOS DO APP EXCLUSIVO -->
+  <!-- 5. SEU APP PRÓPRIO E INDIVIDUALIZADO -->
   <div class="card" style="border-color: var(--gold);">
     <div class="section-title" style="color: var(--gold);">📱 SEU APP PRÓPRIO E INDIVIDUALIZADO</div>
     
@@ -311,7 +311,7 @@
     </div>
   </div>
 
-  <!-- PLANOS E CONDIÇÕES DE PAGAMENTO -->
+  <!-- 6. PLANOS E CONDIÇÕES DE PAGAMENTO -->
   <div class="card">
     <div class="section-title">💎 INVISTA NO SEU FÍSICO</div>
 
@@ -347,7 +347,7 @@
     </div>
   </div>
 
-  <!-- PERGUNTAS FREQUENTES (FAQ) -->
+  <!-- 7. PERGUNTAS FREQUENTES (FAQ) -->
   <div class="card">
     <div class="section-title">❓ DÚVIDAS FREQUENTES</div>
 
