@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Inteligente — App do Aluno</title>
+<title>Consultoria Inteligente — Área do Aluno</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -74,96 +74,61 @@
   }
   .btn-outline { background: transparent; border: 1px solid var(--border); color: #fff; }
 
-  /* NAVEGAÇÃO DE ABAS */
-  .tabs-nav {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 12px 8px;
-    border-radius: 10px;
-    background: rgba(15, 2, 5, 0.8);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-weight: 800;
+  /* CAIXA DE FEEDBACK E ERROS */
+  .feedback-msg {
+    padding: 10px;
+    border-radius: 8px;
     font-size: 12px;
-    cursor: pointer;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: none;
     text-align: center;
   }
-  .tab-btn.active {
-    background: var(--border);
-    color: #fff;
-    border-color: var(--gold);
-  }
+  .feedback-msg.error { background: rgba(255, 42, 42, 0.2); border: 1px solid var(--accent); color: #ff8888; }
+  .feedback-msg.info { background: rgba(255, 204, 0, 0.2); border: 1px solid var(--gold); color: var(--gold); }
 
-  /* LISTA DE TREINOS E EXERCÍCIOS */
+  /* NAVEGAÇÃO DE ABAS */
+  .tabs-nav { display: flex; gap: 8px; margin-bottom: 12px; }
+  .tab-btn {
+    flex: 1; padding: 12px 8px; border-radius: 10px; background: rgba(15, 2, 5, 0.8);
+    border: 1px solid var(--border); color: var(--muted); font-weight: 800; font-size: 12px; cursor: pointer; text-align: center;
+  }
+  .tab-btn.active { background: var(--border); color: #fff; border-color: var(--gold); }
+
+  /* EXERCÍCIOS */
   .exercise-item {
-    background: rgba(15, 2, 5, 0.85);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 10px;
+    background: rgba(15, 2, 5, 0.85); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 10px;
   }
   .exercise-name { font-weight: 800; font-size: 14px; color: #fff; }
   .exercise-details { font-size: 12px; color: var(--gold); margin-top: 4px; font-weight: 700; }
-  .load-input {
-    width: 90px;
-    padding: 6px 10px;
-    margin-bottom: 0;
-    margin-top: 8px;
-    font-size: 12px;
-    text-align: center;
-  }
+  .load-input { width: 100px; padding: 6px 10px; margin-bottom: 0; margin-top: 8px; font-size: 12px; text-align: center; }
 
   /* CHAT IA */
-  .chat-box {
-    display: flex;
-    flex-direction: column;
-    height: 380px;
-    background: rgba(15, 2, 5, 0.9);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 12px;
-  }
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-  .chat-bubble {
-    max-width: 85%;
-    padding: 12px 14px;
-    border-radius: 14px;
-    font-size: 13px;
-    line-height: 1.4;
-  }
+  .chat-box { display: flex; flex-direction: column; height: 380px; background: rgba(15, 2, 5, 0.9); border: 1px solid var(--border); border-radius: 16px; padding: 12px; }
+  .chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+  .chat-bubble { max-width: 85%; padding: 12px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
   .chat-bubble.user { background: var(--border); color: #fff; align-self: flex-end; }
   .chat-bubble.assistant { background: rgba(56, 6, 18, 0.9); border: 1px solid var(--gold); color: #fff; align-self: flex-start; }
 
-  .chat-chips-container {
-    display: flex; gap: 8px; overflow-x: auto; padding: 6px 0; margin-bottom: 8px; scrollbar-width: none;
-  }
+  .chat-chips-container { display: flex; gap: 8px; overflow-x: auto; padding: 6px 0; margin-bottom: 8px; scrollbar-width: none; }
   .chat-chips-container::-webkit-scrollbar { display: none; }
-  .chip-btn {
-    background: rgba(110, 19, 39, 0.6); border: 1px solid var(--border); color: var(--muted);
-    font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer;
-  }
+  .chip-btn { background: rgba(110, 19, 39, 0.6); border: 1px solid var(--border); color: var(--muted); font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer; }
   .chat-input-row { display: flex; gap: 8px; }
   .chat-input-row input { margin-bottom: 0; }
 </style>
 </head>
 <body>
 
-  <!-- TELA DE LOGIN DO ALUNO -->
+  <!-- TELA DE LOGIN COM FEEDBACK DE SENHA -->
   <div id="loginSection" class="card">
     <div class="title">🔑 Área do Aluno</div>
-    <input type="text" id="userCodeInput" placeholder="Digite seu código (ex: erick, julia)">
-    <button class="btn btn-primary" onclick="fazerLogin()">ENTRAR NO APLICATIVO</button>
+    
+    <div id="loginFeedback" class="feedback-msg"></div>
+
+    <input type="text" id="userCodeInput" placeholder="Usuário / Código (ex: erick, julia)">
+    <input type="password" id="userPassInput" placeholder="Sua Senha">
+    
+    <button class="btn btn-primary" id="loginBtn" onclick="fazerLogin()">ENTRAR NO APLICATIVO</button>
     <button class="btn btn-outline" style="margin-top:10px;" onclick="mostrarAnamnese()">PREENCHER ANAMNESE</button>
   </div>
 
@@ -171,52 +136,46 @@
   <div id="anamneseSection" class="card" style="display:none;">
     <div class="title">📋 Anamnese Inicial</div>
     <input type="text" id="anaNome" placeholder="Seu nome completo">
-    <input type="text" id="anaObjetivo" placeholder="Seu objetivo principal (Ex: Hipertrofia, Emagrecimento)">
+    <input type="text" id="anaObjetivo" placeholder="Seu objetivo principal">
     <select id="anaNivel">
-      <option value="Iniciante">Iniciante (Nunca treinou / Parado)</option>
-      <option value="Intermediario">Intermediário (Treina mas estagnou)</option>
-      <option value="Avançado">Avançado (Busca alta performance)</option>
+      <option value="Iniciante">Iniciante</option>
+      <option value="Intermediario">Intermediário</option>
+      <option value="Avançado">Avançado</option>
     </select>
-    <input type="text" id="anaFrequencia" placeholder="Quantos dias por semana pode treinar?">
-    <textarea id="anaLesoes" placeholder="Possui alguma dor, lesão ou limitação física?"></textarea>
+    <input type="text" id="anaFrequencia" placeholder="Frequência semanal de treinos">
+    <textarea id="anaLesoes" placeholder="Possui dores ou lesões?"></textarea>
     
-    <button class="btn btn-primary" onclick="enviarAnamneseWhatsApp()">ENVIAR ANAMNESE PARA O PERSONAL</button>
+    <button class="btn btn-primary" onclick="enviarAnamneseWhatsApp()">ENVIAR ANAMNESE</button>
     <button class="btn btn-outline" style="margin-top:10px;" onclick="voltarParaLogin()">VOLTAR AO LOGIN</button>
   </div>
 
-  <!-- APP DO ALUNO (TELA PRINCIPAL) -->
+  <!-- APP PRINCIPAL DO ALUNO -->
   <div id="appSection" style="display:none; flex-direction:column; gap:16px;">
     
-    <!-- CABEÇALHO -->
     <div class="card">
       <div class="title" id="studentWelcome">Bem-vindo(a)!</div>
       <p style="font-size:13px; color:var(--muted);" id="protocolTitle">Protocolo de Treino & Nutrição</p>
     </div>
 
-    <!-- ABAS DE NAVEGAÇÃO -->
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="trocarAba('treinosTab', this)">🏋️ TREINOS</button>
       <button class="tab-btn" onclick="trocarAba('dietaTab', this)">🥗 DIETA</button>
       <button class="tab-btn" onclick="trocarAba('iaTab', this)">🤖 ASSISTENTE IA</button>
     </div>
 
-    <!-- ABA 1: TREINOS -->
+    <!-- TREINOS -->
     <div id="treinosTab" class="card">
       <div class="title" style="color:var(--gold);">Ficha de Exercícios</div>
-      <div id="treinosContainer">
-        <!-- Renderizado dinamicamente via JS -->
-      </div>
+      <div id="treinosContainer"></div>
     </div>
 
-    <!-- ABA 2: DIETA -->
+    <!-- DIETA -->
     <div id="dietaTab" class="card" style="display:none;">
       <div class="title" style="color:var(--gold);">Plano Alimentar</div>
-      <div id="dietaContainer">
-        <!-- Renderizado dinamicamente via JS -->
-      </div>
+      <div id="dietaContainer"></div>
     </div>
 
-    <!-- ABA 3: CHAT IA -->
+    <!-- CHAT IA -->
     <div id="iaTab" class="card" style="display:none;">
       <div class="title" style="color:var(--gold); font-size:16px;">🤖 JHONATA AI</div>
       
@@ -246,13 +205,24 @@
 let studentData = {};
 let chatHistory = [];
 
-// VERIFICA SE A URL PEDE ANAMNESE DIRETA
 window.onload = function() {
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('modo') === 'anamnese') {
     mostrarAnamnese();
   }
 };
+
+function mostrarFeedback(msg, tipo = "error") {
+  const fb = document.getElementById("loginFeedback");
+  fb.innerText = msg;
+  fb.className = `feedback-msg ${tipo}`;
+  fb.style.display = "block";
+}
+
+function limparFeedback() {
+  const fb = document.getElementById("loginFeedback");
+  fb.style.display = "none";
+}
 
 function mostrarAnamnese() {
   document.getElementById("loginSection").style.display = "none";
@@ -264,16 +234,37 @@ function voltarParaLogin() {
   document.getElementById("loginSection").style.display = "block";
 }
 
-// LOGIN E CARREGAMENTO DOS DADOS DO ALUNO
+// FUNCIONALIDADE DE LOGIN COM SENHA E FEEDBACK VISUAL
 async function fazerLogin() {
+  limparFeedback();
   const code = document.getElementById("userCodeInput").value.trim().toLowerCase();
-  if(!code) return alert("Digite seu código de aluno!");
+  const pass = document.getElementById("userPassInput").value.trim();
+
+  if(!code) return mostrarFeedback("Por favor, informe seu usuário ou código.");
+  if(!pass) return mostrarFeedback("Por favor, digite sua senha.");
+
+  const btn = document.getElementById("loginBtn");
+  btn.innerText = "VERIFICANDO...";
+  btn.disabled = true;
 
   try {
     const res = await fetch(`./data/${code}.json`);
-    if(!res.ok) throw new Error("Aluno não encontrado");
+    if(!res.ok) {
+      btn.innerText = "ENTRAR NO APLICATIVO";
+      btn.disabled = false;
+      return mostrarFeedback("Usuário não encontrado. Verifique o nome informado.");
+    }
     
     studentData = await res.json();
+
+    // Validação da Senha salva no arquivo JSON
+    if(studentData.senha && studentData.senha.toLowerCase() !== pass.toLowerCase()) {
+      btn.innerText = "ENTRAR NO APLICATIVO";
+      btn.disabled = false;
+      return mostrarFeedback("Senha incorreta! Tente novamente.");
+    }
+
+    // Sucesso
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("appSection").style.display = "flex";
     
@@ -284,17 +275,19 @@ async function fazerLogin() {
     renderizarDieta();
 
   } catch(e) {
-    alert("Código não encontrado! Verifique se digitou corretamente.");
+    btn.innerText = "ENTRAR NO APLICATIVO";
+    btn.disabled = false;
+    mostrarFeedback("Erro ao carregar dados do aluno. Tente novamente.");
   }
 }
 
-// RENDERIZA OS TREINOS DO ALUNO
+// RENDERIZAR TREINOS COM REGISTRO DE CARGAS
 function renderizarTreinos() {
   const container = document.getElementById("treinosContainer");
   container.innerHTML = "";
 
   if(!studentData.days || studentData.days.length === 0) {
-    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum treino cadastrado ainda.</p>";
+    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum treino cadastrado.</p>";
     return;
   }
 
@@ -302,13 +295,14 @@ function renderizarTreinos() {
     let html = `<div style='margin-bottom:18px;'><h4 style='color:var(--gold); margin-bottom:8px;'>${day.title}</h4>`;
     
     day.exercicios.forEach(ex => {
+      const cargaSalva = localStorage.getItem(`carga_${studentData.code}_${ex.id}`) || ex.carga || '';
       html += `
         <div class="exercise-item">
           <div class="exercise-name">${ex.nome}</div>
           <div class="exercise-details">${ex.series} séries x ${ex.reps} reps</div>
           <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-            <span style="font-size:11px; color:var(--muted);">Carga salva:</span>
-            <input type="text" class="load-input" placeholder="Ex: 20kg" value="${ex.carga || ''}" onchange="salvarCarga('${ex.id}', this.value)">
+            <span style="font-size:11px; color:var(--muted);">Sua carga:</span>
+            <input type="text" class="load-input" placeholder="Ex: 20kg" value="${cargaSalva}" onchange="salvarCarga('${ex.id}', this.value)">
           </div>
         </div>
       `;
@@ -320,17 +314,16 @@ function renderizarTreinos() {
 }
 
 function salvarCarga(exId, valor) {
-  // Salva no localStorage do navegador do aluno
   localStorage.setItem(`carga_${studentData.code}_${exId}`, valor);
 }
 
-// RENDERIZA A DIETA DO ALUNO
+// RENDERIZAR DIETA
 function renderizarDieta() {
   const container = document.getElementById("dietaContainer");
   container.innerHTML = "";
 
   if(!studentData.refeicoes || studentData.refeicoes.length === 0) {
-    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum plano alimentar cadastrado no momento.</p>";
+    container.innerHTML = "<p style='font-size:13px; color:var(--muted);'>Nenhum plano alimentar cadastrado.</p>";
     return;
   }
 
@@ -344,7 +337,7 @@ function renderizarDieta() {
   });
 }
 
-// CONTROLE DE ABAS
+// ABAS
 function trocarAba(tabId, btn) {
   document.getElementById("treinosTab").style.display = "none";
   document.getElementById("dietaTab").style.display = "none";
@@ -356,7 +349,7 @@ function trocarAba(tabId, btn) {
   btn.classList.add("active");
 }
 
-// ENVIO DE ANAMNESE COM LINK PARA O SEU AGENTE DE IA
+// ANAMNESE WHATSAPP
 function enviarAnamneseWhatsApp() {
   const nome = document.getElementById("anaNome").value.trim() || "Não informado";
   const objetivo = document.getElementById("anaObjetivo").value.trim() || "Não informado";
@@ -364,7 +357,6 @@ function enviarAnamneseWhatsApp() {
   const frequencia = document.getElementById("anaFrequencia").value.trim() || "Não informado";
   const lesoes = document.getElementById("anaLesoes").value.trim() || "Nenhuma";
   
-  // SEU LINK DO NOTEBOOKLM OU AGENTE DE IA PARA MONTAR TREINOS:
   const linkSeuNotebookIA = "https://notebooklm.google.com/"; 
 
   const textoMensagem = 
@@ -383,7 +375,7 @@ ${linkSeuNotebookIA}`;
   window.open(urlWhatsApp, "_blank");
 }
 
-// CHAT IA COM CONTEXTO E MEMÓRIA
+// CHAT IA
 async function enviarMensagemIA(textoPronto = null) {
   const inputEl = document.getElementById("chatInput");
   const msgText = textoPronto || inputEl.value.trim();
@@ -403,9 +395,8 @@ DADOS ATUAIS DO ALUNO:
 - Plano Alimentar: ${JSON.stringify(studentData.refeicoes || [])}
 
 DIRETRIZES:
-1. LEITURA DE TREINOS: Para substituição de exercícios, consulte a ficha de treinos do aluno e sugira variações com mesmo padrão de movimento.
-2. LEITURA DE DIETA: Para trocas de alimentos, consulte as refeições dele e faça trocas com macronutrientes equivalentes.
-3. PRÉ/PÓS-TREINO: Dê sugestões de rápida digestão (carboidratos simples) para refeições em menos de 1h antes do treino.`
+1. LEITURA DE TREINOS: Para substituição de exercícios, consulte a ficha de treinos do aluno e sugira variações.
+2. LEITURA DE DIETA: Para trocas de alimentos, consulte as refeições dele e faça trocas com macronutrientes equivalentes.`
   };
 
   chatHistory.push({ role: "user", content: msgText });
@@ -434,7 +425,7 @@ DIRETRIZES:
     chatHistory.push({ role: "assistant", content: respostaIA });
 
   } catch(err) {
-    loadingBubble.innerText = "Assistente offline no momento. Tente novamente em alguns instantes!";
+    loadingBubble.innerText = "Assistente offline no momento. Tente novamente em instantes!";
   }
 }
 
