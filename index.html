@@ -88,7 +88,7 @@
 
   <form onsubmit="event.preventDefault();" class="login-box">
     
-    <!-- ETAPA 1: DADOS PESSOAIS -->
+    <!-- ETAPA 1: DADOS PESSOAIS (PESO E ALTURA SEPARADOS) -->
     <div id="anamStep1">
       <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
@@ -395,15 +395,29 @@
     }
   };
 
+  // VINCULA O USUÁRIO AO ONESIGNAL
   function vincularPushUser(userId) {
     OneSignalDeferred.push(function(OneSignal) {
       OneSignal.login(userId);
     });
   }
 
+  // SOLICITA PERMISSÃO NATIVA NO NAVEGADOR
   function solicitarPermissaoPush() {
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.Notifications.requestPermission();
+    if (!("Notification" in window)) {
+      alert("Este navegador não suporta notificações de celular.");
+      return;
+    }
+
+    Notification.requestPermission().then(function(permission) {
+      if (permission === "granted") {
+        alert("🔔 Notificações ativadas! Seu dispositivo está pronto para receber alertas.");
+        OneSignalDeferred.push(function(OneSignal) {
+          OneSignal.Notifications.requestPermission();
+        });
+      } else if (permission === "denied") {
+        alert("Permissão negada. Ative as notificações nas configurações do seu navegador.");
+      }
     });
   }
 
@@ -479,7 +493,7 @@
       return;
     }
 
-    fetch(`data/${user}.json?t=${Date.now()}`)
+    fetch(`data/${user}.json?v=${Date.now()}`, { cache: 'no-store' })
       .then(res => {
         if (!res.ok) throw new Error("Usuário não encontrado");
         return res.json();
@@ -528,6 +542,7 @@
     }
   }
 
+  // CARREGAMENTO COM TRAVA ESTRITA DE CACHE (NO-STORE)
   function loadStudentData(code, dataLoaded = null) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.add('hidden');
@@ -543,8 +558,14 @@
       setupDiet(data.refeicoes || []);
     };
 
-    if (dataLoaded) processData(dataLoaded);
-    else fetch(`data/${code}.json?t=${Date.now()}`).then(res => res.json()).then(data => processData(data)).catch(() => logout());
+    if (dataLoaded) {
+      processData(dataLoaded);
+    } else {
+      fetch(`data/${code}.json?v=${Date.now()}`, { cache: 'no-store' })
+        .then(res => res.json())
+        .then(data => processData(data))
+        .catch(() => logout());
+    }
   }
 
   function logout() { localStorage.removeItem('logged_user'); location.reload(); }
