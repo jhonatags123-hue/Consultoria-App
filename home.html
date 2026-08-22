@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultoria Esportiva — Personal Jhonata</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { 
+    --bg: #140206; 
+    --card: #27050d; 
+    --border: #4a0d1a; 
+    --accent: #c4324f; 
+    --gold: #d4a02a; 
+    --green: #25d366; 
+    --text: #fff; 
+    --muted: #d8b3bb; 
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: 'Inter', sans-serif; 
+    padding: 20px 16px; 
+    max-width: 500px; 
+    margin: 0 auto; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 16px;
+  }
+
+  .header-brand {
+    text-align: center;
+    padding: 20px 0 10px;
+  }
+  .header-brand h1 {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+  .header-brand .tag {
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .card { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 20px; 
+  }
+
+  .hero-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  .hero-text {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  .feature-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .feature-icon {
+    background: #1a0308;
+    border: 1px solid var(--border);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 15px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s;
+  }
+  .btn:active { transform: scale(0.98); }
+  
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(196, 50, 79, 0.3);
+  }
+  .btn-wpp {
+    background: var(--green);
+    color: #000;
+  }
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: auto;
+    padding: 16px 0;
+  }
+</style>
+</head>
+<body>
+
+  <!-- CABEÇALHO -->
+  <div class="header-brand">
+    <h1>JHONATA CONSULTORIA</h1>
+    <div class="tag">Treino & Nutrição de Alta Performance</div>
+  </div>
+
+  <!-- APRESENTAÇÃO -->
+  <div class="card">
+    <div class="hero-title">Transforme seu físico com acompanhamento individualizado</div>
+    <div class="hero-text">
+      Tenha acesso ao seu protocolo exclusivo de treino e dieta na palma da sua mão com suporte contínuo para alcançar seus objetivos.
+    </div>
+
+    <div class="features-list">
+      <div class="feature-item">
+        <div class="feature-icon">🏋️</div>
+        <span>Ficha de Treino Personalizada & Registro de Cargas</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🥗</div>
+        <span>Plano Alimentar Adaptado à sua Rotina</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🤖</div>
+        <span>Assistente IA Exclusivo para Trocas de Alimentos</span>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <span>Acompanhamento & Avaliação por Fotos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTOES DE AÇÃO -->
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <!-- BOTÃO PARA QUEM QUER ENTRAR / ANAMNESE -->
+    <a href="index.html?modo=anamnese" class="btn btn-primary">
+      📋 PREENCHER ANAMNESE INICIAL
+    </a>
+
+    <!-- BOTÃO PARA QUEM JÁ É ALUNO -->
+    <a href="index.html" class="btn btn-outline">
+      🔑 ÁREA DO ALUNO (LOGIN)
+    </a>
+
+    <!-- CONTATO DIRETO -->
+    <a href="https://wa.me/5551990169026?text=Olá%20Jhonata!%20Vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais%20sobre%20a%20consultoria." target="_blank" class="btn btn-wpp">
+      💬 FALAR NO WHATSAPP
+    </a>
+  </div>
+
+  <div class="footer">
+    © 2026 Jhonata Consultoria Esportiva. Todos os direitos reservados.
+  </div>
+
+</body>
+</html>
