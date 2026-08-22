@@ -3,383 +3,256 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Inteligente — Físico de Alta Performance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
+<title>Consultoria Inteligente — Treino & Nutrição</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root { 
-    --bg: #080103; 
-    --card: rgba(36, 4, 12, 0.92); 
-    --border: #6e1327; 
-    --accent: #ff2a2a; 
-    --gold: #ffcc00; 
+    --bg: #130206; 
+    --card: #1f040a; 
+    --border: #3b0813; 
+    --accent: #b81d36; 
+    --gold: #d4a02a; 
     --green: #25d366; 
     --text: #ffffff; 
-    --muted: #f0c2cd; 
+    --muted: #c9a4ac; 
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { 
-    background: radial-gradient(circle at top, #3b0612 0%, #080103 85%); 
+    background: var(--bg); 
     color: var(--text); 
     font-family: 'Inter', sans-serif; 
-    padding: 20px 14px; 
-    max-width: 540px; 
+    padding: 24px 16px; 
+    max-width: 480px; 
     margin: 0 auto; 
     min-height: 100vh; 
     display: flex; 
     flex-direction: column; 
-    gap: 22px;
+    gap: 18px;
   }
 
-  .badge-top {
-    background: linear-gradient(90deg, rgba(255,204,0,0.25) 0%, rgba(255,42,42,0.25) 100%);
-    border: 2px solid var(--gold);
-    color: var(--gold);
-    font-size: 12px;
-    font-weight: 900;
-    padding: 8px 18px;
-    border-radius: 30px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    display: inline-block;
-    box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
-  }
-
-  .header-brand { text-align: center; padding: 10px 0; }
+  .header-brand { text-align: center; padding: 12px 0; }
   .header-brand h1 { 
-    font-size: 32px; 
-    font-weight: 900; 
-    letter-spacing: -1px; 
-    line-height: 1.1;
-    background: linear-gradient(180deg, #ffffff 0%, #f0c2cd 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 26px; 
+    font-weight: 800; 
+    letter-spacing: -0.5px; 
+    color: #fff;
     text-transform: uppercase;
   }
   .header-brand .subhead { 
-    color: var(--gold); 
-    font-size: 15px; 
-    margin-top: 8px; 
-    font-weight: 900; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+    color: var(--muted); 
+    font-size: 13px; 
+    margin-top: 6px; 
+    font-weight: 500;
+    line-height: 1.4;
   }
 
   .card { 
     background: var(--card); 
-    backdrop-filter: blur(12px);
-    border: 2px solid var(--border); 
-    border-radius: 22px; 
-    padding: 24px; 
-    box-shadow: 0 12px 35px rgba(0,0,0,0.8);
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 20px; 
   }
 
-  .section-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: -0.5px; }
-
-  .method-highlight {
-    background: linear-gradient(135deg, rgba(110, 19, 39, 0.7) 0%, rgba(20, 2, 6, 0.9) 100%);
-    border: 2px solid var(--gold);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 0 20px rgba(255,204,0,0.15);
-  }
-  .method-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; }
-  .method-text { font-size: 14px; color: #fff; line-height: 1.6; }
-
-  .profile-box {
-    background: rgba(15, 2, 5, 0.85);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 14px;
-  }
-  .profile-box.advanced {
-    border-color: var(--gold);
-    background: rgba(50, 6, 16, 0.75);
-    box-shadow: 0 0 15px rgba(255, 204, 0, 0.1);
-  }
-  .profile-tag { font-size: 14px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
-  .profile-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
-
-  /* COMPARATIVO APP VS PDF */
-  .comparison-box {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  .comp-item {
-    background: rgba(10, 1, 3, 0.9);
-    border: 1px solid var(--border);
-    padding: 12px 14px;
-    border-radius: 12px;
-    font-size: 13px;
-    line-height: 1.4;
-  }
-  .comp-item.bad { border-left: 4px solid var(--accent); color: var(--muted); }
-  .comp-item.good { border-left: 4px solid #7fd68a; color: #fff; }
-
-  /* DEPOIMENTO EM DESTAQUE */
-  .testimonial-card {
-    background: linear-gradient(135deg, rgba(40, 5, 14, 0.95) 0%, rgba(15, 2, 5, 0.95) 100%);
-    border: 2px solid var(--gold);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 0 25px rgba(255, 204, 0, 0.2);
-  }
-  .stars { color: var(--gold); font-size: 16px; margin-bottom: 8px; }
-  .testimonial-text { font-size: 14px; color: #fff; line-height: 1.6; font-style: italic; }
-  .testimonial-author { font-size: 13px; font-weight: 800; color: var(--gold); margin-top: 12px; text-align: right; }
-
-  /* CARDS DE PLANOS */
-  .plan-card {
-    background: rgba(18, 2, 6, 0.9);
-    border: 1.5px solid var(--border);
-    border-radius: 16px;
-    padding: 18px;
-    margin-bottom: 14px;
-    position: relative;
-  }
-  .plan-card.featured {
-    border: 3px solid var(--gold);
-    box-shadow: 0 0 30px rgba(255, 204, 0, 0.35);
-    background: rgba(45, 5, 14, 0.95);
-  }
-  .featured-tag {
-    position: absolute;
-    top: -14px;
-    right: 14px;
-    background: linear-gradient(90deg, #ffcc00 0%, #ff2a2a 100%);
-    color: #000;
-    font-weight: 900;
-    font-size: 11px;
-    padding: 5px 12px;
-    border-radius: 12px;
-    text-transform: uppercase;
+  .section-title { 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: #fff; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
     letter-spacing: 0.5px;
   }
-  .plan-title { font-size: 18px; font-weight: 900; color: #fff; }
-  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 13px; margin-top: 4px; }
-  .plan-price-main { font-size: 26px; font-weight: 900; color: #fff; margin: 4px 0; }
-  .plan-discount-pix { font-size: 13px; font-weight: 900; color: #7fd68a; background: rgba(127, 214, 138, 0.15); padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
 
-  .features-list { display: flex; flex-direction: column; gap: 14px; }
-  .feature-item { display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
-  .feature-icon {
-    background: #380612;
-    border: 1px solid var(--border);
-    width: 40px;
-    height: 40px;
+  /* COMPARATIVO E MÉTODO */
+  .comp-item {
+    padding: 12px;
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
   }
+  .comp-item.bad { background: rgba(0,0,0,0.2); color: var(--muted); border-left: 3px solid var(--border); }
+  .comp-item.good { background: rgba(184, 29, 54, 0.15); color: #fff; border-left: 3px solid var(--accent); }
 
-  details {
-    background: rgba(15, 2, 5, 0.85);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 10px;
-    cursor: pointer;
+  /* PERFIS */
+  .profile-box {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
   }
-  summary { font-size: 14px; font-weight: 800; color: #fff; outline: none; }
-  details p { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+  .profile-box:last-child { border-bottom: none; }
+  .profile-tag { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .profile-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
 
+  /* DEPOIMENTO */
+  .testimonial-text { font-size: 13px; color: var(--muted); line-height: 1.6; font-style: italic; }
+  .testimonial-author { font-size: 12px; font-weight: 700; color: var(--gold); margin-top: 10px; }
+
+  /* RECURSOS */
+  .features-list { display: flex; flex-direction: column; gap: 10px; }
+  .feature-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .feature-icon { font-size: 14px; color: var(--accent); }
+
+  /* PLANOS */
+  .plan-card {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-card:last-child { border-bottom: none; }
+  .plan-card.featured .plan-title { color: #fff; }
+  .plan-title { font-size: 15px; font-weight: 700; color: var(--muted); }
+  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .plan-price-main { font-size: 20px; font-weight: 800; color: #fff; margin: 2px 0; }
+  .plan-discount-pix { font-size: 12px; font-weight: 600; color: #7fd68a; }
+
+  /* FAQ */
+  details { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  details:last-child { border-bottom: none; }
+  summary { font-size: 13px; font-weight: 600; color: #fff; outline: none; }
+  details p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+
+  /* BOTÕES MINIMALISTAS */
   .btn {
     width: 100%;
-    padding: 18px;
-    border-radius: 16px;
-    font-weight: 900;
-    font-size: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
     text-align: center;
     text-decoration: none;
     display: block;
     cursor: pointer;
     border: none;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    transition: opacity 0.2s;
   }
-  .btn:active { transform: scale(0.97); }
+  .btn:active { opacity: 0.8; }
   
-  .btn-primary {
-    background: linear-gradient(90deg, #ff2a2a 0%, #b80d0d 100%);
-    color: #fff;
-    box-shadow: 0 6px 25px rgba(255, 42, 42, 0.55);
-  }
-  .btn-wpp { background: var(--green); color: #000; font-weight: 900; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3); }
-  .btn-outline { background: transparent; border: 2px solid var(--border); color: #fff; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-wpp { background: var(--green); color: #000; font-weight: 800; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
 
-  .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: auto; padding: 18px 0; }
+  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: auto; padding: 16px 0; }
 </style>
 </head>
 <body>
 
-  <!-- CABEÇALHO -->
+  <!-- CABEÇALHO MINIMALISTA -->
   <div class="header-brand">
-    <div class="badge-top">🔥 VAGAS LIMITADAS PARA ESTE MÊS</div>
     <h1>CONSULTORIA INTELIGENTE</h1>
-    <div class="subhead">CONSTRUA UM FÍSICO FORTE, DENSO E DEFINIDO</div>
+    <div class="subhead">Treinamento de alta performance & nutrição calculada</div>
   </div>
 
-  <!-- 1. POR QUE O NOSSO MÉTODO FUNCIONA -->
+  <!-- POR QUE FUNCIONA -->
   <div class="card">
-    <div class="section-title">💡 POR QUE O NOSSO MÉTODO FUNCIONA?</div>
-    
-    <div class="comparison-box">
-      <div class="comp-item bad">
-        ❌ <b>Fichas em PDF e Papel:</b> Você esquece as cargas do treino passado, não sabe se evoluiu e treina no piloto automático sem ver resultado real.
-      </div>
-      <div class="comp-item good">
-        ✅ <b>App Próprio e Inteligente:</b> Seu histórico de cargas é salvo treino a treino. O sistema calcula sua sobrecarga progressiva para garantir ganho muscular constante.
-      </div>
+    <div class="section-title">Por que o método funciona?</div>
+    <div class="comp-item bad">
+      <b>Fichas em PDF / Papel:</b> Cargas esquecidas, treino no piloto automático e estagnação de resultados.
+    </div>
+    <div class="comp-item good">
+      <b>App Próprio:</b> Histórico de cargas salvo e progressão calculada para ganho muscular constante.
     </div>
   </div>
 
-  <!-- 2. ALTA PERFORMANCE & CIÊNCIA -->
+  <!-- CIÊNCIA E TÉCNICA -->
   <div class="card">
-    <div class="section-title">🧠 ALTA PERFORMANCE & CIÊNCIA</div>
-    
-    <div class="method-highlight">
-      <div class="method-title">⚡ Treine com Estratégia, Não no Improviso!</div>
-      <div class="method-text">
-        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível.
-      </div>
-    </div>
+    <div class="section-title">Metodologia & Técnica</div>
+    <p style="font-size:13px; color:var(--muted); line-height:1.5;">
+      Estratégias ajustadas individualmente com técnicas avançadas (<i>Rest-Pause, Cluster Sets e Carga Progressiva</i>) para maximizar hipertrofia e definição sem desperdiçar tempo.
+    </p>
   </div>
 
-  <!-- 3. PARA QUEM É ESTA CONSULTORIA -->
+  <!-- PARA QUEM É -->
   <div class="card">
-    <div class="section-title">🎯 PARA QUEM É ESTA CONSULTORIA?</div>
+    <div class="section-title">Para quem é a consultoria</div>
+    
+    <div class="profile-box">
+      <div class="profile-tag">Iniciantes</div>
+      <div class="profile-desc">Passo a passo estruturado para executar exercícios com segurança e evoluir desde a primeira semana.</div>
+    </div>
 
     <div class="profile-box">
-      <div class="profile-tag">🔰 Para quem está começando do zero</div>
-      <div class="profile-desc">
-        Chega de se sentir perdido na academia sem saber a ordem dos aparelhos ou o que comer. Você terá um passo a passo desenhado para o seu corpo, evitando lesões e garantindo evolução visível desde o primeiro mês.
-      </div>
-    </div>
-
-    <div class="profile-box advanced">
-      <div class="profile-tag">⚡ Para quem já treina mas ESTAGNOU</div>
-      <div class="profile-desc">
-        Cansado de treinar pesado todos os dias e ver o mesmo físico no espelho? Nós quebramos a sua estagnação aplicando periodização inteligente, progressão de carga real e ajustes finos na dieta para buscar a sua melhor versão.
-      </div>
+      <div class="profile-tag">Praticantes Estagnados</div>
+      <div class="profile-desc">Periodização inteligente e quebra de platô para quem treina pesado mas parou de ver mudanças no espelho.</div>
     </div>
   </div>
 
-  <!-- 4. RESULTADO REAL DE ALUNO -->
+  <!-- DEPOIMENTO REAL -->
   <div class="card">
-    <div class="section-title">💬 RESULTADO REAL DE ALUNO</div>
-    <div class="testimonial-card">
-      <div class="stars">★★★★★</div>
-      <div class="testimonial-text">
-        "Notei bastante diferença sim! Principalmente no corpo, sinto que tô ganhando massa magra e ao mesmo tempo diminuindo o percentual de gordura. E uma coisa que gostei bastante é que mesmo aumentando a quantidade de carboidrato pra conseguir ter mais energia e aguentar melhor as corridas, os resultados continuam aparecendo. O acompanhamento também tem sido muito bom, principalmente por ter esse suporte e ajuste conforme vou evoluindo. Tô bem satisfeito com o processo e com a evolução até aqui!"
-      </div>
-      <div class="testimonial-author">— Aluno da Consultoria</div>
+    <div class="section-title">Depoimento</div>
+    <div class="testimonial-text">
+      "Sinto que tô ganhando massa magra e diminuindo a gordura. Mesmo aumentando os carboidratos pra aguentar melhor as corridas, os resultados continuam aparecendo. Muito satisfeito com a evolução!"
     </div>
+    <div class="testimonial-author">— Aluno da Consultoria</div>
   </div>
 
-  <!-- 5. SEU APP PRÓPRIO E INDIVIDUALIZADO -->
-  <div class="card" style="border-color: var(--gold);">
-    <div class="section-title" style="color: var(--gold);">📱 SEU APP PRÓPRIO E INDIVIDUALIZADO</div>
-    
-    <div class="method-text" style="margin-bottom: 14px; font-size:14px; color:var(--muted);">
-      Você terá um <b>aplicativo web próprio e exclusivo</b> para acompanhar seu progresso diário na palma da mão:
-    </div>
-
+  <!-- RECURSOS DO APP -->
+  <div class="card">
+    <div class="section-title">Seu Acesso Exclusivo</div>
     <div class="features-list">
-      <div class="feature-item">
-        <div class="feature-icon">🔑</div>
-        <span><b>Login Privado Exclusivo:</b> Acesso com usuário e senha individual para seu protocolo.</span>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">📲</div>
-        <span><b>App no Celular:</b> Instale diretamente na tela inicial do seu celular sem ocupar memória.</span>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">📈</div>
-        <span><b>Registro de Cargas:</b> Anote pesos e repetições treino a treino para garantir progressão.</span>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon">🤖</div>
-        <span><b>Assistente de Nutrição com IA:</b> Calcule substituições de alimentos em segundos diretamente no app.</span>
-      </div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Login e senha individuais</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Aplicativo instalado na tela do celular</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Registro de cargas e repetições</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Assistente IA para substituição de alimentos</div>
     </div>
   </div>
 
-  <!-- 6. PLANOS E CONDIÇÕES DE PAGAMENTO -->
+  <!-- PLANOS E VALORES -->
   <div class="card">
-    <div class="section-title">💎 INVISTA NO SEU FÍSICO</div>
+    <div class="section-title">Planos Disponíveis</div>
 
-    <!-- PLANO MENSAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Mensal Recorrente</div>
-      <div class="plan-price-main">R$ 150,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">/mês</span></div>
+      <div class="plan-title">Mensal Recorrente</div>
+      <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
     </div>
 
-    <!-- PLANO TRIMESTRAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Trimestral (3 Meses)</div>
-      <div class="plan-price-old">De R$ 450,00 por:</div>
-      <div class="plan-price-main">3x de R$ 130,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 390)</span></div>
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 350,00 (Economize R$ 40)</div>
+      <div class="plan-title">Trimestral (3 Meses)</div>
+      <div class="plan-price-old">De R$ 450,00</div>
+      <div class="plan-price-main">3x R$ 130,00</div>
+      <div class="plan-discount-pix">R$ 350,00 à vista no PIX</div>
     </div>
 
-    <!-- PLANO SEMESTRAL (DESTAQUE) -->
     <div class="plan-card featured">
-      <div class="featured-tag">🔥 O MAIS VENDIDO</div>
-      <div class="plan-title">Plano Semestral (6 Meses)</div>
-      <div class="plan-price-old">De R$ 900,00 por:</div>
-      <div class="plan-price-main">6x de R$ 110,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 660)</span></div>
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 600,00 (Economize R$ 60)</div>
+      <div class="plan-title" style="color:#fff;">Semestral (6 Meses) — Recomendado</div>
+      <div class="plan-price-old">De R$ 900,00</div>
+      <div class="plan-price-main">6x R$ 110,00</div>
+      <div class="plan-discount-pix">R$ 600,00 à vista no PIX</div>
     </div>
 
-    <!-- PLANO ANUAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Anual (12 Meses)</div>
-      <div class="plan-price-old">De R$ 1.800,00 por:</div>
-      <div class="plan-price-main">12x de R$ 85,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 1.020)</span></div>
-      <div class="plan-discount-pix">💎 À VISTA NO PIX: R$ 960,00 (Economize R$ 60)</div>
+      <div class="plan-title">Anual (12 Meses)</div>
+      <div class="plan-price-old">De R$ 1.800,00</div>
+      <div class="plan-price-main">12x R$ 85,00</div>
+      <div class="plan-discount-pix">R$ 960,00 à vista no PIX</div>
     </div>
   </div>
 
-  <!-- 7. PERGUNTAS FREQUENTES (FAQ) -->
+  <!-- FAQ -->
   <div class="card">
-    <div class="section-title">❓ DÚVIDAS FREQUENTES</div>
+    <div class="section-title">Dúvidas Frequentes</div>
 
     <details>
-      <summary>Em quanto tempo recebo meu treino?</summary>
-      <p>Após responder a anamnese e efetuar a entrada, seu protocolo exclusivo é montado e liberado no seu aplicativo em até 24 a 48 horas úteis.</p>
+      <summary>Em quanto tempo recebo meu protocolo?</summary>
+      <p>Em até 24h a 48h úteis após o preenchimento da anamnese.</p>
     </details>
 
     <details>
-      <summary>Como funciona a IA no aplicativo?</summary>
-      <p>O assistente virtual integrado no app calcula equivalências exatas de carboidratos, proteínas e gorduras em segundos para você substituir refeições sem sair da dieta.</p>
-    </details>
-
-    <details>
-      <summary>Sirvo para a consultoria se for iniciante?</summary>
-      <p>Com certeza! O protocolo é desenhado individualmente para ensinar a execução correta, cargas seguras e adaptação progressiva desde o primeiro dia.</p>
+      <summary>Como funciona a IA do app?</summary>
+      <p>Calcula trocas e equivalências exatas de alimentos em segundos diretamente na tela.</p>
     </details>
   </div>
 
-  <!-- BOTÕES DE AÇÃO -->
-  <div style="display:flex; flex-direction:column; gap:14px;">
+  <!-- BOTOES DE AÇÃO -->
+  <div style="display:flex; flex-direction:column; gap:10px;">
     <a href="./index.html?modo=anamnese" class="btn btn-primary">
-      🚀 PREENCHER ANAMNESE & GARANTIR PROTOCOLO
+      PREENCHER ANAMNESE
     </a>
 
-    <a href="https://wa.me/5551990169026?text=Olá!%20Vim%20pelo%20site%20e%20quero%20tirar%20uma%20dúvida%20sobre%20os%20planos%20da%20consultoria!" target="_blank" class="btn btn-wpp">
-      💬 DÚVIDAS? FALAR DIRETO NO WHATSAPP
+    <a href="https://wa.me/5551990169026?text=Olá!%20Vim%20pelo%20site%20e%20gostaria%20de%20saber%20mais%20sobre%20a%20consultoria." target="_blank" class="btn btn-wpp">
+      TALK NO WHATSAPP
     </a>
   </div>
 
   <div class="footer">
-    © Consultoria Inteligente. Todos os direitos reservados.
+    © Consultoria Inteligente.
   </div>
 
 </body>
