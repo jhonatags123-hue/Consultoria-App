@@ -3,674 +3,253 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Esportiva — Jhonata</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-<!-- OneSignal SDK para Notificações Push -->
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "149311da-3e88-410f-a9b3-56a098d89b1c",
-    });
-  });
-</script>
-
+<title>Consultoria Inteligente — Treino & Nutrição</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; }
+  :root { 
+    --bg: #130206; 
+    --card: #1f040a; 
+    --border: #3b0813; 
+    --accent: #b81d36; 
+    --gold: #d4a02a; 
+    --green: #25d366; 
+    --text: #ffffff; 
+    --muted: #c9a4ac; 
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
-  h1 { font-size:22px; font-weight:800; color:var(--text); text-align:center; }
-  .sub { color:var(--gold); font-size:12px; margin-top:4px; font-weight:600; text-align:center; }
+  body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: 'Inter', sans-serif; 
+    padding: 24px 16px; 
+    max-width: 480px; 
+    margin: 0 auto; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 18px;
+  }
+
+  .header-brand { text-align: center; padding: 12px 0; }
+  .header-brand h1 { 
+    font-size: 26px; 
+    font-weight: 800; 
+    letter-spacing: -0.5px; 
+    color: #fff;
+    text-transform: uppercase;
+  }
+  .header-brand .subhead { 
+    color: var(--muted); 
+    font-size: 13px; 
+    margin-top: 6px; 
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .card { 
+    background: var(--card); 
+    border: 1px solid var(--border); 
+    border-radius: 16px; 
+    padding: 20px; 
+  }
+
+  .section-title { 
+    font-size: 15px; 
+    font-weight: 700; 
+    color: #fff; 
+    margin-bottom: 12px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px;
+  }
+
+  /* COMPARATIVO E MÉTODO */
+  .comp-item {
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+  }
+  .comp-item.bad { background: rgba(0,0,0,0.2); color: var(--muted); border-left: 3px solid var(--border); }
+  .comp-item.good { background: rgba(184, 29, 54, 0.15); color: #fff; border-left: 3px solid var(--accent); }
+
+  /* PERFIS */
+  .profile-box {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .profile-box:last-child { border-bottom: none; }
+  .profile-tag { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .profile-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+  /* DEPOIMENTO */
+  .testimonial-text { font-size: 13px; color: var(--muted); line-height: 1.6; font-style: italic; }
+  .testimonial-author { font-size: 12px; font-weight: 700; color: var(--gold); margin-top: 10px; }
+
+  /* RECURSOS */
+  .features-list { display: flex; flex-direction: column; gap: 10px; }
+  .feature-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .feature-icon { font-size: 14px; color: var(--accent); }
+
+  /* PLANOS */
+  .plan-card {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .plan-card:last-child { border-bottom: none; }
+  .plan-card.featured .plan-title { color: #fff; }
+  .plan-title { font-size: 15px; font-weight: 700; color: var(--muted); }
+  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .plan-price-main { font-size: 20px; font-weight: 800; color: #fff; margin: 2px 0; }
+  .plan-discount-pix { font-size: 12px; font-weight: 600; color: #7fd68a; }
+
+  /* FAQ */
+  details { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  details:last-child { border-bottom: none; }
+  summary { font-size: 13px; font-weight: 600; color: #fff; outline: none; }
+  details p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+
+  /* BOTÕES MINIMALISTAS */
+  .btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s;
+  }
+  .btn:active { opacity: 0.8; }
   
-  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
-  .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
-  select.input-field { color:#fff; cursor:pointer; }
-  textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
-  .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
-  .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
-  .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
-  .success-msg { color:#7fd68a; font-size:12px; text-align:center; margin-top:8px; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
 
-  .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
-  .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
-  .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
-
-  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-  .header-actions { display:flex; gap:6px; }
-  .menu { display:flex; gap:4px; margin-bottom:16px; }
-  .menu-btn { flex:1; padding:10px 2px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:10px; cursor:pointer; text-align:center; }
-  .menu-btn.active { background:var(--accent); border-color:var(--accent); }
-
-  .days { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
-  .day-btn { padding:8px 14px; background:#2a0710; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; }
-  .day-btn.active { background:var(--gold); color:#210309; border-color:var(--gold); }
-
-  .item { background:#2a0710; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px; }
-  .item-title { font-weight:700; font-size:14px; color:#fff; }
-  .item-meta { color:var(--gold); font-size:12px; font-weight:600; margin-top:2px; }
-  .item-body { color:var(--text); font-size:13px; line-height:1.4; margin-top:4px; }
-  
-  .inputs-row { display:flex; gap:8px; margin-top:8px; }
-  .input-load { flex:1; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:8px 10px; border-radius:6px; font-size:12px; }
-
-  .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:300px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
-  .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
-  .msg-user { background:var(--accent); color:#fff; align-self:flex-end; }
-  .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; }
-  
-  .chat-chips-container { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; }
-  .chat-chips-container::-webkit-scrollbar { display:none; }
-  .chip-btn { background:#2a0710; border:1px solid var(--border); color:var(--gold); font-size:11px; font-weight:700; padding:6px 10px; border-radius:15px; white-space:nowrap; cursor:pointer; }
-  .chip-btn:active { background:var(--accent); color:#fff; }
-
-  .chat-input-row { display:flex; gap:8px; }
-  .chat-input { flex:1; background:var(--card); border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; }
-  .chat-btn { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
-
-  .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:4px; }
-  .hidden { display:none !important; }
+  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: auto; padding: 16px 0; }
 </style>
 </head>
 <body>
 
-<!-- TELA DE ANAMNESE DETALHADA POR ETAPAS -->
-<div id="anamneseScreen" class="card hidden">
-  <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
-  <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
-  
-  <div class="progress-bar-bg">
-    <div id="progressBar" class="progress-bar-fill"></div>
+  <!-- CABEÇALHO MINIMALISTA -->
+  <div class="header-brand">
+    <h1>CONSULTORIA INTELIGENTE</h1>
+    <div class="subhead">Treinamento de alta performance & nutrição calculada</div>
   </div>
-  <div id="stepCounter" class="step-counter">Etapa 1 de 7</div>
 
-  <form onsubmit="event.preventDefault();" class="login-box">
-    
-    <!-- ETAPA 1: DADOS PESSOAIS -->
-    <div id="anamStep1">
-      <label class="label-fdb">1. Nome Completo</label>
-      <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
-
-      <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
-      <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
-
-      <label class="label-fdb" style="margin-top:8px;">Data de Nascimento</label>
-      <input type="text" id="anamNasc" class="input-field" placeholder="DD/MM/AAAA" required>
-
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <div style="flex:1;">
-          <label class="label-fdb">Peso (kg)</label>
-          <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75 kg" required>
-        </div>
-        <div style="flex:1;">
-          <label class="label-fdb">Altura (m)</label>
-          <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75 m" required>
-        </div>
-      </div>
-      <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
-    </div>
-
-    <!-- ETAPA 2: MOTIVAÇÃO & OBJETIVOS -->
-    <div id="anamStep2" class="hidden">
-      <label class="label-fdb">2. O que te motivou a buscar ajuda nutricional?</label>
-      <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética e ter mais disposição" required>
-
-      <label class="label-fdb" style="margin-top:8px;">Quais são as suas expectativas com o atendimento?</label>
-      <input type="text" id="anamExpectativas" class="input-field" placeholder="Ex: Ter uma dieta sustentável que consiga seguir">
-
-      <label class="label-fdb" style="margin-top:8px;">Qual é o seu objetivo principal?</label>
-      <select id="anamObjetivo" class="input-field" required>
-        <option value="Hipertrofia / Ganho de Massa">Hipertrofia / Ganho de Massa Muscular</option>
-        <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
-        <option value="Recomposição Corporal">Recomposição Corporal</option>
-        <option value="Saúde e Performance">Saúde e Performance Esportiva</option>
-      </select>
-
-      <label class="label-fdb" style="margin-top:8px;">O que te impede hoje de chegar nesse objetivo?</label>
-      <input type="text" id="anamObstaculo" class="input-field" placeholder="Ex: Falta de tempo, ansiedade nos finais de semana">
-
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar ➔</button>
-      </div>
-    </div>
-
-    <!-- ETAPA 3: HISTÓRICO DE DIETA & ROTINA -->
-    <div id="anamStep3" class="hidden">
-      <label class="label-fdb">3. Já fez dieta antes? Conte experiências positivas/negativas:</label>
-      <textarea id="anamHistoricoDieta" class="input-field" rows="2" placeholder="Ex: Já fiz Low Carb, perdi peso rápido mas não consegui manter..."></textarea>
-
-      <label class="label-fdb" style="margin-top:8px;">Faz quantas refeições por dia atualmente?</label>
-      <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 refeições por dia">
-
-      <label class="label-fdb" style="margin-top:8px;">O que você acha que deve mudar na alimentação atual?</label>
-      <input type="text" id="anamMudancaAlimentar" class="input-field" placeholder="Ex: Reduzir os doces à noite, comer mais salada">
-
-      <label class="label-fdb" style="margin-top:8px;">Qual horário você dorme e acorda?</label>
-      <input type="text" id="anamHorarioSono" class="input-field" placeholder="Ex: Durmo às 23h e acordo às 06h30">
-
-      <label class="label-fdb" style="margin-top:8px;">Nota para a qualidade do seu sono (0 a 10):</label>
-      <select id="anamNotaSono" class="input-field">
-        <option value="10 - Excelente">10 - Sono excelente</option>
-        <option value="8-9 - Muito bom">8 a 9 - Muito bom</option>
-        <option value="5-7 - Regular">5 a 7 - Regular</option>
-        <option value="0-4 - Ruim">0 a 4 - Sono muito ruim</option>
-      </select>
-
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar ➔</button>
-      </div>
-    </div>
-
-    <!-- ETAPA 4: ROTINA DE TREINO & ATIVIDADE FÍSICA -->
-    <div id="anamStep4" class="hidden">
-      <label class="label-fdb">4. Qual horário do seu treino e tempo disponível?</label>
-      <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: Treino às 18h / 1 hora disponível" required>
-
-      <label class="label-fdb" style="margin-top:8px;">Quantas vezes na semana treina musculação?</label>
-      <input type="text" id="anamFreqTreino" class="input-field" placeholder="Ex: 5 vezes na semana">
-
-      <label class="label-fdb" style="margin-top:8px;">Pratica outra atividade física fora musculação?</label>
-      <input type="text" id="anamOutroEsporte" class="input-field" placeholder="Ex: Corrida 2x na semana / Futebol no sábado (ou Nenhuma)">
-
-      <label class="label-fdb" style="margin-top:8px;">Nota para o seu treinamento atual (0 a 10):</label>
-      <select id="anamNotaTreino" class="input-field">
-        <option value="10 - Excelente">10 - Treino excelente</option>
-        <option value="7-9 - Bom">7 a 9 - Treino bom</option>
-        <option value="0-6 - Ruim">0 a 6 - Treino ruim / Precisa melhorar</option>
-      </select>
-
-      <label class="label-fdb" style="margin-top:8px;">No trabalho/faculdade tem disponibilidade para comer?</label>
-      <select id="anamDispRefeicao" class="input-field">
-        <option value="Sim">Sim, consigo fazer refeições tranquilamente</option>
-        <option value="Não">Não, rotina corrida / Pouco tempo</option>
-      </select>
-
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar ➔</button>
-      </div>
-    </div>
-
-    <!-- ETAPA 5: PREFERÊNCIAS & HÁBITOS ALIMENTARES -->
-    <div id="anamStep5" class="hidden">
-      <label class="label-fdb">5. Alimentos da sua preferência (sabor e custo-benefício):</label>
-      <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, ovos, arroz, banana, aveia, paçoca..."></textarea>
-
-      <label class="label-fdb" style="margin-top:8px;">Alimentos que tem aversão / não gosta / sem acesso:</label>
-      <textarea id="anamAversoes" class="input-field" rows="2" placeholder="Ex: Peixe, batata-doce, fígado..."></textarea>
-
-      <label class="label-fdb" style="margin-top:8px;">Alergia ou intolerância alimentar?</label>
-      <input type="text" id="anamAlergias" class="input-field" placeholder="Ex: Intolerância à lactose (ou Nenhuma)">
-
-      <label class="label-fdb" style="margin-top:8px;">Tem o costume de pesar os alimentos?</label>
-      <select id="anamPesaAlimentos" class="input-field">
-        <option value="Sim, já peso">Sim, já peso meus alimentos</option>
-        <option value="Não, mas estou disposto(a) a pesar">Não, mas estou disposto(a) a pesar</option>
-        <option value="Não e prefiro não pesar">Não e prefiro medições caseiras</option>
-      </select>
-
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar ➔</button>
-      </div>
-    </div>
-
-    <!-- ETAPA 6: SAÚDE, BEBIDAS & HISTÓRICO CLÍNICO -->
-    <div id="anamStep6" class="hidden">
-      <label class="label-fdb">6. Uso de remédio contínuo, suplemento ou esteroides?</label>
-      <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina e Whey / Medicamento para pressão (ou Nenhum)">
-
-      <label class="label-fdb" style="margin-top:8px;">Histórico de cirurgias ou obesidade na família?</label>
-      <input type="text" id="anamHistoricoSaude" class="input-field" placeholder="Ex: Cirurgia no joelho em 2021 / Mãe com obesidade (ou Nenhum)">
-
-      <label class="label-fdb" style="margin-top:8px;">Consome bebida alcoólica? Qual frequência?</label>
-      <select id="anamAlcool" class="input-field">
-        <option value="Não consumo">Não consumo bebida alcoólica</option>
-        <option value="1x na semana (finais de semana)">1x na semana (aos finais de semana)</option>
-        <option value="2x na semana (finais de semana)">2x na semana (aos finais de semana)</option>
-        <option value="3x na semana (Sexta a Domingo)">3x na semana (Sexta a Domingo)</option>
-        <option value="Mais de 4x na semana">Mais de 4x na semana</option>
-      </select>
-
-      <label class="label-fdb" style="margin-top:8px;">Habito de fumar / Vaper / Pod / Cigarro?</label>
-      <select id="anamFumo" class="input-field">
-        <option value="Não">Não</option>
-        <option value="Sim">Sim</option>
-        <option value="Às vezes">Às vezes</option>
-      </select>
-
-      <label class="label-fdb" style="margin-top:8px;">Exposição ao sol diária:</label>
-      <select id="anamSol" class="input-field">
-        <option value="Todos os dias, cerca de 15 min">Todos os dias, cerca de 15 minutos</option>
-        <option value="Todos os dias, mais de 15 min">Todos os dias, mais de 15 minutos</option>
-        <option value="3 a 4x na semana">Cerca de 3 a 4x na semana</option>
-        <option value="Menos que 3x na semana">Menos que 3x na semana</option>
-      </select>
-
-      <div style="display:flex; gap:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar ➔</button>
-      </div>
-    </div>
-
-    <!-- ETAPA 7: FINAIS DE SEMANA, FOTOS & EXAMES -->
-    <div id="anamStep7" class="hidden">
-      <label class="label-fdb">7. Como é a sua rotina aos finais de semana (comida/bebida)?</label>
-      <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Sábado costumo comer pizza à noite..."></textarea>
-
-      <label class="label-fdb" style="margin-top:8px;">Possui exames de sangue recentes?</label>
-      <select id="anamExames" class="input-field">
-        <option value="Sim">Sim</option>
-        <option value="Não possuo exames recentes">Não possuo no momento</option>
-      </select>
-
-      <div style="background:#2a0710; border:1px dashed var(--border); border-radius:8px; padding:10px; margin-top:10px; font-size:12px; color:var(--muted); line-height:1.4;">
-        🚀 <b>Anamnese Pronta!</b> Ao clicar no botão abaixo, seus dados serão gravados de forma segura no Drive do Personal e um alerta push será disparado para ele.
-      </div>
-
-      <div style="display:flex; gap:8px; margin-top:8px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" style="background:var(--gold); color:#000;" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
-      </div>
-    </div>
-
-  </form>
-</div>
-
-<div id="loginScreen" class="card">
-  <h1>JHONATA CONSULTORIA</h1>
-  <div class="sub">Acesse sua área exclusiva</div>
-  
-  <form onsubmit="handleLogin(event)" class="login-box">
-    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: erick ou jhonata)" required>
-    <input type="password" id="loginPass" class="input-field" placeholder="Senha" required>
-    <button type="submit" class="btn-login">ENTRAR</button>
-  </form>
-  <div id="loginError" class="error-msg hidden"></div>
-</div>
-
-<div id="passModal" class="card hidden">
-  <h1 style="font-size:18px;">Alterar Senha</h1>
-  <div class="sub">Digite sua nova senha abaixo</div>
-  <form onsubmit="saveNewPassword(event)" class="login-box">
-    <input type="password" id="newPassInput" class="input-field" placeholder="Nova Senha" required>
-    <button type="submit" class="btn-login" style="background:var(--gold); color:#210309;">SALVAR SENHA</button>
-    <button type="button" class="btn-header" onclick="togglePassModal(false)" style="margin-top:4px;">Cancelar</button>
-  </form>
-  <div id="passMsg" class="success-msg hidden"></div>
-</div>
-
-<div id="mainContent" class="hidden">
+  <!-- POR QUE FUNCIONA -->
   <div class="card">
-    <div class="header-app">
-      <h1 id="clientName">Consultoria</h1>
-      <div class="header-actions">
-        <button class="btn-header" onclick="solicitarPermissaoPush()">🔔 Notificações</button>
-        <button class="btn-header" onclick="togglePassModal(true)">Senha</button>
-        <button class="btn-header" onclick="logout()">Sair</button>
-      </div>
+    <div class="section-title">Por que o método funciona?</div>
+    <div class="comp-item bad">
+      <b>Fichas em PDF / Papel:</b> Cargas esquecidas, treino no piloto automático e estagnação de resultados.
     </div>
-    <div class="sub" id="billingInfo"></div>
-  </div>
-
-  <div class="menu">
-    <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
-    <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
-    <button class="menu-btn" id="btnIa" onclick="showTab('ia')">🤖 ASSISTENTE</button>
-    <button class="menu-btn" id="btnFdb" onclick="showTab('fdb')">💬 FEEDBACK</button>
-  </div>
-
-  <div id="tabTreino">
-    <div class="days" id="daysList"></div>
-    <div id="exercisesList"></div>
-  </div>
-
-  <div id="tabDieta" class="hidden">
-    <div id="mealsList"></div>
-  </div>
-
-  <div id="tabIa" class="hidden">
-    <div class="chat-box" id="chatBox">
-      <div class="msg msg-ai">Olá! Sou o assistente do Personal Jhonata. Tenho acesso completo à sua ficha de treino e dieta. Como posso te ajudar hoje?</div>
-    </div>
-
-    <div class="chat-chips-container">
-      <button class="chip-btn" onclick="sendAiMessage('Como posso substituir o arroz do meu almoço hoje?')">💡 Trocar arroz</button>
-      <button class="chip-btn" onclick="sendAiMessage('A academia tá cheia, qual exercício substitui o primeiro do meu treino?')">🏋️ Substituir exercício</button>
-      <button class="chip-btn" onclick="sendAiMessage('O que posso comer de pré-treino rápido 30min antes de treinar?')">⚡ Pré-treino rápido</button>
-    </div>
-
-    <div class="chat-input-row">
-      <input type="text" id="chatInput" class="chat-input" placeholder="Ex: Quero substituir a batata do almoço" onkeypress="if(event.key==='Enter') sendAiMessage()">
-      <button class="chat-btn" onclick="sendAiMessage()">Enviar</button>
+    <div class="comp-item good">
+      <b>App Próprio:</b> Histórico de cargas salvo e progressão calculada para ganho muscular constante.
     </div>
   </div>
 
-  <div id="tabFdb" class="hidden">
-    <div class="card">
-      <h1 style="font-size:18px; text-align:left;">Relatório Semanal</h1>
-      <div class="sub" style="text-align:left; margin-bottom:14px;">Envie o resumo do seu treino diretamente para a plataforma</div>
-      
-      <form onsubmit="sendFeedbackDirect(event)" class="login-box" style="margin-top:0;">
-        <div>
-          <label class="label-fdb">Como foi o cumprimento do treino e dieta?</label>
-          <input type="text" id="fdbCump" class="input-field" placeholder="Ex: 100% focado / Falhei 1 refeição" required>
-        </div>
-
-        <div>
-          <label class="label-fdb">Nível de Energia & Disposição (0 a 10)</label>
-          <input type="text" id="fdbEnergia" class="input-field" placeholder="Ex: 8/10 - Muito bom" required>
-        </div>
-
-        <div>
-          <label class="label-fdb">Observações, Dores ou Dificuldades</label>
-          <textarea id="fdbObs" class="input-field" rows="3" placeholder="Ex: Senti um leve desconforto no ombro no supino..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-login" style="background:var(--gold); color:#000;">ENVIAR RELATÓRIO NO APP</button>
-      </form>
-    </div>
+  <!-- CIÊNCIA E TÉCNICA -->
+  <div class="card">
+    <div class="section-title">Metodologia & Técnica</div>
+    <p style="font-size:13px; color:var(--muted); line-height:1.5;">
+      Estratégias ajustadas individualmente com técnicas avançadas (<i>Rest-Pause, Cluster Sets e Carga Progressiva</i>) para maximizar hipertrofia e definição sem desperdiçar tempo.
+    </p>
   </div>
-</div>
 
-<script>
-  const GEMINI_API_KEY = "AQ.Ab8RN6I4RpbzJYvCf8p76u63928McOLftJTOF9R7Ar8bNjws1A";
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbweJvboa2jNp5a9CJSLQLjysS5nQK1V0fpsClJNGzMt20UWEjGCV-jt0uAlLJzjJSzs/exec";
-
-  const ADMIN_USER = "jhonata";
-  const ADMIN_PASS = "0304";
-
-  let currentData = null;
-  let chatHistory = [];
-
-  window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('modo') === 'anamnese') {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('anamneseScreen').classList.remove('hidden');
-    }
-  };
-
-  function vincularPushUser(userId) {
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.login(userId);
-    });
-  }
-
-  function solicitarPermissaoPush() {
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.Notifications.requestPermission();
-    });
-  }
-
-  function nextAnamStep(step) {
-    if (step === 2 && !document.getElementById('anamNome').value.trim()) {
-      alert('Por favor, digite seu nome completo.'); return;
-    }
-
-    for (let i = 1; i <= 7; i++) {
-      document.getElementById(`anamStep${i}`).classList.add('hidden');
-    }
-    document.getElementById(`anamStep${step}`).classList.remove('hidden');
-
-    const pct = (step / 7) * 100;
-    document.getElementById('progressBar').style.width = `${pct}%`;
-    document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
-  }
-
-  async function sendAnamneseAppDirect() {
-    const nome = document.getElementById('anamNome').value.trim();
-    const email = document.getElementById('anamEmail').value.trim();
-    const peso = document.getElementById('anamPeso').value.trim();
-    const altura = document.getElementById('anamAltura').value.trim();
-
-    if (!nome || !email) { alert('Preencha nome e e-mail.'); return; }
-
-    const payloadDrive = {
-      nome: nome,
-      email: email,
-      nasc: document.getElementById('anamNasc').value.trim(),
-      medidas: `Peso: ${peso} | Altura: ${altura}`,
-      objetivo: document.getElementById('anamObjetivo').value,
-      motivacao: document.getElementById('anamMotivacao').value.trim(),
-      expectativas: document.getElementById('anamExpectativas').value.trim(),
-      obstaculo: document.getElementById('anamObstaculo').value.trim(),
-      dietaAtual: document.getElementById('anamNumRefeicoes').value.trim(),
-      treinoAtual: document.getElementById('anamHorarioTreino').value.trim(),
-      gostos: document.getElementById('anamGostos').value.trim(),
-      aversoes: document.getElementById('anamAversoes').value.trim(),
-      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
-      fds: document.getElementById('anamFimDeSemana').value.trim(),
-      exames: document.getElementById('anamExames').value
-    };
-
-    alert("Enviando Anamnese para o Drive do Personal...");
-
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payloadDrive)
-      });
-      alert("Anamnese enviada com sucesso! O Personal recebeu a notificação no dispositivo.");
-      location.href = "index.html";
-    } catch(e) {
-      alert("Erro ao enviar anamnese. Tente novamente.");
-    }
-  }
-
-  function handleLogin(e) {
-    e.preventDefault();
-    const user = document.getElementById('loginUser').value.trim().toLowerCase();
-    const pass = document.getElementById('loginPass').value.trim();
-    const errorDiv = document.getElementById('loginError');
-
-    errorDiv.classList.add('hidden');
-
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      localStorage.setItem('logged_user', ADMIN_USER);
-      vincularPushUser(ADMIN_USER);
-      window.location.href = "admin.html";
-      return;
-    }
-
-    fetch(`data/${user}.json?t=${Date.now()}`)
-      .then(res => {
-        if (!res.ok) throw new Error("Usuário não encontrado");
-        return res.json();
-      })
-      .then(data => {
-        const customPass = localStorage.getItem(`pass_${user}`);
-        const validPass = customPass || data.senha || user;
-
-        if (pass === validPass) {
-          localStorage.setItem('logged_user', user);
-          vincularPushUser(user);
-          loadStudentData(user, data);
-        } else {
-          errorDiv.textContent = "Senha incorreta.";
-          errorDiv.classList.remove('hidden');
-        }
-      })
-      .catch(() => {
-        errorDiv.textContent = "Usuário não encontrado.";
-        errorDiv.classList.remove('hidden');
-      });
-  }
-
-  function togglePassModal(show) {
-    const modal = document.getElementById('passModal');
-    const app = document.getElementById('mainContent');
-    if (show) { modal.classList.remove('hidden'); app.classList.add('hidden'); } 
-    else { modal.classList.add('hidden'); app.classList.remove('hidden'); }
-  }
-
-  function saveNewPassword(e) {
-    e.preventDefault();
-    const newPass = document.getElementById('newPassInput').value.trim();
-    const user = localStorage.getItem('logged_user');
-    const msg = document.getElementById('passMsg');
-
-    if (newPass && user) {
-      localStorage.setItem(`pass_${user}`, newPass);
-      msg.textContent = "Senha alterada com sucesso!";
-      msg.classList.remove('hidden');
-      setTimeout(() => {
-        msg.classList.add('hidden');
-        document.getElementById('newPassInput').value = '';
-        togglePassModal(false);
-      }, 1200);
-    }
-  }
-
-  function loadStudentData(code, dataLoaded = null) {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('anamneseScreen').classList.add('hidden');
-    document.getElementById('mainContent').classList.remove('hidden');
-
-    const processData = (data) => {
-      currentData = data;
-      document.getElementById('clientName').textContent = data.clientName || 'Aluno';
-      if(data.billing) {
-        document.getElementById('billingInfo').textContent = `Mensalidade: R$ ${data.billing.valor || '80'} | Vencimento: Dia ${data.billing.dueDay || '10'}`;
-      }
-      setupWorkout(data.days || []);
-      setupDiet(data.refeicoes || []);
-    };
-
-    if (dataLoaded) processData(dataLoaded);
-    else fetch(`data/${code}.json?t=${Date.now()}`).then(res => res.json()).then(data => processData(data)).catch(() => logout());
-  }
-
-  function logout() { localStorage.removeItem('logged_user'); location.reload(); }
-
-  function showTab(tab) {
-    document.getElementById('tabTreino').classList.add('hidden');
-    document.getElementById('tabDieta').classList.add('hidden');
-    document.getElementById('tabIa').classList.add('hidden');
-    document.getElementById('tabFdb').classList.add('hidden');
+  <!-- PARA QUEM É -->
+  <div class="card">
+    <div class="section-title">Para quem é a consultoria</div>
     
-    document.getElementById('btnTreino').classList.remove('active');
-    document.getElementById('btnDieta').classList.remove('active');
-    document.getElementById('btnIa').classList.remove('active');
-    document.getElementById('btnFdb').classList.remove('active');
+    <div class="profile-box">
+      <div class="profile-tag">Iniciantes</div>
+      <div class="profile-desc">Passo a passo estruturado para executar exercícios com segurança e evoluir desde a primeira semana.</div>
+    </div>
 
-    if(tab === 'treino') { document.getElementById('tabTreino').classList.remove('hidden'); document.getElementById('btnTreino').classList.add('active'); } 
-    else if(tab === 'dieta') { document.getElementById('tabDieta').classList.remove('hidden'); document.getElementById('btnDieta').classList.add('active'); } 
-    else if(tab === 'ia') { document.getElementById('tabIa').classList.remove('hidden'); document.getElementById('btnIa').classList.add('active'); } 
-    else { document.getElementById('tabFdb').classList.remove('hidden'); document.getElementById('btnFdb').classList.add('active'); }
-  }
+    <div class="profile-box">
+      <div class="profile-tag">Praticantes Estagnados</div>
+      <div class="profile-desc">Periodização inteligente e quebra de platô para quem treina pesado mas parou de ver mudanças no espelho.</div>
+    </div>
+  </div>
 
-  function setupWorkout(days) {
-    const daysList = document.getElementById('daysList');
-    daysList.innerHTML = '';
-    days.forEach((day, index) => {
-      const btn = document.createElement('button');
-      btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
-      btn.textContent = day.title;
-      btn.onclick = () => {
-        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderExercises(day);
-      };
-      daysList.appendChild(btn);
-    });
-    if(days.length > 0) renderExercises(days[0]);
-  }
+  <!-- DEPOIMENTO REAL -->
+  <div class="card">
+    <div class="section-title">Depoimento</div>
+    <div class="testimonial-text">
+      "Sinto que tô ganhando massa magra e diminuindo a gordura. Mesmo aumentando os carboidratos pra aguentar melhor as corridas, os resultados continuam aparecendo. Muito satisfeito com a evolução!"
+    </div>
+    <div class="testimonial-author">— Aluno da Consultoria</div>
+  </div>
 
-  function renderExercises(day) {
-    const list = document.getElementById('exercisesList');
-    list.innerHTML = '';
-    (day.exercicios || []).forEach((ex, idx) => {
-      const user = localStorage.getItem('logged_user');
-      const keyLoad = `c_${user}_${day.id}_${idx}`;
-      const keyReps = `r_${user}_${day.id}_${idx}`;
+  <!-- RECURSOS DO APP -->
+  <div class="card">
+    <div class="section-title">Seu Acesso Exclusivo</div>
+    <div class="features-list">
+      <div class="feature-item"><span class="feature-icon">✔</span> Login e senha individuais</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Aplicativo instalado na tela do celular</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Registro de cargas e repetições</div>
+      <div class="feature-item"><span class="feature-icon">✔</span> Assistente IA para substituição de alimentos</div>
+    </div>
+  </div>
 
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <div class="item-title">${ex.nome}</div>
-        <div class="item-meta">${ex.series}x (${ex.reps})</div>
-        <div class="inputs-row">
-          <input class="input-load" placeholder="Carga (ex: 20kg)" value="${localStorage.getItem(keyLoad) || ''}" onchange="localStorage.setItem('${keyLoad}', this.value)">
-          <input class="input-load" placeholder="Reps (ex: 10)" value="${localStorage.getItem(keyReps) || ''}" onchange="localStorage.setItem('${keyReps}', this.value)">
-        </div>
-      `;
-      list.appendChild(div);
-    });
-  }
+  <!-- PLANOS E VALORES -->
+  <div class="card">
+    <div class="section-title">Planos Disponíveis</div>
 
-  function setupDiet(refeicoes) {
-    const list = document.getElementById('mealsList');
-    list.innerHTML = '';
-    if(refeicoes && refeicoes.length > 0) {
-      refeicoes.forEach(ref => {
-        const div = document.createElement('div');
-        div.className = 'item';
-        div.innerHTML = `<div class="item-title" style="color:var(--gold);">${ref.titulo}</div><div class="item-body">${ref.alimentos}</div>`;
-        list.appendChild(div);
-      });
-    } else {
-      list.innerHTML = '<div class="item"><div class="item-body">Nenhuma refeição cadastrada no momento.</div></div>';
-    }
-  }
+    <div class="plan-card">
+      <div class="plan-title">Mensal Recorrente</div>
+      <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
+    </div>
 
-  function sendFeedbackDirect(e) {
-    e.preventDefault();
-    alert("Relatório semanal enviado com sucesso!");
-  }
+    <div class="plan-card">
+      <div class="plan-title">Trimestral (3 Meses)</div>
+      <div class="plan-price-old">De R$ 450,00</div>
+      <div class="plan-price-main">3x R$ 130,00</div>
+      <div class="plan-discount-pix">R$ 350,00 à vista no PIX</div>
+    </div>
 
-  async function sendAiMessage(textoPronto = null) {
-    const input = document.getElementById('chatInput');
-    const text = textoPronto || input.value.trim();
-    if(!text) return;
+    <div class="plan-card featured">
+      <div class="plan-title" style="color:#fff;">Semestral (6 Meses) — Recomendado</div>
+      <div class="plan-price-old">De R$ 900,00</div>
+      <div class="plan-price-main">6x R$ 110,00</div>
+      <div class="plan-discount-pix">R$ 600,00 à vista no PIX</div>
+    </div>
 
-    const chatBox = document.getElementById('chatBox');
-    const userMsg = document.createElement('div');
-    userMsg.className = 'msg msg-user';
-    userMsg.textContent = text;
-    chatBox.appendChild(userMsg);
-    if(!textoPronto) input.value = '';
-    chatBox.scrollTop = chatBox.scrollHeight;
+    <div class="plan-card">
+      <div class="plan-title">Anual (12 Meses)</div>
+      <div class="plan-price-old">De R$ 1.800,00</div>
+      <div class="plan-price-main">12x R$ 85,00</div>
+      <div class="plan-discount-pix">R$ 960,00 à vista no PIX</div>
+    </div>
+  </div>
 
-    const loadingMsg = document.createElement('div');
-    loadingMsg.className = 'msg msg-ai';
-    loadingMsg.textContent = 'Analisando seu protocolo...';
-    chatBox.appendChild(loadingMsg);
-    chatBox.scrollTop = chatBox.scrollHeight;
+  <!-- FAQ -->
+  <div class="card">
+    <div class="section-title">Dúvidas Frequentes</div>
 
-    const dietaAtual = currentData && currentData.refeicoes ? JSON.stringify(currentData.refeicoes) : "Nenhuma dieta.";
-    const treinoAtual = currentData && currentData.days ? JSON.stringify(currentData.days) : "Nenhum treino.";
+    <details>
+      <summary>Em quanto tempo recebo meu protocolo?</summary>
+      <p>Em até 24h a 48h úteis após o preenchimento da anamnese.</p>
+    </details>
 
-    const systemPrompt = `Você é o "Jhonata AI", assistente virtual do Personal Trainer Jhonata.
-FICHA DO ALUNO: Treinos: ${treinoAtual} | Dieta: ${dietaAtual}`;
+    <details>
+      <summary>Como funciona a IA do app?</summary>
+      <p>Calcula trocas e equivalências exatas de alimentos em segundos diretamente na tela.</p>
+    </details>
+  </div>
 
-    chatHistory.push({ role: "user", parts: [{ text: text }] });
+  <!-- BOTÕES DE AÇÃO DIRECT -->
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <a href="./index.html?modo=anamnese" class="btn btn-primary">
+      PREENCHER ANAMNESE
+    </a>
 
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: chatHistory.slice(-6)
-        })
-      });
+  </div>
 
-      const data = await response.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui responder no momento.";
-      loadingMsg.textContent = reply;
-      chatHistory.push({ role: "model", parts: [{ text: reply }] });
-    } catch(err) {
-      loadingMsg.textContent = "Erro ao conectar com a IA.";
-    }
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-</script>
+  <div class="footer">
+    © Consultoria Inteligente.
+  </div>
+
 </body>
 </html>
