@@ -34,6 +34,7 @@
   .btn-action { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer; width:100%; }
   .btn-wpp { background:#25d366; color:#000; font-weight:800; margin-top:6px; }
   .btn-danger { background:var(--accent); color:#fff; padding:4px 8px; border:none; border-radius:4px; font-size:11px; cursor:pointer; }
+  .btn-order { background:#1a0308; border:1px solid var(--border); color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; cursor:pointer; }
 
   .accordion-btn { width:100%; background:#1a0308; border:1px solid var(--border); color:var(--gold); padding:12px; border-radius:8px; font-weight:700; font-size:13px; text-align:left; cursor:pointer; margin-top:8px; display:flex; justify-content:space-between; align-items:center; }
   .accordion-content { background:#120206; border:1px solid var(--border); border-top:none; border-radius:0 0 8px 8px; padding:10px; margin-bottom:8px; }
@@ -42,6 +43,7 @@
   .item-header { display:flex; justify-content:space-between; align-items:center; }
   .item-title { font-weight:700; font-size:13px; color:#fff; }
   .item-meta { color:var(--gold); font-size:11px; font-weight:600; }
+  .order-actions { display:flex; gap:4px; margin-left:8px; }
   
   .share-banner { background:#1a0308; border:1px dashed var(--gold); border-radius:10px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
   
@@ -101,7 +103,7 @@
       </div>
     </div>
 
-    <!-- EDICÃO DE TREINO -->
+    <!-- EDICÃO DE TREINO COM REORDENAÇÃO -->
     <div id="tabAdminMudar" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);" id="editWorkoutTitle">✏️ Editar Treino do Aluno</div>
@@ -119,10 +121,16 @@
           <button class="btn-action" onclick="addExerciseToEdit()">+ Adicionar ao Dia Selecionado</button>
         </div>
 
-        <div class="label-title">Exercícios Atuais do Dia Selecionado:</div>
+        <div class="label-title">Exercícios Atuais do Dia Selecionado (Reordene aqui):</div>
         <div id="editList"></div>
 
-        <button class="btn-action btn-wpp" style="margin-top:14px;" onclick="saveWorkoutChanges()">💾 Salvar Mudanças no Treino do Aluno</button>
+        <button class="btn-action" style="margin-top:14px; background:var(--gold); color:#000;" onclick="saveWorkoutChanges()">💾 SALVAR MUDANÇAS & DISPARAR PUSH</button>
+
+        <div id="adminJsonSection" class="hidden" style="margin-top:14px;">
+          <label style="font-size:11px; color:var(--green); font-weight:700;">Código JSON Atualizado com Sucesso!</label>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Copie e cole este conteúdo dentro de <b id="adminJsonFileName" style="color:#fff;">data/aluno.json</b> no GitHub:</div>
+          <textarea id="adminOutputJson" rows="6" readonly style="font-family:monospace; font-size:11px;"></textarea>
+        </div>
       </div>
     </div>
 
@@ -130,12 +138,12 @@
     <div id="tabAdminNovo" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);">📋 Cadastrar Novo Aluno via Anamnese</div>
-        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Preencha os dados do WhatsApp para gerar o cadastro do novo aluno:</div>
+        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Preencha os dados para gerar a estrutura do novo aluno:</div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">1. Dados do Aluno</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="anamName" placeholder="Nome Completo (ex: João Silva)" style="flex:1;">
-          <input type="text" id="anamCode" placeholder="Usuário/Código (ex: joao)" style="flex:1;">
+          <input type="text" id="anamName" placeholder="Nome Completo (ex: Júlia Silva)" style="flex:1;">
+          <input type="text" id="anamCode" placeholder="Usuário/Código (ex: julia)" style="flex:1;">
         </div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Estrutura dos Treinos (A, B, C...)</label>
@@ -178,6 +186,8 @@
 </div>
 
 <script>
+  const ONESIGNAL_APP_ID = "149311da-3e88-410f-a9b3-56a098d89b1c";
+  const ONESIGNAL_REST_KEY = "SUA_ONESIGNAL_REST_API_KEY"; // Adicione sua REST Key do OneSignal aqui
   const ADMIN_USER = "jhonata";
 
   let selectedStudent = 'erick';
@@ -196,48 +206,44 @@
   };
 
   function loadStudentsList() {
-    fetch(`data/students.json?t=${Date.now()}`)
+    fetch(`data/students.json?v=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(students => {
-        const sidebar = document.getElementById('studentSidebarList');
-        sidebar.innerHTML = '';
-
-        const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
-        const fullList = [...students, ...localStudents];
-        const uniqueStudents = Array.from(new Map(fullList.map(item => [item.code, item])).values());
-
-        uniqueStudents.forEach((st, idx) => {
-          const btn = document.createElement('button');
-          btn.className = `student-btn ${idx === 0 ? 'active' : ''}`;
-          btn.innerHTML = `${st.name} <span>👤</span>`;
-          btn.onclick = () => selectStudent(st.code, btn);
-          sidebar.appendChild(btn);
-        });
-
-        if (uniqueStudents.length > 0) {
-          selectedStudent = uniqueStudents[0].code;
-          loadStudentData(selectedStudent);
-        }
+        populateSidebar(students);
       })
       .catch(() => {
         const fallback = [
           { code: 'erick', name: 'Erick' },
+          { code: 'julia', name: 'Júlia' },
           { code: 'leonardo', name: 'Leonardo' },
           { code: 'otavio', name: 'Otavio' },
           { code: 'vini', name: 'Vini' },
           { code: 'saimon', name: 'Saimon' }
         ];
-        const sidebar = document.getElementById('studentSidebarList');
-        sidebar.innerHTML = '';
-        fallback.forEach((st, idx) => {
-          const btn = document.createElement('button');
-          btn.className = `student-btn ${idx === 0 ? 'active' : ''}`;
-          btn.innerHTML = `${st.name} <span>👤</span>`;
-          btn.onclick = () => selectStudent(st.code, btn);
-          sidebar.appendChild(btn);
-        });
-        loadStudentData('erick');
+        populateSidebar(fallback);
       });
+  }
+
+  function populateSidebar(studentsList) {
+    const sidebar = document.getElementById('studentSidebarList');
+    sidebar.innerHTML = '';
+
+    const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
+    const fullList = [...studentsList, ...localStudents];
+    const uniqueStudents = Array.from(new Map(fullList.map(item => [item.code, item])).values());
+
+    uniqueStudents.forEach((st, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `student-btn ${st.code === selectedStudent ? 'active' : ''}`;
+      btn.innerHTML = `${st.name} <span>👤</span>`;
+      btn.onclick = () => selectStudent(st.code, btn);
+      sidebar.appendChild(btn);
+    });
+
+    if (uniqueStudents.length > 0 && !currentStudentData) {
+      selectedStudent = uniqueStudents[0].code;
+      loadStudentData(selectedStudent);
+    }
   }
 
   function selectStudent(code, btnElement) {
@@ -253,7 +259,7 @@
   function loadStudentData(code) {
     const localWorkout = localStorage.getItem(`custom_workout_${code}`);
     
-    fetch(`data/${code}.json?t=${Date.now()}`)
+    fetch(`data/${code}.json?v=${Date.now()}`, { cache: 'no-store' })
       .then(res => res.json())
       .then(rawData => {
         let data = JSON.parse(JSON.stringify(rawData));
@@ -273,7 +279,7 @@
         populateExerciseSelect();
       })
       .catch(err => {
-        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${code}.json</span>`;
+        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${code}.json. Verifique se o arquivo existe.</span>`;
         document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dieta.</span>`;
       });
   }
@@ -327,8 +333,8 @@
       content.className = 'accordion-content hidden';
 
       (day.exercicios || []).forEach((ex, idx) => {
-        const savedLoad = localStorage.getItem(`c_${data.code}_${day.id}_${idx}`) || '-';
-        const savedReps = localStorage.getItem(`r_${data.code}_${day.id}_${idx}`) || '-';
+        const savedLoad = localStorage.getItem(`c_${data.code || selectedStudent}_${day.id}_${idx}`) || '-';
+        const savedReps = localStorage.getItem(`r_${data.code || selectedStudent}_${day.id}_${idx}`) || '-';
         
         content.innerHTML += `
           <div class="item-box">
@@ -407,14 +413,34 @@
       div.innerHTML = `
         <div class="item-header">
           <div>
-            <b style="color:#fff;">${ex.nome}</b>
+            <b style="color:#fff;">${idx + 1}. ${ex.nome}</b>
             <div style="font-size:12px; color:var(--gold);">${ex.series} Séries x ${ex.reps} Reps</div>
           </div>
-          <button class="btn-danger" onclick="removeExerciseFromEdit(${dayIdx}, ${idx})">Excluir</button>
+          <div style="display:flex; align-items:center;">
+            <div class="order-actions">
+              <button class="btn-order" onclick="moveExerciseOrder(${dayIdx}, ${idx}, -1)">⬆️</button>
+              <button class="btn-order" onclick="moveExerciseOrder(${dayIdx}, ${idx}, 1)">⬇️</button>
+            </div>
+            <button class="btn-danger" style="margin-left:8px;" onclick="removeExerciseFromEdit(${dayIdx}, ${idx})">Excluir</button>
+          </div>
         </div>
       `;
       container.appendChild(div);
     });
+  }
+
+  // REORDENAÇÃO DE EXERCÍCIOS
+  function moveExerciseOrder(dayIdx, exIdx, direction) {
+    const exercicios = currentStudentData.days[dayIdx].exercicios;
+    const newIdx = exIdx + direction;
+
+    if (newIdx < 0 || newIdx >= exercicios.length) return;
+
+    const temp = exercicios[exIdx];
+    exercicios[exIdx] = exercicios[newIdx];
+    exercicios[newIdx] = temp;
+
+    loadDayEditList();
   }
 
   function addExerciseToEdit() {
@@ -423,10 +449,7 @@
     const reps = document.getElementById('editExReps').value.trim() || '10-12';
     const dayIdx = document.getElementById('editDaySelect').value;
 
-    if (!name) {
-      alert('Digite o nome do exercício.');
-      return;
-    }
+    if (!name) { alert('Digite o nome do exercício.'); return; }
 
     if (!currentStudentData.days[dayIdx].exercicios) {
       currentStudentData.days[dayIdx].exercicios = [];
@@ -446,12 +469,40 @@
     loadDayEditList();
   }
 
-  function saveWorkoutChanges() {
+  async function saveWorkoutChanges() {
     if (!selectedStudent || !currentStudentData) return;
+    
+    // Salva localmente
     localStorage.setItem(`custom_workout_${selectedStudent}`, JSON.stringify(currentStudentData.days));
-    alert(`Mudanças no treino do aluno ${selectedStudent.toUpperCase()} salvas com sucesso!`);
+
+    // Exibe o JSON formatado para substituir no GitHub
+    document.getElementById('adminJsonFileName').textContent = `data/${selectedStudent}.json`;
+    document.getElementById('adminOutputJson').value = JSON.stringify(currentStudentData, null, 2);
+    document.getElementById('adminJsonSection').classList.remove('hidden');
+
+    // Dispara a Notificação Push pelo OneSignal
+    const payload = {
+      app_id: ONESIGNAL_APP_ID,
+      include_external_user_ids: [selectedStudent],
+      headings: { pt: "💪 Seu Treino foi Atualizado!" },
+      contents: { pt: "O Personal Jhonata alterou sua ficha no app. Acesse para conferir." }
+    };
+
+    try {
+      await fetch("https://onesignal.com/api/v1/notifications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic " + ONESIGNAL_REST_KEY
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch(e) {
+      console.log("Serviço de Push não notificado via REST API");
+    }
+
+    alert(`Mudanças do aluno ${selectedStudent.toUpperCase()} salvas! Lembre-se de colar o JSON gerado abaixo no GitHub.`);
     renderWorkoutOverview(currentStudentData);
-    switchTab('treino');
   }
 
   function createStudentFromAnamnese() {
@@ -460,10 +511,7 @@
     const rawWorkouts = document.getElementById('anamWorkouts').value.trim();
     const rawDiet = document.getElementById('anamDiet').value.trim();
 
-    if (!name || !code) {
-      alert('Preencha o nome e o código do aluno.');
-      return;
-    }
+    if (!name || !code) { alert('Preencha o nome e o código do aluno.'); return; }
 
     const workoutBlocks = rawWorkouts.split('\n\n');
     const parsedDays = workoutBlocks.map((block, idx) => {
@@ -564,7 +612,6 @@
     });
   }
 
-  // --- GERADORES DE MENSAGENS E LINKS ---
   function copyStudentMessage() {
     if (!currentStudentData) return;
     const name = currentStudentData.clientName || selectedStudent;
