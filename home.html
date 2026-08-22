@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Esportiva — Físico de Alta Performance</title>
+<title>Consultoria Inteligente — Físico de Alta Performance</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root { 
@@ -76,7 +76,6 @@
 
   .section-title { font-size: 20px; font-weight: 900; color: #fff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: -0.5px; }
 
-  /* MENTALIDADE DE TREINO INTELIGENTE */
   .method-highlight {
     background: linear-gradient(135deg, rgba(110, 19, 39, 0.7) 0%, rgba(20, 2, 6, 0.9) 100%);
     border: 2px solid var(--gold);
@@ -87,7 +86,6 @@
   .method-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; }
   .method-text { font-size: 14px; color: #fff; line-height: 1.6; }
 
-  /* PERFIS DE ALUNOS (VERSÃO REFINADA E CHAMATIVA) */
   .profile-box {
     background: rgba(15, 2, 5, 0.85);
     border: 1.5px solid var(--border);
@@ -102,6 +100,24 @@
   }
   .profile-tag { font-size: 14px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
   .profile-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+  /* COMPARATIVO APP VS PDF */
+  .comparison-box {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .comp-item {
+    background: rgba(10, 1, 3, 0.9);
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .comp-item.bad { border-left: 4px solid var(--accent); color: var(--muted); }
+  .comp-item.good { border-left: 4px solid #7fd68a; color: #fff; }
 
   /* CARDS DE PLANOS */
   .plan-card {
@@ -150,6 +166,18 @@
     flex-shrink: 0;
   }
 
+  /* FAQ COLLAPSIBLE */
+  details {
+    background: rgba(15, 2, 5, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+  }
+  summary { font-size: 14px; font-weight: 800; color: #fff; outline: none; }
+  details p { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
   /* BOTÕES GRANDES */
   .btn {
     width: 100%;
@@ -184,11 +212,11 @@
   <!-- CABEÇALHO -->
   <div class="header-brand">
     <div class="badge-top">🔥 VAGAS LIMITADAS PARA ESTE MÊS</div>
-    <h1>CONSULTORIA ESPORTIVA</h1>
+    <h1>CONSULTORIA INTELIGENTE</h1>
     <div class="subhead">CONSTRUA UM FÍSICO FORTE, DENSO E DEFINIDO</div>
   </div>
 
-  <!-- SEÇÃO: PARA QUEM É A CONSULTORIA (NOVA VERSÃO MAIS POTENTE) -->
+  <!-- PARA QUEM É -->
   <div class="card">
     <div class="section-title">🎯 PARA QUEM É ESTA CONSULTORIA?</div>
 
@@ -207,24 +235,38 @@
     </div>
   </div>
 
-  <!-- SEÇÃO: TREINO INTELIGENTE -->
+  <!-- POR QUE O APP INTELIGENTE SUPERA PLANILHAS EM PDF -->
+  <div class="card">
+    <div class="section-title">💡 POR QUE O NOSSO MÉTODO FUNCIONA?</div>
+    
+    <div class="comparison-box">
+      <div class="comp-item bad">
+        ❌ <b>Fichas em PDF e Papel:</b> Você esquece as cargas do treino passado, não sabe se evoluiu e treina no piloto automático sem ver resultado real.
+      </div>
+      <div class="comp-item good">
+        ✅ <b>App Próprio e Inteligente:</b> Seu histórico de cargas é salvo treino a treino. O sistema calcula sua sobrecarga progressiva para garantir ganho muscular constante.
+      </div>
+    </div>
+  </div>
+
+  <!-- TREINO INTELIGENTE -->
   <div class="card">
     <div class="section-title">🧠 ALTA PERFORMANCE & CIÊNCIA</div>
     
     <div class="method-highlight">
       <div class="method-title">⚡ Treine com Estratégia, Não no Improviso!</div>
       <div class="method-text">
-        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível[cite: 1].
+        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível.
       </div>
     </div>
   </div>
 
-  <!-- SEÇÃO APP PRÓPRIO E EXCLUSIVO -->
+  <!-- RECURSOS DO APP EXCLUSIVO -->
   <div class="card" style="border-color: var(--gold);">
     <div class="section-title" style="color: var(--gold);">📱 SEU APP PRÓPRIO E INDIVIDUALIZADO</div>
     
     <div class="method-text" style="margin-bottom: 14px; font-size:14px; color:var(--muted);">
-      Esqueça planilhas confusas em PDF ou arquivos soltos no WhatsApp. Você terá um <b>aplicativo web próprio e exclusivo</b> para acompanhar seu progresso diário[cite: 1]:
+      Você terá um <b>aplicativo web próprio e exclusivo</b> para acompanhar seu progresso diário na palma da mão:
     </div>
 
     <div class="features-list">
@@ -242,45 +284,65 @@
       </div>
       <div class="feature-item">
         <div class="feature-icon">🤖</div>
-        <span><b>Assistente de Nutrição com IA:</b> Calcule substituições de alimentos em segundos diretamente no app[cite: 1].</span>
+        <span><b>Assistente de Nutrição com IA:</b> Calcule substituições de alimentos em segundos diretamente no app.</span>
       </div>
     </div>
   </div>
 
-  <!-- PLANOS E CONDIÇÕES -->
+  <!-- PLANOS E CONDIÇÕES DE PAGAMENTO -->
   <div class="card">
     <div class="section-title">💎 INVISTA NO SEU FÍSICO</div>
 
     <!-- PLANO MENSAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Mensal Recorrente</div>[cite: 1]
-      <div class="plan-price-main">R$ 150,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">/mês</span></div>[cite: 1]
+      <div class="plan-title">Plano Mensal Recorrente</div>
+      <div class="plan-price-main">R$ 150,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">/mês</span></div>
     </div>
 
     <!-- PLANO TRIMESTRAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Trimestral (3 Meses)</div>[cite: 1]
-      <div class="plan-price-old">De R$ 450,00 por:</div>[cite: 1]
-      <div class="plan-price-main">3x de R$ 130,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 390)</span></div>[cite: 1]
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 350,00 (Economize R$ 40)</div>[cite: 1]
+      <div class="plan-title">Plano Trimestral (3 Meses)</div>
+      <div class="plan-price-old">De R$ 450,00 por:</div>
+      <div class="plan-price-main">3x de R$ 130,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 390)</span></div>
+      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 350,00 (Economize R$ 40)</div>
     </div>
 
     <!-- PLANO SEMESTRAL (DESTAQUE) -->
     <div class="plan-card featured">
-      <div class="featured-tag">🔥 O MAIS VENDIDO</div>[cite: 1]
-      <div class="plan-title">Plano Semestral (6 Meses)</div>[cite: 1]
-      <div class="plan-price-old">De R$ 900,00 por:</div>[cite: 1]
-      <div class="plan-price-main">6x de R$ 110,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 660)</span></div>[cite: 1]
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 600,00 (Economize R$ 60)</div>[cite: 1]
+      <div class="featured-tag">🔥 O MAIS VENDIDO</div>
+      <div class="plan-title">Plano Semestral (6 Meses)</div>
+      <div class="plan-price-old">De R$ 900,00 por:</div>
+      <div class="plan-price-main">6x de R$ 110,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 660)</span></div>
+      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 600,00 (Economize R$ 60)</div>
     </div>
 
     <!-- PLANO ANUAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Anual (12 Meses)</div>[cite: 1]
-      <div class="plan-price-old">De R$ 1.800,00 por:</div>[cite: 1]
-      <div class="plan-price-main">12x de R$ 85,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 1.020)</span></div>[cite: 1]
-      <div class="plan-discount-pix">💎 À VISTA NO PIX: R$ 960,00 (Economize R$ 60)</div>[cite: 1]
+      <div class="plan-title">Plano Anual (12 Meses)</div>
+      <div class="plan-price-old">De R$ 1.800,00 por:</div>
+      <div class="plan-price-main">12x de R$ 85,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 1.020)</span></div>
+      <div class="plan-discount-pix">💎 À VISTA NO PIX: R$ 960,00 (Economize R$ 60)</div>
     </div>
+  </div>
+
+  <!-- PERGUNTAS FREQUENTES (FAQ) -->
+  <div class="card">
+    <div class="section-title">❓ DÚVIDAS FREQUENTES</div>
+
+    <details>
+      <summary>Em quanto tempo recebo meu treino?</summary>
+      <p>Após responder a anamnese e efetuar a entrada, seu protocolo exclusivo é montado e liberado no seu aplicativo em até 24 a 48 horas úteis.</p>
+    </details>
+
+    <details>
+      <summary>Como funciona a IA no aplicativo?</summary>
+      <p>O assistente virtual integrado no app calcula equivalências exatas de carboidratos, proteínas e gorduras em segundos para você substituir refeições sem sair da dieta.</p>
+    </details>
+
+    <details>
+      <summary>Sirvo para a consultoria se for iniciante?</summary>
+      <p>Com certeza! O protocolo é desenhado individualmente para ensinar a execução correta, cargas seguras e adaptação progressiva desde o primeiro dia.</p>
+    </details>
   </div>
 
   <!-- BOTÕES DE AÇÃO -->
@@ -299,7 +361,7 @@
   </div>
 
   <div class="footer">
-    © Consultoria Esportiva. Todos os direitos reservados.
+    © Consultoria Inteligente. Todos os direitos reservados.
   </div>
 
 </body>
