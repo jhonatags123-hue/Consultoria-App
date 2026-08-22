@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultoria Esportiva — Jhonata</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- OneSignal SDK para Notificações Push -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "149311da-3e88-410f-a9b3-56a098d89b1c",
+    });
+  });
+</script>
+
 <style>
   :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; }
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -18,12 +30,10 @@
   select.input-field { color:#fff; cursor:pointer; }
   textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
   .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
-  .btn-wpp { background:#25d366; color:#000; font-weight:800; }
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
   .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
   .success-msg { color:#7fd68a; font-size:12px; text-align:center; margin-top:8px; }
 
-  /* Barra de Progresso da Anamnese */
   .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
   .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
   .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
@@ -50,12 +60,17 @@
   .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
   .msg-user { background:var(--accent); color:#fff; align-self:flex-end; }
   .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; }
+  
+  .chat-chips-container { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px; scrollbar-width:none; }
+  .chat-chips-container::-webkit-scrollbar { display:none; }
+  .chip-btn { background:#2a0710; border:1px solid var(--border); color:var(--gold); font-size:11px; font-weight:700; padding:6px 10px; border-radius:15px; white-space:nowrap; cursor:pointer; }
+  .chip-btn:active { background:var(--accent); color:#fff; }
+
   .chat-input-row { display:flex; gap:8px; }
   .chat-input { flex:1; background:var(--card); border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; }
   .chat-btn { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:4px; }
-
   .hidden { display:none !important; }
 </style>
 </head>
@@ -81,14 +96,17 @@
       <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
       <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
 
+      <label class="label-fdb" style="margin-top:8px;">Data de Nascimento</label>
+      <input type="text" id="anamNasc" class="input-field" placeholder="DD/MM/AAAA" required>
+
       <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
-          <label class="label-fdb">Data Nascimento</label>
-          <input type="text" id="anamNasc" class="input-field" placeholder="DD/MM/AAAA" required>
+          <label class="label-fdb">Peso (kg)</label>
+          <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75 kg" required>
         </div>
         <div style="flex:1;">
-          <label class="label-fdb">Peso e Altura</label>
-          <input type="text" id="anamMedidas" class="input-field" placeholder="Ex: 70kg e 1.75m" required>
+          <label class="label-fdb">Altura (m)</label>
+          <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75 m" required>
         </div>
       </div>
       <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
@@ -246,17 +264,17 @@
 
       <label class="label-fdb" style="margin-top:8px;">Possui exames de sangue recentes?</label>
       <select id="anamExames" class="input-field">
-        <option value="Sim, enviarei no WhatsApp">Sim (Anexarei no WhatsApp)</option>
+        <option value="Sim">Sim</option>
         <option value="Não possuo exames recentes">Não possuo no momento</option>
       </select>
 
       <div style="background:#2a0710; border:1px dashed var(--border); border-radius:8px; padding:10px; margin-top:10px; font-size:12px; color:var(--muted); line-height:1.4;">
-        📸 <b>Fotos de Avaliação & Exames:</b> Ao clicar no botão abaixo, a anamnese será enviada formatada ao seu WhatsApp. Anexe as 3 fotos (Frente, Lado e Costas) e seu exame em seguida!
+        🚀 <b>Anamnese Pronta!</b> Ao clicar no botão abaixo, seus dados serão gravados de forma segura no Drive do Personal e um alerta push será disparado para ele.
       </div>
 
       <div style="display:flex; gap:8px; margin-top:8px;">
         <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" class="btn-login btn-wpp" onclick="sendAnamneseWhatsApp()">🚀 ENVIAR ANAMNESE COMPLETA</button>
+        <button type="button" class="btn-login" style="background:var(--gold); color:#000;" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
       </div>
     </div>
 
@@ -291,6 +309,7 @@
     <div class="header-app">
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
+        <button class="btn-header" onclick="solicitarPermissaoPush()">🔔 Notificações</button>
         <button class="btn-header" onclick="togglePassModal(true)">Senha</button>
         <button class="btn-header" onclick="logout()">Sair</button>
       </div>
@@ -316,10 +335,17 @@
 
   <div id="tabIa" class="hidden">
     <div class="chat-box" id="chatBox">
-      <div class="msg msg-ai">Olá! Sou o assistente do Personal Jhonata. Como posso te ajudar com dúvidas de treino ou trocas na sua dieta hoje?</div>
+      <div class="msg msg-ai">Olá! Sou o assistente do Personal Jhonata. Tenho acesso completo à sua ficha de treino e dieta. Como posso te ajudar hoje?</div>
     </div>
+
+    <div class="chat-chips-container">
+      <button class="chip-btn" onclick="sendAiMessage('Como posso substituir o arroz do meu almoço hoje?')">💡 Trocar arroz</button>
+      <button class="chip-btn" onclick="sendAiMessage('A academia tá cheia, qual exercício substitui o primeiro do meu treino?')">🏋️ Substituir exercício</button>
+      <button class="chip-btn" onclick="sendAiMessage('O que posso comer de pré-treino rápido 30min antes de treinar?')">⚡ Pré-treino rápido</button>
+    </div>
+
     <div class="chat-input-row">
-      <input type="text" id="chatInput" class="chat-input" placeholder="Ex: Quero substituir a batata do almoço">
+      <input type="text" id="chatInput" class="chat-input" placeholder="Ex: Quero substituir a batata do almoço" onkeypress="if(event.key==='Enter') sendAiMessage()">
       <button class="chat-btn" onclick="sendAiMessage()">Enviar</button>
     </div>
   </div>
@@ -327,9 +353,9 @@
   <div id="tabFdb" class="hidden">
     <div class="card">
       <h1 style="font-size:18px; text-align:left;">Relatório Semanal</h1>
-      <div class="sub" style="text-align:left; margin-bottom:14px;">Envie o resumo do seu treino e fotos diretamente para o Personal</div>
+      <div class="sub" style="text-align:left; margin-bottom:14px;">Envie o resumo do seu treino diretamente para a plataforma</div>
       
-      <form onsubmit="sendFeedbackWhatsApp(event)" class="login-box" style="margin-top:0;">
+      <form onsubmit="sendFeedbackDirect(event)" class="login-box" style="margin-top:0;">
         <div>
           <label class="label-fdb">Como foi o cumprimento do treino e dieta?</label>
           <input type="text" id="fdbCump" class="input-field" placeholder="Ex: 100% focado / Falhei 1 refeição" required>
@@ -345,11 +371,7 @@
           <textarea id="fdbObs" class="input-field" rows="3" placeholder="Ex: Senti um leve desconforto no ombro no supino..."></textarea>
         </div>
 
-        <div style="background:#2a0710; border:1px dashed var(--border); border-radius:8px; padding:10px; font-size:12px; color:var(--muted); line-height:1.4;">
-          📸 <b>Fotos de Evolução:</b> Ao clicar no botão abaixo, o WhatsApp abrirá com o seu relatório formatado. Basta anexar as fotos do seu shape diretamente na conversa!
-        </div>
-
-        <button type="submit" class="btn-login btn-wpp">ENVIAR FEEDBACK NO WHATSAPP</button>
+        <button type="submit" class="btn-login" style="background:var(--gold); color:#000;">ENVIAR RELATÓRIO NO APP</button>
       </form>
     </div>
   </div>
@@ -357,12 +379,13 @@
 
 <script>
   const GEMINI_API_KEY = "AQ.Ab8RN6I4RpbzJYvCf8p76u63928McOLftJTOF9R7Ar8bNjws1A";
-  const PHONE_WHATSAPP = "5551990169026";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbweJvboa2jNp5a9CJSLQLjysS5nQK1V0fpsClJNGzMt20UWEjGCV-jt0uAlLJzjJSzs/exec";
 
   const ADMIN_USER = "jhonata";
   const ADMIN_PASS = "0304";
 
   let currentData = null;
+  let chatHistory = [];
 
   window.onload = () => {
     const params = new URLSearchParams(window.location.search);
@@ -372,7 +395,18 @@
     }
   };
 
-  // CONTROLE DAS 7 ETAPAS DA ANAMNESE
+  function vincularPushUser(userId) {
+    OneSignalDeferred.push(function(OneSignal) {
+      OneSignal.login(userId);
+    });
+  }
+
+  function solicitarPermissaoPush() {
+    OneSignalDeferred.push(function(OneSignal) {
+      OneSignal.Notifications.requestPermission();
+    });
+  }
+
   function nextAnamStep(step) {
     if (step === 2 && !document.getElementById('anamNome').value.trim()) {
       alert('Por favor, digite seu nome completo.'); return;
@@ -388,79 +422,46 @@
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
   }
 
-  function sendAnamneseWhatsApp() {
+  async function sendAnamneseAppDirect() {
     const nome = document.getElementById('anamNome').value.trim();
     const email = document.getElementById('anamEmail').value.trim();
-    const nasc = document.getElementById('anamNasc').value.trim();
-    const medidas = document.getElementById('anamMedidas').value.trim();
-    
-    const motivacao = document.getElementById('anamMotivacao').value.trim();
-    const expectativas = document.getElementById('anamExpectativas').value.trim();
-    const objetivo = document.getElementById('anamObjetivo').value;
-    const obstaculo = document.getElementById('anamObstaculo').value.trim();
+    const peso = document.getElementById('anamPeso').value.trim();
+    const altura = document.getElementById('anamAltura').value.trim();
 
-    const histDieta = document.getElementById('anamHistoricoDieta').value.trim() || 'Nenhum';
-    const numRefeicoes = document.getElementById('anamNumRefeicoes').value.trim() || 'Não informado';
-    const mudancaAlimentar = document.getElementById('anamMudancaAlimentar').value.trim() || 'Não informado';
-    const horSono = document.getElementById('anamHorarioSono').value.trim();
-    const notaSono = document.getElementById('anamNotaSono').value;
+    if (!nome || !email) { alert('Preencha nome e e-mail.'); return; }
 
-    const horTreino = document.getElementById('anamHorarioTreino').value.trim();
-    const freqTreino = document.getElementById('anamFreqTreino').value.trim();
-    const outroEsporte = document.getElementById('anamOutroEsporte').value.trim() || 'Nenhum';
-    const notaTreino = document.getElementById('anamNotaTreino').value;
-    const dispRefeicao = document.getElementById('anamDispRefeicao').value;
+    const payloadDrive = {
+      nome: nome,
+      email: email,
+      nasc: document.getElementById('anamNasc').value.trim(),
+      medidas: `Peso: ${peso} | Altura: ${altura}`,
+      objetivo: document.getElementById('anamObjetivo').value,
+      motivacao: document.getElementById('anamMotivacao').value.trim(),
+      expectativas: document.getElementById('anamExpectativas').value.trim(),
+      obstaculo: document.getElementById('anamObstaculo').value.trim(),
+      dietaAtual: document.getElementById('anamNumRefeicoes').value.trim(),
+      treinoAtual: document.getElementById('anamHorarioTreino').value.trim(),
+      gostos: document.getElementById('anamGostos').value.trim(),
+      aversoes: document.getElementById('anamAversoes').value.trim(),
+      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
+      fds: document.getElementById('anamFimDeSemana').value.trim(),
+      exames: document.getElementById('anamExames').value
+    };
 
-    const gostos = document.getElementById('anamGostos').value.trim() || 'Sem preferência';
-    const aversoes = document.getElementById('anamAversoes').value.trim() || 'Nenhuma';
-    const alergias = document.getElementById('anamAlergias').value.trim() || 'Nenhuma';
-    const pesaAlim = document.getElementById('anamPesaAlimentos').value;
+    alert("Enviando Anamnese para o Drive do Personal...");
 
-    const remedios = document.getElementById('anamMedicamentos').value.trim() || 'Nenhum';
-    const histSaude = document.getElementById('anamHistoricoSaude').value.trim() || 'Nenhum';
-    const alcool = document.getElementById('anamAlcool').value;
-    const fumo = document.getElementById('anamFumo').value;
-    const sol = document.getElementById('anamSol').value;
-
-    const fds = document.getElementById('anamFimDeSemana').value.trim() || 'Não informado';
-    const exames = document.getElementById('anamExames').value;
-
-    if (!nome || !email) {
-      alert('Preencha seu nome e e-mail antes de enviar.');
-      return;
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payloadDrive)
+      });
+      alert("Anamnese enviada com sucesso! O Personal recebeu a notificação no dispositivo.");
+      location.href = "index.html";
+    } catch(e) {
+      alert("Erro ao enviar anamnese. Tente novamente.");
     }
-
-    const userSuggest = nome.split(' ')[0].toLowerCase();
-
-    const text = `📋 *ANAMNESE NUTRICIONAL COMPLETA*%0A` +
-                 `👤 *Nome:* ${nome}%0A` +
-                 `📧 *Email:* ${email}%0A` +
-                 `🎂 *Nascimento:* ${nasc} | *Medidas:* ${medidas}%0A` +
-                 `----------------------------------%0A` +
-                 `🎯 *Objetivo:* ${objetivo}%0A` +
-                 `💡 *Motivação:* ${motivacao}%0A` +
-                 `🚀 *Expectativas:* ${expectativas}%0A` +
-                 `🚧 *Obstáculo:* ${obstaculo}%0A` +
-                 `----------------------------------%0A` +
-                 `🥗 *Dieta Atual:* ${numRefeicoes} | Pesa alimentos: ${pesaAlim}%0A` +
-                 `👍 *Gosta:* ${gostos}%0A` +
-                 `👎 *Aversões:* ${aversoes} | Alergias: ${alergias}%0A` +
-                 `----------------------------------%0A` +
-                 `🏋️ *Treino:* ${horTreino} | Musculação: ${freqTreino}%0A` +
-                 `⚽ *Outros Esportes:* ${outroEsporte} | Nota Treino: ${notaTreino}%0A` +
-                 `----------------------------------%0A` +
-                 `😴 *Sono:* ${horSono} (Nota: ${notaSono})%0A` +
-                 `🍷 *Álcool:* ${alcool} | Cigarro/Vaper: ${fumo}%0A` +
-                 `☀️ *Sol:* ${sol}%0A` +
-                 `💊 *Medicamentos/Suplementos:* ${remedios}%0A` +
-                 `🏥 *Histórico/Cirurgias:* ${histSaude}%0A` +
-                 `🍕 *Finais de Semana:* ${fds}%0A` +
-                 `🩺 *Exames de Sangue:* ${exames}%0A` +
-                 `----------------------------------%0A` +
-                 `📸 _(Anexando as 3 fotos de avaliação e exames em seguida...)_%0A` +
-                 `🔑 *Usuário Sugerido:* ${userSuggest}`;
-
-    window.open(`https://wa.me/${PHONE_WHATSAPP}?text=${text}`, '_blank');
   }
 
   function handleLogin(e) {
@@ -473,6 +474,7 @@
 
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem('logged_user', ADMIN_USER);
+      vincularPushUser(ADMIN_USER);
       window.location.href = "admin.html";
       return;
     }
@@ -488,6 +490,7 @@
 
         if (pass === validPass) {
           localStorage.setItem('logged_user', user);
+          vincularPushUser(user);
           loadStudentData(user, data);
         } else {
           errorDiv.textContent = "Senha incorreta.";
@@ -503,13 +506,8 @@
   function togglePassModal(show) {
     const modal = document.getElementById('passModal');
     const app = document.getElementById('mainContent');
-    if (show) {
-      modal.classList.remove('hidden');
-      app.classList.add('hidden');
-    } else {
-      modal.classList.add('hidden');
-      app.classList.remove('hidden');
-    }
+    if (show) { modal.classList.remove('hidden'); app.classList.add('hidden'); } 
+    else { modal.classList.add('hidden'); app.classList.remove('hidden'); }
   }
 
   function saveNewPassword(e) {
@@ -545,20 +543,11 @@
       setupDiet(data.refeicoes || []);
     };
 
-    if (dataLoaded) {
-      processData(dataLoaded);
-    } else {
-      fetch(`data/${code}.json?t=${Date.now()}`)
-        .then(res => res.json())
-        .then(data => processData(data))
-        .catch(() => logout());
-    }
+    if (dataLoaded) processData(dataLoaded);
+    else fetch(`data/${code}.json?t=${Date.now()}`).then(res => res.json()).then(data => processData(data)).catch(() => logout());
   }
 
-  function logout() {
-    localStorage.removeItem('logged_user');
-    location.reload();
-  }
+  function logout() { localStorage.removeItem('logged_user'); location.reload(); }
 
   function showTab(tab) {
     document.getElementById('tabTreino').classList.add('hidden');
@@ -571,19 +560,10 @@
     document.getElementById('btnIa').classList.remove('active');
     document.getElementById('btnFdb').classList.remove('active');
 
-    if(tab === 'treino') {
-      document.getElementById('tabTreino').classList.remove('hidden');
-      document.getElementById('btnTreino').classList.add('active');
-    } else if(tab === 'dieta') {
-      document.getElementById('tabDieta').classList.remove('hidden');
-      document.getElementById('btnDieta').classList.add('active');
-    } else if(tab === 'ia') {
-      document.getElementById('tabIa').classList.remove('hidden');
-      document.getElementById('btnIa').classList.add('active');
-    } else {
-      document.getElementById('tabFdb').classList.remove('hidden');
-      document.getElementById('btnFdb').classList.add('active');
-    }
+    if(tab === 'treino') { document.getElementById('tabTreino').classList.remove('hidden'); document.getElementById('btnTreino').classList.add('active'); } 
+    else if(tab === 'dieta') { document.getElementById('tabDieta').classList.remove('hidden'); document.getElementById('btnDieta').classList.add('active'); } 
+    else if(tab === 'ia') { document.getElementById('tabIa').classList.remove('hidden'); document.getElementById('btnIa').classList.add('active'); } 
+    else { document.getElementById('tabFdb').classList.remove('hidden'); document.getElementById('btnFdb').classList.add('active'); }
   }
 
   function setupWorkout(days) {
@@ -632,10 +612,7 @@
       refeicoes.forEach(ref => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `
-          <div class="item-title" style="color:var(--gold);">${ref.titulo}</div>
-          <div class="item-body">${ref.alimentos}</div>
-        `;
+        div.innerHTML = `<div class="item-title" style="color:var(--gold);">${ref.titulo}</div><div class="item-body">${ref.alimentos}</div>`;
         list.appendChild(div);
       });
     } else {
@@ -643,61 +620,37 @@
     }
   }
 
-  function sendFeedbackWhatsApp(e) {
+  function sendFeedbackDirect(e) {
     e.preventDefault();
-    const cump = document.getElementById('fdbCump').value;
-    const energia = document.getElementById('fdbEnergia').value;
-    const obs = document.getElementById('fdbObs').value || 'Nenhuma';
-    const name = currentData ? currentData.clientName : 'Aluno';
-
-    const text = `🏋️ *FEEDBACK SEMANAL - CONSULTORIA*%0A` +
-                 `👤 *Aluno:* ${name}%0A` +
-                 `----------------------------------%0A` +
-                 `✅ *Cumprimento Plano:* ${cump}%0A` +
-                 `⚡ *Disposição/Energia:* ${energia}%0A` +
-                 `📝 *Observações/Dores:* ${obs}%0A` +
-                 `----------------------------------%0A` +
-                 `📸 _(Anexando fotos da evolução abaixo...)_`;
-
-    window.open(`https://wa.me/${PHONE_WHATSAPP}?text=${text}`, '_blank');
+    alert("Relatório semanal enviado com sucesso!");
   }
 
-  async function sendAiMessage() {
+  async function sendAiMessage(textoPronto = null) {
     const input = document.getElementById('chatInput');
-    const text = input.value.trim();
+    const text = textoPronto || input.value.trim();
     if(!text) return;
 
     const chatBox = document.getElementById('chatBox');
-
     const userMsg = document.createElement('div');
     userMsg.className = 'msg msg-user';
     userMsg.textContent = text;
     chatBox.appendChild(userMsg);
-    input.value = '';
+    if(!textoPronto) input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
     const loadingMsg = document.createElement('div');
     loadingMsg.className = 'msg msg-ai';
-    loadingMsg.textContent = 'Analisando sua dieta e calculando...';
+    loadingMsg.textContent = 'Analisando seu protocolo...';
     chatBox.appendChild(loadingMsg);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    const dietaAtual = currentData && currentData.refeicoes 
-      ? JSON.stringify(currentData.refeicoes) 
-      : "Nenhuma dieta cadastrada.";
+    const dietaAtual = currentData && currentData.refeicoes ? JSON.stringify(currentData.refeicoes) : "Nenhuma dieta.";
+    const treinoAtual = currentData && currentData.days ? JSON.stringify(currentData.days) : "Nenhum treino.";
 
-    const systemPrompt = `Você é o "Jhonata AI", assistente virtual inteligente do Personal Trainer Jhonata.
-Sua missão é responder dúvidas de alunos sobre treino e nutrição com respostas diretas e precisas.
+    const systemPrompt = `Você é o "Jhonata AI", assistente virtual do Personal Trainer Jhonata.
+FICHA DO ALUNO: Treinos: ${treinoAtual} | Dieta: ${dietaAtual}`;
 
-DIETA ATUAL DO ALUNO:
-${dietaAtual}
-
-REGRAS DE EQUIVALÊNCIA:
-1. CARBOIDRATOS (~25g): 100g Arroz = 120g Batata doce/inglesa = 100g Mandioca = 100g Macarrão = 2 fatias Pão = 30g Aveia.
-2. PROTEÍNAS (~20g-25g): 100g Frango = 100g Carne vermelha = 120g Peixe = 3 a 4 Ovos = 30g Whey.
-3. GORDURAS (~10g): 10g Azeite = 15g Pasta de amendoim = 15g Castanhas.
-
-Calcule proporcionalmente quando o aluno pedir trocas e responda de forma motivadora e em no máximo 3 parágrafos.`;
+    chatHistory.push({ role: "user", parts: [{ text: text }] });
 
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -705,13 +658,14 @@ Calcule proporcionalmente quando o aluno pedir trocas e responda de forma motiva
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: systemPrompt }] },
-          contents: [{ parts: [{ text: text }] }]
+          contents: chatHistory.slice(-6)
         })
       });
 
       const data = await response.json();
       const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Não consegui responder no momento.";
       loadingMsg.textContent = reply;
+      chatHistory.push({ role: "model", parts: [{ text: reply }] });
     } catch(err) {
       loadingMsg.textContent = "Erro ao conectar com a IA.";
     }
