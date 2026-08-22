@@ -3,274 +3,284 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Planos de Consultoria — Treinamento Inteligente & Alta Performance</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<title>Jhonata Consultoria — Físico de Alta Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root { 
-    --bg: #0b0104; 
-    --card: rgba(31, 4, 11, 0.85); 
-    --border: #5a1120; 
-    --accent: #e62e2e; 
-    --gold: #ffc837; 
+    --bg: #080103; 
+    --card: rgba(36, 4, 12, 0.92); 
+    --border: #6e1327; 
+    --accent: #ff2a2a; 
+    --gold: #ffcc00; 
     --green: #25d366; 
     --text: #ffffff; 
-    --muted: #e2b3be; 
+    --muted: #f0c2cd; 
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { 
-    background: radial-gradient(circle at top, #2d050e 0%, #080103 80%); 
+    background: radial-gradient(circle at top, #3b0612 0%, #080103 85%); 
     color: var(--text); 
     font-family: 'Inter', sans-serif; 
-    padding: 16px; 
-    max-width: 520px; 
+    padding: 20px 14px; 
+    max-width: 540px; 
     margin: 0 auto; 
     min-height: 100vh; 
     display: flex; 
     flex-direction: column; 
-    gap: 18px;
+    gap: 22px;
   }
 
+  /* BADGE DE ATENÇÃO */
   .badge-top {
-    background: linear-gradient(90deg, rgba(255,200,55,0.2) 0%, rgba(230,46,46,0.2) 100%);
-    border: 1px solid var(--gold);
+    background: linear-gradient(90deg, rgba(255,204,0,0.25) 0%, rgba(255,42,42,0.25) 100%);
+    border: 2px solid var(--gold);
     color: var(--gold);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 900;
-    padding: 6px 14px;
-    border-radius: 20px;
+    padding: 8px 18px;
+    border-radius: 30px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     display: inline-block;
-    box-shadow: 0 0 15px rgba(255, 200, 55, 0.2);
+    box-shadow: 0 0 20px rgba(255, 204, 0, 0.3);
   }
 
   .header-brand { text-align: center; padding: 10px 0; }
   .header-brand h1 { 
-    font-size: 30px; 
+    font-size: 34px; 
     font-weight: 900; 
     letter-spacing: -1px; 
-    background: linear-gradient(180deg, #ffffff 0%, #d8b3bb 100%);
+    line-height: 1.1;
+    background: linear-gradient(180deg, #ffffff 0%, #f0c2cd 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
   }
   .header-brand .subhead { 
     color: var(--gold); 
-    font-size: 13px; 
-    margin-top: 4px; 
-    font-weight: 800; 
+    font-size: 15px; 
+    margin-top: 8px; 
+    font-weight: 900; 
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
   }
 
   .card { 
     background: var(--card); 
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border); 
-    border-radius: 20px; 
-    padding: 22px; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    backdrop-filter: blur(12px);
+    border: 2px solid var(--border); 
+    border-radius: 22px; 
+    padding: 24px; 
+    box-shadow: 0 12px 35px rgba(0,0,0,0.8);
   }
 
-  .section-title { font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section-title { font-size: 21px; font-weight: 900; color: #fff; margin-bottom: 14px; text-transform: uppercase; letter-spacing: -0.5px; }
 
+  /* MENTALIDADE DE TREINO INTELIGENTE */
   .method-highlight {
-    background: linear-gradient(135deg, rgba(90, 17, 32, 0.6) 0%, rgba(26, 3, 8, 0.8) 100%);
-    border: 1px solid var(--gold);
+    background: linear-gradient(135deg, rgba(110, 19, 39, 0.7) 0%, rgba(20, 2, 6, 0.9) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(255,204,0,0.15);
+  }
+  .method-title { font-size: 18px; font-weight: 900; color: var(--gold); margin-bottom: 8px; text-transform: uppercase; }
+  .method-text { font-size: 14px; color: #fff; line-height: 1.6; }
+
+  /* PERFIS DE ALUNOS */
+  .profile-box {
+    background: rgba(15, 2, 5, 0.85);
+    border: 1.5px solid var(--border);
     border-radius: 14px;
     padding: 16px;
     margin-bottom: 12px;
-  }
-  .method-title { font-size: 15px; font-weight: 800; color: var(--gold); margin-bottom: 6px; }
-  .method-text { font-size: 13px; color: var(--muted); line-height: 1.5; }
-
-  .profile-box {
-    background: rgba(20, 2, 6, 0.7);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 10px;
   }
   .profile-box.advanced {
     border-color: var(--gold);
-    background: rgba(45, 5, 14, 0.5);
+    background: rgba(50, 6, 16, 0.65);
   }
-  .profile-tag { font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; margin-bottom: 4px; }
-  .profile-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+  .profile-tag { font-size: 13px; font-weight: 900; color: var(--gold); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+  .profile-desc { font-size: 14px; color: var(--muted); line-height: 1.5; }
 
   /* CARDS DE PLANOS */
   .plan-card {
-    background: rgba(18, 2, 6, 0.8);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: rgba(18, 2, 6, 0.9);
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
     position: relative;
   }
   .plan-card.featured {
-    border: 2px solid var(--gold);
-    box-shadow: 0 0 25px rgba(255, 200, 55, 0.25);
-    background: rgba(35, 4, 11, 0.9);
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.35);
+    background: rgba(45, 5, 14, 0.95);
   }
   .featured-tag {
     position: absolute;
-    top: -12px;
+    top: -14px;
     right: 14px;
-    background: linear-gradient(90deg, #ffc837 0%, #e62e2e 100%);
+    background: linear-gradient(90deg, #ffcc00 0%, #ff2a2a 100%);
     color: #000;
     font-weight: 900;
-    font-size: 10px;
-    padding: 4px 10px;
-    border-radius: 10px;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 12px;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  .plan-title { font-size: 16px; font-weight: 800; color: #fff; }
-  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .plan-price-main { font-size: 22px; font-weight: 900; color: #fff; margin: 2px 0; }
-  .plan-discount-pix { font-size: 12px; font-weight: 800; color: #7fd68a; background: rgba(127, 214, 138, 0.12); padding: 5px 10px; border-radius: 6px; display: inline-block; margin-top: 4px; }
+  .plan-title { font-size: 18px; font-weight: 900; color: #fff; }
+  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .plan-price-main { font-size: 26px; font-weight: 900; color: #fff; margin: 4px 0; }
+  .plan-discount-pix { font-size: 13px; font-weight: 900; color: #7fd68a; background: rgba(127, 214, 138, 0.15); padding: 6px 12px; border-radius: 8px; display: inline-block; margin-top: 6px; }
 
-  .features-list { display: flex; flex-direction: column; gap: 10px; }
-  .feature-item { display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .features-list { display: flex; flex-direction: column; gap: 14px; }
+  .feature-item { display: flex; align-items: center; gap: 14px; font-size: 14px; font-weight: 600; color: #fff; line-height: 1.4; }
   .feature-icon {
-    background: #2a050e;
+    background: #380612;
     border: 1px solid var(--border);
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    font-size: 20px;
     flex-shrink: 0;
   }
 
+  /* BOTÕES GRANDES */
   .btn {
     width: 100%;
-    padding: 16px;
-    border-radius: 14px;
+    padding: 18px;
+    border-radius: 16px;
     font-weight: 900;
-    font-size: 14px;
+    font-size: 15px;
     text-align: center;
     text-decoration: none;
     display: block;
     cursor: pointer;
     border: none;
     transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
   .btn:active { transform: scale(0.97); }
   
   .btn-primary {
-    background: linear-gradient(90deg, #e62e2e 0%, #aa1212 100%);
+    background: linear-gradient(90deg, #ff2a2a 0%, #b80d0d 100%);
     color: #fff;
-    box-shadow: 0 4px 20px rgba(230, 46, 46, 0.5);
+    box-shadow: 0 6px 25px rgba(255, 42, 42, 0.55);
   }
-  .btn-wpp { background: var(--green); color: #000; font-weight: 900; }
-  .btn-outline { background: transparent; border: 1px solid var(--border); color: #fff; }
+  .btn-wpp { background: var(--green); color: #000; font-weight: 900; box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3); }
+  .btn-outline { background: transparent; border: 2px solid var(--border); color: #fff; }
 
-  .footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: auto; padding: 16px 0; }
+  .footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: auto; padding: 18px 0; }
 </style>
 </head>
 <body>
 
   <!-- CABEÇALHO -->
   <div class="header-brand">
-    <div class="badge-top">🔥 METODOLOGIA AVALIADA & APROVADA</div>
-    <h1> PLANOS DE CONSULTORIA</h1>
-    <div class="subhead">Chega de treino genérico e resultados estagnados</div>
+    <div class="badge-top">🔥 VAGAS LIMITADAS PARA ESTE MÊS</div>
+    <h1>JHONATA CONSULTORIA</h1>
+    <div class="subhead">CONSTRUA UM FÍSICO FORTE, DENSO E DEFINIDO</div>
   </div>
 
-  <!-- METODOLOGIA -->
+  <!-- SEÇÃO: TREINO INTELIGENTE -->
   <div class="card">
-    <div class="section-title">🧠 Alta Performance & Ciência</div>
+    <div class="section-title">🧠 ALTA PERFORMANCE & CIÊNCIA</div>
     
     <div class="method-highlight">
-      <div class="method-title">Fique mais forte treinando com inteligência</div>
+      <div class="method-title">⚡ Treine com Estratégia, Não no Improviso!</div>
       <div class="method-text">
-        Treinar até o cansaço sem método só gera fadiga. Aqui aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva) para você construir massa muscular real no menor tempo possível.
+        Treinar até o cansaço sem método só gera fadiga e lesões. Na consultoria aplicamos <b>estratégias milimetricamente ajustadas</b> — com técnicas avançadas bem posicionadas (<b>Rest-Pause, Cluster Sets, Pico de Contração e Carga Progressiva</b>) para destravar seu crescimento muscular no menor tempo possível[cite: 1].
       </div>
     </div>
   </div>
 
   <!-- SEÇÃO APP PRÓPRIO E EXCLUSIVO -->
   <div class="card" style="border-color: var(--gold);">
-    <div class="section-title" style="color: var(--gold);">📱 Seu Aplicativo Exclusivo & Individualizado</div>
+    <div class="section-title" style="color: var(--gold);">📱 SEU APP PRÓPRIO E INDIVIDUALIZADO</div>
     
-    <div class="method-text" style="margin-bottom: 12px;">
-      Chega de planilhas confusas em PDF ou mensagens perdidas. Você terá acesso a um <b>aplicativo web próprio e exclusivo</b>, desenvolvido sob medida para a sua consultoria:
+    <div class="method-text" style="margin-bottom: 14px; font-size:14px; color:var(--muted);">
+      Esqueça planilhas confusas em PDF ou arquivos soltos no WhatsApp. Você terá um <b>aplicativo web próprio e exclusivo</b> para acompanhar seu progresso diário[cite: 1]:
     </div>
 
     <div class="features-list">
       <div class="feature-item">
         <div class="feature-icon">🔑</div>
-        <span><b>Acesso Privado:</b> Login e senha individuais, garantindo total privacidade do seu protocolo.</span>
+        <span><b>Login Privado Exclusivo:</b> Acesso com usuário e senha individual para seu protocolo.</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon">📲</div>
-        <span><b>Instalação no Celular:</b> Salve na tela inicial do seu celular e use exatamente como um app nativo.</span>
+        <span><b>App no Celular:</b> Instale diretamente na tela inicial do seu celular sem ocupar memória.</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon">📈</div>
-        <span><b>Progressão de Cargas Salva:</b> Registre peso e repetições a cada treino diretamente na sua ficha.</span>
+        <span><b>Registro de Cargas:</b> Anote pesos e repetições treino a treino para garantir progressão.</span>
       </div>
       <div class="feature-item">
         <div class="feature-icon">🤖</div>
-        <span><b>Assistente IA Integrado:</b> Calcule substituições de alimentos em segundos diretamente no app.</span>
+        <span><b>Assistente de Nutrição com IA:</b> Calcule substituições de alimentos em segundos diretamente no app[cite: 1].</span>
       </div>
     </div>
   </div>
 
   <!-- PARA QUEM É -->
   <div class="card">
-    <div class="section-title">🎯 Para quem é a Consultoria?</div>
+    <div class="section-title">🎯 PARA QUEM É A CONSULTORIA?</div>
 
     <div class="profile-box">
-      <div class="profile-tag">🔰 Iniciante na Academia</div>
-      <div class="profile-desc">Sente-se perdido entre os aparelhos e exercícios, sem saber a ordem correta, cargas ideais nem como montar a dieta certa para o seu tipo físico.</div>
+      <div class="profile-tag">🔰 INICIANTE NA ACADEMIA</div>
+      <div class="profile-desc">Sente-se perdido entre os aparelhos e exercícios, sem saber a ordem correta, cargas ideais nem como montar a dieta certa para seu tipo físico[cite: 1].</div>
     </div>
 
     <div class="profile-box advanced">
-      <div class="profile-tag">⚡ Já Treina mas Estagnou</div>
-      <div class="profile-desc">Treina pesado há meses ou anos, mas o físico parou de evoluir. Precisa de sobrecarga progressiva estruturada e técnicas avançadas para atingir a melhor versão.</div>
+      <div class="profile-tag">⚡ JÁ TREINA MAS ESTAGNOU</div>
+      <div class="profile-desc">Treina pesado há meses ou anos, mas o físico parou de evoluir. Precisa de sobrecarga progressiva estruturada e técnicas avançadas para atingir a melhor versão[cite: 1].</div>
     </div>
   </div>
 
   <!-- PLANOS E CONDIÇÕES -->
   <div class="card">
-    <div class="section-title">💎 Invista no seu Físico:</div>
+    <div class="section-title">💎 INVISTA NO SEU FÍSICO</div>
 
     <!-- PLANO MENSAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Mensal Recorrente</div>
-      <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
+      <div class="plan-title">Plano Mensal Recorrente</div>[cite: 1]
+      <div class="plan-price-main">R$ 150,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">/mês</span></div>[cite: 1]
     </div>
 
     <!-- PLANO TRIMESTRAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Trimestral (3 Meses)</div>
-      <div class="plan-price-old">De R$ 450,00 por:</div>
-      <div class="plan-price-main">3x de R$ 130,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">(R$ 390)</span></div>
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 350,00 (Economize R$ 40)</div>
+      <div class="plan-title">Plano Trimestral (3 Meses)</div>[cite: 1]
+      <div class="plan-price-old">De R$ 450,00 por:</div>[cite: 1]
+      <div class="plan-price-main">3x de R$ 130,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 390)</span></div>[cite: 1]
+      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 350,00 (Economize R$ 40)</div>[cite: 1]
     </div>
 
     <!-- PLANO SEMESTRAL (DESTAQUE) -->
     <div class="plan-card featured">
-      <div class="featured-tag">🔥 O MAIS VENDIDO</div>
-      <div class="plan-title">Plano Semestral (6 Meses)</div>
-      <div class="plan-price-old">De R$ 900,00 por:</div>
-      <div class="plan-price-main">6x de R$ 110,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">(R$ 660)</span></div>
-      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 600,00 (Economize R$ 60)</div>
+      <div class="featured-tag">🔥 O MAIS VENDIDO</div>[cite: 1]
+      <div class="plan-title">Plano Semestral (6 Meses)</div>[cite: 1]
+      <div class="plan-price-old">De R$ 900,00 por:</div>[cite: 1]
+      <div class="plan-price-main">6x de R$ 110,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 660)</span></div>[cite: 1]
+      <div class="plan-discount-pix">🚀 À VISTA NO PIX: R$ 600,00 (Economize R$ 60)</div>[cite: 1]
     </div>
 
     <!-- PLANO ANUAL -->
     <div class="plan-card">
-      <div class="plan-title">Plano Anual (12 Meses)</div>
-      <div class="plan-price-old">De R$ 1.800,00 por:</div>
-      <div class="plan-price-main">12x de R$ 85,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">(R$ 1.020)</span></div>
-      <div class="plan-discount-pix">💎 À VISTA NO PIX: R$ 960,00 (Economize R$ 60)</div>
+      <div class="plan-title">Plano Anual (12 Meses)</div>[cite: 1]
+      <div class="plan-price-old">De R$ 1.800,00 por:</div>[cite: 1]
+      <div class="plan-price-main">12x de R$ 85,00 <span style="font-size:13px; font-weight:normal; color:var(--muted);">(R$ 1.020)</span></div>[cite: 1]
+      <div class="plan-discount-pix">💎 À VISTA NO PIX: R$ 960,00 (Economize R$ 60)</div>[cite: 1]
     </div>
   </div>
 
   <!-- BOTÕES DE AÇÃO -->
-  <div style="display:flex; flex-direction:column; gap:12px;">
+  <div style="display:flex; flex-direction:column; gap:14px;">
     <a href="./index.html?modo=anamnese" class="btn btn-primary">
       🚀 PREENCHER ANAMNESE & GARANTIR PROTOCOLO
     </a>
