@@ -56,18 +56,18 @@
 <header>
   <div>
     <h1>Painel do Personal</h1>
-    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas, Edição de Treinos & Anamneses</div>
+    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas, Edição de Treinos & Banco PostgreSQL</div>
   </div>
   <button class="btn-logout" onclick="logoutAdmin()">Sair</button>
 </header>
 
 <div class="admin-grid">
-  <!-- LATERAL DE ALUNOS E ANAMNESE -->
   <aside>
     <div class="card">
-      <div class="label-title">📋 Seus Alunos</div>
-      <div class="student-list" id="studentSidebarList">
-        <div style="font-size:12px; color:var(--muted);">Carregando alunos...</div>
+      <div class="label-title">📋 Buscar Aluno no Banco</div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="searchStudentCode" placeholder="ex: julia ou erick" style="margin-bottom:0;">
+        <button class="btn-action" style="width:auto; padding:8px 12px;" onclick="loadStudentFromInput()">Carregar</button>
       </div>
     </div>
 
@@ -78,16 +78,13 @@
     </div>
   </aside>
 
-  <!-- ÁREA PRINCIPAL DO PAINEL -->
   <main>
     <div class="admin-nav">
       <button class="nav-btn active" id="btnAdminTreino" onclick="switchTab('treino')">🏋️ Treino Atual</button>
       <button class="nav-btn" id="btnAdminMudar" onclick="switchTab('mudar')">✏️ Mudar Treino</button>
       <button class="nav-btn" id="btnAdminDieta" onclick="switchTab('dieta')">🥗 Dieta</button>
-      <button class="nav-btn" id="btnAdminGrafico" onclick="switchTab('grafico')">📈 Cargas</button>
     </div>
 
-    <!-- FICHA DO ALUNO + BANNER DE LINK DIRETO -->
     <div id="tabAdminTreino">
       <div class="card">
         <div class="share-banner">
@@ -103,7 +100,6 @@
       </div>
     </div>
 
-    <!-- EDICÃO DE TREINO COM REORDENAÇÃO -->
     <div id="tabAdminMudar" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);" id="editWorkoutTitle">✏️ Editar Treino do Aluno</div>
@@ -124,21 +120,13 @@
         <div class="label-title">Exercícios Atuais do Dia Selecionado (Reordene aqui):</div>
         <div id="editList"></div>
 
-        <button class="btn-action" style="margin-top:14px; background:var(--gold); color:#000;" onclick="saveWorkoutChanges()">💾 SALVAR MUDANÇAS & DISPARAR PUSH</button>
-
-        <div id="adminJsonSection" class="hidden" style="margin-top:14px;">
-          <label style="font-size:11px; color:var(--green); font-weight:700;">Código JSON Atualizado com Sucesso!</label>
-          <div style="font-size:11px; color:var(--muted); margin-bottom:4px;">Copie e cole este conteúdo dentro de <b id="adminJsonFileName" style="color:#fff;">data/aluno.json</b> no GitHub:</div>
-          <textarea id="adminOutputJson" rows="6" readonly style="font-family:monospace; font-size:11px;"></textarea>
-        </div>
+        <button class="btn-action" style="margin-top:14px; background:var(--gold); color:#000;" onclick="saveWorkoutChanges()">💾 SALVAR NO BANCO DE DADOS POSTGRESQL</button>
       </div>
     </div>
 
-    <!-- MONTAGEM DE NOVO ALUNO VIA ANAMNESE -->
     <div id="tabAdminNovo" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);">📋 Cadastrar Novo Aluno via Anamnese</div>
-        <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Preencha os dados para gerar a estrutura do novo aluno:</div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">1. Dados do Aluno</label>
         <div style="display:flex; gap:8px;">
@@ -152,47 +140,26 @@
         <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar</label>
         <textarea id="anamDiet" rows="3" placeholder="Cole a dieta do aluno..."></textarea>
 
-        <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Gerar Ficha Completa do Aluno</button>
-
-        <div id="anamResultContainer" class="hidden" style="margin-top:14px;">
-          <label style="font-size:12px; color:var(--green); font-weight:700;">Código JSON Criado com Sucesso!</label>
-          <div style="font-size:11px; color:var(--muted); margin-bottom:6px;">Crie o arquivo <b id="anamFileName" style="color:#fff;">data/aluno.json</b> no GitHub e cole o código abaixo:</div>
-          <textarea id="anamOutputJson" rows="6" readonly style="font-family:monospace; font-size:11px;"></textarea>
-        </div>
+        <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Salvar Novo Aluno no Banco</button>
       </div>
     </div>
 
-    <!-- DIETA -->
     <div id="tabAdminDieta" class="hidden">
       <div class="card">
         <div class="label-title" id="studentDietTitle">Plano Alimentar</div>
         <div id="dietContent">Carregando dados...</div>
       </div>
     </div>
-
-    <!-- GRÁFICO -->
-    <div id="tabAdminGrafico" class="hidden">
-      <div class="card">
-        <div class="label-title">Gráfico de Cargas do Aluno</div>
-        <select id="exerciseSelect" onchange="updateChart()">
-          <option value="">Selecione um exercício...</option>
-        </select>
-        <div class="chart-container">
-          <canvas id="loadChart"></canvas>
-        </div>
-      </div>
-    </div>
   </main>
 </div>
 
 <script>
+  const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
   const ONESIGNAL_APP_ID = "149311da-3e88-410f-a9b3-56a098d89b1c";
-  const ONESIGNAL_REST_KEY = "SUA_ONESIGNAL_REST_API_KEY"; // Adicione sua REST Key do OneSignal aqui
-  const ADMIN_USER = "jhonata";
+  const ONESIGNAL_REST_KEY = "SUA_ONESIGNAL_REST_API_KEY";
 
   let selectedStudent = 'erick';
   let currentStudentData = null;
-  let chartInstance = null;
 
   localStorage.setItem('logged_user', 'jhonata');
 
@@ -202,86 +169,33 @@
   }
 
   window.onload = () => {
-    loadStudentsList();
+    loadStudentData('erick');
   };
 
-  function loadStudentsList() {
-    fetch(`data/students.json?v=${Date.now()}`, { cache: 'no-store' })
-      .then(res => res.json())
-      .then(students => {
-        populateSidebar(students);
-      })
-      .catch(() => {
-        const fallback = [
-          { code: 'erick', name: 'Erick' },
-          { code: 'julia', name: 'Júlia' },
-          { code: 'leonardo', name: 'Leonardo' },
-          { code: 'otavio', name: 'Otavio' },
-          { code: 'vini', name: 'Vini' },
-          { code: 'saimon', name: 'Saimon' }
-        ];
-        populateSidebar(fallback);
-      });
+  function loadStudentFromInput() {
+    const code = document.getElementById('searchStudentCode').value.trim().toLowerCase();
+    if (code) loadStudentData(code);
   }
 
-  function populateSidebar(studentsList) {
-    const sidebar = document.getElementById('studentSidebarList');
-    sidebar.innerHTML = '';
-
-    const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
-    const fullList = [...studentsList, ...localStudents];
-    const uniqueStudents = Array.from(new Map(fullList.map(item => [item.code, item])).values());
-
-    uniqueStudents.forEach((st, idx) => {
-      const btn = document.createElement('button');
-      btn.className = `student-btn ${st.code === selectedStudent ? 'active' : ''}`;
-      btn.innerHTML = `${st.name} <span>👤</span>`;
-      btn.onclick = () => selectStudent(st.code, btn);
-      sidebar.appendChild(btn);
-    });
-
-    if (uniqueStudents.length > 0 && !currentStudentData) {
-      selectedStudent = uniqueStudents[0].code;
-      loadStudentData(selectedStudent);
-    }
-  }
-
-  function selectStudent(code, btnElement) {
+  async function loadStudentData(code) {
     selectedStudent = code;
-    currentStudentData = null;
-    if (btnElement) {
-      document.querySelectorAll('.student-btn').forEach(btn => btn.classList.remove('active'));
-      btnElement.classList.add('active');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`);
+      if (!res.ok) throw new Error();
+      currentStudentData = await res.json();
+      
+      document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${currentStudentData.clientName || code}`;
+      document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${currentStudentData.clientName || code}`;
+      document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${currentStudentData.clientName || code}`;
+      document.getElementById('studentDietTitle').textContent = `Plano Alimentar — ${currentStudentData.clientName || code}`;
+      
+      renderWorkoutOverview(currentStudentData);
+      renderDietOverview(currentStudentData);
+      setupEditDaysList(currentStudentData);
+    } catch (err) {
+      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Aluno "${code}" não encontrado no banco. Cadastre-o na aba "Criar via Anamnese".</span>`;
+      document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dieta.</span>`;
     }
-    loadStudentData(code);
-  }
-
-  function loadStudentData(code) {
-    const localWorkout = localStorage.getItem(`custom_workout_${code}`);
-    
-    fetch(`data/${code}.json?v=${Date.now()}`, { cache: 'no-store' })
-      .then(res => res.json())
-      .then(rawData => {
-        let data = JSON.parse(JSON.stringify(rawData));
-        if (localWorkout) {
-          data.days = JSON.parse(localWorkout);
-        }
-        currentStudentData = data;
-        
-        document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${data.clientName || code}`;
-        document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${data.clientName || code}`;
-        document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${data.clientName || code}`;
-        document.getElementById('studentDietTitle').textContent = `Plano Alimentar — ${data.clientName || code}`;
-        
-        renderWorkoutOverview(data);
-        renderDietOverview(data);
-        setupEditDaysList(data);
-        populateExerciseSelect();
-      })
-      .catch(err => {
-        document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar data/${code}.json. Verifique se o arquivo existe.</span>`;
-        document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dieta.</span>`;
-      });
   }
 
   function switchTab(tab) {
@@ -289,12 +203,10 @@
     document.getElementById('tabAdminMudar').classList.add('hidden');
     document.getElementById('tabAdminNovo').classList.add('hidden');
     document.getElementById('tabAdminDieta').classList.add('hidden');
-    document.getElementById('tabAdminGrafico').classList.add('hidden');
 
     document.getElementById('btnAdminTreino').classList.remove('active');
     document.getElementById('btnAdminMudar').classList.remove('active');
     document.getElementById('btnAdminDieta').classList.remove('active');
-    document.getElementById('btnAdminGrafico').classList.remove('active');
 
     if (tab === 'treino') {
       document.getElementById('tabAdminTreino').classList.remove('hidden');
@@ -308,10 +220,6 @@
     } else if (tab === 'dieta') {
       document.getElementById('tabAdminDieta').classList.remove('hidden');
       document.getElementById('btnAdminDieta').classList.add('active');
-    } else {
-      document.getElementById('tabAdminGrafico').classList.remove('hidden');
-      document.getElementById('btnAdminGrafico').classList.add('active');
-      populateExerciseSelect();
     }
   }
 
@@ -324,7 +232,7 @@
       return;
     }
 
-    data.days.forEach((day) => {
+    data.days.forEach((day, dayIdx) => {
       const btn = document.createElement('button');
       btn.className = 'accordion-btn';
       btn.innerHTML = `<span>${day.title}</span> <span>▼</span>`;
@@ -333,8 +241,8 @@
       content.className = 'accordion-content hidden';
 
       (day.exercicios || []).forEach((ex, idx) => {
-        const savedLoad = localStorage.getItem(`c_${data.code || selectedStudent}_${day.id}_${idx}`) || '-';
-        const savedReps = localStorage.getItem(`r_${data.code || selectedStudent}_${day.id}_${idx}`) || '-';
+        const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
+        const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
         
         content.innerHTML += `
           <div class="item-box">
@@ -429,7 +337,6 @@
     });
   }
 
-  // REORDENAÇÃO DE EXERCÍCIOS
   function moveExerciseOrder(dayIdx, exIdx, direction) {
     const exercicios = currentStudentData.days[dayIdx].exercicios;
     const newIdx = exIdx + direction;
@@ -471,41 +378,29 @@
 
   async function saveWorkoutChanges() {
     if (!selectedStudent || !currentStudentData) return;
-    
-    // Salva localmente
-    localStorage.setItem(`custom_workout_${selectedStudent}`, JSON.stringify(currentStudentData.days));
-
-    // Exibe o JSON formatado para substituir no GitHub
-    document.getElementById('adminJsonFileName').textContent = `data/${selectedStudent}.json`;
-    document.getElementById('adminOutputJson').value = JSON.stringify(currentStudentData, null, 2);
-    document.getElementById('adminJsonSection').classList.remove('hidden');
-
-    // Dispara a Notificação Push pelo OneSignal
-    const payload = {
-      app_id: ONESIGNAL_APP_ID,
-      include_external_user_ids: [selectedStudent],
-      headings: { pt: "💪 Seu Treino foi Atualizado!" },
-      contents: { pt: "O Personal Jhonata alterou sua ficha no app. Acesse para conferir." }
-    };
 
     try {
-      await fetch("https://onesignal.com/api/v1/notifications", {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Basic " + ONESIGNAL_REST_KEY
-        },
-        body: JSON.stringify(payload)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          codigo: selectedStudent,
+          payload: currentStudentData
+        })
       });
-    } catch(e) {
-      console.log("Serviço de Push não notificado via REST API");
-    }
 
-    alert(`Mudanças do aluno ${selectedStudent.toUpperCase()} salvas! Lembre-se de colar o JSON gerado abaixo no GitHub.`);
-    renderWorkoutOverview(currentStudentData);
+      if (res.ok) {
+        alert(`🎉 Treino do aluno ${selectedStudent.toUpperCase()} atualizado no PostgreSQL!`);
+        renderWorkoutOverview(currentStudentData);
+      } else {
+        alert("Erro ao salvar dados no banco de dados.");
+      }
+    } catch(e) {
+      alert("Falha na conexão com o servidor do Render.");
+    }
   }
 
-  function createStudentFromAnamnese() {
+  async function createStudentFromAnamnese() {
     const name = document.getElementById('anamName').value.trim();
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
     const rawWorkouts = document.getElementById('anamWorkouts').value.trim();
@@ -545,71 +440,24 @@
       billing: { valor: "80", dueDay: "10" }
     };
 
-    document.getElementById('anamFileName').textContent = `data/${code}.json`;
-    document.getElementById('anamOutputJson').value = JSON.stringify(newStudentData, null, 2);
-    document.getElementById('anamResultContainer').classList.remove('hidden');
-
-    const localStudents = JSON.parse(localStorage.getItem('admin_created_students') || '[]');
-    localStudents.push({ code: code, name: name });
-    localStorage.setItem('admin_created_students', JSON.stringify(localStudents));
-
-    localStorage.setItem(`custom_workout_${code}`, JSON.stringify(parsedDays));
-    
-    loadStudentsList();
-    alert(`Ficha do aluno ${name} criada! Salve o arquivo na pasta data/ no GitHub.`);
-  }
-
-  function populateExerciseSelect() {
-    const select = document.getElementById('exerciseSelect');
-    select.innerHTML = '<option value="">Selecione um exercício...</option>';
-
-    if (!currentStudentData || !currentStudentData.days) return;
-
-    currentStudentData.days.forEach(day => {
-      (day.exercicios || []).forEach((ex, idx) => {
-        const opt = document.createElement('option');
-        opt.value = `${day.id}_${idx}`;
-        opt.textContent = `${day.title} — ${ex.nome}`;
-        select.appendChild(opt);
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          codigo: code,
+          payload: newStudentData
+        })
       });
-    });
-  }
 
-  function updateChart() {
-    const exKey = document.getElementById('exerciseSelect').value;
-    if (!exKey) return;
-
-    const rawLoad = localStorage.getItem(`c_${selectedStudent}_${exKey}`) || '0';
-    const parsedLoad = parseFloat(rawLoad.replace(/[^0-9.]/g, '')) || 0;
-
-    const ctx = document.getElementById('loadChart').getContext('2d');
-
-    if (chartInstance) chartInstance.destroy();
-
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Registro Atual'],
-        datasets: [{
-          label: 'Carga (kg)',
-          data: [parsedLoad * 0.85, parsedLoad * 0.90, parsedLoad * 0.95, parsedLoad],
-          borderColor: '#c4324f',
-          backgroundColor: 'rgba(196, 50, 79, 0.2)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { beginAtZero: true, grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } },
-          x: { grid: { color: '#4a0d1a' }, ticks: { color: '#d8b3bb' } }
-        },
-        plugins: { legend: { labels: { color: '#fff' } } }
+      if (res.ok) {
+        alert(`🚀 Ficha do aluno ${name} criada e salva com sucesso no Banco de Dados!`);
+        loadStudentData(code);
+        switchTab('treino');
       }
-    });
+    } catch(e) {
+      alert("Erro ao enviar dados para o servidor do Render.");
+    }
   }
 
   function copyStudentMessage() {
