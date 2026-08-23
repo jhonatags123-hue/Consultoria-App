@@ -204,7 +204,6 @@
     <div id="mealsList"></div>
   </div>
 
-  <!-- ABA IA ASSISTENTE DE TREINO -->
   <div id="tabChat" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 IA Assistente de Treino 24h</div>
     <div class="chat-box" id="chatHistory">
@@ -216,7 +215,6 @@
     </div>
   </div>
 
-  <!-- ABA FEEDBACK SEMANAL WHATSAPP -->
   <div id="tabFeedback" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">💬 Enviar Relatório Semanal</div>
     <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
@@ -318,22 +316,13 @@
     const payload = {
       code: userCode,
       clientName: nome,
+      email: email,
+      peso: document.getElementById('anamPeso').value,
+      altura: document.getElementById('anamAltura').value,
+      objetivo: document.getElementById('anamObjetivo').value,
       senha: userCode,
-      days: [
-        {
-          id: "d1",
-          title: "Treino A - Adaptação",
-          exercicios: [
-            { nome: "Supino Reto", series: "3", reps: "10-12" },
-            { nome: "Puxada Frontal", series: "3", reps: "10-12" },
-            { nome: "Leg Press 45", series: "3", reps: "12-15" }
-          ]
-        }
-      ],
-      refeicoes: [
-        { titulo: "Café da Manhã", alimentos: "Ovos mexidos (2 un) + Pão integral (2 fatias)" },
-        { titulo: "Almoço", alimentos: "Arroz (120g) + Feijão (80g) + Peito de Frango (150g) + Salada livre" }
-      ]
+      days: [],
+      refeicoes: []
     };
 
     try {
@@ -344,11 +333,11 @@
       });
 
       if (res.ok) {
-        alert(`🎉 Anamnese Enviada! Seu usuário de acesso criado é: ${userCode}`);
+        alert(`🎉 Anamnese Enviada! Seu usuário de acesso criado é: ${userCode}. O Personal Jhonata montará seu treino em breve!`);
         localStorage.setItem('logged_user', userCode);
         loadStudentData(payload);
       } else {
-        alert("Erro ao salvar anamnese no servidor. Tente novamente.");
+        alert("Erro ao enviar dados. Tente novamente.");
         btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
         btn.disabled = false;
       }
@@ -373,6 +362,12 @@
   function setupWorkout(days) {
     const daysList = document.getElementById('daysList');
     daysList.innerHTML = '';
+    
+    if (!days || days.length === 0) {
+      document.getElementById('exercisesList').innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu protocolo está sendo preparado pelo Personal Jhonata!</div>';
+      return;
+    }
+
     days.forEach((day, index) => {
       const btn = document.createElement('button');
       btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
@@ -413,6 +408,12 @@
   function setupDiet(refeicoes) {
     const list = document.getElementById('mealsList');
     list.innerHTML = '';
+
+    if (!refeicoes || refeicoes.length === 0) {
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada ainda.</div>';
+      return;
+    }
+
     (refeicoes || []).forEach(ref => {
       const div = document.createElement('div');
       div.className = 'item';
@@ -449,7 +450,6 @@
     }
   }
 
-  // RESPOSTAS INTELIGENTES DE IA DE SUPORTE
   function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const history = document.getElementById('chatHistory');
@@ -478,7 +478,6 @@
     }, 600);
   }
 
-  // ENVIO DE FEEDBACK DIRETO PARA SEU WHATSAPP
   function sendWhatsAppFeedback() {
     const text = document.getElementById('feedbackText').value.trim();
     if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
