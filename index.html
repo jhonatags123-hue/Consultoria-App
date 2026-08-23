@@ -225,6 +225,9 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+  // LINK DO SEU GOOGLE APPS SCRIPT INTEGRADO:
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUMIrc7HIixANwWhv_M6VPpZi4LcqzfVM60A4O0KKXKb_WTUd1ns8N11aQ3GFLyjkfhg/exec";
+
   const ADMIN_USER = "jhonata";
   const ADMIN_PASS = "0304";
 
@@ -311,38 +314,63 @@
     btn.textContent = "Enviando dados...";
     btn.disabled = true;
 
+    const anamneseData = {
+      nome: nome,
+      email: email,
+      nasc: document.getElementById('anamNasc').value.trim(),
+      peso: document.getElementById('anamPeso').value.trim(),
+      altura: document.getElementById('anamAltura').value.trim(),
+      motivacao: document.getElementById('anamMotivacao').value.trim(),
+      objetivo: document.getElementById('anamObjetivo').value,
+      numRefeicoes: document.getElementById('anamNumRefeicoes').value.trim(),
+      horarioTreino: document.getElementById('anamHorarioTreino').value.trim(),
+      gostos: document.getElementById('anamGostos').value.trim(),
+      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
+      fimDeSemana: document.getElementById('anamFimDeSemana').value.trim()
+    };
+
     const userCode = nome.split(' ')[0].toLowerCase() + Math.floor(100 + Math.random() * 900);
 
-    const payload = {
+    const payloadBD = {
       code: userCode,
       clientName: nome,
       email: email,
-      peso: document.getElementById('anamPeso').value,
-      altura: document.getElementById('anamAltura').value,
-      objetivo: document.getElementById('anamObjetivo').value,
+      peso: anamneseData.peso,
+      altura: anamneseData.altura,
+      objetivo: anamneseData.objetivo,
       senha: userCode,
+      anamneseCompleta: anamneseData,
       days: [],
       refeicoes: []
     };
 
     try {
+      // 1. Envia para a planilha do Google Drive
+      fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(anamneseData)
+      }).catch(err => console.error("Erro no Drive:", err));
+
+      // 2. Salva o perfil do aluno no Banco de Dados (Neon/PostgreSQL)
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo: userCode, payload: payload })
+        body: JSON.stringify({ codigo: userCode, payload: payloadBD })
       });
 
       if (res.ok) {
-        alert(`🎉 Anamnese Enviada! Seu usuário de acesso criado é: ${userCode}. O Personal Jhonata montará seu treino em breve!`);
+        alert(`🎉 Anamnese Enviada com sucesso!\n\nSeu usuário de acesso é: ${userCode}\nO Personal Jhonata revisará suas respostas e montará seu treino em breve.`);
         localStorage.setItem('logged_user', userCode);
-        loadStudentData(payload);
+        loadStudentData(payloadBD);
       } else {
-        alert("Erro ao enviar dados. Tente novamente.");
+        alert("Erro ao criar cadastro no banco de dados. Tente novamente.");
         btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
         btn.disabled = false;
       }
     } catch (e) {
-      alert("Erro de conexão com o servidor.");
+      alert("Erro de conexão ao enviar a anamnese.");
       btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
       btn.disabled = false;
     }
@@ -483,7 +511,7 @@
     if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
 
     const studentName = currentData?.clientName || "Aluno";
-    const phone = "5551990169026"; // SUBSTITUA COM SEU NÚMERO DO WHATSAPP (com DDD)
+    const phone = "5551990169026"; // Substitua com seu WhatsApp real (com DDD)
     
     const msg = `💬 *Feedback de Treino — ${studentName}*%0A%0A${encodeURIComponent(text)}`;
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
