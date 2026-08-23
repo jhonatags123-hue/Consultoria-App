@@ -15,14 +15,15 @@
   h1 { font-size:20px; font-weight:800; color:var(--text); }
   .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
   
-  .admin-grid { display:grid; grid-template-columns: 240px 1fr; gap:16px; }
+  .admin-grid { display:grid; grid-template-columns: 260px 1fr; gap:16px; }
   @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
 
   .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:16px; }
   .label-title { font-size:11px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px; }
   
-  .student-list { display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; }
-  .student-btn { background:#1a0308; border:1px solid var(--border); color:var(--text); padding:10px; border-radius:8px; font-weight:600; font-size:13px; text-align:left; cursor:pointer; display:flex; justify-space-between; align-items:center; }
+  .student-list { display:flex; flex-direction:column; gap:6px; max-height:350px; overflow-y:auto; padding-right:4px; }
+  .student-btn { background:#1a0308; border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:8px; font-weight:600; font-size:13px; text-align:left; cursor:pointer; display:flex; justify-content:space-between; align-items:center; }
+  .student-btn:hover { border-color:var(--gold); }
   .student-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
   .admin-nav { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; }
@@ -64,10 +65,12 @@
 <div class="admin-grid">
   <aside>
     <div class="card">
-      <div class="label-title">📋 Buscar Aluno no Banco</div>
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="searchStudentCode" placeholder="ex: julia ou erick" style="margin-bottom:0;">
-        <button class="btn-action" style="width:auto; padding:8px 12px;" onclick="loadStudentFromInput()">Carregar</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="label-title" style="margin-bottom:0;">👥 Alunos Cadastrados</div>
+        <button onclick="fetchStudentList()" style="background:transparent; border:none; color:var(--gold); cursor:pointer; font-size:12px;">🔄 Atualizar</button>
+      </div>
+      <div id="studentsList" class="student-list">
+        <div style="font-size:12px; color:var(--muted);">Carregando alunos...</div>
       </div>
     </div>
 
@@ -97,7 +100,7 @@
         </div>
 
         <div class="label-title" id="studentWorkoutTitle">Ficha de Treino</div>
-        <div id="workoutContent">Carregando dados...</div>
+        <div id="workoutContent">Selecione um aluno na lista ao lado...</div>
       </div>
     </div>
 
@@ -136,7 +139,7 @@
         </div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Estrutura dos Treinos (A, B, C...)</label>
-        <textarea id="anamWorkouts" rows="4" placeholder="Cole aqui os treinos do aluno..."></textarea>
+        <textarea id="anamWorkouts" rows="6" placeholder="Cole aqui os treinos do aluno..."></textarea>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar</label>
         <textarea id="anamDiet" rows="3" placeholder="Cole a dieta do aluno..."></textarea>
@@ -148,7 +151,7 @@
     <div id="tabAdminDieta" class="hidden">
       <div class="card">
         <div class="label-title" id="studentDietTitle">Plano Alimentar</div>
-        <div id="dietContent">Carregando dados...</div>
+        <div id="dietContent">Selecione um aluno na lista ao lado...</div>
       </div>
     </div>
 
@@ -168,7 +171,7 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  let selectedStudent = 'erick';
+  let selectedStudent = '';
   let currentStudentData = null;
   let chartInstance = null;
 
@@ -180,12 +183,44 @@
   }
 
   window.onload = () => {
-    loadStudentData('erick');
+    fetchStudentList();
   };
 
-  function loadStudentFromInput() {
-    const code = document.getElementById('searchStudentCode').value.trim().toLowerCase();
-    if (code) loadStudentData(code);
+  async function fetchStudentList() {
+    const listDiv = document.getElementById('studentsList');
+    listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Buscando alunos...</div>';
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/alunos/listar`);
+      if (!res.ok) throw new Error();
+      const alunos = await res.json();
+
+      if (alunos.length === 0) {
+        listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum aluno cadastrado.</div>';
+        return;
+      }
+
+      listDiv.innerHTML = '';
+      alunos.forEach((aluno, index) => {
+        const btn = document.createElement('button');
+        btn.className = `student-btn ${index === 0 ? 'active' : ''}`;
+        btn.innerHTML = `<span><b>${aluno.nome || aluno.codigo}</b></span> <small style="color:var(--gold);">@${aluno.codigo}</small>`;
+        
+        btn.onclick = () => {
+          document.querySelectorAll('.student-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          loadStudentData(aluno.codigo);
+        };
+
+        listDiv.appendChild(btn);
+      });
+
+      if (alunos.length > 0) {
+        loadStudentData(alunos[0].codigo);
+      }
+    } catch (e) {
+      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao carregar lista de alunos.</div>';
+    }
   }
 
   async function loadStudentData(code) {
@@ -205,7 +240,7 @@
       setupEditDaysList(currentStudentData);
       populateExerciseSelect();
     } catch (err) {
-      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Aluno "${code}" não encontrado no banco. Cadastre-o na aba "Criar via Anamnese".</span>`;
+      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados do aluno ${code}.</span>`;
       document.getElementById('dietContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dieta.</span>`;
     }
   }
@@ -469,7 +504,7 @@
 
       if (res.ok) {
         alert(`🚀 Ficha do aluno ${name} criada e salva no Banco!`);
-        loadStudentData(code);
+        fetchStudentList();
         switchTab('treino');
       }
     } catch(e) {
