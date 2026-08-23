@@ -32,7 +32,7 @@
   .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
   .btn-wpp { background:#25d366; color:#000; font-weight:800; }
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
-  .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; }
+  .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
 
   .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
   .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
@@ -225,7 +225,6 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  // NOVA URL DO SEU GOOGLE APPS SCRIPT INTEGRADO:
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwh6A1018LpY9w-JXhx1OR6hcyhsIb_9dClfFj_W8SDkQ8TLcDcc2h-hIrM0P2PaVg38Q/exec";
 
   const ADMIN_USER = "jhonata";
@@ -233,11 +232,28 @@
 
   let currentData = null;
 
-  window.onload = () => {
+  window.onload = async () => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
+      return;
+    }
+
+    // Auto-login se já estiver logado
+    const loggedUser = localStorage.getItem('logged_user');
+    if (loggedUser && loggedUser !== ADMIN_USER) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
+        if (res.ok) {
+          const data = await res.json();
+          loadStudentData(data);
+        } else {
+          localStorage.removeItem('logged_user');
+        }
+      } catch (e) {
+        localStorage.removeItem('logged_user');
+      }
     }
   };
 
@@ -269,6 +285,7 @@
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
   }
 
+  // LOGIN CORRIGIDO COM VALIDAÇÃO RÍGIDA DE SENHA
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('btnLoginSubmit');
@@ -279,6 +296,7 @@
     errorDiv.classList.add('hidden');
     btn.textContent = "Acessando...";
 
+    // 1. Acesso Admin
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem('logged_user', ADMIN_USER);
       vincularPushUser(ADMIN_USER);
@@ -286,16 +304,28 @@
       return;
     }
 
+    // 2. Acesso Aluno
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/${user}`);
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Usuário não encontrado");
+      
       const data = await res.json();
+      const senhaEsperada = (data.senha || data.code || user).toString().trim();
 
+      // Confere se a senha digitada bate com a salva no banco
+      if (pass !== senhaEsperada) {
+        errorDiv.textContent = "❌ Senha incorreta! Verifique a senha e tente novamente.";
+        errorDiv.classList.remove('hidden');
+        btn.textContent = "ENTRAR";
+        return;
+      }
+
+      // Senha correta: faz o login
       localStorage.setItem('logged_user', user);
       vincularPushUser(user);
       loadStudentData(data);
     } catch (err) {
-      errorDiv.textContent = "Usuário não encontrado no banco de dados.";
+      errorDiv.textContent = "❌ Usuário não encontrado no banco de dados.";
       errorDiv.classList.remove('hidden');
       btn.textContent = "ENTRAR";
     }
@@ -345,7 +375,6 @@
     };
 
     try {
-      // 1. Envia para a planilha do Google Drive e ativa o disparo para o WhatsApp
       fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
@@ -353,7 +382,6 @@
         body: JSON.stringify(anamneseData)
       }).catch(err => console.error("Erro no Drive:", err));
 
-      // 2. Salva o perfil do aluno no Banco de Dados (Neon/PostgreSQL)
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -361,7 +389,7 @@
       });
 
       if (res.ok) {
-        alert(`🎉 Anamnese Enviada com sucesso!\n\nSeu usuário de acesso é: ${userCode}\nO Personal Jhonata revisará suas respostas e montará seu treino em breve.`);
+        alert(`🎉 Anamnese Enviada com sucesso!\n\nSeu usuário de acesso é: ${userCode}\nSua senha inicial é: ${userCode}\n\nO Personal Jhonata revisará suas respostas e montará seu treino em breve.`);
         localStorage.setItem('logged_user', userCode);
         loadStudentData(payloadBD);
       } else {
@@ -450,7 +478,11 @@
     });
   }
 
-  function logout() { localStorage.removeItem('logged_user'); location.reload(); }
+  // LOGOUT QUE DESTRÓI A SESSÃO
+  function logout() { 
+    localStorage.removeItem('logged_user'); 
+    location.reload(); 
+  }
 
   function showTab(tab) {
     document.getElementById('tabTreino').classList.add('hidden');
