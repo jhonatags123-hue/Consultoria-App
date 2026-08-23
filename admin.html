@@ -50,19 +50,20 @@
   .chart-container { position:relative; width:100%; height:220px; margin-top:10px; }
   .hidden { display:none !important; }
 
-  /* MODAL DE LOGIN ADMIN */
-  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:flex; align-items:center; justify-content:center; z-index:9999; }
+  /* OVERLAY DE LOGIN PROTEGIDO */
+  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; z-index:9999; }
   .modal-card { background:var(--card); border:1px solid var(--accent); border-radius:14px; padding:24px; width:90%; max-width:320px; text-align:center; }
 </style>
 </head>
 <body>
 
-<!-- OVERLAY DE LOGIN PROTEGIDO -->
+<!-- MODAL DE AUTENTICAÇÃO PROTEGIDA -->
 <div id="loginModal" class="modal-overlay">
   <div class="modal-card">
-    <div class="label-title" style="font-size:14px;">🔒 Acesso Restrito ao Personal</div>
-    <input type="text" id="adminUser" placeholder="Usuário" style="margin-top:10px;">
-    <input type="password" id="adminPass" placeholder="Senha">
+    <div class="label-title" style="font-size:14px; color:var(--gold);">🔒 Acesso Restrito ao Personal</div>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Autenticação direta com o servidor</div>
+    <input type="text" id="adminUser" placeholder="Usuário Admin">
+    <input type="password" id="adminPass" placeholder="Senha Admin" onkeypress="if(event.key==='Enter') authenticateAdmin()">
     <button class="btn-action" style="margin-top:4px;" onclick="authenticateAdmin()">Entrar no Painel</button>
   </div>
 </div>
@@ -70,7 +71,7 @@
 <header>
   <div>
     <h1>Painel do Personal</h1>
-    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas, Edição & Banco PostgreSQL</div>
+    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas & Banco PostgreSQL (JWT)</div>
   </div>
   <button class="btn-logout" onclick="logoutAdmin()">Sair</button>
 </header>
@@ -83,7 +84,7 @@
         <button onclick="fetchStudentList()" style="background:transparent; border:none; color:var(--gold); cursor:pointer; font-size:12px;">🔄 Atualizar</button>
       </div>
       <div id="studentsList" class="student-list">
-        <div style="font-size:12px; color:var(--muted);">Carregando alunos...</div>
+        <div style="font-size:12px; color:var(--muted);">Aguardando autenticação...</div>
       </div>
     </div>
 
@@ -189,38 +190,64 @@
   let chartInstance = null;
 
   window.onload = () => {
-    const auth = localStorage.getItem('admin_authenticated');
-    if (auth === 'true') {
+    const token = localStorage.getItem('admin_token');
+    if (token) {
       document.getElementById('loginModal').classList.add('hidden');
       fetchStudentList();
     }
   };
 
-  function authenticateAdmin() {
+  async function authenticateAdmin() {
     const user = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
 
-    // CREDENCIAIS DE SEGURANÇA
-    if (user === "jhonata" && pass === "123456") {
-      localStorage.setItem('admin_authenticated', 'true');
-      document.getElementById('loginModal').classList.add('hidden');
-      fetchStudentList();
-    } else {
-      alert("❌ Usuário ou senha incorretos!");
+    if (!user || !pass) {
+      alert("Preencha usuário e senha.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user, pass })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        localStorage.setItem('admin_token', data.token);
+        document.getElementById('loginModal').classList.add('hidden');
+        fetchStudentList();
+      } else {
+        alert("❌ " + (data.error || "Usuário ou senha do Admin incorretos!"));
+      }
+    } catch(e) {
+      alert("Erro ao conectar ao servidor de autenticação.");
     }
   }
 
   function logoutAdmin() {
-    localStorage.removeItem('admin_authenticated');
+    localStorage.removeItem('admin_token');
     window.location.reload();
   }
 
   async function fetchStudentList() {
     const listDiv = document.getElementById('studentsList');
+    const token = localStorage.getItem('admin_token');
     listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Buscando alunos...</div>';
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/alunos/listar`);
+      const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        alert("Sua sessão expirou ou o token é inválido. Faça login novamente.");
+        logoutAdmin();
+        return;
+      }
+
       if (!res.ok) throw new Error();
       const alunos = await res.json();
 
@@ -248,7 +275,7 @@
         loadStudentData(alunos[0].codigo);
       }
     } catch (e) {
-      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao carregar lista.</div>';
+      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao carregar lista de alunos.</div>';
     }
   }
 
@@ -269,7 +296,7 @@
       setupEditDaysList(currentStudentData);
       populateExerciseSelect();
     } catch (err) {
-      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados de ${code}.</span>`;
+      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados do aluno ${code}.</span>`;
     }
   }
 
@@ -391,6 +418,11 @@
     const day = currentStudentData.days[dayIdx];
     const exercises = day.exercicios || [];
 
+    if (exercises.length === 0) {
+      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum exercício neste dia. Adicione acima.</div>';
+      return;
+    }
+
     exercises.forEach((ex, idx) => {
       const div = document.createElement('div');
       div.className = 'item-box';
@@ -432,7 +464,7 @@
     const reps = document.getElementById('editExReps').value.trim() || '10-12';
     const dayIdx = document.getElementById('editDaySelect').value;
 
-    if (!name) return;
+    if (!name) { alert('Digite o nome do exercício.'); return; }
 
     if (!currentStudentData.days[dayIdx].exercicios) {
       currentStudentData.days[dayIdx].exercicios = [];
@@ -466,11 +498,13 @@
       });
 
       if (res.ok) {
-        alert(`🎉 Treino de ${selectedStudent.toUpperCase()} atualizado no Banco!`);
+        alert(`🎉 Treino do aluno ${selectedStudent.toUpperCase()} atualizado no PostgreSQL!`);
         renderWorkoutOverview(currentStudentData);
+      } else {
+        alert("Erro ao salvar dados no banco de dados.");
       }
     } catch(e) {
-      alert("Erro ao conectar com o servidor.");
+      alert("Falha na conexão com o servidor do Render.");
     }
   }
 
@@ -480,7 +514,7 @@
     const rawWorkouts = document.getElementById('anamWorkouts').value.trim();
     const rawDiet = document.getElementById('anamDiet').value.trim();
 
-    if (!name || !code) return;
+    if (!name || !code) { alert('Preencha o nome e o código do aluno.'); return; }
 
     const workoutBlocks = rawWorkouts.split('\n\n');
     const parsedDays = workoutBlocks.map((block, idx) => {
@@ -524,12 +558,12 @@
       });
 
       if (res.ok) {
-        alert(`🚀 Ficha de ${name} salva com sucesso!`);
+        alert(`🚀 Ficha do aluno ${name} criada e salva no Banco!`);
         fetchStudentList();
         switchTab('treino');
       }
     } catch(e) {
-      alert("Erro ao salvar dados.");
+      alert("Erro ao enviar dados para o servidor.");
     }
   }
 
@@ -562,7 +596,7 @@
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Atual'],
+        labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Registro Atual'],
         datasets: [{
           label: 'Carga (kg)',
           data: [parsedLoad * 0.85, parsedLoad * 0.90, parsedLoad * 0.95, parsedLoad],
@@ -601,17 +635,17 @@
                  `📱 *Dica:* Abra o link no navegador e toque em "Adicionar à Tela de Início" para usar como aplicativo!`;
 
     navigator.clipboard.writeText(decodeURIComponent(text.replace(/%0A/g, '\n')));
-    alert(`Mensagem de acesso de ${name} copiada!`);
+    alert(`Mensagem de acesso do aluno ${name} copiada! Basta colar no WhatsApp.`);
   }
 
   function copyNewStudentLink() {
     const baseUrl = window.location.href.replace('admin.html', 'index.html?modo=anamnese');
     const text = `📋 *Anamnese de Consultoria Esportiva — Jhonata*%0A%0A` +
-                 `Seja bem-vindo(a)! Para que eu possa montar o seu protocolo de treino e nutrição personalizado, preencha o formulário no link abaixo:%0A%0A` +
+                 `Seja bem-vindo(a)! Para que eu possa montar o seu protocolo de treino e nutrição personalizado, preencha o formulário rápido no link abaixo:%0A%0A` +
                  `🔗 *Link da Anamnese:* ${baseUrl}`;
 
     navigator.clipboard.writeText(decodeURIComponent(text.replace(/%0A/g, '\n')));
-    alert('Link da Anamnese copiado!');
+    alert('Link de Anamnese copiado! Cole no WhatsApp do novo aluno.');
   }
 </script>
 </body>
