@@ -157,7 +157,7 @@
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" style="background:var(--gold); color:#000;" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login" style="background:var(--gold); color:#000;" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
       </div>
     </div>
   </form>
@@ -168,9 +168,9 @@
   <div class="sub">Acesse sua área exclusiva</div>
   
   <form onsubmit="handleLogin(event)" class="login-box">
-    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: erick ou jhonata)" required>
+    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: erick, julia ou jhonata)" required>
     <input type="password" id="loginPass" class="input-field" placeholder="Senha" required>
-    <button type="submit" class="btn-login">ENTRAR</button>
+    <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
   </form>
   <div id="loginError" class="error-msg hidden"></div>
 </div>
@@ -190,7 +190,6 @@
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
-    <button class="menu-btn" id="btnIa" onclick="showTab('ia')">🤖 ASSISTENTE</button>
   </div>
 
   <div id="tabTreino">
@@ -200,16 +199,6 @@
 
   <div id="tabDieta" class="hidden">
     <div id="mealsList"></div>
-  </div>
-
-  <div id="tabIa" class="hidden">
-    <div class="chat-box" id="chatBox">
-      <div class="msg msg-ai">Olá! Sou o assistente do Personal Jhonata. Como posso te ajudar hoje?</div>
-    </div>
-    <div class="chat-input-row">
-      <input type="text" id="chatInput" class="chat-input" placeholder="Ex: Substituir arroz no almoço">
-      <button class="chat-btn" onclick="sendAiMessage()">Enviar</button>
-    </div>
   </div>
 </div>
 
@@ -229,18 +218,22 @@
   };
 
   function vincularPushUser(userId) {
-    OneSignalDeferred.push(function(OneSignal) {
-      OneSignal.login(userId);
-    });
+    if (window.OneSignalDeferred) {
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.login(userId);
+      });
+    }
   }
 
   function solicitarPermissaoPush() {
     Notification.requestPermission().then(function(permission) {
       if (permission === "granted") {
         alert("🔔 Notificações ativadas com sucesso!");
-        OneSignalDeferred.push(function(OneSignal) {
-          OneSignal.Notifications.requestPermission();
-        });
+        if (window.OneSignalDeferred) {
+          OneSignalDeferred.push(function(OneSignal) {
+            OneSignal.Notifications.requestPermission();
+          });
+        }
       }
     });
   }
@@ -254,9 +247,13 @@
 
   async function handleLogin(e) {
     e.preventDefault();
+    const btn = document.getElementById('btnLoginSubmit');
     const user = document.getElementById('loginUser').value.trim().toLowerCase();
     const pass = document.getElementById('loginPass').value.trim();
     const errorDiv = document.getElementById('loginError');
+
+    errorDiv.classList.add('hidden');
+    btn.textContent = "Acessando...";
 
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem('logged_user', ADMIN_USER);
@@ -276,6 +273,66 @@
     } catch (err) {
       errorDiv.textContent = "Usuário não encontrado no banco de dados.";
       errorDiv.classList.remove('hidden');
+      btn.textContent = "ENTRAR";
+    }
+  }
+
+  async function sendAnamneseAppDirect() {
+    const nome = document.getElementById('anamNome').value.trim();
+    const email = document.getElementById('anamEmail').value.trim();
+    const btn = document.getElementById('btnSubmitAnam');
+
+    if (!nome || !email) {
+      alert("Por favor, preencha nome e e-mail no primeiro passo.");
+      return;
+    }
+
+    btn.textContent = "Enviando dados...";
+    btn.disabled = true;
+
+    const userCode = nome.split(' ')[0].toLowerCase() + Math.floor(100 + Math.random() * 900);
+
+    const payload = {
+      code: userCode,
+      clientName: nome,
+      senha: userCode,
+      days: [
+        {
+          id: "d1",
+          title: "Treino A - Adaptação",
+          exercicios: [
+            { nome: "Supino Reto", series: "3", reps: "10-12" },
+            { nome: "Puxada Frontal", series: "3", reps: "10-12" },
+            { nome: "Leg Press 45", series: "3", reps: "12-15" }
+          ]
+        }
+      ],
+      refeicoes: [
+        { titulo: "Café da Manhã", alimentos: "Ovos mexidos (2 un) + Pão integral (2 fatias)" },
+        { titulo: "Almoço", alimentos: "Arroz (120g) + Feijão (80g) + Peito de Frango (150g) + Salada livre" }
+      ]
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: userCode, payload: payload })
+      });
+
+      if (res.ok) {
+        alert(`🎉 Anamnese Enviada! Seu usuário de acesso criado é: ${userCode}`);
+        localStorage.setItem('logged_user', userCode);
+        loadStudentData(payload);
+      } else {
+        alert("Erro ao salvar anamnese no servidor. Tente novamente.");
+        btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
+        btn.disabled = false;
+      }
+    } catch (e) {
+      alert("Erro de conexão com o servidor.");
+      btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
+      btn.disabled = false;
     }
   }
 
@@ -346,11 +403,9 @@
   function showTab(tab) {
     document.getElementById('tabTreino').classList.add('hidden');
     document.getElementById('tabDieta').classList.add('hidden');
-    document.getElementById('tabIa').classList.add('hidden');
 
     if(tab === 'treino') document.getElementById('tabTreino').classList.remove('hidden');
     else if(tab === 'dieta') document.getElementById('tabDieta').classList.remove('hidden');
-    else document.getElementById('tabIa').classList.remove('hidden');
   }
 </script>
 </body>
