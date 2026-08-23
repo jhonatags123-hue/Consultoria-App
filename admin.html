@@ -304,7 +304,6 @@
       
       const rawData = await res.json();
       
-      // TRATAMENTO DE SEGURANÇA: Garante que objetos vazios não travem a aplicação
       currentStudentData = {
         code: rawData.code || code,
         clientName: rawData.clientName || code,
@@ -385,12 +384,13 @@
     }
   }
 
+  // RENDERIZAÇÃO DA FICHA DE TREINO CORRIGIDA
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
 
     if (!data.days || data.days.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">Nenhum treino cadastrado para este aluno. Vá na aba "Mudar Treino" para criar os dias!</div>';
+      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:12px; background:#1a0308; border:1px solid var(--border); border-radius:8px;">Nenhum treino cadastrado para este aluno ainda. Vá na aba "✏️ Mudar Treino" acima para criar os dias de treino!</div>';
       return;
     }
 
@@ -402,18 +402,20 @@
       const content = document.createElement('div');
       content.className = 'accordion-content';
 
-      if (!day.exercicios || day.exercicios.length === 0) {
-        content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício neste dia.</div>';
+      const exercicios = day.exercicios || [];
+
+      if (exercicios.length === 0) {
+        content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício adicionado neste dia.</div>';
       } else {
-        day.exercicios.forEach((ex, idx) => {
+        exercicios.forEach((ex, idx) => {
           const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
           const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
           
           content.innerHTML += `
             <div class="item-box">
               <div class="item-header">
-                <span class="item-title">${ex.nome}</span>
-                <span class="item-meta">${ex.series}x (${ex.reps})</span>
+                <span class="item-title">${ex.nome || 'Exercício'}</span>
+                <span class="item-meta">${ex.series || '3'}x (${ex.reps || '10-12'})</span>
               </div>
               <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad} | 🔄 Reps: ${savedReps}</div>
             </div>
