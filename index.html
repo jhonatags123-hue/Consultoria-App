@@ -225,8 +225,8 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  // LINK DO SEU GOOGLE APPS SCRIPT INTEGRADO:
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUMIrc7HIixANwWhv_M6VPpZi4LcqzfVM60A4O0KKXKb_WTUd1ns8N11aQ3GFLyjkfhg/exec";
+  // NOVA URL DO SEU GOOGLE APPS SCRIPT INTEGRADO:
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwh6A1018LpY9w-JXhx1OR6hcyhsIb_9dClfFj_W8SDkQ8TLcDcc2h-hIrM0P2PaVg38Q/exec";
 
   const ADMIN_USER = "jhonata";
   const ADMIN_PASS = "0304";
@@ -345,7 +345,7 @@
     };
 
     try {
-      // 1. Envia para a planilha do Google Drive
+      // 1. Envia para a planilha do Google Drive e ativa o disparo para o WhatsApp
       fetch(GOOGLE_SCRIPT_URL, {
         method: "POST",
         mode: "no-cors",
@@ -511,7 +511,7 @@
     if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
 
     const studentName = currentData?.clientName || "Aluno";
-    const phone = "5551990169026"; // Substitua com seu WhatsApp real (com DDD)
+    const phone = "5551990169026";
     
     const msg = `💬 *Feedback de Treino — ${studentName}*%0A%0A${encodeURIComponent(text)}`;
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
