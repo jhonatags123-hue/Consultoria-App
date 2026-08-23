@@ -14,6 +14,7 @@
   header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:12px; }
   h1 { font-size:20px; font-weight:800; color:var(--text); }
   .btn-logout { background:transparent; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; }
+  .btn-logout:hover { border-color:var(--accent); color:#fff; }
   
   .admin-grid { display:grid; grid-template-columns: 260px 1fr; gap:16px; }
   @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
@@ -50,28 +51,28 @@
   .chart-container { position:relative; width:100%; height:220px; margin-top:10px; }
   .hidden { display:none !important; }
 
-  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); display:flex; align-items:center; justify-content:center; z-index:9999; }
-  .modal-card { background:var(--card); border:1px solid var(--accent); border-radius:14px; padding:24px; width:90%; max-width:320px; text-align:center; }
+  .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.96); display:flex; align-items:center; justify-content:center; z-index:9999; backdrop-filter:blur(6px); }
+  .modal-card { background:var(--card); border:1px solid var(--accent); border-radius:14px; padding:24px; width:90%; max-width:320px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.9); }
 </style>
 </head>
 <body>
 
 <div id="loginModal" class="modal-overlay">
   <div class="modal-card">
-    <div class="label-title" style="font-size:14px; color:var(--gold);">🔒 Acesso Restrito ao Personal</div>
-    <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Autenticação direta com o servidor</div>
+    <div class="label-title" style="font-size:14px; color:var(--gold);">🔒 Autenticação JWT Obrigatória</div>
+    <div style="font-size:12px; color:var(--muted); margin-bottom:12px;">Informe suas credenciais do servidor</div>
     <input type="text" id="adminUser" placeholder="Usuário Admin">
     <input type="password" id="adminPass" placeholder="Senha Admin" onkeypress="if(event.key==='Enter') authenticateAdmin()">
-    <button class="btn-action" style="margin-top:4px;" onclick="authenticateAdmin()">Entrar no Painel</button>
+    <button class="btn-action" style="margin-top:4px;" onclick="authenticateAdmin()">Autenticar e Acessar</button>
   </div>
 </div>
 
 <header>
   <div>
     <h1>Painel do Personal</h1>
-    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas & Banco PostgreSQL (JWT)</div>
+    <div style="font-size:12px; color:var(--gold);">Gestão de Fichas & Segurança JWT Ativa</div>
   </div>
-  <button class="btn-logout" onclick="logoutAdmin()">Sair</button>
+  <button class="btn-logout" onclick="logoutAdmin()">🔒 Encerrar Sessão</button>
 </header>
 
 <div class="admin-grid">
@@ -105,7 +106,7 @@
       <div class="card">
         <div class="share-banner">
           <div>
-            <div style="font-weight:700; font-size:13px; color:#fff;" id="shareStudentName">Enviar Acesso ao Aluno</div>
+            <div style="font-weight:700; font-size:13px; color:#fff;" id="shareStudentName">Nenhum aluno selecionado</div>
             <div style="font-size:11px; color:var(--muted);">Copia a mensagem formatada para WhatsApp</div>
           </div>
           <div style="display:flex; gap:6px;">
@@ -217,12 +218,19 @@
     if (token) {
       document.getElementById('loginModal').classList.add('hidden');
       fetchStudentList();
+    } else {
+      document.getElementById('loginModal').classList.remove('hidden');
     }
   };
 
   async function authenticateAdmin() {
     const user = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
+
+    if (!user || !pass) {
+      alert("Informe usuário e senha.");
+      return;
+    }
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
@@ -236,23 +244,47 @@
       if (res.ok && data.token) {
         localStorage.setItem('admin_token', data.token);
         document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('adminUser').value = '';
+        document.getElementById('adminPass').value = '';
         fetchStudentList();
       } else {
-        alert("❌ " + (data.error || "Usuário ou senha incorretos!"));
+        alert("❌ " + (data.error || "Usuário ou senha do Admin incorretos!"));
       }
     } catch(e) {
       alert("Erro ao conectar com o servidor.");
     }
   }
 
+  // ENCERRAMENTO DE SESSÃO SEGURO
   function logoutAdmin() {
     localStorage.removeItem('admin_token');
-    window.location.reload();
+    resetMainScreen();
+    document.getElementById('loginModal').classList.remove('hidden');
+  }
+
+  // LIMPEZA TOTAL DA INTERFACE AO EXCLUIR OU SAIR
+  function resetMainScreen() {
+    selectedStudent = '';
+    currentStudentData = null;
+    document.getElementById('shareStudentName').textContent = "Nenhum aluno selecionado";
+    document.getElementById('studentWorkoutTitle').textContent = "Ficha de Treino";
+    document.getElementById('editWorkoutTitle').textContent = "✏️ Gerenciar Dias & Treinos";
+    document.getElementById('studentDietTitle').textContent = "🥗 Gestão do Plano Alimentar";
+    document.getElementById('workoutContent').innerHTML = '<div style="color:var(--muted); font-size:13px;">Selecione um aluno na lista ao lado...</div>';
+    document.getElementById('editList').innerHTML = '';
+    document.getElementById('dietEditList').innerHTML = '';
+    document.getElementById('editDaySelect').innerHTML = '';
   }
 
   async function fetchStudentList() {
     const listDiv = document.getElementById('studentsList');
     const token = localStorage.getItem('admin_token');
+
+    if (!token) {
+      logoutAdmin();
+      return;
+    }
+
     listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Buscando alunos...</div>';
 
     try {
@@ -261,6 +293,7 @@
       });
 
       if (res.status === 401 || res.status === 403) {
+        alert("Sessão expirada. Por favor, autentique-se novamente.");
         logoutAdmin();
         return;
       }
@@ -270,6 +303,7 @@
 
       if (alunos.length === 0) {
         listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum aluno cadastrado.</div>';
+        resetMainScreen();
         return;
       }
 
@@ -292,7 +326,7 @@
         loadStudentData(alunos[0].codigo);
       }
     } catch (e) {
-      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao buscar alunos.</div>';
+      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao autenticar no servidor.</div>';
     }
   }
 
@@ -327,10 +361,14 @@
     }
   }
 
+  // CORREÇÃO: EXCLUIR APAGA DO BANCO E LIMPA DA TELA IMEDIATAMENTE
   async function deleteStudentFromDB() {
-    if (!selectedStudent) return;
+    if (!selectedStudent) {
+      alert("Selecione um aluno para excluir.");
+      return;
+    }
 
-    const confirmDelete = confirm(`⚠️ Tem certeza de que deseja EXCLUIR PERMANENTEMENTE o aluno @${selectedStudent} do banco de dados? Essa ação não pode ser desfeita.`);
+    const confirmDelete = confirm(`⚠️ Tem certeza de que deseja EXCLUIR PERMANENTEMENTE o aluno @${selectedStudent}? O treino sumirá do banco e do app.`);
     if (!confirmDelete) return;
 
     const token = localStorage.getItem('admin_token');
@@ -342,13 +380,14 @@
       });
 
       if (res.ok) {
-        alert(`✅ Aluno @${selectedStudent} apagado do banco de dados com sucesso!`);
+        alert(`✅ Aluno @${selectedStudent} excluído com sucesso!`);
+        resetMainScreen();
         fetchStudentList();
       } else {
-        alert("Erro ao tentar excluir o aluno do banco.");
+        alert("Erro ao excluir aluno do banco de dados.");
       }
     } catch (e) {
-      alert("Falha de conexão ao excluir aluno.");
+      alert("Falha de conexão com o servidor.");
     }
   }
 
@@ -384,13 +423,12 @@
     }
   }
 
-  // RENDERIZAÇÃO DA FICHA DE TREINO CORRIGIDA
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
 
-    if (!data.days || data.days.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:12px; background:#1a0308; border:1px solid var(--border); border-radius:8px;">Nenhum treino cadastrado para este aluno ainda. Vá na aba "✏️ Mudar Treino" acima para criar os dias de treino!</div>';
+    if (!data || !data.days || data.days.length === 0) {
+      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:12px; background:#1a0308; border:1px solid var(--border); border-radius:8px;">Nenhum treino cadastrado para este aluno ainda. Vá na aba "✏️ Mudar Treino" para criar os dias!</div>';
       return;
     }
 
@@ -435,9 +473,10 @@
 
   function renderDietOverview(data) {
     const container = document.getElementById('dietContent');
+    if(!container) return;
     container.innerHTML = '';
 
-    if (!data.refeicoes || data.refeicoes.length === 0) {
+    if (!data || !data.refeicoes || data.refeicoes.length === 0) {
       container.innerHTML = '<div style="color:var(--muted); font-size:13px;">Nenhuma dieta cadastrada.</div>';
       return;
     }
@@ -453,10 +492,11 @@
   }
 
   function addNewDayToStudent() {
+    if (!currentStudentData) { alert('Selecione um aluno primeiro.'); return; }
     const titleInput = document.getElementById('newDayTitle');
     const title = titleInput.value.trim();
 
-    if (!title) { alert('Digite o nome do novo dia de treino.'); return; }
+    if (!title) { alert('Digite o nome do novo dia.'); return; }
     if (!currentStudentData.days) currentStudentData.days = [];
 
     currentStudentData.days.push({
@@ -473,9 +513,9 @@
 
   function deleteSelectedDay() {
     const dayIdx = document.getElementById('editDaySelect').value;
-    if (dayIdx === '' || !currentStudentData.days[dayIdx]) return;
+    if (dayIdx === '' || !currentStudentData || !currentStudentData.days[dayIdx]) return;
 
-    if (confirm(`Deseja mesmo excluir o ${currentStudentData.days[dayIdx].title}?`)) {
+    if (confirm(`Excluir ${currentStudentData.days[dayIdx].title}?`)) {
       currentStudentData.days.splice(dayIdx, 1);
       setupEditDaysList(currentStudentData);
     }
@@ -485,7 +525,7 @@
     const select = document.getElementById('editDaySelect');
     select.innerHTML = '';
     
-    if (!data.days || data.days.length === 0) return;
+    if (!data || !data.days || data.days.length === 0) return;
 
     data.days.forEach((day, idx) => {
       const opt = document.createElement('option');
@@ -508,7 +548,7 @@
     const exercises = day.exercicios || [];
 
     if (exercises.length === 0) {
-      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum exercício neste dia. Adicione acima.</div>';
+      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum exercício neste dia.</div>';
       return;
     }
 
@@ -548,6 +588,7 @@
   }
 
   function addExerciseToEdit() {
+    if (!currentStudentData) return;
     const name = document.getElementById('editExName').value.trim();
     const series = document.getElementById('editExSeries').value.trim() || '3';
     const reps = document.getElementById('editExReps').value.trim() || '10-12';
@@ -599,6 +640,7 @@
   }
 
   function addMealToStudent() {
+    if (!currentStudentData) return;
     const title = document.getElementById('mealTitle').value.trim();
     const foods = document.getElementById('mealFoods').value.trim();
 
