@@ -301,12 +301,22 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`);
       if (!res.ok) throw new Error();
-      currentStudentData = await res.json();
       
-      document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${currentStudentData.clientName || code}`;
-      document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${currentStudentData.clientName || code}`;
-      document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${currentStudentData.clientName || code}`;
-      document.getElementById('studentDietTitle').textContent = `🥗 Dieta — ${currentStudentData.clientName || code}`;
+      const rawData = await res.json();
+      
+      // TRATAMENTO DE SEGURANÇA: Garante que objetos vazios não travem a aplicação
+      currentStudentData = {
+        code: rawData.code || code,
+        clientName: rawData.clientName || code,
+        senha: rawData.senha || code,
+        days: Array.isArray(rawData.days) ? rawData.days : [],
+        refeicoes: Array.isArray(rawData.refeicoes) ? rawData.refeicoes : []
+      };
+      
+      document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${currentStudentData.clientName}`;
+      document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${currentStudentData.clientName}`;
+      document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${currentStudentData.clientName}`;
+      document.getElementById('studentDietTitle').textContent = `🥗 Dieta — ${currentStudentData.clientName}`;
       
       renderWorkoutOverview(currentStudentData);
       renderDietOverview(currentStudentData);
@@ -314,7 +324,7 @@
       renderDietEditList();
       populateExerciseSelect();
     } catch (err) {
-      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar aluno ${code}.</span>`;
+      document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados do aluno ${code}.</span>`;
     }
   }
 
