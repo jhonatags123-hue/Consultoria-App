@@ -380,32 +380,36 @@
     container.innerHTML = '';
 
     if (!data.days || data.days.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:13px;">Nenhum treino cadastrado para este aluno. Vá na aba "Mudar Treino" para criar os dias!</div>';
+      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:10px;">Nenhum treino cadastrado para este aluno. Vá na aba "Mudar Treino" para criar os dias!</div>';
       return;
     }
 
     data.days.forEach((day, dayIdx) => {
       const btn = document.createElement('button');
       btn.className = 'accordion-btn';
-      btn.innerHTML = `<span>${day.title}</span> <span>▼</span>`;
+      btn.innerHTML = `<span><b>${day.title}</b></span> <span>▲</span>`;
       
       const content = document.createElement('div');
-      content.className = 'accordion-content hidden';
+      content.className = 'accordion-content';
 
-      (day.exercicios || []).forEach((ex, idx) => {
-        const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
-        const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
-        
-        content.innerHTML += `
-          <div class="item-box">
-            <div class="item-header">
-              <span class="item-title">${ex.nome}</span>
-              <span class="item-meta">${ex.series}x (${ex.reps})</span>
+      if (!day.exercicios || day.exercicios.length === 0) {
+        content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício neste dia.</div>';
+      } else {
+        day.exercicios.forEach((ex, idx) => {
+          const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
+          const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
+          
+          content.innerHTML += `
+            <div class="item-box">
+              <div class="item-header">
+                <span class="item-title">${ex.nome}</span>
+                <span class="item-meta">${ex.series}x (${ex.reps})</span>
+              </div>
+              <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad} | 🔄 Reps: ${savedReps}</div>
             </div>
-            <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad} | 🔄 Reps: ${savedReps}</div>
-          </div>
-        `;
-      });
+          `;
+        });
+      }
 
       btn.onclick = () => {
         content.classList.toggle('hidden');
