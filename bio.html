@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jhonata Personal — Consultoria & Treino Presencial</title>
+<title>Jhonata Personal — Alta Performance & Hipertrofia</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -31,7 +31,7 @@
     align-items: center;
   }
 
-  /* Perfil e Historinha */
+  /* Perfil e Apresentação */
   .profile-card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -54,6 +54,20 @@
   h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
   .tagline { color: var(--gold); font-size: 13px; font-weight: 700; margin-top: 4px; }
   
+  .location-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #180308;
+    border: 1px solid var(--border);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-top: 10px;
+  }
+
   .story-box {
     background: #180308;
     border: 1px dashed var(--border);
@@ -153,14 +167,18 @@
 </head>
 <body>
 
-  <!-- Card com Historinha e Apresentação -->
+  <!-- Card com Apresentação -->
   <div class="profile-card">
     <img src="https://via.placeholder.com/150" alt="Jhonata Personal" class="avatar">
     <h1>JHONATA PERSONAL</h1>
-    <div class="tagline">Especialista em Emagrecimento & Hipertrofia</div>
+    <div class="tagline">Especialista em Treino de Alta Performance & Hipertrofia</div>
+
+    <div class="location-badge">
+      📍 Atendimento Presencial: Novo Hamburgo e Campo Bom — RS
+    </div>
 
     <div class="story-box">
-      <b>Minha Missão:</b> Durante anos ajudando pessoas a saírem do zero ou da estagnação, percebi que o erro da maioria não é falta de vontade, mas sim a <b>falta de uma estratégia individualizada</b>. Quer você prefira meu acompanhamento presencial lado a lado na academia ou a flexibilidade do meu app de consultoria online, eu vou estruturar o treino exato para o seu objetivo!
+      <b>Minha Missão:</b> Durante anos ajudando pessoas a saírem do zero ou a destravarem resultados estagnados, desenvolvi uma metodologia focada em <b>alta performance e hipertrofia real</b>. O segredo não é passar horas na academia, mas sim aplicar a intensidade e a biomecânica exatas. Seja presencialmente ou na minha consultoria online, eu crio a estratégia ideal para o seu objetivo!
     </div>
   </div>
 
@@ -172,16 +190,20 @@
 
   <!-- ABA: HORA-AULA E PACOTES PRESENCIAIS -->
   <div id="sectionPresencial" class="content-section">
+    <div style="font-size: 11px; color: var(--gold); font-weight: 700; text-align: center; margin-bottom: -4px;">
+      📍 Aulas presenciais em Novo Hamburgo e Campo Bom / RS
+    </div>
+
     <!-- Opção 1: Avulso -->
     <div class="card-plan">
       <div class="plan-title">Hora-Aula Padrão (Avulsa)</div>
       <div class="plan-price">R$ 60,00 <small>/ hora-aula</small></div>
       <div class="plan-desc">
-        <li>Acompanhamento individualizado e presencial.</li>
-        <li>Correção imediata de execução e biomecânica.</li>
-        <li>Ideal para ajustes de carga e técnica em exercícios específicos.</li>
+        <li>Acompanhamento presencial individualizado de Alta Performance.</li>
+        <li>Ajuste fino de carga, cadência e biomecânica.</li>
+        <li>Ideal para quebrar platôs e aprimorar a técnica dos exercícios.</li>
       </div>
-      <button class="btn-cta btn-wpp" onclick="contactWpp('Hora-Aula Avulsa (R$ 60)')">💬 AGENDAR AULA AVULSA</button>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Hora-Aula Avulsa em NH/Campo Bom (R$ 60)')">💬 AGENDAR AULA AVULSA</button>
     </div>
 
     <!-- Opção 2: Pacote Semanal -->
@@ -190,10 +212,10 @@
       <div class="plan-price">R$ 150,00 <small>/ semana (R$ 50,00/aula)</small></div>
       <div class="plan-desc">
         <li><b>Economize R$ 30,00 por semana!</b></li>
-        <li>3 sessões presenciais focadas na sua rotina semanal.</li>
-        <li>Maior consistência e acompanhamento de intensidade.</li>
+        <li>3 sessões presenciais focadas em máxima hipertrofia.</li>
+        <li>Acompanhamento próximo para garantir a intensidade do treino.</li>
       </div>
-      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Semanal - 3x/semana (R$ 150)')">💬 FECHAR PACOTE SEMANAL</button>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Semanal NH/Campo Bom - 3x/semana (R$ 150)')">💬 FECHAR PACOTE SEMANAL</button>
     </div>
 
     <!-- Opção 3: Pacote Mensal Promocional -->
@@ -207,7 +229,7 @@
         <li>Valor promocional com pagamento único à vista.</li>
         <li>Acesso total ao Aplicativo Exclusivo incluso.</li>
       </div>
-      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Mensal VIP - 12 Aulas (R$ 480)')">💬 GARANTIR VAGA NO PACOTE MENSAL</button>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Mensal VIP NH/Campo Bom - 12 Aulas (R$ 480)')">💬 GARANTIR VAGA NO PACOTE MENSAL</button>
     </div>
   </div>
 
@@ -218,11 +240,12 @@
       <div class="plan-title">Consultoria Esportiva 100% Online</div>
       <div class="plan-price">A partir de R$ 70,00 <small>/ mês</small></div>
       <div class="plan-desc">
-        <li>Ficha de Treino & Nutrição no App Exclusivo.</li>
-        <li>Ajustes periódicos de carga e volume.</li>
-        <li>Suporte via IA 24h no aplicativo + acompanhamento direto.</li>
+        <li>Entenda como funciona a Metodologia de Acompanhamento.</li>
+        <li>Ficha de Treino & Nutrição focada em Hipertrofia no App.</li>
+        <li>Ajustes periódicos de carga, volume e progressão.</li>
+        <li>Suporte via IA 24h no aplicativo + contato direto com o Personal.</li>
       </div>
-      <a href="index.html?modo=anamnese" class="btn-cta btn-online">📋 PREENCHER ANAMNESE E COMEÇAR</a>
+      <a href="index.html" class="btn-cta btn-online">📖 VER COMO FUNCIONA & INICIAR</a>
     </div>
   </div>
 
@@ -250,7 +273,7 @@
   }
 
   function contactWpp(pacote) {
-    const msg = `Olá Personal Jhonata! Vi seu perfil na Bio e quero agendar o *${pacote}*. Como funcionam os horários disponíveis?`;
+    const msg = `Olá Personal Jhonata! Vi seu perfil e quero agendar o *${pacote}* em Novo Hamburgo / Campo Bom. Como funcionam os horários disponíveis?`;
     window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 </script>
