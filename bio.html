@@ -22,7 +22,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
-    padding: 20px 16px;
+    padding: 16px;
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
@@ -31,41 +31,54 @@
     align-items: center;
   }
 
-  /* Perfil e Apresentação */
+  /* Topo / Perfil / Apresentação Ajustado */
   .profile-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 20px;
+    padding: 24px 18px;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   }
+  
+  .avatar-container {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    margin-bottom: 12px;
+  }
   .avatar {
-    width: 90px;
-    height: 90px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     border: 3px solid var(--gold);
     box-shadow: 0 0 20px var(--gold-glow);
     object-fit: cover;
-    margin-bottom: 10px;
+    display: block;
   }
-  h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
-  .tagline { color: var(--gold); font-size: 13px; font-weight: 700; margin-top: 4px; }
+
+  h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; color: #fff; margin-bottom: 2px; }
+  .tagline { color: var(--gold); font-size: 13px; font-weight: 700; line-height: 1.3; }
   
   .location-badge {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     background: #180308;
     border: 1px solid var(--border);
     color: var(--gold);
     font-size: 11px;
     font-weight: 700;
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 20px;
     margin-top: 10px;
+    width: 100%;
   }
 
   .story-box {
@@ -78,6 +91,7 @@
     color: var(--muted);
     line-height: 1.5;
     text-align: left;
+    width: 100%;
   }
   .story-box b { color: #fff; }
 
@@ -169,12 +183,14 @@
 
   <!-- Card com Apresentação -->
   <div class="profile-card">
-    <img src="https://via.placeholder.com/150" alt="Jhonata Personal" class="avatar">
+    <div class="avatar-container">
+      <img src="https://via.placeholder.com/150" alt="Jhonata Personal" class="avatar">
+    </div>
     <h1>JHONATA PERSONAL</h1>
     <div class="tagline">Especialista em Treino de Alta Performance & Hipertrofia</div>
 
     <div class="location-badge">
-      📍 Atendimento Presencial: Novo Hamburgo e Campo Bom — RS
+      📍 Atendimento Presencial: Novo Hamburgo e Campo Bom / RS
     </div>
 
     <div class="story-box">
@@ -238,7 +254,7 @@
     <div class="card-plan featured">
       <span class="badge">ATENDIMENTO NACIONAL</span>
       <div class="plan-title">Consultoria Esportiva 100% Online</div>
-      <div class="plan-price">A partir de R$ 70,00 <small>/ mês</small></div>
+      <div class="plan-price">A partir de R$ 85,00 <small>/ mês (Plano Anual)</small></div>
       <div class="plan-desc">
         <li>Entenda como funciona a Metodologia de Acompanhamento.</li>
         <li>Ficha de Treino & Nutrição focada em Hipertrofia no App.</li>
@@ -247,11 +263,6 @@
       </div>
       <a href="index.html" class="btn-cta btn-online">📖 VER COMO FUNCIONA & INICIAR</a>
     </div>
-  </div>
-
-  <!-- Link de Acesso ao App para Alunos Existentes -->
-  <div class="login-footer">
-    <a href="index.html" class="login-link">Já é meu aluno? Clique aqui para acessar seu App ➔</a>
   </div>
 
 <script>
