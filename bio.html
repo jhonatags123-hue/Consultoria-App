@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Jhonata — Consultoria & Treino Presencial</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #120205;
+    --card: #22040b;
+    --border: #420815;
+    --accent: #c4324f;
+    --gold: #d4a02a;
+    --gold-glow: rgba(212, 160, 42, 0.2);
+    --text: #ffffff;
+    --muted: #d8b3bb;
+    --wpp: #25d366;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    padding: 20px 16px;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Perfil Head */
+  .profile-header { text-align: center; margin-bottom: 20px; }
+  .avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 20px var(--gold-glow);
+    object-fit: cover;
+    margin-bottom: 12px;
+  }
+  h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
+  .tagline { color: var(--gold); font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .bio-text { color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.4; }
+
+  /* Seletor de Abas / Modos */
+  .tab-selector {
+    display: flex;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 4px;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 12px 8px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    font-size: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(196, 50, 79, 0.4);
+  }
+
+  /* Cartões de Conteúdo */
+  .content-section { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .card-plan {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-plan.featured { border-color: var(--gold); box-shadow: 0 0 15px var(--gold-glow); }
+  .badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--gold);
+    color: #000;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-bottom-left-radius: 10px;
+  }
+  .plan-title { font-size: 16px; font-weight: 800; color: #fff; }
+  .plan-price { font-size: 22px; font-weight: 900; color: var(--gold); margin: 6px 0; }
+  .plan-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+  
+  .btn-cta {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 800;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+  }
+  .btn-online { background: var(--accent); color: #fff; }
+  .btn-wpp { background: var(--wpp); color: #000; }
+
+  /* Login rápido para alunos existentes */
+  .login-footer {
+    margin-top: auto;
+    padding-top: 24px;
+    text-align: center;
+    width: 100%;
+  }
+  .login-link { color: var(--gold); font-size: 12px; text-decoration: none; font-weight: 700; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+  <!-- Perfil Principal -->
+  <div class="profile-header">
+    <img src="https://via.placeholder.com/150" alt="Personal Jhonata" class="avatar">
+    <h1>JHONATA CONSULTORIA</h1>
+    <div class="tagline">Personal Trainer & Especialista em Resultados</div>
+    <p class="bio-text">Escolha abaixo o tipo de acompanhamento ideal para o seu objetivo hoje:</p>
+  </div>
+
+  <!-- Seleção do Modo (Online vs Presencial) -->
+  <div class="tab-selector">
+    <button class="tab-btn active" id="btnTabOnline" onclick="switchMode('online')">🌐 CONSULTORIA ONLINE</button>
+    <button class="tab-btn" id="btnTabPresencial" onclick="switchMode('presencial')">🏋️ HORA-AULA / PRESENCIAL</button>
+  </div>
+
+  <!-- ABA 1: CONSULTORIA ONLINE -->
+  <div id="sectionOnline" class="content-section">
+    <div class="card-plan featured">
+      <span class="badge">MAIS VENDIDO</span>
+      <div class="plan-title">Plano Consultoria 100% Online</div>
+      <div class="plan-price">A partir de R$ 70,00<small style="font-size: 12px; color: var(--muted);">/mês</small></div>
+      <div class="plan-desc">
+        • Treinos personalizados no Aplicativo Exclusivo<br>
+        • Plano alimentador completo<br>
+        • Suporte com IA de dúvidas 24h<br>
+        • Ajustes de cargas e acompanhamento semanal
+      </div>
+      <a href="index.html?modo=anamnese" class="btn-cta btn-online">📋 PREENCHER ANAMNESE E COMEÇAR</a>
+    </div>
+  </div>
+
+  <!-- ABA 2: HORA-AULA & PRESENCIAL -->
+  <div id="sectionPresencial" class="content-section hidden">
+    <div class="card-plan">
+      <div class="plan-title">Hora-Aula Avulsa</div>
+      <div class="plan-price">R$ 90,00 <small style="font-size:12px; color:var(--muted);">/ sessão</small></div>
+      <div class="plan-desc">Atendimento presencial individualizado, correção biomecânica de exercícios e treino de alta intensidade.</div>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Hora-Aula Avulsa (R$ 90,00)')">💬 AGENDAR NO WHATSAPP</button>
+    </div>
+
+    <div class="card-plan featured">
+      <span class="badge">RECOMENDADO</span>
+      <div class="plan-title">Pacote Mensal Presencial (3x na semana)</div>
+      <div class="plan-price">R$ 850,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
+      <div class="plan-desc">12 sessões presenciais no mês + Acesso total ao Aplicativo de treino e nutrição incluso.</div>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Mensal Presencial (3x/semana)')">💬 RESERVAR VAGA NO WHATSAPP</button>
+    </div>
+  </div>
+
+  <!-- Footer para Alunos Existentes -->
+  <div class="login-footer">
+    <a href="index.html" class="login-link">Já é meu aluno? Clique aqui para acessar o App ➔</a>
+  </div>
+
+<script>
+  const PHONE_NUMBER = "5551990169026";
+
+  function switchMode(mode) {
+    document.getElementById('sectionOnline').classList.add('hidden');
+    document.getElementById('sectionPresencial').classList.add('hidden');
+    document.getElementById('btnTabOnline').classList.remove('active');
+    document.getElementById('btnTabPresencial').classList.remove('active');
+
+    if (mode === 'online') {
+      document.getElementById('sectionOnline').classList.remove('hidden');
+      document.getElementById('btnTabOnline').classList.add('active');
+    } else {
+      document.getElementById('sectionPresencial').classList.remove('hidden');
+      document.getElementById('btnTabPresencial').classList.add('active');
+    }
+  }
+
+  function contactWpp(pacote) {
+    const msg = `Olá Personal Jhonata! Vi seu perfil e tenho interesse no plano de *${pacote}*. Como funcionam os horários disponíveis?`;
+    window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+  }
+</script>
+</body>
+</html>
