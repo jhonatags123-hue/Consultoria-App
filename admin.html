@@ -142,8 +142,8 @@
           <label style="font-size:12px; color:var(--gold); font-weight:700;">Adicionar Exercício no Dia Selecionado</label>
           <input type="text" id="editExName" placeholder="Nome do exercício (ex: Agachamento Livre)">
           <div style="display:flex; gap:8px;">
-            <input type="text" id="editExSeries" placeholder="Séries (ex: 4)" style="flex:1;">
-            <input type="text" id="editExReps" placeholder="Reps (ex: 8-10)" style="flex:1;">
+            <input type="text" id="editExSeries" placeholder="Séries (ex: 2 ou 3)" style="flex:1;">
+            <input type="text" id="editExReps" placeholder="Reps (ex: 6-8 ou até a falha)" style="flex:1;">
           </div>
           <button class="btn-action" onclick="addExerciseToEdit()">+ Adicionar Exercício</button>
         </div>
@@ -184,7 +184,7 @@
         </div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Bloco de Treino (Nome do Dia na 1ª Linha)</label>
-        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 4x 10&#10;Puxada Frontal 4x 12&#10;&#10;Lower - Terça&#10;Agachamento 4x 8"></textarea>
+        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 4x 8-10"></textarea>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Opcional)</label>
         <textarea id="anamDiet" rows="3" placeholder="Café: 2 ovos&#10;Almoço: Frango e Arroz"></textarea>
@@ -432,11 +432,13 @@
           const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
           const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
           
+          const formatMeta = ex.series ? `${ex.series}x (${ex.reps || ''})` : (ex.reps || '');
+
           content.innerHTML += `
             <div class="item-box">
               <div class="item-header">
                 <span class="item-title">${ex.nome || 'Exercício'}</span>
-                <span class="item-meta">${ex.series || '3'}x (${ex.reps || '10-12'})</span>
+                <span class="item-meta">${formatMeta}</span>
               </div>
               <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad} | 🔄 Reps: ${savedReps}</div>
             </div>
@@ -494,7 +496,6 @@
     loadDayEditList();
   }
 
-  // EXCLUSÃO DE DIA COM SALVAMENTO IMEDIATO NO BANCO
   async function deleteSelectedDay() {
     const daySelect = document.getElementById('editDaySelect');
     const dayIdx = daySelect.value;
@@ -508,7 +509,7 @@
 
     if (confirm(`⚠️ Tem certeza de que deseja EXCLUIR o "${dayTitle}" do aluno @${selectedStudent}? Esta alteração será salva imediatamente no banco.`)) {
       currentStudentData.days.splice(dayIdx, 1);
-      await saveWorkoutChanges(true); // salva no banco sem modal pop-up redundante
+      await saveWorkoutChanges(true);
       setupEditDaysList(currentStudentData);
       renderWorkoutOverview(currentStudentData);
     }
@@ -548,11 +549,13 @@
     exercises.forEach((ex, idx) => {
       const div = document.createElement('div');
       div.className = 'item-box';
+      const meta = ex.series ? `${ex.series} Séries x ${ex.reps || ''}` : (ex.reps || '');
+
       div.innerHTML = `
         <div class="item-header">
           <div>
             <b style="color:#fff;">${idx + 1}. ${ex.nome}</b>
-            <div style="font-size:12px; color:var(--gold);">${ex.series} Séries x ${ex.reps} Reps</div>
+            <div style="font-size:12px; color:var(--gold);">${meta}</div>
           </div>
           <div style="display:flex; align-items:center;">
             <div class="order-actions">
@@ -583,8 +586,8 @@
   function addExerciseToEdit() {
     if (!currentStudentData) return;
     const name = document.getElementById('editExName').value.trim();
-    const series = document.getElementById('editExSeries').value.trim() || '3';
-    const reps = document.getElementById('editExReps').value.trim() || '10-12';
+    const series = document.getElementById('editExSeries').value.trim();
+    const reps = document.getElementById('editExReps').value.trim();
     const dayIdx = document.getElementById('editDaySelect').value;
 
     if (!name) { alert('Digite o nome do exercício.'); return; }
@@ -679,6 +682,7 @@
     }
   }
 
+  // PARSER DE TEXTO FIEL AO DIGITADO
   async function createStudentFromAnamnese() {
     const name = document.getElementById('anamName').value.trim();
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
@@ -694,14 +698,25 @@
 
       const title = lines[0]; 
       const exercicios = lines.slice(1).map((line, eIdx) => {
-        const parts = line.split(' ');
-        const reps = parts.length > 1 ? parts.pop() : '10-12';
-        const series = parts.length > 1 && !isNaN(parts[parts.length - 1].replace('x', '')) 
-                       ? parts.pop().replace('x', '') 
-                       : '3';
-        const nomeEx = parts.join(' ') || line;
-        return { id: `e${eIdx + 1}`, nome: nomeEx, series: series, reps: reps };
+        // Captura formatos como "2x 6-8", "3x10", "4x ate a falha"
+        const xMatch = line.match(/\b(\d+)\s*x\s*(.+)$/i);
+
+        if (xMatch) {
+          const exName = line.substring(0, line.indexOf(xMatch[0])).trim();
+          const series = xMatch[1].trim();
+          const reps = xMatch[2].trim();
+
+          return {
+            id: `e${eIdx + 1}`,
+            nome: exName || 'Exercício',
+            series: series,
+            reps: reps
+          };
+        }
+
+        return { id: `e${eIdx + 1}`, nome: line, series: '', reps: '' };
       });
+
       return { id: `d_${Date.now()}_${idx}`, title: title, exercicios: exercicios };
     }).filter(Boolean);
 
@@ -743,7 +758,7 @@
       });
 
       if (res.ok) {
-        alert(`🚀 Ficha/Dias salvos com sucesso para ${name}!`);
+        alert(`🚀 Treino cadastrado exatamente como digitado para ${name}!`);
         document.getElementById('anamWorkouts').value = '';
         fetchStudentList();
         switchTab('treino');
