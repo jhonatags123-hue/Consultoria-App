@@ -3,16 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Jhonata — Consultoria & Treino Presencial</title>
+<title>Jhonata Personal — Consultoria & Treino Presencial</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #120205;
-    --card: #22040b;
-    --border: #420815;
+    --bg: #100205;
+    --card: #20040b;
+    --border: #440a16;
     --accent: #c4324f;
     --gold: #d4a02a;
-    --gold-glow: rgba(212, 160, 42, 0.2);
+    --gold-glow: rgba(212, 160, 42, 0.25);
     --text: #ffffff;
     --muted: #d8b3bb;
     --wpp: #25d366;
@@ -31,22 +31,43 @@
     align-items: center;
   }
 
-  /* Perfil Head */
-  .profile-header { text-align: center; margin-bottom: 20px; }
+  /* Perfil e Historinha */
+  .profile-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
   .avatar {
-    width: 96px;
-    height: 96px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     border: 3px solid var(--gold);
     box-shadow: 0 0 20px var(--gold-glow);
     object-fit: cover;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   h1 { font-size: 22px; font-weight: 900; letter-spacing: -0.02em; }
   .tagline { color: var(--gold); font-size: 13px; font-weight: 700; margin-top: 4px; }
-  .bio-text { color: var(--muted); font-size: 12px; margin-top: 6px; line-height: 1.4; }
+  
+  .story-box {
+    background: #180308;
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    text-align: left;
+  }
+  .story-box b { color: #fff; }
 
-  /* Seletor de Abas / Modos */
+  /* Seletor de Modalidades */
   .tab-selector {
     display: flex;
     background: var(--card);
@@ -54,20 +75,21 @@
     border-radius: 12px;
     padding: 4px;
     width: 100%;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
   .tab-btn {
     flex: 1;
-    padding: 12px 8px;
+    padding: 12px 6px;
     border: none;
     background: transparent;
     color: var(--muted);
-    font-weight: 700;
-    font-size: 12px;
+    font-weight: 800;
+    font-size: 11px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
+    text-transform: uppercase;
   }
   .tab-btn.active {
     background: var(--accent);
@@ -75,7 +97,7 @@
     box-shadow: 0 4px 12px rgba(196, 50, 79, 0.4);
   }
 
-  /* Cartões de Conteúdo */
+  /* Cartões e Ofertas */
   .content-section { width: 100%; display: flex; flex-direction: column; gap: 14px; }
   .card-plan {
     background: var(--card);
@@ -83,9 +105,10 @@
     border-radius: 16px;
     padding: 18px;
     position: relative;
-    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   }
   .card-plan.featured { border-color: var(--gold); box-shadow: 0 0 15px var(--gold-glow); }
+  
   .badge {
     position: absolute;
     top: 0;
@@ -93,14 +116,18 @@
     background: var(--gold);
     color: #000;
     font-size: 10px;
-    font-weight: 800;
+    font-weight: 900;
     padding: 4px 10px;
     border-bottom-left-radius: 10px;
+    text-transform: uppercase;
   }
+  
   .plan-title { font-size: 16px; font-weight: 800; color: #fff; }
   .plan-price { font-size: 22px; font-weight: 900; color: var(--gold); margin: 6px 0; }
+  .plan-price small { font-size: 12px; color: var(--muted); font-weight: 600; }
   .plan-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
-  
+  .plan-desc li { list-style: none; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+
   .btn-cta {
     width: 100%;
     padding: 14px;
@@ -119,70 +146,89 @@
   .btn-online { background: var(--accent); color: #fff; }
   .btn-wpp { background: var(--wpp); color: #000; }
 
-  /* Login rápido para alunos existentes */
-  .login-footer {
-    margin-top: auto;
-    padding-top: 24px;
-    text-align: center;
-    width: 100%;
-  }
+  .login-footer { margin-top: 20px; text-align: center; width: 100%; }
   .login-link { color: var(--gold); font-size: 12px; text-decoration: none; font-weight: 700; }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-  <!-- Perfil Principal -->
-  <div class="profile-header">
-    <img src="https://via.placeholder.com/150" alt="Personal Jhonata" class="avatar">
-    <h1>JHONATA CONSULTORIA</h1>
-    <div class="tagline">Personal Trainer & Especialista em Resultados</div>
-    <p class="bio-text">Escolha abaixo o tipo de acompanhamento ideal para o seu objetivo hoje:</p>
+  <!-- Card com Historinha e Apresentação -->
+  <div class="profile-card">
+    <img src="https://via.placeholder.com/150" alt="Jhonata Personal" class="avatar">
+    <h1>JHONATA PERSONAL</h1>
+    <div class="tagline">Especialista em Emagrecimento & Hipertrofia</div>
+
+    <div class="story-box">
+      <b>Minha Missão:</b> Durante anos ajudando pessoas a saírem do zero ou da estagnação, percebi que o erro da maioria não é falta de vontade, mas sim a <b>falta de uma estratégia individualizada</b>. Quer você prefira meu acompanhamento presencial lado a lado na academia ou a flexibilidade do meu app de consultoria online, eu vou estruturar o treino exato para o seu objetivo!
+    </div>
   </div>
 
-  <!-- Seleção do Modo (Online vs Presencial) -->
+  <!-- Abas de Navegação -->
   <div class="tab-selector">
-    <button class="tab-btn active" id="btnTabOnline" onclick="switchMode('online')">🌐 CONSULTORIA ONLINE</button>
-    <button class="tab-btn" id="btnTabPresencial" onclick="switchMode('presencial')">🏋️ HORA-AULA / PRESENCIAL</button>
+    <button class="tab-btn active" id="btnTabPresencial" onclick="switchMode('presencial')">🏋️ HORA-AULA PRESENCIAL</button>
+    <button class="tab-btn" id="btnTabOnline" onclick="switchMode('online')">🌐 CONSULTORIA ONLINE</button>
   </div>
 
-  <!-- ABA 1: CONSULTORIA ONLINE -->
-  <div id="sectionOnline" class="content-section">
-    <div class="card-plan featured">
-      <span class="badge">MAIS VENDIDO</span>
-      <div class="plan-title">Plano Consultoria 100% Online</div>
-      <div class="plan-price">A partir de R$ 70,00<small style="font-size: 12px; color: var(--muted);">/mês</small></div>
+  <!-- ABA: HORA-AULA E PACOTES PRESENCIAIS -->
+  <div id="sectionPresencial" class="content-section">
+    <!-- Opção 1: Avulso -->
+    <div class="card-plan">
+      <div class="plan-title">Hora-Aula Padrão (Avulsa)</div>
+      <div class="plan-price">R$ 60,00 <small>/ hora-aula</small></div>
       <div class="plan-desc">
-        • Treinos personalizados no Aplicativo Exclusivo<br>
-        • Plano alimentador completo<br>
-        • Suporte com IA de dúvidas 24h<br>
-        • Ajustes de cargas e acompanhamento semanal
+        <li>Acompanhamento individualizado e presencial.</li>
+        <li>Correção imediata de execução e biomecânica.</li>
+        <li>Ideal para ajustes de carga e técnica em exercícios específicos.</li>
+      </div>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Hora-Aula Avulsa (R$ 60)')">💬 AGENDAR AULA AVULSA</button>
+    </div>
+
+    <!-- Opção 2: Pacote Semanal -->
+    <div class="card-plan">
+      <div class="plan-title">Pacote Semanal (3x por semana)</div>
+      <div class="plan-price">R$ 150,00 <small>/ semana (R$ 50,00/aula)</small></div>
+      <div class="plan-desc">
+        <li><b>Economize R$ 30,00 por semana!</b></li>
+        <li>3 sessões presenciais focadas na sua rotina semanal.</li>
+        <li>Maior consistência e acompanhamento de intensidade.</li>
+      </div>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Semanal - 3x/semana (R$ 150)')">💬 FECHAR PACOTE SEMANAL</button>
+    </div>
+
+    <!-- Opção 3: Pacote Mensal Promocional -->
+    <div class="card-plan featured">
+      <span class="badge">MAIOR ECONOMIA</span>
+      <div class="plan-title">Pacote Mensal VIP (3x por semana)</div>
+      <div class="plan-price">R$ 480,00 <small>/ mês (Apenas R$ 40,00/aula)</small></div>
+      <div class="plan-desc">
+        <li><b>Economia total de R$ 240,00 no mês!</b></li>
+        <li>12 aulas presenciais no mês (3 aulas por semana).</li>
+        <li>Valor promocional com pagamento único à vista.</li>
+        <li>Acesso total ao Aplicativo Exclusivo incluso.</li>
+      </div>
+      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Mensal VIP - 12 Aulas (R$ 480)')">💬 GARANTIR VAGA NO PACOTE MENSAL</button>
+    </div>
+  </div>
+
+  <!-- ABA: CONSULTORIA ONLINE -->
+  <div id="sectionOnline" class="content-section hidden">
+    <div class="card-plan featured">
+      <span class="badge">ATENDIMENTO NACIONAL</span>
+      <div class="plan-title">Consultoria Esportiva 100% Online</div>
+      <div class="plan-price">A partir de R$ 70,00 <small>/ mês</small></div>
+      <div class="plan-desc">
+        <li>Ficha de Treino & Nutrição no App Exclusivo.</li>
+        <li>Ajustes periódicos de carga e volume.</li>
+        <li>Suporte via IA 24h no aplicativo + acompanhamento direto.</li>
       </div>
       <a href="index.html?modo=anamnese" class="btn-cta btn-online">📋 PREENCHER ANAMNESE E COMEÇAR</a>
     </div>
   </div>
 
-  <!-- ABA 2: HORA-AULA & PRESENCIAL -->
-  <div id="sectionPresencial" class="content-section hidden">
-    <div class="card-plan">
-      <div class="plan-title">Hora-Aula Avulsa</div>
-      <div class="plan-price">R$ 90,00 <small style="font-size:12px; color:var(--muted);">/ sessão</small></div>
-      <div class="plan-desc">Atendimento presencial individualizado, correção biomecânica de exercícios e treino de alta intensidade.</div>
-      <button class="btn-cta btn-wpp" onclick="contactWpp('Hora-Aula Avulsa (R$ 90,00)')">💬 AGENDAR NO WHATSAPP</button>
-    </div>
-
-    <div class="card-plan featured">
-      <span class="badge">RECOMENDADO</span>
-      <div class="plan-title">Pacote Mensal Presencial (3x na semana)</div>
-      <div class="plan-price">R$ 850,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
-      <div class="plan-desc">12 sessões presenciais no mês + Acesso total ao Aplicativo de treino e nutrição incluso.</div>
-      <button class="btn-cta btn-wpp" onclick="contactWpp('Pacote Mensal Presencial (3x/semana)')">💬 RESERVAR VAGA NO WHATSAPP</button>
-    </div>
-  </div>
-
-  <!-- Footer para Alunos Existentes -->
+  <!-- Link de Acesso ao App para Alunos Existentes -->
   <div class="login-footer">
-    <a href="index.html" class="login-link">Já é meu aluno? Clique aqui para acessar o App ➔</a>
+    <a href="index.html" class="login-link">Já é meu aluno? Clique aqui para acessar seu App ➔</a>
   </div>
 
 <script>
@@ -204,7 +250,7 @@
   }
 
   function contactWpp(pacote) {
-    const msg = `Olá Personal Jhonata! Vi seu perfil e tenho interesse no plano de *${pacote}*. Como funcionam os horários disponíveis?`;
+    const msg = `Olá Personal Jhonata! Vi seu perfil na Bio e quero agendar o *${pacote}*. Como funcionam os horários disponíveis?`;
     window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 </script>
