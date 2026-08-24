@@ -155,15 +155,27 @@
       </div>
     </div>
 
+    <!-- ABA DIETA COM CICLAGEM DE CARBO -->
     <div id="tabAdminDieta" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);" id="studentDietTitle">🥗 Gestão do Plano Alimentar</div>
         
         <div style="background:#1a0308; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:14px;">
-          <label style="font-size:12px; color:var(--gold); font-weight:700;">Adicionar Refeição</label>
-          <input type="text" id="mealTitle" placeholder="Título (ex: Almoço / Refeição 2)">
-          <textarea id="mealFoods" rows="3" placeholder="Alimentos (ex: Arroz 150g, Frango grelhado 150g, Salada)"></textarea>
-          <button class="btn-action" onclick="addMealToStudent()">+ Adicionar Refeição</button>
+          <label style="font-size:12px; color:var(--gold); font-weight:700;">Tipo de Dia (Ciclagem de Carboidratos)</label>
+          <select id="mealDayType">
+            <option value="Padrao">Dieta Padrão (Dia Único)</option>
+            <option value="Carbo Alto">🟢 Dia de Carbo Alto</option>
+            <option value="Carbo Baixo">🔴 Dia de Carbo Baixo</option>
+            <option value="Carbo Medio">🟡 Dia de Carbo Médio</option>
+          </select>
+
+          <label style="font-size:12px; color:var(--gold); font-weight:700;">Título da Refeição</label>
+          <input type="text" id="mealTitle" placeholder="Ex: Refeição 1 - Café da Manhã">
+
+          <label style="font-size:12px; color:var(--gold); font-weight:700;">Alimentos & Quantidades</label>
+          <textarea id="mealFoods" rows="3" placeholder="Ex: 200g de Arroz, 150g de Frango, Salada à vontade"></textarea>
+          
+          <button class="btn-action" onclick="addMealToStudent()">+ Adicionar Refeição ao Plano</button>
         </div>
 
         <div class="label-title">Refeições Cadastradas:</div>
@@ -186,8 +198,8 @@
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Bloco de Treino (Nome do Dia na 1ª Linha)</label>
         <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 4x 8-10"></textarea>
 
-        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Opcional)</label>
-        <textarea id="anamDiet" rows="3" placeholder="Café: 2 ovos&#10;Almoço: Frango e Arroz"></textarea>
+        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Opcional - Use [Carbo Alto] ou [Carbo Baixo] se houver variações)</label>
+        <textarea id="anamDiet" rows="3" placeholder="[Carbo Alto] Café: 200g Arroz, 3 Ovos&#10;[Carbo Baixo] Café: 3 Ovos, Salada"></textarea>
 
         <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Salvar / Adicionar Dias ao Banco</button>
       </div>
@@ -610,6 +622,7 @@
     loadDayEditList();
   }
 
+  // GERENCIADOR DE REFEIÇÕES COM RÓTULOS DE CARBO
   function renderDietEditList() {
     const container = document.getElementById('dietEditList');
     container.innerHTML = '';
@@ -626,7 +639,7 @@
         <div class="item-header">
           <div>
             <b style="color:var(--gold);">${ref.titulo}</b>
-            <div style="font-size:12px; color:#fff; margin-top:2px;">${ref.alimentos}</div>
+            <div style="font-size:12px; color:#fff; margin-top:2px; white-space:pre-line;">${ref.alimentos}</div>
           </div>
           <button class="btn-danger" onclick="removeMealFromStudent(${idx})">Excluir</button>
         </div>
@@ -636,14 +649,22 @@
   }
 
   function addMealToStudent() {
-    if (!currentStudentData) return;
-    const title = document.getElementById('mealTitle').value.trim();
+    if (!currentStudentData) { alert('Selecione um aluno primeiro.'); return; }
+    
+    const type = document.getElementById('mealDayType').value;
+    const rawTitle = document.getElementById('mealTitle').value.trim();
     const foods = document.getElementById('mealFoods').value.trim();
 
-    if (!title || !foods) { alert('Preencha título e alimentos.'); return; }
+    if (!rawTitle || !foods) { alert('Preencha o título e os alimentos da refeição.'); return; }
     if (!currentStudentData.refeicoes) currentStudentData.refeicoes = [];
 
-    currentStudentData.refeicoes.push({ titulo: title, alimentos: foods });
+    const finalTitle = type !== 'Padrao' ? `[${type}] ${rawTitle}` : rawTitle;
+
+    currentStudentData.refeicoes.push({ 
+      tipo: type,
+      titulo: finalTitle, 
+      alimentos: foods 
+    });
 
     document.getElementById('mealTitle').value = '';
     document.getElementById('mealFoods').value = '';
@@ -670,7 +691,7 @@
 
       if (res.ok) {
         if (!silent) {
-          alert(`🎉 Ficha de ${selectedStudent.toUpperCase()} atualizada e salva no PostgreSQL!`);
+          alert(`🎉 Ficha/Dieta de ${selectedStudent.toUpperCase()} atualizada e salva no PostgreSQL!`);
         }
         renderWorkoutOverview(currentStudentData);
         renderDietOverview(currentStudentData);
@@ -682,7 +703,6 @@
     }
   }
 
-  // PARSER DE TEXTO FIEL AO DIGITADO
   async function createStudentFromAnamnese() {
     const name = document.getElementById('anamName').value.trim();
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
@@ -698,7 +718,6 @@
 
       const title = lines[0]; 
       const exercicios = lines.slice(1).map((line, eIdx) => {
-        // Captura formatos como "2x 6-8", "3x10", "4x ate a falha"
         const xMatch = line.match(/\b(\d+)\s*x\s*(.+)$/i);
 
         if (xMatch) {
@@ -758,7 +777,7 @@
       });
 
       if (res.ok) {
-        alert(`🚀 Treino cadastrado exatamente como digitado para ${name}!`);
+        alert(`🚀 Dados gravados com sucesso no banco para ${name}!`);
         document.getElementById('anamWorkouts').value = '';
         fetchStudentList();
         switchTab('treino');
