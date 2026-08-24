@@ -132,7 +132,7 @@
           </div>
         </div>
 
-        <label style="font-size:12px; color:var(--muted);">Selecione o Dia para Editar ou Adicionar Exercícios:</label>
+        <label style="font-size:12px; color:var(--muted);">Selecione o Dia para Editar ou Excluir:</label>
         <div style="display:flex; gap:8px;">
           <select id="editDaySelect" onchange="loadDayEditList()" style="flex:1;"></select>
           <button class="btn-danger" style="height:40px;" onclick="deleteSelectedDay()">Excluir Dia</button>
@@ -166,7 +166,7 @@
           <button class="btn-action" onclick="addMealToStudent()">+ Adicionar Refeição</button>
         </div>
 
-        <div class="label-title">Refeições Cadastradas (Clique em excluir para remover):</div>
+        <div class="label-title">Refeições Cadastradas:</div>
         <div id="dietEditList"></div>
 
         <button class="btn-action" style="margin-top:14px; background:var(--gold); color:#000;" onclick="saveWorkoutChanges()">💾 SALVAR DIETA NO BANCO</button>
@@ -227,10 +227,7 @@
     const user = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
 
-    if (!user || !pass) {
-      alert("Informe usuário e senha.");
-      return;
-    }
+    if (!user || !pass) { alert("Informe usuário e senha."); return; }
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
@@ -278,11 +275,7 @@
     const listDiv = document.getElementById('studentsList');
     const token = localStorage.getItem('admin_token');
 
-    if (!token) {
-      logoutAdmin();
-      return;
-    }
-
+    if (!token) { logoutAdmin(); return; }
     listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Buscando alunos...</div>';
 
     try {
@@ -291,7 +284,7 @@
       });
 
       if (res.status === 401 || res.status === 403) {
-        alert("Sessão expirada. Por favor, autentique-se novamente.");
+        alert("Sessão expirada. Autentique-se novamente.");
         logoutAdmin();
         return;
       }
@@ -320,11 +313,9 @@
         listDiv.appendChild(btn);
       });
 
-      if (alunos.length > 0) {
-        loadStudentData(alunos[0].codigo);
-      }
+      if (alunos.length > 0) loadStudentData(alunos[0].codigo);
     } catch (e) {
-      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao autenticar no servidor.</div>';
+      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao conectar ao servidor.</div>';
     }
   }
 
@@ -360,13 +351,8 @@
   }
 
   async function deleteStudentFromDB() {
-    if (!selectedStudent) {
-      alert("Selecione um aluno para excluir.");
-      return;
-    }
-
-    const confirmDelete = confirm(`⚠️ Tem certeza de que deseja EXCLUIR PERMANENTEMENTE o aluno @${selectedStudent}? O treino sumirá do banco e do app.`);
-    if (!confirmDelete) return;
+    if (!selectedStudent) return;
+    if (!confirm(`⚠️ Tem certeza de que deseja EXCLUIR PERMANENTEMENTE o aluno @${selectedStudent}?`)) return;
 
     const token = localStorage.getItem('admin_token');
 
@@ -508,13 +494,23 @@
     loadDayEditList();
   }
 
-  function deleteSelectedDay() {
-    const dayIdx = document.getElementById('editDaySelect').value;
-    if (dayIdx === '' || !currentStudentData || !currentStudentData.days[dayIdx]) return;
+  // EXCLUSÃO DE DIA COM SALVAMENTO IMEDIATO NO BANCO
+  async function deleteSelectedDay() {
+    const daySelect = document.getElementById('editDaySelect');
+    const dayIdx = daySelect.value;
 
-    if (confirm(`Excluir ${currentStudentData.days[dayIdx].title}?`)) {
+    if (dayIdx === '' || !currentStudentData || !currentStudentData.days || !currentStudentData.days[dayIdx]) {
+      alert("Selecione um dia válido para excluir.");
+      return;
+    }
+
+    const dayTitle = currentStudentData.days[dayIdx].title;
+
+    if (confirm(`⚠️ Tem certeza de que deseja EXCLUIR o "${dayTitle}" do aluno @${selectedStudent}? Esta alteração será salva imediatamente no banco.`)) {
       currentStudentData.days.splice(dayIdx, 1);
+      await saveWorkoutChanges(true); // salva no banco sem modal pop-up redundante
       setupEditDaysList(currentStudentData);
+      renderWorkoutOverview(currentStudentData);
     }
   }
 
@@ -545,7 +541,7 @@
     const exercises = day.exercicios || [];
 
     if (exercises.length === 0) {
-      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenum exercício neste dia.</div>';
+      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum exercício neste dia.</div>';
       return;
     }
 
@@ -656,7 +652,7 @@
     renderDietEditList();
   }
 
-  async function saveWorkoutChanges() {
+  async function saveWorkoutChanges(silent = false) {
     if (!selectedStudent || !currentStudentData) return;
 
     try {
@@ -670,7 +666,9 @@
       });
 
       if (res.ok) {
-        alert(`🎉 Ficha de ${selectedStudent.toUpperCase()} atualizada e salva no PostgreSQL!`);
+        if (!silent) {
+          alert(`🎉 Ficha de ${selectedStudent.toUpperCase()} atualizada e salva no PostgreSQL!`);
+        }
         renderWorkoutOverview(currentStudentData);
         renderDietOverview(currentStudentData);
       } else {
@@ -681,7 +679,6 @@
     }
   }
 
-  // FUNÇÃO INTELIGENTE: UNIFICA DIAS NOVOS AOS EXISTENTES
   async function createStudentFromAnamnese() {
     const name = document.getElementById('anamName').value.trim();
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
