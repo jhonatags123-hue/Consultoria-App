@@ -127,7 +127,7 @@
         <div style="background:#1a0308; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:14px;">
           <label style="font-size:12px; color:var(--gold); font-weight:700;">➕ Adicionar Novo Dia de Treino</label>
           <div style="display:flex; gap:8px; margin-top:4px;">
-            <input type="text" id="newDayTitle" placeholder="Ex: Treino C - Pernas e Abdômen" style="margin-bottom:0;">
+            <input type="text" id="newDayTitle" placeholder="Ex: Upper - Segunda" style="margin-bottom:0;">
             <button class="btn-action" style="width:auto; padding:0 16px;" onclick="addNewDayToStudent()">Criar Dia</button>
           </div>
         </div>
@@ -175,21 +175,21 @@
 
     <div id="tabAdminNovo" class="hidden">
       <div class="card" style="border-color:var(--gold);">
-        <div class="label-title" style="color:var(--gold);">📋 Cadastrar Novo Aluno via Anamnese</div>
+        <div class="label-title" style="color:var(--gold);">📋 Cadastrar / Adicionar Dia via Bloco de Texto</div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">1. Dados do Aluno</label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="anamName" placeholder="Nome Completo" style="flex:1;">
-          <input type="text" id="anamCode" placeholder="Usuário/Código" style="flex:1;">
+          <input type="text" id="anamCode" placeholder="Usuário/Código (ex: lucas)" style="flex:1;">
         </div>
 
-        <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Estrutura dos Treinos (A, B, C...)</label>
-        <textarea id="anamWorkouts" rows="6" placeholder="Treino A - Peito&#10;Supino 3x 10&#10;&#10;Treino B - Costas&#10;Puxada 3x 10"></textarea>
+        <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Bloco de Treino (Nome do Dia na 1ª Linha)</label>
+        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 4x 10&#10;Puxada Frontal 4x 12&#10;&#10;Lower - Terça&#10;Agachamento 4x 8"></textarea>
 
-        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar</label>
+        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Opcional)</label>
         <textarea id="anamDiet" rows="3" placeholder="Café: 2 ovos&#10;Almoço: Frango e Arroz"></textarea>
 
-        <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Salvar Novo Aluno no Banco</button>
+        <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Salvar / Adicionar Dias ao Banco</button>
       </div>
     </div>
 
@@ -255,14 +255,12 @@
     }
   }
 
-  // ENCERRAMENTO DE SESSÃO SEGURO
   function logoutAdmin() {
     localStorage.removeItem('admin_token');
     resetMainScreen();
     document.getElementById('loginModal').classList.remove('hidden');
   }
 
-  // LIMPEZA TOTAL DA INTERFACE AO EXCLUIR OU SAIR
   function resetMainScreen() {
     selectedStudent = '';
     currentStudentData = null;
@@ -361,7 +359,6 @@
     }
   }
 
-  // CORREÇÃO: EXCLUIR APAGA DO BANCO E LIMPA DA TELA IMEDIATAMENTE
   async function deleteStudentFromDB() {
     if (!selectedStudent) {
       alert("Selecione um aluno para excluir.");
@@ -548,7 +545,7 @@
     const exercises = day.exercicios || [];
 
     if (exercises.length === 0) {
-      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenhum exercício neste dia.</div>';
+      container.innerHTML = '<div style="font-size:12px; color:var(--muted);">Nenum exercício neste dia.</div>';
       return;
     }
 
@@ -684,6 +681,7 @@
     }
   }
 
+  // FUNÇÃO INTELIGENTE: UNIFICA DIAS NOVOS AOS EXISTENTES
   async function createStudentFromAnamnese() {
     const name = document.getElementById('anamName').value.trim();
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
@@ -692,21 +690,26 @@
 
     if (!name || !code) { alert('Preencha o nome e o código do aluno.'); return; }
 
-    const workoutBlocks = rawWorkouts ? rawWorkouts.split('\n\n') : [];
-    const parsedDays = workoutBlocks.map((block, idx) => {
-      const lines = block.split('\n');
-      const title = lines[0] || `Treino ${idx + 1}`;
+    const workoutBlocks = rawWorkouts ? rawWorkouts.split(/\n\s*\n/) : [];
+    const newDays = workoutBlocks.map((block, idx) => {
+      const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length === 0) return null;
+
+      const title = lines[0]; 
       const exercicios = lines.slice(1).map((line, eIdx) => {
         const parts = line.split(' ');
-        const reps = parts.pop() || '10-12';
-        const nome = parts.join(' ') || line;
-        return { id: `e${eIdx + 1}`, nome: nome, series: "3", reps: reps };
+        const reps = parts.length > 1 ? parts.pop() : '10-12';
+        const series = parts.length > 1 && !isNaN(parts[parts.length - 1].replace('x', '')) 
+                       ? parts.pop().replace('x', '') 
+                       : '3';
+        const nomeEx = parts.join(' ') || line;
+        return { id: `e${eIdx + 1}`, nome: nomeEx, series: series, reps: reps };
       });
-      return { id: `d${idx + 1}`, title: title, exercicios: exercicios };
-    });
+      return { id: `d_${Date.now()}_${idx}`, title: title, exercicios: exercicios };
+    }).filter(Boolean);
 
     const dietLines = rawDiet ? rawDiet.split('\n') : [];
-    const parsedMeals = dietLines.map((line, idx) => {
+    const newMeals = dietLines.map((line, idx) => {
       const parts = line.split(':');
       return {
         titulo: parts[1] ? parts[0] : `Refeição ${idx + 1}`,
@@ -714,14 +717,23 @@
       };
     });
 
-    const newStudentData = {
+    let payloadBD = {
       code: code,
       clientName: name,
       title: "Protocolo de Treino & Nutrição",
       senha: code,
-      days: parsedDays,
-      refeicoes: parsedMeals
+      days: newDays,
+      refeicoes: newMeals
     };
+
+    try {
+      const checkRes = await fetch(`${BACKEND_URL}/api/aluno/${code}`);
+      if (checkRes.ok) {
+        const existingData = await checkRes.json();
+        payloadBD.days = [...(existingData.days || []), ...newDays];
+        payloadBD.refeicoes = newMeals.length > 0 ? newMeals : (existingData.refeicoes || []);
+      }
+    } catch(e) {}
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
@@ -729,12 +741,13 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           codigo: code,
-          payload: newStudentData
+          payload: payloadBD
         })
       });
 
       if (res.ok) {
-        alert(`🚀 Ficha de ${name} salva no Banco!`);
+        alert(`🚀 Ficha/Dias salvos com sucesso para ${name}!`);
+        document.getElementById('anamWorkouts').value = '';
         fetchStudentList();
         switchTab('treino');
       }
