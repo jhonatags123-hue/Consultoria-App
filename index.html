@@ -52,7 +52,7 @@
   
   .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:6px; background:#22050b; padding:8px 10px; border-radius:8px; border:1px solid #3d0815; flex-wrap:wrap; }
-  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:50px; }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:55px; }
   .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:6px !important; margin-bottom:0 !important; font-size:12px; }
 
@@ -320,25 +320,28 @@
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/${user}`);
-      if (!res.ok) throw new Error("Usuário não encontrado");
-      
-      const data = await res.json();
-      const senhaEsperada = (data.senha || data.code || user).toString().trim();
+      const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: user, senha: pass })
+      });
 
-      if (pass !== senhaEsperada) {
-        errorDiv.textContent = "❌ Senha incorreta!";
+      const result = await res.json();
+
+      if (!res.ok) {
+        errorDiv.textContent = "❌ " + (result.error || "Erro de login.");
         errorDiv.classList.remove('hidden');
         btn.textContent = "ENTRAR";
         return;
       }
 
       localStorage.setItem('logged_user', user);
+      localStorage.setItem('aluno_token', result.token);
       loggedUserCode = user;
       vincularPushUser(user);
-      loadStudentData(data);
+      loadStudentData(result.data);
     } catch (err) {
-      errorDiv.textContent = "❌ Usuário não encontrado no banco de dados.";
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor.";
       errorDiv.classList.remove('hidden');
       btn.textContent = "ENTRAR";
     }
@@ -422,6 +425,7 @@
     if(days.length > 0) renderExercises(days[0], 0);
   }
 
+  // RENDERIZA EXERCÍCIOS COM SUPORTE A SÉRIES TRADICIONAIS, CLUSTERS E BACK-OFF
   function renderExercises(day, dayIdx) {
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
@@ -429,29 +433,54 @@
 
     (day.exercicios || []).forEach((ex, exIdx) => {
       const numSeries = parseInt(ex.series) || 1;
-      const isCluster = (ex.reps || '').toLowerCase().includes('cluster') || (ex.nome || '').toLowerCase().includes('cluster') || (ex.series || '').toLowerCase().includes('cluster');
+      const metaText = ((ex.reps || '') + ' ' + (ex.nome || '') + ' ' + (ex.series || '')).toLowerCase();
       
+      const isCluster = metaText.includes('cluster');
+      const hasBackoff = metaText.includes('back off') || metaText.includes('back-off') || metaText.includes('backoff');
+      const hasNormalSeries = metaText.includes('série') || metaText.includes('serie') || metaText.includes('+') || (!isCluster && !hasBackoff);
+
       const div = document.createElement('div');
       div.className = 'item';
 
+      let tagEx = '';
+      if (isCluster && hasBackoff) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER + BACK-OFF]</span>';
+      else if (isCluster && hasNormalSeries && (metaText.includes('+') || metaText.includes('serie') || metaText.includes('série'))) tagEx = '<span style="color:var(--green); font-size:10px;">[SÉRIE + CLUSTER]</span>';
+      else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER]</span>';
+      else if (hasBackoff) tagEx = '<span style="color:var(--gold); font-size:10px;">[BACK-OFF]</span>';
+
       let html = `
         <div class="item-title">${ex.nome}</div>
-        <div class="item-meta">${ex.series ? ex.series + 'x' : ''} (${ex.reps || 'Meta'}) ${isCluster ? '<span style="color:var(--green); font-size:10px;">[CLUSTER]</span>' : ''}</div>
+        <div class="item-meta">${ex.series ? ex.series + 'x' : ''} (${ex.reps || 'Meta'}) ${tagEx}</div>
         <div class="series-container">
       `;
 
-      for (let s = 1; s <= numSeries; s++) {
-        const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-        const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-        const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
+      if (isCluster && hasNormalSeries && (metaText.includes('+') || metaText.includes('serie') || metaText.includes('série'))) {
+        const keyNormLoad = `log_c_${user}_${dayIdx}_${exIdx}_snorm`;
+        const keyNormReps = `log_r_${user}_${dayIdx}_${exIdx}_snorm`;
+        const savedNormLoad = (currentData.logs && currentData.logs[keyNormLoad]) || localStorage.getItem(keyNormLoad) || '';
+        const savedNormReps = (currentData.logs && currentData.logs[keyNormReps]) || localStorage.getItem(keyNormReps) || '';
 
-        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
-        const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
-        const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
+        html += `
+          <div class="series-row" style="border-left:3px solid var(--accent);">
+            <span class="series-tag">Série 1</span>
+            <input type="number" class="input-field input-log" id="${keyNormLoad}" value="${savedNormLoad}" placeholder="0" style="width:65px;">
+            <span class="unit">kg</span>
+            <input type="number" class="input-field input-log" id="${keyNormReps}" value="${savedNormReps}" placeholder="0" style="width:65px; margin-left:auto;">
+            <span class="unit">reps</span>
+          </div>
+        `;
 
-        if (isCluster) {
+        for (let s = 1; s <= numSeries; s++) {
+          const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+          const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+          const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
+
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+          const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
+
           html += `
-            <div class="series-row">
+            <div class="series-row" style="border-left:3px solid var(--green);">
               <span class="series-tag">Cluster ${s}</span>
               <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
               <span class="unit">kg</span>
@@ -461,17 +490,59 @@
               <span class="unit">reps/bloco</span>
             </div>
           `;
-        } else {
-          html += `
-            <div class="series-row">
-              <span class="series-tag">Série ${s}</span>
-              <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
-              <span class="unit">kg</span>
-              <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
-              <span class="unit">reps</span>
-            </div>
-          `;
         }
+      } else {
+        for (let s = 1; s <= numSeries; s++) {
+          const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+          const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+          const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
+
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+          const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
+
+          if (isCluster) {
+            html += `
+              <div class="series-row">
+                <span class="series-tag">Cluster ${s}</span>
+                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
+                <span class="unit">kg</span>
+                <input type="number" class="input-field input-log" id="${keyBlocks}" value="${savedBlocks}" placeholder="0" style="flex:1;">
+                <span class="unit">blocos</span>
+                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="flex:1;">
+                <span class="unit">reps/bloco</span>
+              </div>
+            `;
+          } else {
+            html += `
+              <div class="series-row">
+                <span class="series-tag">Série ${s}</span>
+                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
+                <span class="unit">kg</span>
+                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
+                <span class="unit">reps</span>
+              </div>
+            `;
+          }
+        }
+      }
+
+      if (hasBackoff) {
+        const keyBoLoad = `log_bo_c_${user}_${dayIdx}_${exIdx}`;
+        const keyBoReps = `log_bo_r_${user}_${dayIdx}_${exIdx}`;
+
+        const savedBoLoad = (currentData.logs && currentData.logs[keyBoLoad]) || localStorage.getItem(keyBoLoad) || '';
+        const savedBoReps = (currentData.logs && currentData.logs[keyBoReps]) || localStorage.getItem(keyBoReps) || '';
+
+        html += `
+          <div class="series-row" style="border:1px dashed var(--gold); margin-top:4px;">
+            <span class="series-tag" style="color:var(--gold); width:70px;">Back-off</span>
+            <input type="number" class="input-field input-log" id="${keyBoLoad}" value="${savedBoLoad}" placeholder="0" style="width:65px;">
+            <span class="unit">kg</span>
+            <input type="number" class="input-field input-log" id="${keyBoReps}" value="${savedBoReps}" placeholder="0" style="width:65px; margin-left:auto;">
+            <span class="unit">reps</span>
+          </div>
+        `;
       }
 
       html += `</div>`;
@@ -608,6 +679,7 @@
 
   function logout() { 
     localStorage.removeItem('logged_user'); 
+    localStorage.removeItem('aluno_token');
     location.reload(); 
   }
 
