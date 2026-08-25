@@ -143,7 +143,7 @@
           <input type="text" id="editExName" placeholder="Nome do exercício (ex: Agachamento Livre)">
           <div style="display:flex; gap:8px;">
             <input type="text" id="editExSeries" placeholder="Séries (ex: 2 ou 3)" style="flex:1;">
-            <input type="text" id="editExReps" placeholder="Reps (ex: 6-8 ou até a falha)" style="flex:1;">
+            <input type="text" id="editExReps" placeholder="Reps ou Cluster (ex: 3 Clusters / 4 blocos)" style="flex:1;">
           </div>
           <button class="btn-action" onclick="addExerciseToEdit()">+ Adicionar Exercício</button>
         </div>
@@ -155,7 +155,7 @@
       </div>
     </div>
 
-    <!-- ABA DIETA COM CICLAGEM DE CARBO -->
+    <!-- ABA DIETA MANAL E COM CICLAGEM -->
     <div id="tabAdminDieta" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);" id="studentDietTitle">🥗 Gestão do Plano Alimentar</div>
@@ -170,10 +170,10 @@
           </select>
 
           <label style="font-size:12px; color:var(--gold); font-weight:700;">Título da Refeição</label>
-          <input type="text" id="mealTitle" placeholder="Ex: Refeição 1 - Café da Manhã">
+          <input type="text" id="mealTitle" placeholder="Ex: Refeição 1 · Café da Manhã">
 
-          <label style="font-size:12px; color:var(--gold); font-weight:700;">Alimentos & Quantidades</label>
-          <textarea id="mealFoods" rows="3" placeholder="Ex: 200g de Arroz, 150g de Frango, Salada à vontade"></textarea>
+          <label style="font-size:12px; color:var(--gold); font-weight:700;">Alimentos & Quantidades (Formatado ou Texto)</label>
+          <textarea id="mealFoods" rows="4" placeholder="Alimento | Qtd | Kcal | Prot | Carb | Gord&#10;Pão de forma | 4 fatias (120g) | 276 | 8 | 52 | 3"></textarea>
           
           <button class="btn-action" onclick="addMealToStudent()">+ Adicionar Refeição ao Plano</button>
         </div>
@@ -185,6 +185,7 @@
       </div>
     </div>
 
+    <!-- IMPORTAÇÃO RÁPIDA VIA BLOCO DE TEXTO -->
     <div id="tabAdminNovo" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);">📋 Cadastrar / Adicionar Dia via Bloco de Texto</div>
@@ -196,10 +197,10 @@
         </div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Bloco de Treino (Nome do Dia na 1ª Linha)</label>
-        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 4x 8-10"></textarea>
+        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 2x 3 Clusters 4 blocos"></textarea>
 
-        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Opcional - Use [Carbo Alto] ou [Carbo Baixo] se houver variações)</label>
-        <textarea id="anamDiet" rows="3" placeholder="[Carbo Alto] Café: 200g Arroz, 3 Ovos&#10;[Carbo Baixo] Café: 3 Ovos, Salada"></textarea>
+        <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Coloque [CARBO ALTO], [CARBO BAIXO] ou [CARBO MEDIO] na 1ª linha)</label>
+        <textarea id="anamDiet" rows="8" placeholder="[CARBO ALTO]&#10;&#10;REFEIÇÃO 1 · CAFÉ DA MANHÃ · 07:00 – 08:00&#10;Pão de forma | 4 fatias (120g) | 276 | 8 | 52 | 3&#10;Ovos mexidos | 4 unidades | 280 | 24 | 1 | 20"></textarea>
 
         <button class="btn-action btn-wpp" onclick="createStudentFromAnamnese()">🚀 Salvar / Adicionar Dias ao Banco</button>
       </div>
@@ -264,7 +265,6 @@
     }
   }
 
-  // ENCERRA SESSÃO IMEDIATAMENTE (SEM SOLICITAR SENHA AO SAIR)
   function logoutAdmin() {
     localStorage.removeItem('admin_token');
     resetMainScreen();
@@ -355,7 +355,6 @@
       document.getElementById('studentDietTitle').textContent = `🥗 Dieta — ${currentStudentData.clientName}`;
       
       renderWorkoutOverview(currentStudentData);
-      renderDietOverview(currentStudentData);
       setupEditDaysList(currentStudentData);
       renderDietEditList();
       populateExerciseSelect();
@@ -420,7 +419,6 @@
     }
   }
 
-  // EXIBIÇÃO DAS CARGAS DIGITADAS PELO ALUNO POR SÉRIE INDIVIDUAL
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
@@ -445,21 +443,35 @@
       } else {
         exercicios.forEach((ex, exIdx) => {
           const numSeries = parseInt(ex.series) || 1;
+          const isCluster = (ex.reps || '').toLowerCase().includes('cluster') || (ex.nome || '').toLowerCase().includes('cluster') || (ex.series || '').toLowerCase().includes('cluster');
+          
           let seriesLogsHtml = '';
 
           for (let s = 1; s <= numSeries; s++) {
             const keyLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
             const keyReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+            const keyBlocks = `log_b_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
 
-            const loadVal = (data.logs && data.logs[keyLoad]) || localStorage.getItem(keyLoad) || '-';
-            const repsVal = (data.logs && data.logs[keyReps]) || localStorage.getItem(keyReps) || '-';
+            const loadVal = (data.logs && data.logs[keyLoad]) || '-';
+            const repsVal = (data.logs && data.logs[keyReps]) || '-';
+            const blocksVal = (data.logs && data.logs[keyBlocks]) || '-';
 
-            seriesLogsHtml += `
-              <div style="font-size:12px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
-                <span><b>Série ${s}:</b> ${loadVal} kg</span>
-                <span><b>Executado:</b> ${repsVal} reps</span>
-              </div>
-            `;
+            if (isCluster) {
+              seriesLogsHtml += `
+                <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
+                  <span><b>Cluster ${s}:</b> ${loadVal} kg</span>
+                  <span><b>Blocos:</b> ${blocksVal}</span>
+                  <span><b>Reps/Bloco:</b> ${repsVal}</span>
+                </div>
+              `;
+            } else {
+              seriesLogsHtml += `
+                <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
+                  <span><b>Série ${s}:</b> ${loadVal} kg</span>
+                  <span><b>Executado:</b> ${repsVal} reps</span>
+                </div>
+              `;
+            }
           }
 
           const formatMeta = ex.series ? `${ex.series}x (${ex.reps || 'Meta'})` : (ex.reps || '');
@@ -485,26 +497,6 @@
 
       container.appendChild(btn);
       container.appendChild(content);
-    });
-  }
-
-  function renderDietOverview(data) {
-    const container = document.getElementById('dietContent');
-    if(!container) return;
-    container.innerHTML = '';
-
-    if (!data || !data.refeicoes || data.refeicoes.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:13px;">Nenhuma dieta cadastrada.</div>';
-      return;
-    }
-
-    data.refeicoes.forEach(ref => {
-      container.innerHTML += `
-        <div class="item-box">
-          <div class="item-title" style="color:var(--gold);">${ref.titulo}</div>
-          <div style="font-size:13px; color:var(--text); margin-top:4px; line-height:1.4;">${ref.alimentos}</div>
-        </div>
-      `;
     });
   }
 
@@ -713,7 +705,6 @@
           alert(`🎉 Ficha/Dieta de ${selectedStudent.toUpperCase()} atualizada e salva no PostgreSQL!`);
         }
         renderWorkoutOverview(currentStudentData);
-        renderDietOverview(currentStudentData);
       } else {
         alert("Erro ao salvar dados no banco de dados.");
       }
@@ -728,11 +719,11 @@
     const rawWorkouts = document.getElementById('anamWorkouts').value.trim();
     const rawDiet = document.getElementById('anamDiet').value.trim();
 
-    if (!name || !code) { alert('Preencha o nome e o código do aluno.'); return; }
+    if (!name || !code) return alert("Preencha o nome e o código do aluno.");
 
     const workoutBlocks = rawWorkouts ? rawWorkouts.split(/\n\s*\n/) : [];
     const newDays = workoutBlocks.map((block, idx) => {
-      const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
       if (lines.length === 0) return null;
 
       const title = lines[0]; 
@@ -758,14 +749,34 @@
       return { id: `d_${Date.now()}_${idx}`, title: title, exercicios: exercicios };
     }).filter(Boolean);
 
-    const dietLines = rawDiet ? rawDiet.split('\n') : [];
-    const newMeals = dietLines.map((line, idx) => {
-      const parts = line.split(':');
-      return {
-        titulo: parts[1] ? parts[0] : `Refeição ${idx + 1}`,
-        alimentos: parts[1] ? parts[1].trim() : line
-      };
-    });
+    // Detecta a tag global de carbo na primeira linha do texto
+    let globalCarboTag = "";
+    let dietTextClean = rawDiet;
+
+    if (rawDiet.toUpperCase().startsWith("[CARBO ALTO]")) {
+      globalCarboTag = "[Carbo Alto]";
+      dietTextClean = rawDiet.substring(12).trim();
+    } else if (rawDiet.toUpperCase().startsWith("[CARBO BAIXO]")) {
+      globalCarboTag = "[Carbo Baixo]";
+      dietTextClean = rawDiet.substring(13).trim();
+    } else if (rawDiet.toUpperCase().startsWith("[CARBO MEDIO]") || rawDiet.toUpperCase().startsWith("[CARBO MÉDIO]")) {
+      globalCarboTag = "[Carbo Medio]";
+      dietTextClean = rawDiet.replace(/^\[CARBO M[ÉE]DIO\]/i, '').trim();
+    }
+
+    const dietBlocks = dietTextClean ? dietTextClean.split(/\n\s*\n/) : [];
+    const newMeals = dietBlocks.map(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length === 0) return null;
+
+      let title = lines[0];
+      if (globalCarboTag && !title.includes('[Carbo')) {
+        title = `${globalCarboTag} ${title}`;
+      }
+
+      const items = lines.slice(1).join('\n');
+      return { titulo: title, alimentos: items };
+    }).filter(Boolean);
 
     let payloadBD = {
       code: code,
@@ -781,7 +792,7 @@
       if (checkRes.ok) {
         const existingData = await checkRes.json();
         payloadBD.days = [...(existingData.days || []), ...newDays];
-        payloadBD.refeicoes = newMeals.length > 0 ? newMeals : (existingData.refeicoes || []);
+        payloadBD.refeicoes = [...(existingData.refeicoes || []), ...newMeals];
       }
     } catch(e) {}
 
@@ -798,6 +809,7 @@
       if (res.ok) {
         alert(`🚀 Dados gravados com sucesso no banco para ${name}!`);
         document.getElementById('anamWorkouts').value = '';
+        document.getElementById('anamDiet').value = '';
         fetchStudentList();
         switchTab('treino');
       }
