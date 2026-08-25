@@ -115,7 +115,7 @@
           </div>
         </div>
 
-        <div class="label-title" id="studentWorkoutTitle">Ficha de Treino</div>
+        <div class="label-title" id="studentWorkoutTitle">Ficha de Treino & Cargas por Série</div>
         <div id="workoutContent">Selecione um aluno na lista ao lado...</div>
       </div>
     </div>
@@ -264,6 +264,7 @@
     }
   }
 
+  // ENCERRA SESSÃO IMEDIATAMENTE (SEM SOLICITAR SENHA AO SAIR)
   function logoutAdmin() {
     localStorage.removeItem('admin_token');
     resetMainScreen();
@@ -344,11 +345,12 @@
         clientName: rawData.clientName || code,
         senha: rawData.senha || code,
         days: Array.isArray(rawData.days) ? rawData.days : [],
-        refeicoes: Array.isArray(rawData.refeicoes) ? rawData.refeicoes : []
+        refeicoes: Array.isArray(rawData.refeicoes) ? rawData.refeicoes : [],
+        logs: rawData.logs || {}
       };
       
       document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${currentStudentData.clientName}`;
-      document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino — ${currentStudentData.clientName}`;
+      document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino & Cargas por Série — ${currentStudentData.clientName}`;
       document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${currentStudentData.clientName}`;
       document.getElementById('studentDietTitle').textContent = `🥗 Dieta — ${currentStudentData.clientName}`;
       
@@ -418,6 +420,7 @@
     }
   }
 
+  // EXIBIÇÃO DAS CARGAS DIGITADAS PELO ALUNO POR SÉRIE INDIVIDUAL
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
@@ -440,19 +443,36 @@
       if (exercicios.length === 0) {
         content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício adicionado neste dia.</div>';
       } else {
-        exercicios.forEach((ex, idx) => {
-          const savedLoad = localStorage.getItem(`c_${selectedStudent}_${dayIdx}_${idx}`) || '-';
-          const savedReps = localStorage.getItem(`r_${selectedStudent}_${dayIdx}_${idx}`) || '-';
-          
-          const formatMeta = ex.series ? `${ex.series}x (${ex.reps || ''})` : (ex.reps || '');
+        exercicios.forEach((ex, exIdx) => {
+          const numSeries = parseInt(ex.series) || 1;
+          let seriesLogsHtml = '';
+
+          for (let s = 1; s <= numSeries; s++) {
+            const keyLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+            const keyReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+
+            const loadVal = (data.logs && data.logs[keyLoad]) || localStorage.getItem(keyLoad) || '-';
+            const repsVal = (data.logs && data.logs[keyReps]) || localStorage.getItem(keyReps) || '-';
+
+            seriesLogsHtml += `
+              <div style="font-size:12px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
+                <span><b>Série ${s}:</b> ${loadVal} kg</span>
+                <span><b>Executado:</b> ${repsVal} reps</span>
+              </div>
+            `;
+          }
+
+          const formatMeta = ex.series ? `${ex.series}x (${ex.reps || 'Meta'})` : (ex.reps || '');
 
           content.innerHTML += `
-            <div class="item-box">
+            <div class="item-box" style="margin-bottom:10px;">
               <div class="item-header">
                 <span class="item-title">${ex.nome || 'Exercício'}</span>
                 <span class="item-meta">${formatMeta}</span>
               </div>
-              <div style="font-size:12px; color:var(--green); margin-top:4px;">💪 Carga Salva: ${savedLoad} | 🔄 Reps: ${savedReps}</div>
+              <div style="margin-top:6px; border-top:1px dashed var(--border); padding-top:4px;">
+                ${seriesLogsHtml}
+              </div>
             </div>
           `;
         });
@@ -622,7 +642,6 @@
     loadDayEditList();
   }
 
-  // GERENCIADOR DE REFEIÇÕES COM RÓTULOS DE CARBO
   function renderDietEditList() {
     const container = document.getElementById('dietEditList');
     container.innerHTML = '';
