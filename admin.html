@@ -143,7 +143,7 @@
           <input type="text" id="editExName" placeholder="Nome do exercício (ex: Agachamento Livre)">
           <div style="display:flex; gap:8px;">
             <input type="text" id="editExSeries" placeholder="Séries (ex: 2 ou 3)" style="flex:1;">
-            <input type="text" id="editExReps" placeholder="Reps, Cluster ou Back-off (ex: 1 Cluster 4 blocos + 1 Back-off)" style="flex:1;">
+            <input type="text" id="editExReps" placeholder="Reps, Cluster ou Back-off (ex: 1 Série 8 reps + 1 Cluster)" style="flex:1;">
           </div>
           <button class="btn-action" onclick="addExerciseToEdit()">+ Adicionar Exercício</button>
         </div>
@@ -155,7 +155,7 @@
       </div>
     </div>
 
-    <!-- ABA DIETA MANAL E COM CICLAGEM -->
+    <!-- ABA DIETA -->
     <div id="tabAdminDieta" class="hidden">
       <div class="card" style="border-color:var(--gold);">
         <div class="label-title" style="color:var(--gold);" id="studentDietTitle">🥗 Gestão do Plano Alimentar</div>
@@ -197,7 +197,7 @@
         </div>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">2. Bloco de Treino (Nome do Dia na 1ª Linha)</label>
-        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 1x Cluster 4 blocos + 1 Back off"></textarea>
+        <textarea id="anamWorkouts" rows="6" placeholder="Upper - Segunda&#10;Supino Reto 2x 6-8&#10;Puxada Frontal 3x 10-12&#10;&#10;Lower - Terça&#10;Agachamento 1x Série 8-10 + 1 Cluster 4 blocos"></textarea>
 
         <label style="font-size:12px; color:var(--gold); font-weight:700;">3. Plano Alimentar (Coloque [CARBO ALTO], [CARBO BAIXO] ou [CARBO MEDIO] na 1ª linha)</label>
         <textarea id="anamDiet" rows="8" placeholder="[CARBO ALTO]&#10;&#10;REFEIÇÃO 1 · CAFÉ DA MANHÃ · 07:00 – 08:00&#10;Pão de forma | 4 fatias (120g) | 276 | 8 | 52 | 3&#10;Ovos mexidos | 4 unidades | 280 | 24 | 1 | 20"></textarea>
@@ -419,13 +419,12 @@
     }
   }
 
-  // RENDERIZA A FICHA DO ALUNO EXIBINDO SÉRIES NORMAIS, CLUSTERS E BACK-OFF SETS
   function renderWorkoutOverview(data) {
     const container = document.getElementById('workoutContent');
     container.innerHTML = '';
 
     if (!data || !data.days || data.days.length === 0) {
-      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:12px; background:#1a0308; border:1px solid var(--border); border-radius:8px;">Nenhum treino cadastrado para este aluno ainda. Vá na aba "✏️ Mudar Treino" para criar os dias!</div>';
+      container.innerHTML = '<div style="color:var(--muted); font-size:13px; padding:12px; background:#1a0308; border:1px solid var(--border); border-radius:8px;">Nenhum treino cadastrado.</div>';
       return;
     }
 
@@ -440,7 +439,7 @@
       const exercicios = day.exercicios || [];
 
       if (exercicios.length === 0) {
-        content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício adicionado neste dia.</div>';
+        content.innerHTML = '<div style="font-size:12px; color:var(--muted); padding:6px;">Nenhum exercício cadastrado neste dia.</div>';
       } else {
         exercicios.forEach((ex, exIdx) => {
           const numSeries = parseInt(ex.series) || 1;
@@ -448,20 +447,32 @@
           
           const isCluster = metaText.includes('cluster');
           const hasBackoff = metaText.includes('back off') || metaText.includes('back-off') || metaText.includes('backoff');
+          const hasNormalSeries = metaText.includes('série') || metaText.includes('serie') || metaText.includes('+') || (!isCluster && !hasBackoff);
 
           let seriesLogsHtml = '';
 
-          // Logs das séries principais (Normais ou Cluster)
-          for (let s = 1; s <= numSeries; s++) {
-            const keyLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
-            const keyReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
-            const keyBlocks = `log_b_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+          if (isCluster && hasNormalSeries && (metaText.includes('+') || metaText.includes('serie') || metaText.includes('série'))) {
+            const keyNormLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_snorm`;
+            const keyNormReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_snorm`;
+            const normLoadVal = (data.logs && data.logs[keyNormLoad]) || '-';
+            const normRepsVal = (data.logs && data.logs[keyNormReps]) || '-';
 
-            const loadVal = (data.logs && data.logs[keyLoad]) || '-';
-            const repsVal = (data.logs && data.logs[keyReps]) || '-';
-            const blocksVal = (data.logs && data.logs[keyBlocks]) || '-';
+            seriesLogsHtml += `
+              <div style="font-size:11px; color:var(--accent); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #4a0d1a;">
+                <span><b>Série 1:</b> ${normLoadVal} kg</span>
+                <span><b>Executado:</b> ${normRepsVal} reps</span>
+              </div>
+            `;
 
-            if (isCluster) {
+            for (let s = 1; s <= numSeries; s++) {
+              const keyLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+              const keyReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+              const keyBlocks = `log_b_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+
+              const loadVal = (data.logs && data.logs[keyLoad]) || '-';
+              const repsVal = (data.logs && data.logs[keyReps]) || '-';
+              const blocksVal = (data.logs && data.logs[keyBlocks]) || '-';
+
               seriesLogsHtml += `
                 <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
                   <span><b>Cluster ${s}:</b> ${loadVal} kg</span>
@@ -469,21 +480,39 @@
                   <span><b>Reps/Bloco:</b> ${repsVal}</span>
                 </div>
               `;
-            } else {
-              seriesLogsHtml += `
-                <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
-                  <span><b>Série ${s}:</b> ${loadVal} kg</span>
-                  <span><b>Executado:</b> ${repsVal} reps</span>
-                </div>
-              `;
+            }
+          } else {
+            for (let s = 1; s <= numSeries; s++) {
+              const keyLoad = `log_c_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+              const keyReps = `log_r_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+              const keyBlocks = `log_b_${selectedStudent}_${dayIdx}_${exIdx}_s${s}`;
+
+              const loadVal = (data.logs && data.logs[keyLoad]) || '-';
+              const repsVal = (data.logs && data.logs[keyReps]) || '-';
+              const blocksVal = (data.logs && data.logs[keyBlocks]) || '-';
+
+              if (isCluster) {
+                seriesLogsHtml += `
+                  <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
+                    <span><b>Cluster ${s}:</b> ${loadVal} kg</span>
+                    <span><b>Blocos:</b> ${blocksVal}</span>
+                    <span><b>Reps/Bloco:</b> ${repsVal}</span>
+                  </div>
+                `;
+              } else {
+                seriesLogsHtml += `
+                  <div style="font-size:11px; color:var(--green); margin-top:3px; display:flex; justify-content:space-between; background:#120206; padding:4px 8px; border-radius:4px; border:1px solid #2d0711;">
+                    <span><b>Série ${s}:</b> ${loadVal} kg</span>
+                    <span><b>Executado:</b> ${repsVal} reps</span>
+                  </div>
+                `;
+              }
             }
           }
 
-          // Log da série de Back-off (se prescrita)
           if (hasBackoff) {
             const keyBoLoad = `log_bo_c_${selectedStudent}_${dayIdx}_${exIdx}`;
             const keyBoReps = `log_bo_r_${selectedStudent}_${dayIdx}_${exIdx}`;
-
             const boLoadVal = (data.logs && data.logs[keyBoLoad]) || '-';
             const boRepsVal = (data.logs && data.logs[keyBoReps]) || '-';
 
@@ -770,7 +799,6 @@
       return { id: `d_${Date.now()}_${idx}`, title: title, exercicios: exercicios };
     }).filter(Boolean);
 
-    // Detecta a tag global de carbo na primeira linha do texto
     let globalCarboTag = "";
     let dietTextClean = rawDiet;
 
