@@ -6,19 +6,16 @@
 <title>Consultoria Esportiva — Jhonata</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
-<!-- OneSignal SDK -->
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "149311da-3e88-410f-a9b3-56a098d89b1c",
-    });
+    await OneSignal.init({ appId: "149311da-3e88-410f-a9b3-56a098d89b1c" });
   });
 </script>
 
 <style>
-  :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; --green: #7fd68a; }
+  :root { --bg: #0e0205; --card: #1c0409; --border: #3b0813; --accent: #b81d36; --gold: #d4a02a; --text: #fff; --muted: #c9a4ac; --green: #25d366; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
   .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
@@ -26,7 +23,7 @@
   .sub { color:var(--gold); font-size:12px; margin-top:4px; font-weight:600; text-align:center; }
   
   .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
-  .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
+  .input-field { width:100%; background:#170307; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
   select.input-field { color:#fff; cursor:pointer; }
   textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
   .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; text-transform:uppercase; }
@@ -35,7 +32,7 @@
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
   .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
 
-  .progress-bar-bg { width:100%; background:#2a0710; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
+  .progress-bar-bg { width:100%; background:#170307; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
   .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
   .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
 
@@ -46,21 +43,38 @@
   .menu-btn.active { background:var(--accent); border-color:var(--accent); }
 
   .days { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
-  .day-btn { padding:8px 14px; background:#2a0710; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; }
+  .day-btn { padding:8px 14px; background:#170307; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; }
   .day-btn.active { background:var(--gold); color:#210309; border-color:var(--gold); }
 
-  /* ESTRUTURA DOS EXERCÍCIOS E SÉRIES */
-  .item { background:#2a0710; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .item { background:#170307; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
   .item-title { font-weight:800; font-size:15px; color:#fff; }
   .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:2px; margin-bottom:10px; }
   
   .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
-  .series-row { display:flex; align-items:center; gap:8px; background:#1b0308; padding:8px 10px; border-radius:8px; border:1px solid #3d0815; }
-  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:55px; }
-  .unit { font-size:11px; color:var(--muted); }
+  .series-row { display:flex; align-items:center; gap:6px; background:#22050b; padding:8px 10px; border-radius:8px; border:1px solid #3d0815; flex-wrap:wrap; }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:50px; }
+  .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:6px !important; margin-bottom:0 !important; font-size:12px; }
 
-  .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:280px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
+  /* ESTILOS DA TABELA DE DIETA */
+  .diet-container { display:flex; flex-direction:column; gap:16px; }
+  .diet-filter-row { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; }
+  .diet-filter-btn { flex:1; padding:10px 8px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:11px; cursor:pointer; text-align:center; white-space:nowrap; }
+  .diet-filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  .meal-table-card { background:#120306; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .meal-header { background:#1a050a; padding:10px 14px; font-size:13px; font-weight:800; color:#fff; text-transform:uppercase; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; }
+  
+  .diet-table { width:100%; border-collapse:collapse; font-size:11px; text-align:left; }
+  .diet-table th { background:#1c0409; color:var(--muted); padding:8px; font-weight:700; border-bottom:1px solid var(--border); text-transform:uppercase; font-size:10px; }
+  .diet-table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); color:#fff; }
+  .diet-table td.qty { color:var(--gold); font-weight:700; }
+  .diet-table td.kcal { color:#7fd68a; font-weight:600; }
+  
+  .total-row { background:#1a050a; font-weight:800; }
+  .total-row td { color:var(--gold) !important; border-bottom:none; }
+
+  .chat-box { background:#170307; border:1px solid var(--border); border-radius:12px; height:280px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
   .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
   .msg-user { background:var(--accent); color:#fff; align-self:flex-end; }
   .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; }
@@ -75,7 +89,6 @@
 </head>
 <body>
 
-<!-- TELA DE ANAMNESE -->
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
   <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
@@ -118,7 +131,7 @@
         <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
       </select>
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar ➔</button>
       </div>
     </div>
@@ -127,7 +140,7 @@
       <label class="label-fdb">3. Quantas refeições por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4">
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar ➔</button>
       </div>
     </div>
@@ -136,7 +149,7 @@
       <label class="label-fdb">4. Horário de treino e rotina:</label>
       <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: 18h">
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar ➔</button>
       </div>
     </div>
@@ -145,7 +158,7 @@
       <label class="label-fdb">5. Alimentos preferidos:</label>
       <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, arroz..."></textarea>
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar ➔</button>
       </div>
     </div>
@@ -154,7 +167,7 @@
       <label class="label-fdb">6. Medicamentos ou suplementos:</label>
       <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina">
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar ➔</button>
       </div>
     </div>
@@ -163,14 +176,13 @@
       <label class="label-fdb">7. Rotina no final de semana:</label>
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
       <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
         <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
       </div>
     </div>
   </form>
 </div>
 
-<!-- TELA DE LOGIN DO ALUNO -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
   <div class="sub">Acesse sua área exclusiva</div>
@@ -183,7 +195,6 @@
   <div id="loginError" class="error-msg hidden"></div>
 </div>
 
-<!-- APLICATIVO PRINCIPAL DO ALUNO -->
 <div id="mainContent" class="hidden">
   <div class="card">
     <div class="header-app">
@@ -210,7 +221,8 @@
   </div>
 
   <div id="tabDieta" class="hidden">
-    <div id="mealsList"></div>
+    <div id="dietFilterContainer" class="diet-filter-row"></div>
+    <div id="mealsList" class="diet-container"></div>
   </div>
 
   <div id="tabChat" class="card hidden">
@@ -234,13 +246,12 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwh6A1018LpY9w-JXhx1OR6hcyhsIb_9dClfFj_W8SDkQ8TLcDcc2h-hIrM0P2PaVg38Q/exec";
-
   const ADMIN_USER = "jhonata";
   const ADMIN_PASS = "0304";
 
   let currentData = null;
   let loggedUserCode = "";
+  let activeDietTag = "TODOS";
 
   window.onload = async () => {
     const params = new URLSearchParams(window.location.search);
@@ -269,20 +280,16 @@
 
   function vincularPushUser(userId) {
     if (window.OneSignalDeferred) {
-      OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.login(userId);
-      });
+      OneSignalDeferred.push(function(OneSignal) { OneSignal.login(userId); });
     }
   }
 
   function solicitarPermissaoPush() {
     Notification.requestPermission().then(function(permission) {
       if (permission === "granted") {
-        alert("🔔 Notificações ativadas com sucesso!");
+        alert("🔔 Notificações ativadas!");
         if (window.OneSignalDeferred) {
-          OneSignalDeferred.push(function(OneSignal) {
-            OneSignal.Notifications.requestPermission();
-          });
+          OneSignalDeferred.push(function(OneSignal) { OneSignal.Notifications.requestPermission(); });
         }
       }
     });
@@ -320,7 +327,7 @@
       const senhaEsperada = (data.senha || data.code || user).toString().trim();
 
       if (pass !== senhaEsperada) {
-        errorDiv.textContent = "❌ Senha incorreta! Verifique a senha e tente novamente.";
+        errorDiv.textContent = "❌ Senha incorreta!";
         errorDiv.classList.remove('hidden');
         btn.textContent = "ENTRAR";
         return;
@@ -342,16 +349,12 @@
     const email = document.getElementById('anamEmail').value.trim();
     const btn = document.getElementById('btnSubmitAnam');
 
-    if (!nome || !email) {
-      alert("Por favor, preencha nome e e-mail no primeiro passo.");
-      return;
-    }
+    if (!nome || !email) return alert("Preencha nome e e-mail.");
 
     btn.textContent = "Enviando dados...";
     btn.disabled = true;
 
     const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-
     const anamneseData = {
       codigo: userCode,
       nome: nome,
@@ -373,20 +376,13 @@
           <div style="text-align:center; padding:20px;">
             <div style="font-size:40px; margin-bottom:10px;">📋✅</div>
             <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Enviada!</h2>
-            <p style="font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5;">
-              Obrigado, <b>${nome}</b>! Seus dados foram salvos com sucesso.<br><br>
-              ⏳ <b>Próximo Passo:</b> Seu protocolo de treino e dieta está em elaboração. Em breve você receberá seu login e senha no seu WhatsApp!
-            </p>
+            <p style="font-size:13px; color:var(--muted); margin-top:8px;">O Personal Jhonata enviará seu acesso assim que o treino for montado.</p>
             <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar para o Início</a>
           </div>
         `;
-      } else {
-        alert("Erro ao enviar anamnese. Tente novamente.");
-        btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
-        btn.disabled = false;
       }
     } catch (e) {
-      alert("Erro de conexão ao enviar a anamnese.");
+      alert("Erro de conexão ao enviar.");
       btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
       btn.disabled = false;
     }
@@ -408,7 +404,7 @@
     daysList.innerHTML = '';
     
     if (!days || days.length === 0) {
-      document.getElementById('exercisesList').innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu protocolo está sendo preparado pelo Personal Jhonata!</div>';
+      document.getElementById('exercisesList').innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está em preparação.</div>';
       return;
     }
 
@@ -426,7 +422,6 @@
     if(days.length > 0) renderExercises(days[0], 0);
   }
 
-  // RENDERIZAÇÃO DAS SÉRIES INDIVIDUALMENTE
   function renderExercises(day, dayIdx) {
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
@@ -434,31 +429,49 @@
 
     (day.exercicios || []).forEach((ex, exIdx) => {
       const numSeries = parseInt(ex.series) || 1;
+      const isCluster = (ex.reps || '').toLowerCase().includes('cluster') || (ex.nome || '').toLowerCase().includes('cluster') || (ex.series || '').toLowerCase().includes('cluster');
+      
       const div = document.createElement('div');
       div.className = 'item';
 
       let html = `
         <div class="item-title">${ex.nome}</div>
-        <div class="item-meta">${ex.series ? ex.series + 'x' : ''} (${ex.reps || 'Meta'})</div>
+        <div class="item-meta">${ex.series ? ex.series + 'x' : ''} (${ex.reps || 'Meta'}) ${isCluster ? '<span style="color:var(--green); font-size:10px;">[CLUSTER]</span>' : ''}</div>
         <div class="series-container">
       `;
 
       for (let s = 1; s <= numSeries; s++) {
         const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
         const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+        const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
 
         const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
         const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+        const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
 
-        html += `
-          <div class="series-row">
-            <span class="series-tag">Série ${s}</span>
-            <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
-            <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
-            <span class="unit">reps</span>
-          </div>
-        `;
+        if (isCluster) {
+          html += `
+            <div class="series-row">
+              <span class="series-tag">Cluster ${s}</span>
+              <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
+              <span class="unit">kg</span>
+              <input type="number" class="input-field input-log" id="${keyBlocks}" value="${savedBlocks}" placeholder="0" style="flex:1;">
+              <span class="unit">blocos</span>
+              <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="flex:1;">
+              <span class="unit">reps/bloco</span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="series-row">
+              <span class="series-tag">Série ${s}</span>
+              <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
+              <span class="unit">kg</span>
+              <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
+              <span class="unit">reps</span>
+            </div>
+          `;
+        }
       }
 
       html += `</div>`;
@@ -467,7 +480,6 @@
     });
   }
 
-  // SALVA AS CARGAS DIGITADAS NA NUVEM
   async function saveStudentLogs() {
     if (!currentData || !loggedUserCode) return;
     if (!currentData.logs) currentData.logs = {};
@@ -482,37 +494,116 @@
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          codigo: loggedUserCode,
-          payload: currentData
-        })
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
 
-      if (res.ok) {
-        alert("✅ Cargas e repetições salvas com sucesso no banco!");
-      } else {
-        alert("Erro ao salvar cargas no servidor.");
-      }
+      if (res.ok) alert("✅ Cargas e repetições salvas no servidor!");
     } catch(err) {
-      alert("Falha de conexão com o banco.");
+      alert("Falha ao conectar no banco.");
     }
   }
 
   function setupDiet(refeicoes) {
+    const filterContainer = document.getElementById('dietFilterContainer');
     const list = document.getElementById('mealsList');
+    filterContainer.innerHTML = '';
     list.innerHTML = '';
 
     if (!refeicoes || refeicoes.length === 0) {
-      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada ainda.</div>';
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada.</div>';
       return;
     }
 
-    (refeicoes || []).forEach(ref => {
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `<div class="item-title" style="color:var(--gold);">${ref.titulo}</div><div style="font-size:13px; color:#fff; line-height:1.4; white-space:pre-line; margin-top:4px;">${ref.alimentos}</div>`;
-      list.appendChild(div);
+    const hasAlto = refeicoes.some(r => (r.titulo || '').includes('[Carbo Alto]'));
+    const hasBaixo = refeicoes.some(r => (r.titulo || '').includes('[Carbo Baixo]'));
+    const hasMedio = refeicoes.some(r => (r.titulo || '').includes('[Carbo Medio]') || (r.titulo || '').includes('[Carbo Médio]'));
+
+    if (hasAlto || hasBaixo || hasMedio) {
+      let filterBtns = '';
+      if (hasAlto) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Alto'?'active':''}" onclick="setDietFilter('Alto')">🟢 CARBO ALTO</button>`;
+      if (hasBaixo) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Baixo'?'active':''}" onclick="setDietFilter('Baixo')">🔴 CARBO BAIXO</button>`;
+      if (hasMedio) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Medio'?'active':''}" onclick="setDietFilter('Medio')">🟡 CARBO MÉDIO</button>`;
+      
+      filterContainer.innerHTML = filterBtns;
+      if (activeDietTag === 'TODOS') {
+        if (hasAlto) activeDietTag = 'Alto';
+        else if (hasBaixo) activeDietTag = 'Baixo';
+        else if (hasMedio) activeDietTag = 'Medio';
+      }
+    }
+
+    const filtered = refeicoes.filter(r => {
+      const title = r.titulo || '';
+      if (activeDietTag === 'Alto') return title.includes('[Carbo Alto]') || !title.includes('[Carbo');
+      if (activeDietTag === 'Baixo') return title.includes('[Carbo Baixo]') || !title.includes('[Carbo');
+      if (activeDietTag === 'Medio') return title.includes('[Carbo Medio]') || title.includes('[Carbo Médio]') || !title.includes('[Carbo');
+      return true;
     });
+
+    filtered.forEach(ref => {
+      const cleanTitle = (ref.titulo || '').replace(/\[.*?\]/g, '').trim();
+      const lines = (ref.alimentos || '').split('\n').filter(Boolean);
+
+      let tableRows = '';
+      let totKcal = 0, totProt = 0, totCarb = 0, totGord = 0;
+
+      lines.forEach(line => {
+        const parts = line.split('|').map(p => p.trim());
+        const alimento = parts[0] || line;
+        const qtd = parts[1] || '-';
+        const kcal = parseInt(parts[2]) || 0;
+        const prot = parseInt(parts[3]) || 0;
+        const carb = parseInt(parts[4]) || 0;
+        const gord = parseInt(parts[5]) || 0;
+
+        totKcal += kcal; totProt += prot; totCarb += carb; totGord += gord;
+
+        tableRows += `
+          <tr>
+            <td>${alimento}</td>
+            <td class="qty">${qtd}</td>
+            <td class="kcal">${kcal || '-'}</td>
+            <td>${prot || '-'}</td>
+            <td>${carb || '-'}</td>
+            <td>${gord || '-'}</td>
+          </tr>
+        `;
+      });
+
+      const card = document.createElement('div');
+      card.className = 'meal-table-card';
+      card.innerHTML = `
+        <div class="meal-header">${cleanTitle}</div>
+        <table class="diet-table">
+          <thead>
+            <tr>
+              <th>Alimento</th>
+              <th>Qtd.</th>
+              <th>Kcal</th>
+              <th>Prot</th>
+              <th>Carb</th>
+              <th>Gord</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+            <tr class="total-row">
+              <td colspan="2">TOTAL REFEIÇÃO</td>
+              <td>${totKcal || '-'}</td>
+              <td>${totProt || '-'}</td>
+              <td>${totCarb || '-'}</td>
+              <td>${totGord || '-'}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+      list.appendChild(card);
+    });
+  }
+
+  function setDietFilter(tag) {
+    activeDietTag = tag;
+    setupDiet(currentData.refeicoes || []);
   }
 
   function logout() { 
@@ -558,17 +649,7 @@
     history.scrollTop = history.scrollHeight;
 
     setTimeout(() => {
-      let reply = "Para garantir máxima eficiência no treino, controle o movimento na descida (fase excêntrica) por 2 segundos e solte o ar na subida.";
-      const query = text.toLowerCase();
-
-      if (query.includes('dor') || query.includes('machucou')) {
-        reply = "⚠️ Se sentir dores articulares (e não musculares), reduza o peso ou pare o exercício imediatamente. Avise o Personal Jhonata!";
-      } else if (query.includes('carga') || query.includes('peso')) {
-        reply = "Aumente a carga apenas se conseguir cumprir todas as repetições com a postura correta.";
-      } else if (query.includes('cardio') || query.includes('esteira')) {
-        reply = "O ideal é fazer o aeróbico DEPOIS da musculação para não gastar sua energia de força antes da hora.";
-      }
-
+      let reply = "Mantenha o foco na cadência do movimento e respeite o tempo de descanso entre as séries.";
       history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${reply}</div>`;
       history.scrollTop = history.scrollHeight;
     }, 600);
@@ -576,11 +657,10 @@
 
   function sendWhatsAppFeedback() {
     const text = document.getElementById('feedbackText').value.trim();
-    if (!text) { alert("Escreva seu feedback antes de enviar."); return; }
+    if (!text) return alert("Escreva seu feedback antes de enviar.");
 
     const studentName = currentData?.clientName || "Aluno";
     const phone = "5551990169026";
-    
     const msg = `💬 *Feedback de Treino — ${studentName}*%0A%0A${encodeURIComponent(text)}`;
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
   }
