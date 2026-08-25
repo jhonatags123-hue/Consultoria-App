@@ -18,7 +18,7 @@
 </script>
 
 <style>
-  :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; }
+  :root { --bg: #210309; --card: #340712; --border: #5a1120; --accent: #c4324f; --gold: #d4a02a; --text: #fff; --muted: #d8b3bb; --green: #7fd68a; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
   .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
@@ -29,8 +29,9 @@
   .input-field { width:100%; background:#2a0710; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
   select.input-field { color:#fff; cursor:pointer; }
   textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
-  .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; }
+  .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; text-transform:uppercase; }
   .btn-wpp { background:#25d366; color:#000; font-weight:800; }
+  .btn-gold { background:var(--gold); color:#210309; font-weight:800; }
   .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
   .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
 
@@ -48,12 +49,16 @@
   .day-btn { padding:8px 14px; background:#2a0710; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; }
   .day-btn.active { background:var(--gold); color:#210309; border-color:var(--gold); }
 
-  .item { background:#2a0710; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px; }
-  .item-title { font-weight:700; font-size:14px; color:#fff; }
-  .item-meta { color:var(--gold); font-size:12px; font-weight:600; margin-top:2px; }
+  /* ESTRUTURA DOS EXERCÍCIOS E SÉRIES */
+  .item { background:#2a0710; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .item-title { font-weight:800; font-size:15px; color:#fff; }
+  .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:2px; margin-bottom:10px; }
   
-  .inputs-row { display:flex; gap:8px; margin-top:8px; }
-  .input-load { flex:1; background:var(--bg); border:1px solid var(--border); color:#7fd68a; padding:8px 10px; border-radius:6px; font-size:12px; }
+  .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .series-row { display:flex; align-items:center; gap:8px; background:#1b0308; padding:8px 10px; border-radius:8px; border:1px solid #3d0815; }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:55px; }
+  .unit { font-size:11px; color:var(--muted); }
+  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:6px !important; margin-bottom:0 !important; font-size:12px; }
 
   .chat-box { background:#2a0710; border:1px solid var(--border); border-radius:12px; height:280px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
   .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
@@ -70,6 +75,7 @@
 </head>
 <body>
 
+<!-- TELA DE ANAMNESE -->
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
   <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
@@ -158,24 +164,26 @@
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#2a0710; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" id="btnSubmitAnam" class="btn-login" style="background:var(--gold); color:#000;" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
       </div>
     </div>
   </form>
 </div>
 
+<!-- TELA DE LOGIN DO ALUNO -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
   <div class="sub">Acesse sua área exclusiva</div>
   
   <form onsubmit="handleLogin(event)" class="login-box">
-    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: erick, julia ou jhonata)" required>
+    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: lucas ou jhonata)" required>
     <input type="password" id="loginPass" class="input-field" placeholder="Senha" required>
     <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
   </form>
   <div id="loginError" class="error-msg hidden"></div>
 </div>
 
+<!-- APLICATIVO PRINCIPAL DO ALUNO -->
 <div id="mainContent" class="hidden">
   <div class="card">
     <div class="header-app">
@@ -198,6 +206,7 @@
   <div id="tabTreino">
     <div class="days" id="daysList"></div>
     <div id="exercisesList"></div>
+    <button class="btn-login btn-gold" style="margin-top:14px;" onclick="saveStudentLogs()">💾 SALVAR CARGAS E REPETIÇÕES</button>
   </div>
 
   <div id="tabDieta" class="hidden">
@@ -231,6 +240,7 @@
   const ADMIN_PASS = "0304";
 
   let currentData = null;
+  let loggedUserCode = "";
 
   window.onload = async () => {
     const params = new URLSearchParams(window.location.search);
@@ -240,13 +250,13 @@
       return;
     }
 
-    // Auto-login se já estiver logado
     const loggedUser = localStorage.getItem('logged_user');
     if (loggedUser && loggedUser !== ADMIN_USER) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
         if (res.ok) {
           const data = await res.json();
+          loggedUserCode = loggedUser;
           loadStudentData(data);
         } else {
           localStorage.removeItem('logged_user');
@@ -285,7 +295,6 @@
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
   }
 
-  // LOGIN CORRIGIDO COM VALIDAÇÃO RÍGIDA DE SENHA
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('btnLoginSubmit');
@@ -296,7 +305,6 @@
     errorDiv.classList.add('hidden');
     btn.textContent = "Acessando...";
 
-    // 1. Acesso Admin
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem('logged_user', ADMIN_USER);
       vincularPushUser(ADMIN_USER);
@@ -304,7 +312,6 @@
       return;
     }
 
-    // 2. Acesso Aluno
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/${user}`);
       if (!res.ok) throw new Error("Usuário não encontrado");
@@ -312,7 +319,6 @@
       const data = await res.json();
       const senhaEsperada = (data.senha || data.code || user).toString().trim();
 
-      // Confere se a senha digitada bate com a salva no banco
       if (pass !== senhaEsperada) {
         errorDiv.textContent = "❌ Senha incorreta! Verifique a senha e tente novamente.";
         errorDiv.classList.remove('hidden');
@@ -320,8 +326,8 @@
         return;
       }
 
-      // Senha correta: faz o login
       localStorage.setItem('logged_user', user);
+      loggedUserCode = user;
       vincularPushUser(user);
       loadStudentData(data);
     } catch (err) {
@@ -344,56 +350,38 @@
     btn.textContent = "Enviando dados...";
     btn.disabled = true;
 
+    const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+
     const anamneseData = {
+      codigo: userCode,
       nome: nome,
       email: email,
-      nasc: document.getElementById('anamNasc').value.trim(),
-      peso: document.getElementById('anamPeso').value.trim(),
-      altura: document.getElementById('anamAltura').value.trim(),
-      motivacao: document.getElementById('anamMotivacao').value.trim(),
+      telefone: document.getElementById('anamNasc').value.trim(),
       objetivo: document.getElementById('anamObjetivo').value,
-      numRefeicoes: document.getElementById('anamNumRefeicoes').value.trim(),
-      horarioTreino: document.getElementById('anamHorarioTreino').value.trim(),
-      gostos: document.getElementById('anamGostos').value.trim(),
-      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
-      fimDeSemana: document.getElementById('anamFimDeSemana').value.trim()
-    };
-
-    const userCode = nome.split(' ')[0].toLowerCase() + Math.floor(100 + Math.random() * 900);
-
-    const payloadBD = {
-      code: userCode,
-      clientName: nome,
-      email: email,
-      peso: anamneseData.peso,
-      altura: anamneseData.altura,
-      objetivo: anamneseData.objetivo,
-      senha: userCode,
-      anamneseCompleta: anamneseData,
-      days: [],
-      refeicoes: []
+      rotina: document.getElementById('anamHorarioTreino').value.trim()
     };
 
     try {
-      fetch(GOOGLE_SCRIPT_URL, {
+      const res = await fetch(`${BACKEND_URL}/api/anamnese/salvar`, {
         method: "POST",
-        mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(anamneseData)
-      }).catch(err => console.error("Erro no Drive:", err));
-
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo: userCode, payload: payloadBD })
       });
 
       if (res.ok) {
-        alert(`🎉 Anamnese Enviada com sucesso!\n\nSeu usuário de acesso é: ${userCode}\nSua senha inicial é: ${userCode}\n\nO Personal Jhonata revisará suas respostas e montará seu treino em breve.`);
-        localStorage.setItem('logged_user', userCode);
-        loadStudentData(payloadBD);
+        document.getElementById('anamneseScreen').innerHTML = `
+          <div style="text-align:center; padding:20px;">
+            <div style="font-size:40px; margin-bottom:10px;">📋✅</div>
+            <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Enviada!</h2>
+            <p style="font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5;">
+              Obrigado, <b>${nome}</b>! Seus dados foram salvos com sucesso.<br><br>
+              ⏳ <b>Próximo Passo:</b> Seu protocolo de treino e dieta está em elaboração. Em breve você receberá seu login e senha no seu WhatsApp!
+            </p>
+            <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar para o Início</a>
+          </div>
+        `;
       } else {
-        alert("Erro ao criar cadastro no banco de dados. Tente novamente.");
+        alert("Erro ao enviar anamnese. Tente novamente.");
         btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
         btn.disabled = false;
       }
@@ -438,27 +426,76 @@
     if(days.length > 0) renderExercises(days[0], 0);
   }
 
+  // RENDERIZAÇÃO DAS SÉRIES INDIVIDUALMENTE
   function renderExercises(day, dayIdx) {
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
-    const user = localStorage.getItem('logged_user');
+    const user = loggedUserCode || localStorage.getItem('logged_user');
 
-    (day.exercicios || []).forEach((ex, idx) => {
-      const keyLoad = `c_${user}_${dayIdx}_${idx}`;
-      const keyReps = `r_${user}_${dayIdx}_${idx}`;
-
+    (day.exercicios || []).forEach((ex, exIdx) => {
+      const numSeries = parseInt(ex.series) || 1;
       const div = document.createElement('div');
       div.className = 'item';
-      div.innerHTML = `
+
+      let html = `
         <div class="item-title">${ex.nome}</div>
-        <div class="item-meta">${ex.series}x (${ex.reps})</div>
-        <div class="inputs-row">
-          <input class="input-load" placeholder="Carga (ex: 20kg)" value="${localStorage.getItem(keyLoad) || ''}" onchange="localStorage.setItem('${keyLoad}', this.value)">
-          <input class="input-load" placeholder="Reps (ex: 10)" value="${localStorage.getItem(keyReps) || ''}" onchange="localStorage.setItem('${keyReps}', this.value)">
-        </div>
+        <div class="item-meta">${ex.series ? ex.series + 'x' : ''} (${ex.reps || 'Meta'})</div>
+        <div class="series-container">
       `;
+
+      for (let s = 1; s <= numSeries; s++) {
+        const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+        const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+
+        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
+        const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+
+        html += `
+          <div class="series-row">
+            <span class="series-tag">Série ${s}</span>
+            <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
+            <span class="unit">kg</span>
+            <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
+            <span class="unit">reps</span>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      div.innerHTML = html;
       list.appendChild(div);
     });
+  }
+
+  // SALVA AS CARGAS DIGITADAS NA NUVEM
+  async function saveStudentLogs() {
+    if (!currentData || !loggedUserCode) return;
+    if (!currentData.logs) currentData.logs = {};
+
+    const inputs = document.querySelectorAll('#tabTreino input.input-log');
+    inputs.forEach(input => {
+      currentData.logs[input.id] = input.value.trim();
+      localStorage.setItem(input.id, input.value.trim());
+    });
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          codigo: loggedUserCode,
+          payload: currentData
+        })
+      });
+
+      if (res.ok) {
+        alert("✅ Cargas e repetições salvas com sucesso no banco!");
+      } else {
+        alert("Erro ao salvar cargas no servidor.");
+      }
+    } catch(err) {
+      alert("Falha de conexão com o banco.");
+    }
   }
 
   function setupDiet(refeicoes) {
@@ -473,12 +510,11 @@
     (refeicoes || []).forEach(ref => {
       const div = document.createElement('div');
       div.className = 'item';
-      div.innerHTML = `<div class="item-title" style="color:var(--gold);">${ref.titulo}</div><div>${ref.alimentos}</div>`;
+      div.innerHTML = `<div class="item-title" style="color:var(--gold);">${ref.titulo}</div><div style="font-size:13px; color:#fff; line-height:1.4; white-space:pre-line; margin-top:4px;">${ref.alimentos}</div>`;
       list.appendChild(div);
     });
   }
 
-  // LOGOUT QUE DESTRÓI A SESSÃO
   function logout() { 
     localStorage.removeItem('logged_user'); 
     location.reload(); 
