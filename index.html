@@ -56,7 +56,6 @@
   .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:6px !important; margin-bottom:0 !important; font-size:12px; }
 
-  /* ESTILOS DA TABELA DE DIETA */
   .diet-container { display:flex; flex-direction:column; gap:16px; }
   .diet-filter-row { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; }
   .diet-filter-btn { flex:1; padding:10px 8px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:11px; cursor:pointer; text-align:center; white-space:nowrap; }
@@ -106,8 +105,8 @@
       <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
       <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
 
-      <label class="label-fdb" style="margin-top:8px;">Data de Nascimento</label>
-      <input type="text" id="anamNasc" class="input-field" placeholder="DD/MM/AAAA" required>
+      <label class="label-fdb" style="margin-top:8px;">CPF (Para emissão da cobrança)</label>
+      <input type="text" id="anamCpf" class="input-field" placeholder="Ex: 000.000.000-00" required>
 
       <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
@@ -123,7 +122,7 @@
     </div>
 
     <div id="anamStep2" class="hidden">
-      <label class="label-fdb">2. O que te motivou a buscar ajuda nutricional?</label>
+      <label class="label-fdb">2. O que te motivou a buscar ajuda?</label>
       <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética" required>
       <label class="label-fdb" style="margin-top:8px;">Qual é o seu objetivo principal?</label>
       <select id="anamObjetivo" class="input-field" required>
@@ -137,7 +136,7 @@
     </div>
 
     <div id="anamStep3" class="hidden">
-      <label class="label-fdb">3. Quantas refeições por dia?</label>
+      <label class="label-fdb">3. Quantas refeições faz por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4">
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
@@ -155,7 +154,7 @@
     </div>
 
     <div id="anamStep5" class="hidden">
-      <label class="label-fdb">5. Alimentos preferidos:</label>
+      <label class="label-fdb">5. Alimentos preferidos / Alergias:</label>
       <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, arroz..."></textarea>
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
@@ -164,7 +163,7 @@
     </div>
 
     <div id="anamStep6" class="hidden">
-      <label class="label-fdb">6. Medicamentos ou suplementos:</label>
+      <label class="label-fdb">6. Medicamentos ou suplementos em uso:</label>
       <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina">
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
@@ -175,9 +174,33 @@
     <div id="anamStep7" class="hidden">
       <label class="label-fdb">7. Rotina no final de semana:</label>
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
+
+      <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
+      <select id="anamTipoConsultoria" class="input-field" required>
+        <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
+        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 65,00/mês</option>
+        <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
+        <option value="TREINO_DUPLA">👥 Apenas Treino (Anual em Dupla) — R$ 40,00/mês (cada)</option>
+        <option value="HORA_AULA">⏱️ Hora/Aula Presencial (A Combinar)</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
+      <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
+        <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
+        <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
+      </select>
+
+      <div id="pixDiretoBox" style="background:#170307; border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px; text-align:center;">
+        <div style="font-size:12px; color:var(--gold); font-weight:700;">📱 CHAVE PIX (E-MAIL)</div>
+        <div style="font-size:14px; font-weight:800; color:#fff; margin:6px 0; word-break:break-all;">jhonatags123@gmail.com</div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">Titular: Jhonata (Consultoria Esportiva)</div>
+
+        <button type="button" class="btn-login" style="margin-top:6px; background:var(--gold); color:#000; font-size:12px;" onclick="copiarChavePix()">📋 COPIAR CHAVE PIX</button>
+      </div>
+
       <div style="display:flex; gap:8px; margin-top:12px;">
         <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 ENVIAR ANAMNESE AGORA</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 FINALIZAR E ENVIAR</button>
       </div>
     </div>
   </form>
@@ -249,6 +272,15 @@
   const ADMIN_USER = "jhonata";
   const ADMIN_PASS = "0304";
 
+  // MAPEAMENTO DE LINKS DO ASAAS PARA CADA PLANO
+  const ASAAS_LINKS = {
+    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
+    'TREINO_DUPLA': "https://www.asaas.com/c/omsltaq25btnizvo",
+    'HORA_AULA': "https://www.asaas.com/c/5gd9tb7c0szjdwbd"
+  };
+
   let currentData = null;
   let loggedUserCode = "";
   let activeDietTag = "TODOS";
@@ -262,7 +294,9 @@
     }
 
     const loggedUser = localStorage.getItem('logged_user');
-    if (loggedUser && loggedUser !== ADMIN_USER) {
+    const token = localStorage.getItem('aluno_token');
+
+    if (loggedUser && loggedUser !== ADMIN_USER && token) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
         if (res.ok) {
@@ -270,36 +304,31 @@
           loggedUserCode = loggedUser;
           loadStudentData(data);
         } else {
-          localStorage.removeItem('logged_user');
+          logout();
         }
       } catch (e) {
-        localStorage.removeItem('logged_user');
+        logout();
       }
     }
   };
-
-  function vincularPushUser(userId) {
-    if (window.OneSignalDeferred) {
-      OneSignalDeferred.push(function(OneSignal) { OneSignal.login(userId); });
-    }
-  }
-
-  function solicitarPermissaoPush() {
-    Notification.requestPermission().then(function(permission) {
-      if (permission === "granted") {
-        alert("🔔 Notificações ativadas!");
-        if (window.OneSignalDeferred) {
-          OneSignalDeferred.push(function(OneSignal) { OneSignal.Notifications.requestPermission(); });
-        }
-      }
-    });
-  }
 
   function nextAnamStep(step) {
     for (let i = 1; i <= 7; i++) document.getElementById(`anamStep${i}`).classList.add('hidden');
     document.getElementById(`anamStep${step}`).classList.remove('hidden');
     document.getElementById('progressBar').style.width = `${(step/7)*100}%`;
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
+  }
+
+  function togglePaymentView() {
+    const option = document.getElementById('anamFormaPagamento').value;
+    const pixBox = document.getElementById('pixDiretoBox');
+    if (option === 'PIX_DIRETO') pixBox.classList.remove('hidden');
+    else pixBox.classList.add('hidden');
+  }
+
+  function copiarChavePix() {
+    navigator.clipboard.writeText("jhonatags123@gmail.com");
+    alert("✅ Chave Pix (jhonatags123@gmail.com) copiada!");
   }
 
   async function handleLogin(e) {
@@ -314,7 +343,6 @@
 
     if (user === ADMIN_USER && pass === ADMIN_PASS) {
       localStorage.setItem('logged_user', ADMIN_USER);
-      vincularPushUser(ADMIN_USER);
       window.location.href = "admin.html";
       return;
     }
@@ -338,10 +366,9 @@
       localStorage.setItem('logged_user', user);
       localStorage.setItem('aluno_token', result.token);
       loggedUserCode = user;
-      vincularPushUser(user);
       loadStudentData(result.data);
     } catch (err) {
-      errorDiv.textContent = "❌ Erro ao conectar ao servidor.";
+      errorDiv.textContent = "❌ Erro de conexão com o servidor.";
       errorDiv.classList.remove('hidden');
       btn.textContent = "ENTRAR";
     }
@@ -350,11 +377,14 @@
   async function sendAnamneseAppDirect() {
     const nome = document.getElementById('anamNome').value.trim();
     const email = document.getElementById('anamEmail').value.trim();
+    const cpf = document.getElementById('anamCpf').value.trim();
+    const formaPagamento = document.getElementById('anamFormaPagamento').value;
+    const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
     const btn = document.getElementById('btnSubmitAnam');
 
-    if (!nome || !email) return alert("Preencha nome e e-mail.");
+    if (!nome || !email || !cpf) return alert("Preencha nome, e-mail e CPF.");
 
-    btn.textContent = "Enviando dados...";
+    btn.textContent = "Processando...";
     btn.disabled = true;
 
     const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -362,31 +392,37 @@
       codigo: userCode,
       nome: nome,
       email: email,
+      cpf: cpf,
+      tipoConsultoria: tipoConsultoria,
       telefone: document.getElementById('anamNasc').value.trim(),
       objetivo: document.getElementById('anamObjetivo').value,
-      rotina: document.getElementById('anamHorarioTreino').value.trim()
+      rotina: document.getElementById('anamHorarioTreino').value.trim(),
+      formaPagamento: formaPagamento
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/anamnese/salvar`, {
+      const res = await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(anamneseData)
       });
 
-      if (res.ok) {
+      if (formaPagamento === 'ASAAS_LINK') {
+        const redirectUrl = ASAAS_LINKS[tipoConsultoria] || ASAAS_LINKS['COMPLETA_MENSAL'];
+        window.location.href = redirectUrl;
+      } else {
         document.getElementById('anamneseScreen').innerHTML = `
           <div style="text-align:center; padding:20px;">
             <div style="font-size:40px; margin-bottom:10px;">📋✅</div>
-            <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Enviada!</h2>
-            <p style="font-size:13px; color:var(--muted); margin-top:8px;">O Personal Jhonata enviará seu acesso assim que o treino for montado.</p>
-            <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar para o Início</a>
+            <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Registrada!</h2>
+            <p style="font-size:13px; color:var(--muted); margin-top:8px;">Realize o Pix para <b>jhonatags123@gmail.com</b> e envie o comprovante no WhatsApp do Personal para liberação do acesso.</p>
+            <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar ao Início</a>
           </div>
         `;
       }
     } catch (e) {
-      alert("Erro de conexão ao enviar.");
-      btn.textContent = "🚀 ENVIAR ANAMNESE AGORA";
+      alert("Erro ao conectar.");
+      btn.textContent = "🚀 FINALIZAR E ENVIAR";
       btn.disabled = false;
     }
   }
@@ -425,7 +461,6 @@
     if(days.length > 0) renderExercises(days[0], 0);
   }
 
-  // RENDERIZA EXERCÍCIOS COM SUPORTE A SÉRIES TRADICIONAIS, CLUSTERS E BACK-OFF
   function renderExercises(day, dayIdx) {
     const list = document.getElementById('exercisesList');
     list.innerHTML = '';
@@ -568,9 +603,9 @@
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
 
-      if (res.ok) alert("✅ Cargas e repetições salvas no servidor!");
+      if (res.ok) alert("✅ Cargas salvas com sucesso!");
     } catch(err) {
-      alert("Falha ao conectar no banco.");
+      alert("Falha de conexão com o servidor.");
     }
   }
 
@@ -581,7 +616,7 @@
     list.innerHTML = '';
 
     if (!refeicoes || refeicoes.length === 0) {
-      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada.</div>';
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada para este protocolo.</div>';
       return;
     }
 
