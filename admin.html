@@ -47,7 +47,7 @@
   .item-meta { color:var(--gold); font-size:11px; font-weight:600; }
   .order-actions { display:flex; gap:4px; margin-left:8px; }
   
-  .share-banner { background:#1a0308; border:1px dashed var(--gold); border-radius:10px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
+  .share-banner { background:#1a0308; border:1px dashed var(--gold); border-radius:10px; padding:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
   .chart-container { position:relative; width:100%; height:220px; margin-top:10px; }
   .hidden { display:none !important; }
 
@@ -107,10 +107,12 @@
         <div class="share-banner">
           <div>
             <div style="font-weight:700; font-size:13px; color:#fff;" id="shareStudentName">Nenhum aluno selecionado</div>
-            <div style="font-size:11px; color:var(--muted);">Copia a mensagem formatada para WhatsApp</div>
+            <div style="font-size:11px; color:var(--gold);" id="studentPlanTag">Plano: -</div>
+            <div style="font-size:11px; color:var(--muted);" id="studentStatusTag">Status de Pagamento: -</div>
           </div>
-          <div style="display:flex; gap:6px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
             <button class="btn-action btn-wpp" style="width:auto; padding:8px 12px; margin-top:0;" onclick="copyStudentMessage()">📲 Copiar Acesso</button>
+            <button class="btn-action" style="width:auto; padding:8px 12px; margin-top:0; background:var(--gold);" onclick="toggleStudentPayment()">💳 Alternar Pagamento</button>
             <button class="btn-danger" onclick="deleteStudentFromDB()">🗑️ Excluir Aluno</button>
           </div>
         </div>
@@ -275,6 +277,8 @@
     selectedStudent = '';
     currentStudentData = null;
     document.getElementById('shareStudentName').textContent = "Nenhum aluno selecionado";
+    document.getElementById('studentPlanTag').textContent = "Plano: -";
+    document.getElementById('studentStatusTag').textContent = "Status de Pagamento: -";
     document.getElementById('studentWorkoutTitle').textContent = "Ficha de Treino";
     document.getElementById('editWorkoutTitle').textContent = "✏️ Gerenciar Dias & Treinos";
     document.getElementById('studentDietTitle').textContent = "🥗 Gestão do Plano Alimentar";
@@ -342,14 +346,21 @@
       
       currentStudentData = {
         code: rawData.code || code,
-        clientName: rawData.clientName || code,
+        clientName: rawData.clientName || rawData.nome || code,
         senha: rawData.senha || code,
+        tipoConsultoria: rawData.tipoConsultoria || 'COMPLETA_MENSAL',
+        status_pagamento: rawData.status_pagamento || 'pago',
         days: Array.isArray(rawData.days) ? rawData.days : [],
         refeicoes: Array.isArray(rawData.refeicoes) ? rawData.refeicoes : [],
         logs: rawData.logs || {}
       };
-      
+
+      const statusText = (currentStudentData.status_pagamento || 'pago').toUpperCase();
+      const planoText = (currentStudentData.tipoConsultoria || 'COMPLETA_MENSAL').replace(/_/g, ' ');
+
       document.getElementById('shareStudentName').textContent = `Enviar Acesso — ${currentStudentData.clientName}`;
+      document.getElementById('studentPlanTag').textContent = `Plano: ${planoText}`;
+      document.getElementById('studentStatusTag').textContent = `Status de Pagamento: ${statusText}`;
       document.getElementById('studentWorkoutTitle').textContent = `Ficha de Treino & Cargas por Série — ${currentStudentData.clientName}`;
       document.getElementById('editWorkoutTitle').textContent = `✏️ Editar Treino — ${currentStudentData.clientName}`;
       document.getElementById('studentDietTitle').textContent = `🥗 Dieta — ${currentStudentData.clientName}`;
@@ -361,6 +372,17 @@
     } catch (err) {
       document.getElementById('workoutContent').innerHTML = `<span style="color:var(--accent)">Erro ao carregar dados do aluno ${code}.</span>`;
     }
+  }
+
+  async function toggleStudentPayment() {
+    if (!currentStudentData) return;
+    const currentStatus = currentStudentData.status_pagamento || 'pago';
+    const newStatus = currentStatus === 'pago' ? 'pendente' : 'pago';
+
+    currentStudentData.status_pagamento = newStatus;
+    await saveWorkoutChanges(true);
+    document.getElementById('studentStatusTag').textContent = `Status de Pagamento: ${newStatus.toUpperCase()}`;
+    alert(`Status de @${selectedStudent} alterado para: ${newStatus.toUpperCase()}`);
   }
 
   async function deleteStudentFromDB() {
