@@ -318,6 +318,9 @@
   let activeDietTag = "TODOS";
 
   window.onload = async () => {
+    // Tenta "acordar" o backend no Render em segundo plano
+    fetch(`${BACKEND_URL}/ping`).catch(() => {});
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
@@ -344,6 +347,7 @@
           logout();
         }
       } catch (e) {
+        // Se houver erro de conexão inicial, limpa sessão quebrada para permitir novo login
         logout();
       }
     }
@@ -376,7 +380,8 @@
     const errorDiv = document.getElementById('loginError');
 
     errorDiv.classList.add('hidden');
-    btn.textContent = "Acessando...";
+    btn.textContent = "Conectando ao servidor...";
+    btn.disabled = true;
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
@@ -391,6 +396,7 @@
         errorDiv.textContent = "❌ " + (result.error || "Erro de login.");
         errorDiv.classList.remove('hidden');
         btn.textContent = "ENTRAR";
+        btn.disabled = false;
         return;
       }
 
@@ -399,9 +405,10 @@
       loggedUserCode = user;
       loadStudentData(result.data);
     } catch (err) {
-      errorDiv.textContent = "❌ Erro de conexão com o servidor.";
+      errorDiv.textContent = "❌ Servidor iniciando. Aguarde uns instantes e clique em ENTRAR novamente.";
       errorDiv.classList.remove('hidden');
       btn.textContent = "ENTRAR";
+      btn.disabled = false;
     }
   }
 
@@ -749,7 +756,8 @@
   function logout() { 
     localStorage.removeItem('logged_user'); 
     localStorage.removeItem('aluno_token');
-    location.reload(); 
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
   }
 
   function showTab(tab) {
