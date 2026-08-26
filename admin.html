@@ -662,7 +662,7 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  // PARSER BLINDADO CONTRA LEITURA ERRADA DE SÉRIES EXAGERADAS
+  // PARSER ULTRA-INTELIGENTE SUPORTA MYO-REPS, CLUSTER E BACK-OFF
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -681,10 +681,17 @@
       const isDayHeader = dayKeywords.some(kw => lowerLine.includes(kw)) && 
                           !lowerLine.includes('cluster') && 
                           !lowerLine.includes('myo-reps') && 
+                          !lowerLine.includes('myo reps') && 
                           !lowerLine.includes('back-off') &&
                           !lowerLine.includes('maquina') &&
                           !lowerLine.includes('barra') &&
-                          !lowerLine.includes('polia');
+                          !lowerLine.includes('polia') &&
+                          !lowerLine.includes('halter') &&
+                          !lowerLine.includes('flexora') &&
+                          !lowerLine.includes('extensora') &&
+                          !lowerLine.includes('press') &&
+                          !lowerLine.includes('stiff') &&
+                          !lowerLine.includes('voador');
 
       if (isDayHeader) {
         currentDay = { title: cleanLine, exercicios: [] };
@@ -695,27 +702,67 @@
           days.push(currentDay);
         }
 
-        let linhaEx = cleanLine.replace(/^[0-9]+[\.\)-]\s*/, '').trim();
+        let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
 
-        let numSeries = "3"; 
-        let repsText = "8-10";
+        const isCluster = lowerLine.includes('cluster');
+        const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
+        const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
 
-        const matchSeries = linhaEx.match(/(\d+)\s*[xX×]/);
-        if (matchSeries) {
-          numSeries = matchSeries[1];
-          linhaEx = linhaEx.replace(/(\d+)\s*[xX×]\s*/, '');
+        let series = "3";
+        let reps = "8-10";
+
+        const matchX = cleanLine.match(/(\d+)\s*[xX×]/);
+        if (matchX) {
+          series = matchX[1];
         } else {
-          const matchFim = linhaEx.match(/\s+(\d+)$/);
-          if (matchFim && parseInt(matchFim[1]) <= 6) { 
-            numSeries = matchFim[1];
-            linhaEx = linhaEx.replace(/\s+\d+$/, '').trim();
+          const matchClusterNum = cleanLine.match(/(\d+)\s*cluster/i);
+          if (matchClusterNum) {
+            series = matchClusterNum[1];
+          } else {
+            const matchTrailing = cleanLine.match(/\s+([1-6])$/);
+            if (matchTrailing) {
+              series = matchTrailing[1];
+            } else if (isCluster || isBackoff) {
+              series = "1";
+            }
           }
         }
 
+        const matchReps = cleanLine.match(/(\d+[\-\+]\d+|\d+\s*reps)/i);
+        if (matchReps) {
+          reps = matchReps[1];
+        } else if (isMyoReps) {
+          reps = "Myo-Reps";
+        } else if (isCluster && isBackoff) {
+          reps = "Cluster + Back-off";
+        } else if (isCluster) {
+          reps = "Cluster";
+        } else if (isBackoff) {
+          reps = "Back-off";
+        }
+
+        name = name.replace(/\b\d+\s*[xX×]\s*[\d\-\+]*\b/gi, '');
+        name = name.replace(/\b\d+\s*Cluster\b/gi, '');
+        name = name.replace(/\b\d+\s*Back-off\b/gi, '');
+        name = name.replace(/\b\d+\s*Back off\b/gi, '');
+        name = name.replace(/\bCluster\b/gi, '');
+        name = name.replace(/\bBack-off\b/gi, '');
+        name = name.replace(/\bBack off\b/gi, '');
+        name = name.replace(/\bBackoff\b/gi, '');
+        name = name.replace(/\bMyo-Reps\b/gi, '');
+        name = name.replace(/\bMyo reps\b/gi, '');
+        name = name.replace(/\bMyoreps\b/gi, '');
+        name = name.replace(/\b1x\b/gi, '');
+        name = name.replace(/\b2x\b/gi, '');
+        name = name.replace(/\b3x\b/gi, '');
+        name = name.replace(/[\+\-\,\.\/]+/g, ' ');
+        name = name.replace(/\s+([1-6])$/, '');
+        name = name.replace(/\s+/g, ' ').trim();
+
         currentDay.exercicios.push({
-          nome: linhaEx,
-          series: numSeries,
-          reps: repsText
+          nome: name || cleanLine,
+          series: series,
+          reps: reps
         });
       }
     });
