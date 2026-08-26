@@ -498,7 +498,6 @@
     setupDiet(data.refeicoes || []);
   }
 
-  // RENDERIZAÇÃO EM FORMATO SANFONA DOS DIAS DE TREINO
   function setupWorkout(days) {
     const exercisesContainer = document.getElementById('exercisesList');
     exercisesContainer.innerHTML = '';
@@ -550,22 +549,24 @@
     });
   }
 
-  // RENDERIZAÇÃO INTELIGENTE: SEPARA EXERCÍCIO NORMAL DE CLUSTER
+  // RENDERIZAÇÃO ULTRA-INTELIGENTE SUPORTA MYO-REPS, CLUSTER E SÉRIES NORMAIS
   function renderExercisesForDay(day, dayIdx, container) {
     const user = loggedUserCode || localStorage.getItem('logged_user');
 
     (day.exercicios || []).forEach((ex, exIdx) => {
       const numSeries = parseInt(ex.series) || 3;
-      const metaText = ((ex.reps || '') + ' ' + (ex.nome || '') + ' ' + (ex.series || '')).toLowerCase();
+      const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
 
       const isCluster = metaText.includes('cluster');
-      const hasBackoff = metaText.includes('back off') || metaText.includes('back-off') || metaText.includes('backoff');
+      const hasBackoff = metaText.includes('back-off') || metaText.includes('back off') || metaText.includes('backoff');
+      const isMyoReps = metaText.includes('myo-reps') || metaText.includes('myo reps') || metaText.includes('myoreps');
 
       const div = document.createElement('div');
       div.className = 'item';
 
       let tagEx = '';
-      if (isCluster && hasBackoff) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER + BACK-OFF]</span>';
+      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px;">[MYO-REPS]</span>';
+      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER + BACK-OFF]</span>';
       else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER]</span>';
       else if (hasBackoff) tagEx = '<span style="color:var(--gold); font-size:10px;">[BACK-OFF]</span>';
 
@@ -575,7 +576,97 @@
         <div class="series-container">
       `;
 
-      if (!isCluster) {
+      if (isMyoReps) {
+        const keyActLoad = `log_c_${user}_${dayIdx}_${exIdx}_act`;
+        const keyActReps = `log_r_${user}_${dayIdx}_${exIdx}_act`;
+        const keyMiniLoad = `log_c_${user}_${dayIdx}_${exIdx}_mini`;
+        const keyMiniReps = `log_r_${user}_${dayIdx}_${exIdx}_mini`;
+
+        const savedActLoad = (currentData.logs && currentData.logs[keyActLoad]) || localStorage.getItem(keyActLoad) || '';
+        const savedActReps = (currentData.logs && currentData.logs[keyActReps]) || localStorage.getItem(keyActReps) || '';
+        const savedMiniLoad = (currentData.logs && currentData.logs[keyMiniLoad]) || localStorage.getItem(keyMiniLoad) || '';
+        const savedMiniReps = (currentData.logs && currentData.logs[keyMiniReps]) || localStorage.getItem(keyMiniReps) || '';
+
+        html += `
+          <div class="series-row">
+            <span class="series-tag" style="width:90px;">Série Ativação</span>
+            <input type="number" class="input-field input-log" id="${keyActLoad}" value="${savedActLoad}" placeholder="0" style="width:60px;">
+            <span class="unit">kg</span>
+            <input type="number" class="input-field input-log" id="${keyActReps}" value="${savedActReps}" placeholder="0" style="width:60px; margin-left:auto;">
+            <span class="unit">reps</span>
+          </div>
+          <div class="series-row" style="border:1px dashed var(--gold);">
+            <span class="series-tag" style="color:var(--gold); width:90px;">Mini-sets Myo</span>
+            <input type="number" class="input-field input-log" id="${keyMiniLoad}" value="${savedMiniLoad}" placeholder="0" style="width:60px;">
+            <span class="unit">kg</span>
+            <input type="number" class="input-field input-log" id="${keyMiniReps}" value="${savedMiniReps}" placeholder="0" style="width:60px; margin-left:auto;">
+            <span class="unit">reps total</span>
+          </div>
+        `;
+      } else if (isCluster) {
+        const hasNormalBeforeCluster = (ex.reps || '').includes('8-10') || (ex.reps || '').includes('6-8') || (ex.reps || '').includes('10-12');
+
+        if (hasNormalBeforeCluster && numSeries > 1) {
+          for (let s = 1; s <= numSeries; s++) {
+            const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+            const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
+            const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+
+            html += `
+              <div class="series-row">
+                <span class="series-tag">Série ${s}</span>
+                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
+                <span class="unit">kg</span>
+                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
+                <span class="unit">reps</span>
+              </div>
+            `;
+          }
+
+          const keyClLoad = `log_c_${user}_${dayIdx}_${exIdx}_cluster`;
+          const keyClBlocks = `log_b_${user}_${dayIdx}_${exIdx}_cluster`;
+          const keyClReps = `log_r_${user}_${dayIdx}_${exIdx}_cluster`;
+
+          const savedClLoad = (currentData.logs && currentData.logs[keyClLoad]) || localStorage.getItem(keyClLoad) || '';
+          const savedClBlocks = (currentData.logs && currentData.logs[keyClBlocks]) || localStorage.getItem(keyClBlocks) || '';
+          const savedClReps = (currentData.logs && currentData.logs[keyClReps]) || localStorage.getItem(keyClReps) || '';
+
+          html += `
+            <div class="series-row" style="border:1px dashed var(--green); margin-top:4px;">
+              <span class="series-tag" style="color:var(--green); width:70px;">Cluster</span>
+              <input type="number" class="input-field input-log" id="${keyClLoad}" value="${savedClLoad}" placeholder="0" style="flex:1;">
+              <span class="unit">kg</span>
+              <input type="number" class="input-field input-log" id="${keyClBlocks}" value="${savedClBlocks}" placeholder="0" style="flex:1;">
+              <span class="unit">blocos</span>
+              <input type="number" class="input-field input-log" id="${keyClReps}" value="${savedClReps}" placeholder="0" style="flex:1;">
+              <span class="unit">reps/bloco</span>
+            </div>
+          `;
+        } else {
+          for (let s = 1; s <= numSeries; s++) {
+            const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+            const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+            const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
+
+            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
+            const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
+            const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
+
+            html += `
+              <div class="series-row">
+                <span class="series-tag">Cluster ${s}</span>
+                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
+                <span class="unit">kg</span>
+                <input type="number" class="input-field input-log" id="${keyBlocks}" value="${savedBlocks}" placeholder="0" style="flex:1;">
+                <span class="unit">blocos</span>
+                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="flex:1;">
+                <span class="unit">reps/bloco</span>
+              </div>
+            `;
+          }
+        }
+      } else {
         for (let s = 1; s <= numSeries; s++) {
           const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
           const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
@@ -590,28 +681,6 @@
               <span class="unit">kg</span>
               <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
               <span class="unit">reps</span>
-            </div>
-          `;
-        }
-      } else {
-        for (let s = 1; s <= numSeries; s++) {
-          const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-          const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-          const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
-
-          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
-          const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
-          const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
-
-          html += `
-            <div class="series-row">
-              <span class="series-tag">Cluster ${s}</span>
-              <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
-              <span class="unit">kg</span>
-              <input type="number" class="input-field input-log" id="${keyBlocks}" value="${savedBlocks}" placeholder="0" style="flex:1;">
-              <span class="unit">blocos</span>
-              <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="flex:1;">
-              <span class="unit">reps/bloco</span>
             </div>
           `;
         }
@@ -839,7 +908,7 @@
       document.getElementById('btnTreino').classList.add('active');
     } else if (tab === 'dieta') {
       document.getElementById('tabDieta').classList.remove('hidden');
-      document.getElementById('btnDieta').classList.add('active');
+      document.getElementById('btnDieta').classList.active;
     } else if (tab === 'chat') {
       document.getElementById('tabChat').classList.remove('hidden');
       document.getElementById('btnChat').classList.add('active');
