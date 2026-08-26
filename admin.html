@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel de Gestão Completo — Jhonata Personal</title>
+<title>Painel de Gestão Restrito — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #090204;
     --card: #150508;
-    --card-hover: #1d070b;
     --border: #330b13;
     --accent: #c4324f;
     --accent-dark: #841628;
@@ -22,8 +21,55 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   ::-webkit-scrollbar { width:6px; height:6px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; padding-bottom:40px; }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
 
+  /* TELA DE LOGIN DEDICADA E COMPLETA */
+  #loginScreen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+  }
+
+  .login-card {
+    background: linear-gradient(180deg, #1c060b, #120306);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+    text-align: center;
+  }
+
+  .login-card h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+
+  .login-card p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 4px;
+    margin-bottom: 24px;
+  }
+
+  .error-msg {
+    color: #ff6b7f;
+    font-size: 12px;
+    font-weight: 700;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* LAYOUT DO PAINEL ADMIN */
   header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
@@ -43,8 +89,8 @@
   .tab-btn:hover { border-color:var(--gold); color:#fff; }
   .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
 
-  label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:8px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; }
-  input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:11px 13px; border-radius:10px; font-size:13px; transition:border-color .18s; }
+  label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:10px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; text-align: left; }
+  input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:12px 14px; border-radius:10px; font-size:13px; transition:border-color .18s; }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
   textarea { resize:vertical; font-family:'Inter',sans-serif; }
 
@@ -55,8 +101,6 @@
   .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
 
   .hidden { display:none !important; }
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.94); backdrop-filter:blur(5px); display:flex; align-items:center; justify-content:center; z-index:999; }
-  .modal { background:var(--card); border:1px solid var(--border); border-top:1px solid var(--gold); padding:28px; border-radius:20px; width:340px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.8); }
 
   .status-pill { display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; }
   .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
@@ -65,152 +109,158 @@
 </head>
 <body>
 
-<div id="loginModal" class="modal-overlay">
-  <div class="modal">
-    <h2 style="font-family:'Bebas Neue',sans-serif; font-size:26px; color:#fff; margin-bottom:4px;">PAINEL DE CONTROLE</h2>
-    <p style="font-size:12px; color:var(--muted); margin-bottom:16px;">Acesso restrito ao personal</p>
+<!-- TELA DE LOGIN PRIVADA -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>PAINEL DO PERSONAL</h2>
+    <p>Digite suas credenciais administrativas para desbloquear o sistema</p>
+
+    <label>Usuário Administrador</label>
+    <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
+
+    <label>Senha</label>
+    <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginAdmin()">
+
+    <button type="button" id="btnLoginAdmin" class="btn" style="margin-top:20px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
     
-    <label style="text-align:left;">Usuário Admin</label>
-    <input type="text" id="adminUser" placeholder="jhonata">
-    
-    <label style="text-align:left;">Senha</label>
-    <input type="password" id="adminPass" placeholder="••••" onkeypress="if(event.key==='Enter') loginAdmin()">
-    
-    <button class="btn" style="margin-top:14px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
+    <div id="loginError" class="error-msg">❌ Usuário ou senha incorretos.</div>
   </div>
 </div>
 
-<header>
-  <div>
-    <h1>JHONATA PERSONAL</h1>
-    <span style="font-size:11px; color:var(--muted);">Gestão Central do Banco Neon PostgreSQL</span>
-  </div>
-  <div style="display:flex; align-items:center; gap:12px;">
-    <span class="status-badge">● BANCO ONLINE</span>
-    <button class="btn btn-danger" style="width:auto; padding:7px 14px; font-size:11px;" onclick="logoutAdmin()">Sair</button>
-  </div>
-</header>
-
-<div class="layout">
-  <aside>
-    <div class="panel-card">
-      <div class="panel-title">
-        <span>👥 Alunos Cadastrados</span>
-        <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
-      </div>
-      <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
-      <div id="alunosList" style="max-height:380px; overflow-y:auto;">Carregando...</div>
+<!-- PAINEL DE GESTÃO (SÓ EXIBIDO APÓS AUTENTICAÇÃO) -->
+<div id="adminApp" class="hidden">
+  <header>
+    <div>
+      <h1>JHONATA PERSONAL</h1>
+      <span style="font-size:11px; color:var(--muted);">Gestão Central de Alunos</span>
     </div>
-
-    <div class="panel-card">
-      <div class="panel-title">⚡ Ferramentas</div>
-      <button class="btn btn-wpp" onclick="copiarLinkAnamnese()">📋 Copiar Link Anamnese</button>
-      <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <span class="status-badge">● CONECTADO</span>
+      <button class="btn btn-danger" style="width:auto; padding:7px 14px; font-size:11px;" onclick="logoutAdmin()">Sair</button>
     </div>
-  </aside>
+  </header>
 
-  <main>
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-      <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editar Treino</button>
-      <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
-      <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
-    </div>
-
-    <div id="secResumo" class="panel-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
-        <div>
-          <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-          <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold);">@código</span>
+  <div class="layout">
+    <aside>
+      <div class="panel-card">
+        <div class="panel-title">
+          <span>👥 Alunos Cadastrados</span>
+          <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
         </div>
-        <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
+        <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
+        <div id="alunosList" style="max-height:380px; overflow-y:auto;">Carregando...</div>
       </div>
 
-      <div id="workoutOverview">
-        <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
+      <div class="panel-card">
+        <div class="panel-title">⚡ Ferramentas</div>
+        <button class="btn btn-wpp" onclick="copiarLinkAnamnese()">📋 Copiar Link Anamnese</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
       </div>
-    </div>
+    </aside>
 
-    <div id="secTreino" class="panel-card hidden">
-      <div class="panel-title">🏋️ Gerenciador de Treinos do Aluno</div>
-      
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <input type="text" id="newDayName" placeholder="Ex: Treino A — Peito e Tríceps" style="margin-bottom:0;">
-        <button class="btn" style="width:140px;" onclick="addDay()">+ Adicionar Dia</button>
+    <main>
+      <div class="nav-tabs">
+        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
+        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editar Treino</button>
+        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
+        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
 
-      <label>Selecione o Dia para Editar:</label>
-      <select id="selectDay" onchange="loadDayExercises()"></select>
-
-      <div style="background:#0d0204; border:1px dashed var(--border); padding:14px; border-radius:12px; margin-top:14px;">
-        <label style="margin-top:0;">Novo Exercício:</label>
-        <input type="text" id="exName" placeholder="Ex: Supino Inclinado com Halteres">
-        <div style="display:flex; gap:8px;">
-          <div style="flex:1;">
-            <label>Séries</label>
-            <input type="text" id="exSeries" placeholder="3">
+      <div id="secResumo" class="panel-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
+          <div>
+            <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
+            <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold);">@código</span>
           </div>
-          <div style="flex:1;">
-            <label>Repetições / Observação</label>
-            <input type="text" id="exReps" placeholder="10-12 (RPE 8)">
-          </div>
+          <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
         </div>
-        <button class="btn btn-soft" style="margin-top:6px;" onclick="addExercise()">+ Inserir Exercício na Lista</button>
+
+        <div id="workoutOverview">
+          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
+        </div>
       </div>
 
-      <div id="exerciseList" style="margin-top:16px;"></div>
-      <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarAlteracoes()">💾 SALVAR NO BANCO DE DADOS</button>
-    </div>
+      <div id="secTreino" class="panel-card hidden">
+        <div class="panel-title">🏋️ Gerenciador de Treinos do Aluno</div>
+        
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <input type="text" id="newDayName" placeholder="Ex: Treino A — Peito e Tríceps" style="margin-bottom:0;">
+          <button class="btn" style="width:140px;" onclick="addDay()">+ Adicionar Dia</button>
+        </div>
 
-    <div id="secDieta" class="panel-card hidden">
-      <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo. O sistema lerá e criará as abas no app do aluno!</p>
+        <label>Selecione o Dia para Editar:</label>
+        <select id="selectDay" onchange="loadDayExercises()"></select>
 
-      <label>Bloco de Refeições:</label>
-      <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14&#10;Pão Integral | 2 fatias | 120 | 4 | 22 | 2&#10;&#10;[Carbo Baixo]&#10;Dias: Terça, Quinta, Sábado, Domingo&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 4 un | 280 | 24 | 2 | 18"></textarea>
-      
-      <button class="btn" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
-    </div>
+        <div style="background:#0d0204; border:1px dashed var(--border); padding:14px; border-radius:12px; margin-top:14px;">
+          <label style="margin-top:0;">Novo Exercício:</label>
+          <input type="text" id="exName" placeholder="Ex: Supino Inclinado com Halteres">
+          <div style="display:flex; gap:8px;">
+            <div style="flex:1;">
+              <label>Séries</label>
+              <input type="text" id="exSeries" placeholder="3">
+            </div>
+            <div style="flex:1;">
+              <label>Repetições / Observação</label>
+              <input type="text" id="exReps" placeholder="10-12 (RPE 8)">
+            </div>
+          </div>
+          <button class="btn btn-soft" style="margin-top:6px;" onclick="addExercise()">+ Inserir Exercício na Lista</button>
+        </div>
 
-    <div id="secCadastro" class="panel-card hidden">
-      <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
-      
-      <label>Nome Exibido</label>
-      <input type="text" id="editName">
-
-      <label>Nova Senha (deixe em branco para não alterar)</label>
-      <input type="password" id="editPassword" placeholder="Sua nova senha...">
-
-      <label>Status do Pagamento</label>
-      <select id="editStatus">
-        <option value="pago">🟢 Pago / Acesso Liberado</option>
-        <option value="pendente">🔴 Pendente / Suspenso</option>
-      </select>
-
-      <div style="display:flex; gap:10px; margin-top:16px;">
-        <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
-        <button class="btn btn-danger" style="width:140px;" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
+        <div id="exerciseList" style="margin-top:16px;"></div>
+        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarAlteracoes()">💾 SALVAR NO BANCO DE DADOS</button>
       </div>
-    </div>
 
-    <div id="secNovo" class="panel-card hidden">
-      <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
-      
-      <label>Nome Completo</label>
-      <input type="text" id="newName" placeholder="Ex: Lucas Andrade">
+      <div id="secDieta" class="panel-card hidden">
+        <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo. O sistema lerá e criará as abas no app do aluno!</p>
 
-      <label>Código / Usuário de Acesso</label>
-      <input type="text" id="newCode" placeholder="Ex: lucas">
+        <label>Bloco de Refeições:</label>
+        <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14&#10;Pão Integral | 2 fatias | 120 | 4 | 22 | 2&#10;&#10;[Carbo Baixo]&#10;Dias: Terça, Quinta, Sábado, Domingo&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 4 un | 280 | 24 | 2 | 18"></textarea>
+        
+        <button class="btn" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+      </div>
 
-      <label>Bloco do Treino (Texto Puro)</label>
-      <textarea id="rawWorkout" rows="6" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto | 3x | 8-10&#10;Crucifixo Inclinado | 3x | 10-12"></textarea>
+      <div id="secCadastro" class="panel-card hidden">
+        <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
+        
+        <label>Nome Exibido</label>
+        <input type="text" id="editName">
 
-      <label>Bloco da Dieta (Texto Puro)</label>
-      <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;CAFÉ DA MANHÃ&#10;Ovos | 3 un | 210 | 18 | 2 | 14"></textarea>
+        <label>Nova Senha (deixe em branco para não alterar)</label>
+        <input type="password" id="editPassword" placeholder="Sua nova senha...">
 
-      <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
-    </div>
-  </main>
+        <label>Status do Pagamento</label>
+        <select id="editStatus">
+          <option value="pago">🟢 Pago / Acesso Liberado</option>
+          <option value="pendente">🔴 Pendente / Suspenso</option>
+        </select>
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+          <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
+          <button class="btn btn-danger" style="width:140px;" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
+        </div>
+      </div>
+
+      <div id="secNovo" class="panel-card hidden">
+        <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
+        
+        <label>Nome Completo</label>
+        <input type="text" id="newName" placeholder="Ex: Lucas Andrade">
+
+        <label>Código / Usuário de Acesso</label>
+        <input type="text" id="newCode" placeholder="Ex: lucas">
+
+        <label>Bloco do Treino (Texto Puro)</label>
+        <textarea id="rawWorkout" rows="10" placeholder="Lower&#10;1. STIFF 2×6-8&#10;2. AGACHAMENTO 2×6-8&#10;&#10;Upper&#10;1. Supino Inclinado 2×6-7"></textarea>
+
+        <label>Bloco da Dieta (Texto Puro)</label>
+        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;CAFÉ DA MANHÃ&#10;Ovos | 3 un | 210 | 18 | 2 | 14"></textarea>
+
+        <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
+      </div>
+    </main>
+  </div>
 </div>
 
 <script>
@@ -222,7 +272,8 @@
   window.onload = () => {
     const token = localStorage.getItem('admin_token');
     if (token) {
-      document.getElementById('loginModal').classList.add('hidden');
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('adminApp').classList.remove('hidden');
       fetchAlunos();
     }
   };
@@ -230,6 +281,12 @@
   async function loginAdmin() {
     const user = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('btnLoginAdmin');
+
+    errorDiv.style.display = 'none';
+    btn.textContent = "VALIDANDO...";
+    btn.disabled = true;
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
@@ -237,13 +294,25 @@
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ user, pass })
       });
+      
       const data = await res.json();
+
       if (res.ok && data.token) {
         localStorage.setItem('admin_token', data.token);
-        document.getElementById('loginModal').classList.add('hidden');
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('adminApp').classList.remove('hidden');
         fetchAlunos();
-      } else alert(data.error || "Acesso negado.");
-    } catch(e) { alert("Erro de conexão com o servidor."); }
+      } else {
+        errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
+        errorDiv.style.display = 'block';
+      }
+    } catch(e) { 
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor Render.";
+      errorDiv.style.display = 'block';
+    } finally {
+      btn.textContent = "ENTRAR NO PAINEL";
+      btn.disabled = false;
+    }
   }
 
   function logoutAdmin() {
@@ -260,6 +329,12 @@
       const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!res.ok) {
+        logoutAdmin();
+        return;
+      }
+
       allStudentsList = await res.json();
       renderStudentsList(allStudentsList);
     } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
@@ -479,6 +554,44 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
+  // INTERPRETADOR INTELIGENTE DE TREINO
+  function parseWorkoutText(rawText) {
+    if (!rawText || !rawText.trim()) return [];
+
+    const lines = rawText.split('\n');
+    const days = [];
+    let currentDay = null;
+
+    lines.forEach(line => {
+      const cleanLine = line.trim();
+      if (!cleanLine) return;
+
+      const match = cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+)\s*[xX×]\s*([\d\-\+]+.*)$/i);
+
+      if (match) {
+        if (!currentDay) {
+          currentDay = { title: "Treino Geral", exercicios: [] };
+          days.push(currentDay);
+        }
+
+        const nomeEx = match[1].trim();
+        const numSeries = match[2].trim();
+        const numReps = match[3].trim();
+
+        currentDay.exercicios.push({
+          nome: nomeEx,
+          series: numSeries,
+          reps: numReps
+        });
+      } else {
+        currentDay = { title: cleanLine, exercicios: [] };
+        days.push(currentDay);
+      }
+    });
+
+    return days.filter(d => d.exercicios.length > 0);
+  }
+
   async function salvarNovoAlunoBloco() {
     const nome = document.getElementById('newName').value.trim();
     const codigo = document.getElementById('newCode').value.trim().toLowerCase();
@@ -487,10 +600,12 @@
 
     if (!nome || !codigo) return alert("Preencha Nome e Código.");
 
+    const parsedDays = parseWorkoutText(rawW);
+
     const payload = {
       clientName: nome,
       status_pagamento: 'pago',
-      days: [{ title: "Treino Geral", exercicios: rawW.split('\n').map(l => ({ nome: l, series: "3", reps: "10-12" })) }],
+      days: parsedDays.length > 0 ? parsedDays : [{ title: "Treino Geral", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
 
@@ -502,7 +617,7 @@
         body: JSON.stringify({ codigo: codigo, payload: payload })
       });
       if (res.ok) {
-        alert("Aluno criado!");
+        alert("🎉 Aluno e treino criados com sucesso!");
         fetchAlunos();
         switchTab('resumo');
       }
