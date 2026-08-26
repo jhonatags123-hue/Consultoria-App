@@ -208,6 +208,8 @@
       <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
         <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
+        <option value="COMPLETA_TRIMESTRAL">🏆 Completa Trimestral — 3x R$ 130,00</option>
+        <option value="COMPLETA_SEMESTRAL">🏆 Completa Semestral — 6x R$ 110,00</option>
         <option value="COMPLETA_ANUAL">🏆 Completa Anual (Treino + Dieta) — 12x R$ 85,00</option>
         <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 60,00/mês</option>
         <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
@@ -301,9 +303,12 @@
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 
-  // MAPEAMENTO DE LINKS DO ASAAS — apenas para os planos com pagamento anual via cartão
   const ASAAS_LINKS = {
+    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
     'TREINO_DUPLA': "https://www.asaas.com/c/omsltaq25btnizvo"
   };
@@ -317,6 +322,11 @@
     if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
+
+      const planoParam = params.get('plano');
+      if (planoParam && document.getElementById('anamTipoConsultoria')) {
+        document.getElementById('anamTipoConsultoria').value = planoParam;
+      }
       return;
     }
 
@@ -374,7 +384,6 @@
     errorDiv.classList.add('hidden');
     btn.textContent = "Acessando...";
 
-    // 1) Tenta autenticar como Admin diretamente no backend (sem senha exposta no código)
     try {
       const adminRes = await fetch(`${BACKEND_URL}/api/admin/login`, {
         method: 'POST',
@@ -391,11 +400,8 @@
           return;
         }
       }
-    } catch (adminErr) {
-      // Se o backend estiver fora do ar para essa rota, segue tentando como aluno
-    }
+    } catch (adminErr) {}
 
-    // 2) Tenta autenticar como Aluno
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
         method: 'POST',
@@ -457,8 +463,6 @@
         body: JSON.stringify(anamneseData)
       });
 
-      // Só redireciona pro Asaas se existir um link cadastrado para o plano escolhido.
-      // Caso contrário (planos mensais recorrentes, hora-aula, etc.) segue no fluxo de Pix.
       const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
 
       if (redirectUrl) {
@@ -511,7 +515,7 @@
       };
       daysList.appendChild(btn);
     });
-    if(days.length > 0) renderExercises(days[0], 0);
+    if (days.length > 0) renderExercises(days[0], 0);
   }
 
   function renderExercises(day, dayIdx) {
@@ -678,17 +682,18 @@
     const hasMedio = refeicoes.some(r => (r.titulo || '').includes('[Carbo Medio]') || (r.titulo || '').includes('[Carbo Médio]'));
 
     if (hasAlto || hasBaixo || hasMedio) {
+      if (activeDietTag === 'TODOS') {
+        if (hasAlto) activeDietTag = 'Alto';
+        else if (hasBaixo) activeDietTag = 'Baixo';
+        else if (hasMedio) activeDietTag = 'Medio';
+      }
+
       let filterBtns = '';
       if (hasAlto) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Alto'?'active':''}" onclick="setDietFilter('Alto')">🟢 CARBO ALTO</button>`;
       if (hasBaixo) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Baixo'?'active':''}" onclick="setDietFilter('Baixo')">🔴 CARBO BAIXO</button>`;
       if (hasMedio) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Medio'?'active':''}" onclick="setDietFilter('Medio')">🟡 CARBO MÉDIO</button>`;
       
       filterContainer.innerHTML = filterBtns;
-      if (activeDietTag === 'TODOS') {
-        if (hasAlto) activeDietTag = 'Alto';
-        else if (hasBaixo) activeDietTag = 'Baixo';
-        else if (hasMedio) activeDietTag = 'Medio';
-      }
     }
 
     const filtered = refeicoes.filter(r => {
@@ -783,16 +788,16 @@
     document.getElementById('btnChat').classList.remove('active');
     document.getElementById('btnFeedback').classList.remove('active');
 
-    if(tab === 'treino') {
+    if (tab === 'treino') {
       document.getElementById('tabTreino').classList.remove('hidden');
       document.getElementById('btnTreino').classList.add('active');
-    } else if(tab === 'dieta') {
+    } else if (tab === 'dieta') {
       document.getElementById('tabDieta').classList.remove('hidden');
       document.getElementById('btnDieta').classList.add('active');
-    } else if(tab === 'chat') {
+    } else if (tab === 'chat') {
       document.getElementById('tabChat').classList.remove('hidden');
       document.getElementById('btnChat').classList.add('active');
-    } else if(tab === 'feedback') {
+    } else if (tab === 'feedback') {
       document.getElementById('tabFeedback').classList.remove('hidden');
       document.getElementById('btnFeedback').classList.add('active');
     }
@@ -824,6 +829,14 @@
     const phone = "5551990169026";
     const msg = `💬 *Feedback de Treino — ${studentName}*%0A%0A${encodeURIComponent(text)}`;
     window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  }
+
+  function solicitarPermissaoPush() {
+    if (window.OneSignalDeferred) {
+      OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.Notifications.requestPermission();
+      });
+    }
   }
 </script>
 </body>
