@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel de Gestão Restrito — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --bg: #090204;
@@ -23,53 +24,23 @@
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
   body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
 
-  /* TELA DE LOGIN DEDICADA E COMPLETA */
   #loginScreen {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    padding: 20px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000; padding: 20px;
   }
 
   .login-card {
     background: linear-gradient(180deg, #1c060b, #120306);
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--gold);
-    border-radius: 20px;
-    padding: 32px 28px;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
-    text-align: center;
+    border: 1px solid var(--border); border-top: 2px solid var(--gold);
+    border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center;
   }
+  .login-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #fff; }
+  .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
+  .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  .login-card h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 32px;
-    letter-spacing: 1px;
-    color: #fff;
-  }
-
-  .login-card p {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 4px;
-    margin-bottom: 24px;
-  }
-
-  .error-msg {
-    color: #ff6b7f;
-    font-size: 12px;
-    font-weight: 700;
-    margin-top: 10px;
-    display: none;
-  }
-
-  /* LAYOUT DO PAINEL ADMIN */
   header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
@@ -83,6 +54,9 @@
   .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; }
   .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
   .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
+
+  .ex-clickable { background:#0d0204; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
+  .ex-clickable:hover { border-color:var(--gold); background:#170408; }
 
   .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; }
   .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
@@ -101,33 +75,49 @@
   .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
 
   .hidden { display:none !important; }
-
   .status-pill { display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; }
   .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
+
+  /* MODAL DE GRAFICO DE PROGRESSAO */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
+  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
 </style>
 </head>
 <body>
 
-<!-- TELA DE LOGIN PRIVADA -->
 <div id="loginScreen">
   <div class="login-card">
     <h2>PAINEL DO PERSONAL</h2>
     <p>Digite suas credenciais administrativas para desbloquear o sistema</p>
-
     <label>Usuário Administrador</label>
     <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
-
     <label>Senha</label>
     <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginAdmin()">
-
     <button type="button" id="btnLoginAdmin" class="btn" style="margin-top:20px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
-    
     <div id="loginError" class="error-msg">❌ Usuário ou senha incorretos.</div>
   </div>
 </div>
 
-<!-- PAINEL DE GESTÃO (SÓ EXIBIDO APÓS AUTENTICAÇÃO) -->
+<!-- MODAL DE DETALHES DO EXERCÍCIO & GRÁFICO -->
+<div id="chartModal" class="modal-overlay hidden">
+  <div class="modal-chart">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div>
+        <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
+        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Meta: 3x 8-10</span>
+      </div>
+      <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+    </div>
+
+    <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
+
+    <div style="position:relative; height:220px; width:100%;">
+      <canvas id="progressChart"></canvas>
+    </div>
+  </div>
+</div>
+
 <div id="adminApp" class="hidden">
   <header>
     <div>
@@ -268,6 +258,7 @@
   let currentStudentCode = "";
   let currentStudentData = null;
   let allStudentsList = [];
+  let chartInstance = null;
 
   window.onload = () => {
     const token = localStorage.getItem('admin_token');
@@ -294,9 +285,7 @@
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({ user, pass })
       });
-      
       const data = await res.json();
-
       if (res.ok && data.token) {
         localStorage.setItem('admin_token', data.token);
         document.getElementById('loginScreen').classList.add('hidden');
@@ -329,12 +318,7 @@
       const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-
-      if (!res.ok) {
-        logoutAdmin();
-        return;
-      }
-
+      if (!res.ok) { logoutAdmin(); return; }
       allStudentsList = await res.json();
       renderStudentsList(allStudentsList);
     } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
@@ -343,7 +327,6 @@
   function renderStudentsList(list) {
     const container = document.getElementById('alunosList');
     container.innerHTML = "";
-
     if (!list || list.length === 0) {
       container.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
       return;
@@ -407,17 +390,90 @@
       return;
     }
 
-    currentStudentData.days.forEach(day => {
+    currentStudentData.days.forEach((day, dayIdx) => {
       let html = `<div style='background:#0d0204; border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:12px;'>
         <b style='color:var(--gold); font-size:14px;'>${day.title}</b><hr style='border-color:var(--border); margin:8px 0;'>`;
       
-      (day.exercicios || []).forEach(ex => {
-        html += `<div style='font-size:13px; margin-bottom:4px;'>• <b>${ex.nome}</b> — <span style='color:var(--muted);'>${ex.series}x (${ex.reps})</span></div>`;
+      (day.exercicios || []).forEach((ex, exIdx) => {
+        html += `
+          <div class="ex-clickable" onclick="verEvolucaoExercício(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
+            <span>• <b>${ex.nome}</b></span>
+            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series}x (${ex.reps}) 📈</span>
+          </div>
+        `;
       });
 
       html += `</div>`;
       div.innerHTML += html;
     });
+  }
+
+  function verEvolucaoExercício(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
+    document.getElementById('chartExName').textContent = nomeEx;
+    document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr}x (${repsStr})`;
+
+    const logs = currentStudentData.logs || {};
+    const user = currentStudentCode;
+    const numSeries = parseInt(seriesStr) || 1;
+
+    let seriesHtml = "<b>Cargas e Repetições Salvas:</b><br>";
+    let cargasValidas = [];
+
+    for (let s = 1; s <= numSeries; s++) {
+      const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
+      const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
+      const carga = logs[keyLoad] || localStorage.getItem(keyLoad) || '-';
+      const reps = logs[keyReps] || localStorage.getItem(keyReps) || '-';
+
+      seriesHtml += `<span style="color:var(--muted);">Série ${s}:</span> <b style="color:#fff;">${carga} kg</b> × <b style="color:var(--gold);">${reps} reps</b><br>`;
+      if (carga !== '-' && !isNaN(parseFloat(carga))) cargasValidas.push(parseFloat(carga));
+    }
+
+    document.getElementById('logsDetailList').innerHTML = seriesHtml;
+    document.getElementById('chartModal').classList.remove('hidden');
+
+    renderChart(cargasValidas);
+  }
+
+  function renderChart(cargas) {
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    if (chartInstance) chartInstance.destroy();
+
+    const dataPoints = cargas.length > 0 ? cargas : [0];
+    const labels = dataPoints.map((_, i) => `Série ${i+1}`);
+
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Carga Utilizada (kg)',
+          data: dataPoints,
+          borderColor: '#dcaa3a',
+          backgroundColor: 'rgba(220,170,58,0.12)',
+          borderWidth: 3,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 5,
+          pointBackgroundColor: '#c4324f'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } },
+          x: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } }
+        },
+        plugins: {
+          legend: { labels: { color: '#f8efec', font: { family: 'Inter', weight: '700' } } }
+        }
+      }
+    });
+  }
+
+  function closeChartModal() {
+    document.getElementById('chartModal').classList.add('hidden');
   }
 
   function switchTab(tab) {
@@ -554,7 +610,6 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  // INTERPRETADOR INTELIGENTE DE TREINO
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
