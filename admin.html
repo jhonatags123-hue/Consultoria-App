@@ -326,7 +326,10 @@
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (res.status === 401 || res.status === 403) {
@@ -346,20 +349,23 @@
 
       listDiv.innerHTML = '';
       alunos.forEach((aluno, index) => {
+        const codigoAluno = aluno.codigo || aluno.code;
+        const nomeAluno = aluno.nome || aluno.clientName || codigoAluno;
+
         const btn = document.createElement('button');
         btn.className = `student-btn ${index === 0 ? 'active' : ''}`;
-        btn.innerHTML = `<span><b>${aluno.nome || aluno.codigo}</b></span> <small style="color:var(--gold);">@${aluno.codigo}</small>`;
+        btn.innerHTML = `<span><b>${nomeAluno}</b></span> <small style="color:var(--gold);">@${codigoAluno}</small>`;
         
         btn.onclick = () => {
           document.querySelectorAll('.student-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          loadStudentData(aluno.codigo);
+          loadStudentData(codigoAluno);
         };
 
         listDiv.appendChild(btn);
       });
 
-      if (alunos.length > 0) loadStudentData(alunos[0].codigo);
+      if (alunos.length > 0) loadStudentData(alunos[0].codigo || alunos[0].code);
     } catch (e) {
       listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao conectar ao servidor.</div>';
     }
@@ -367,8 +373,15 @@
 
   async function loadStudentData(code) {
     selectedStudent = code;
+    const token = localStorage.getItem('admin_token');
+
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`);
+      const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`, {
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       if (!res.ok) throw new Error();
       
       const rawData = await res.json();
@@ -423,7 +436,10 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/${selectedStudent}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (res.ok) {
@@ -790,11 +806,15 @@
 
   async function saveWorkoutChanges(silent = false) {
     if (!selectedStudent || !currentStudentData) return;
+    const token = localStorage.getItem('admin_token');
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           codigo: selectedStudent,
           payload: currentStudentData
@@ -819,6 +839,7 @@
     const code = document.getElementById('anamCode').value.trim().toLowerCase();
     const rawWorkouts = document.getElementById('anamWorkouts').value.trim();
     const rawDiet = document.getElementById('anamDiet').value.trim();
+    const token = localStorage.getItem('admin_token');
 
     if (!name || !code) return alert("Preencha o nome e o código do aluno.");
 
@@ -888,7 +909,9 @@
     };
 
     try {
-      const checkRes = await fetch(`${BACKEND_URL}/api/aluno/${code}`);
+      const checkRes = await fetch(`${BACKEND_URL}/api/aluno/${code}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (checkRes.ok) {
         const existingData = await checkRes.json();
         payloadBD.days = [...(existingData.days || []), ...newDays];
@@ -899,7 +922,10 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: JSON.stringify({
           codigo: code,
           payload: payloadBD
