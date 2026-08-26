@@ -55,7 +55,6 @@
   .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
   .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
 
-  /* CARD EXPANSÍVEL DE DIVISÃO DE TREINO (LOWER / UPPER) */
   .day-accordion-header {
     background: linear-gradient(135deg, #1f060c, #110205);
     border: 1px solid var(--border);
@@ -74,7 +73,6 @@
   }
   .day-accordion-header b { font-size: 15px; color: #fff; }
 
-  /* LISTA DE EXERCÍCIOS OCULTA ATÉ O CLIQUE */
   .day-accordion-body {
     background: #0d0204;
     border: 1px solid var(--border);
@@ -171,7 +169,8 @@
 
       <div class="panel-card">
         <div class="panel-title">⚡ Ferramentas</div>
-        <button class="btn btn-wpp" onclick="copiarLinkAnamnese()">📋 Copiar Link Anamnese</button>
+        <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
       </div>
     </aside>
@@ -256,7 +255,8 @@
 
         <div style="display:flex; gap:10px; margin-top:16px;">
           <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
-          <button class="btn btn-danger" style="width:140px;" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
+          <button class="btn btn-wpp" style="flex:1;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
+          <button class="btn btn-danger" style="width:120px;" onclick="deletarAluno()">🗑️ Excluir</button>
         </div>
       </div>
 
@@ -409,7 +409,6 @@
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
-  // INTERFACE NÍVEL 1: BOTOES DE DIVISÕES (LOWER / UPPER)
   function renderWorkoutView() {
     const div = document.getElementById('workoutOverview');
     div.innerHTML = "";
@@ -434,7 +433,6 @@
         <div id="accordionBody_${dayIdx}" class="day-accordion-body hidden">
       `;
 
-      // INTERFACE NÍVEL 2: EXERCÍCIOS DENTRO DA DIVISÃO
       (day.exercicios || []).forEach((ex, exIdx) => {
         html += `
           <div class="ex-clickable" onclick="verEvolucaoExercício(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
@@ -449,7 +447,6 @@
     });
   }
 
-  // ALTERNA A VISIBILIDADE DAS DIVISÕES (LOWER / UPPER)
   function toggleDayAccordion(dayIdx) {
     const body = document.getElementById(`accordionBody_${dayIdx}`);
     const arrow = document.getElementById(`accordionArrow_${dayIdx}`);
@@ -463,7 +460,6 @@
     }
   }
 
-  // INTERFACE NÍVEL 3: MODAL DE CARGAS E GRÁFICO DO EXERCÍCIO
   function verEvolucaoExercício(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr}x (${repsStr})`;
@@ -745,6 +741,15 @@
     currentStudentCode = "";
     fetchAlunos();
     switchTab('resumo');
+  }
+
+  // GERADOR E COPIADOR DE LINK DE ACESSO DO ALUNO
+  function copiarLinkAcessoAluno() {
+    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    const baseUrl = window.location.href.replace('admin.html', 'index.html');
+    const linkAluno = `${baseUrl}?aluno=${currentStudentCode}`;
+    navigator.clipboard.writeText(linkAluno);
+    alert(`✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
   }
 
   function copiarLinkAnamnese() {
