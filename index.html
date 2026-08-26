@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultoria Esportiva — Jhonata</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -318,7 +317,6 @@
   let activeDietTag = "TODOS";
 
   window.onload = async () => {
-    // Tenta "acordar" o backend no Render em segundo plano
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
@@ -347,7 +345,6 @@
           logout();
         }
       } catch (e) {
-        // Se houver erro de conexão inicial, limpa sessão quebrada para permitir novo login
         logout();
       }
     }
@@ -405,7 +402,7 @@
       loggedUserCode = user;
       loadStudentData(result.data);
     } catch (err) {
-      errorDiv.textContent = "❌ Servidor iniciando. Aguarde uns instantes e clique em ENTRAR novamente.";
+      errorDiv.textContent = "❌ Servidor iniciando. Aguarde uns instantes e tente novamente.";
       errorDiv.classList.remove('hidden');
       btn.textContent = "ENTRAR";
       btn.disabled = false;
