@@ -241,11 +241,11 @@
 
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
-  <div class="sub">Acesse sua área exclusiva</div>
+  <div class="sub">Acesse sua área exclusiva de aluno</div>
   
   <form onsubmit="handleLogin(event)" class="login-box">
-    <input type="text" id="loginUser" class="input-field" placeholder="Usuário (ex: lucas ou jhonata)" required>
-    <input type="password" id="loginPass" class="input-field" placeholder="Senha" required>
+    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário (ex: lucas)" required>
+    <input type="password" id="loginPass" class="input-field" placeholder="Sua senha" required>
     <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
   </form>
   <div id="loginError" class="error-msg hidden"></div>
@@ -332,12 +332,6 @@
 
     const loggedUser = localStorage.getItem('logged_user');
     const token = localStorage.getItem('aluno_token');
-    const adminToken = localStorage.getItem('admin_token');
-
-    if (adminToken && !token) {
-      window.location.href = "admin.html";
-      return;
-    }
 
     if (loggedUser && token) {
       try {
@@ -383,24 +377,6 @@
 
     errorDiv.classList.add('hidden');
     btn.textContent = "Acessando...";
-
-    try {
-      const adminRes = await fetch(`${BACKEND_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user, pass })
-      });
-
-      if (adminRes.ok) {
-        const adminData = await adminRes.json();
-        if (adminData.token) {
-          localStorage.setItem('admin_token', adminData.token);
-          localStorage.setItem('logged_user', user);
-          window.location.href = "admin.html";
-          return;
-        }
-      }
-    } catch (adminErr) {}
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
@@ -773,7 +749,6 @@
   function logout() { 
     localStorage.removeItem('logged_user'); 
     localStorage.removeItem('aluno_token');
-    localStorage.removeItem('admin_token');
     location.reload(); 
   }
 
