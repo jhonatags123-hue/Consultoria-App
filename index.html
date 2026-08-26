@@ -282,7 +282,7 @@
   <div id="tabChat" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 IA Assistente de Treino 24h</div>
     <div class="chat-box" id="chatHistory">
-      <div class="msg msg-ai"><b>Assistente:</b> Olá! Sou sua IA de suporte. Tem alguma dúvida sobre a execução dos exercícios, dias de carbo ou adaptação do treino hoje?</div>
+      <div class="msg msg-ai"><b>Assistente IA:</b> Olá! Sou seu assistente de treino. Como posso te ajudar com a execução dos exercícios ou seu plano hoje?</div>
     </div>
     <div class="chat-input-row">
       <input type="text" id="chatInput" class="chat-input" placeholder="Pergunte aqui..." onkeypress="if(event.key==='Enter') sendChatMessage()">
@@ -432,6 +432,8 @@
       telefone: telefone,
       objetivo: document.getElementById('anamObjetivo').value,
       rotina: document.getElementById('anamHorarioTreino').value.trim(),
+      gostos: document.getElementById('anamGostos').value.trim(),
+      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
       formaPagamento: formaPagamento
     };
 
@@ -645,7 +647,6 @@
     }
   }
 
-  // --- MOTOR INTELIGENTE DE DIETAS E DIAS ---
   function setupDiet(refeicoes) {
     const filterContainer = document.getElementById('dietFilterContainer');
     const list = document.getElementById('mealsList');
@@ -829,8 +830,8 @@
     }
   }
 
-  // --- RESPOSTA DE IA INTELIGENTE BASEADA NO PROTOCOLO DO BANCO ---
-  function sendChatMessage() {
+  // --- ROTA DA IA SEGURA VIA BACKEND ---
+  async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const history = document.getElementById('chatHistory');
     const text = input.value.trim();
@@ -841,42 +842,23 @@
     input.value = '';
     history.scrollTop = history.scrollHeight;
 
-    setTimeout(() => {
-      const q = text.toLowerCase();
-      let reply = "";
-
-      const alunoNome = currentData?.clientName || "aluno";
-      const refeicoes = currentData?.refeicoes || [];
-
-      const diasSemanaNomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-      const diaHojeNome = diasSemanaNomes[new Date().getDay()];
-
-      let grupoHoje = "";
-      refeicoes.forEach(r => {
-        const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
-        const groupName = matchGroup ? matchGroup[1].trim() : '';
-        const textBlock = ((r.titulo || '') + ' ' + (r.alimentos || '')).toLowerCase();
-
-        if (textBlock.includes(diaHojeNome) && groupName) {
-          grupoHoje = groupName;
-        }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          codigo: loggedUserCode, 
+          mensagem: text,
+          contexto: currentData 
+        })
       });
 
-      if (q.includes('hoje') || q.includes('carbo') || q.includes('dieta')) {
-        if (grupoHoje) {
-          reply = `Analisando seu plano: Hoje (**${diaHojeNome.toUpperCase()}**) seu protocolo está programado para **${grupoHoje.toUpperCase()}**. Vá na aba DIETA para ver os alimentos e proporções exatas do dia!`;
-        } else {
-          reply = `Hoje é **${diaHojeNome.toUpperCase()}**. Confira na aba DIETA qual das abas corresponde à sua rotina de hoje!`;
-        }
-      }
-
-      if (!reply) {
-        reply = `Olá, ${alunoNome}! Tenho acesso ao seu protocolo. Como posso te ajudar com dúvidas sobre exercícios ou refeições hoje?`;
-      }
-
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${reply}</div>`;
-      history.scrollTop = history.scrollHeight;
-    }, 600);
+      const data = await res.json();
+      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${data.resposta}</div>`;
+    } catch(e) {
+      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> Ocorreu uma oscilação na conexão com a IA. Tente novamente em instantes.</div>`;
+    }
+    history.scrollTop = history.scrollHeight;
   }
 
   function sendWhatsAppFeedback() {
