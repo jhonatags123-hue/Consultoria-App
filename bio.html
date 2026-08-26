@@ -405,14 +405,14 @@
         <div class="plan-title">Hora-Aula Avulsa</div>
         <div class="plan-price-main">R$ 60,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/hora</span></div>
         <div style="font-size:12px; color:var(--muted); margin-top:4px;">Acompanhamento individual e correção técnica presencial.</div>
-        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Hora-Aula Avulsa (R$ 60)')">💬 AGENDAR AULA AVULSA</button>
+        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Hora-Aula Avulsa', 'R$ 60,00/hora', '1 aula avulsa')">💬 AGENDAR AULA AVULSA</button>
       </div>
 
       <div class="plan-card">
         <div class="plan-title">Pacote Semanal (3x por semana)</div>
         <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/semana</span></div>
         <div class="plan-discount-pix">R$ 50,00 por aula (Economize R$ 30,00)</div>
-        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Pacote Semanal (R$ 150)')">💬 FECHAR PACOTE SEMANAL</button>
+        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Pacote Semanal', 'R$ 150,00/semana', '3 aulas por semana')">💬 FECHAR PACOTE SEMANAL</button>
       </div>
 
       <div class="plan-card">
@@ -420,7 +420,7 @@
         <div class="plan-price-old">De R$ 720,00</div>
         <div class="plan-price-main">R$ 480,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
         <div class="plan-discount-pix">Apenas R$ 40,00 por aula (12 aulas no mês)</div>
-        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Pacote Mensal VIP (R$ 480)')">💬 GARANTIR VAGA MENSAL</button>
+        <button class="btn btn-wpp" style="margin-top:10px;" onclick="contactWpp('Pacote Mensal VIP', 'R$ 480,00/mês', '12 aulas no mês, 3x por semana')">💬 GARANTIR VAGA MENSAL</button>
       </div>
     </div>
   </div>
@@ -455,8 +455,9 @@
     }
   }
 
-  function contactWpp(pacote) {
-    const msg = `Olá Personal Jhonata! Vi seu perfil na Bio e quero agendar o *${pacote}* em Novo Hamburgo / Campo Bom. Como funcionam os horários disponíveis?`;
+  // Mensagem já pronta com plano, valor e quantidade de aulas — só resta perguntar a academia do aluno
+  function contactWpp(planName, priceLabel, aulasInfo) {
+    const msg = `Olá Personal Jhonata! Quero fechar o *${planName}* (${priceLabel} — ${aulasInfo}) para hora-aula presencial em Novo Hamburgo / Campo Bom. Pode me passar os próximos passos?`;
     window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 </script>
