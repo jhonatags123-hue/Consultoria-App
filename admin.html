@@ -86,14 +86,13 @@
 </head>
 <body>
 
-<!-- MODAL DE LOGIN ADMIN (Exibido por padrão ao carregar) -->
 <div id="loginModal" class="modal-overlay">
   <div class="modal-card">
     <div class="label-title" style="font-size:14px; color:var(--gold);">🔒 Autenticação do Personal</div>
     <div style="font-size:12px; color:var(--muted); margin-bottom:14px;">Digite usuário e senha para acessar o painel</div>
     <input type="text" id="adminUser" placeholder="Usuário Admin (ex: jhonata)">
     <input type="password" id="adminPass" placeholder="Senha Admin" onkeypress="if(event.key==='Enter') authenticateAdmin()">
-    <button class="btn-action" style="margin-top:6px;" onclick="authenticateAdmin()">Entrar no Painel</button>
+    <button class="btn-action" id="btnAdminLogin" style="margin-top:6px;" onclick="authenticateAdmin()">Entrar no Painel</button>
   </div>
 </div>
 
@@ -259,6 +258,9 @@
   let chartInstance = null;
 
   window.onload = () => {
+    // Tenta pingar o backend para acelerar o inicio no Render
+    fetch(`${BACKEND_URL}/ping`).catch(() => {});
+
     const token = localStorage.getItem('admin_token');
     if (token) {
       document.getElementById('loginModal').classList.add('hidden');
@@ -271,8 +273,12 @@
   async function authenticateAdmin() {
     const user = document.getElementById('adminUser').value.trim();
     const pass = document.getElementById('adminPass').value.trim();
+    const btn = document.getElementById('btnAdminLogin');
 
     if (!user || !pass) { alert("Informe usuário e senha."); return; }
+
+    btn.textContent = "Conectando ao servidor...";
+    btn.disabled = true;
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
@@ -293,7 +299,10 @@
         alert("❌ " + (data.error || "Usuário ou senha do Admin incorretos!"));
       }
     } catch(e) {
-      alert("Erro ao conectar com o servidor.");
+      alert("Servidor está inicializando ou indisponível. Aguarde alguns segundos e tente novamente.");
+    } finally {
+      btn.textContent = "Entrar no Painel";
+      btn.disabled = false;
     }
   }
 
@@ -329,7 +338,7 @@
       return;
     }
 
-    listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Buscando alunos...</div>';
+    listDiv.innerHTML = '<div style="font-size:12px; color:var(--muted);">Conectando ao banco...</div>';
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
@@ -374,7 +383,7 @@
 
       if (alunos.length > 0) loadStudentData(alunos[0].codigo || alunos[0].code);
     } catch (e) {
-      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao conectar ao servidor.</div>';
+      listDiv.innerHTML = '<div style="font-size:12px; color:var(--accent);">Erro ao conectar ao servidor. Toque em "Atualizar" em instantes.</div>';
     }
   }
 
