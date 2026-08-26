@@ -662,7 +662,7 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  // PARSER INTELIGENTE CORRIGIDO PARA NÃOO MISTURAR EXERCÍCIOS COMO DIAS
+  // PARSER BLINDADO CONTRA LEITURA ERRADA DE SÉRIES EXAGERADAS
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -695,22 +695,28 @@
           days.push(currentDay);
         }
 
-        const match = cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+)\s*[xX×]\s*([\d\-\+]+.*)$/i) ||
-                      cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+\s*(?:Cluster|Myo-Reps|Back-off|x|\+).+)$/i);
+        let linhaEx = cleanLine.replace(/^[0-9]+[\.\)-]\s*/, '').trim();
 
-        if (match && match.length >= 3) {
-          currentDay.exercicios.push({
-            nome: match[1].trim(),
-            series: match[2].trim().replace(/[^\d]/g, '') || "3",
-            reps: match[3] ? match[3].trim() : "8-10"
-          });
+        let numSeries = "3"; 
+        let repsText = "8-10";
+
+        const matchSeries = linhaEx.match(/(\d+)\s*[xX×]/);
+        if (matchSeries) {
+          numSeries = matchSeries[1];
+          linhaEx = linhaEx.replace(/(\d+)\s*[xX×]\s*/, '');
         } else {
-          currentDay.exercicios.push({
-            nome: cleanLine.replace(/^[0-9]+[\.\)-]\s*/, ''),
-            series: "3",
-            reps: "Até a falha / Execução correta"
-          });
+          const matchFim = linhaEx.match(/\s+(\d+)$/);
+          if (matchFim && parseInt(matchFim[1]) <= 6) { 
+            numSeries = matchFim[1];
+            linhaEx = linhaEx.replace(/\s+\d+$/, '').trim();
+          }
         }
+
+        currentDay.exercicios.push({
+          nome: linhaEx,
+          series: numSeries,
+          reps: repsText
+        });
       }
     });
 
