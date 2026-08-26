@@ -65,7 +65,6 @@
 </head>
 <body>
 
-<!-- MODAL DE LOGIN ADMIN -->
 <div id="loginModal" class="modal-overlay">
   <div class="modal">
     <h2 style="font-family:'Bebas Neue',sans-serif; font-size:26px; color:#fff; margin-bottom:4px;">PAINEL DE CONTROLE</h2>
@@ -93,7 +92,6 @@
 </header>
 
 <div class="layout">
-  <!-- COLUNA LATERAL (LISTAS E ACOES) -->
   <aside>
     <div class="panel-card">
       <div class="panel-title">
@@ -111,7 +109,6 @@
     </div>
   </aside>
 
-  <!-- PAINEL PRINCIPAL -->
   <main>
     <div class="nav-tabs">
       <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
@@ -120,7 +117,6 @@
       <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
     </div>
 
-    <!-- TAB 1: RESUMO DO ALUNO -->
     <div id="secResumo" class="panel-card">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
         <div>
@@ -131,11 +127,10 @@
       </div>
 
       <div id="workoutOverview">
-        <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista à esquerda para carregar a ficha completa.</p>
+        <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
       </div>
     </div>
 
-    <!-- TAB 2: EDITAR TREINO -->
     <div id="secTreino" class="panel-card hidden">
       <div class="panel-title">🏋️ Gerenciador de Treinos do Aluno</div>
       
@@ -167,25 +162,23 @@
       <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarAlteracoes()">💾 SALVAR NO BANCO DE DADOS</button>
     </div>
 
-    <!-- TAB 3: EDITAR DIETA -->
     <div id="secDieta" class="panel-card hidden">
-      <div class="panel-title">🥗 Plano Alimentar e Nutrição</div>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Insira cada refeição em uma linha e separe os campos usando a barra vertical `|` (Exemplo: <code>Ovos Mexidos | 3 un | 210 | 18 | 2 | 14</code>)</p>
+      <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo. O sistema lerá e criará as abas no app do aluno!</p>
 
-      <label>Bloco de Refeições (Visual do Aluno):</label>
-      <textarea id="dietTextarea" rows="12" placeholder="REFEIÇÃO 1 - CAFÉ DA MANHÃ [Carbo Alto]&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14&#10;Pão Integral | 2 fatias | 120 | 4 | 22 | 2&#10;&#10;REFEIÇÃO 2 - ALMOÇO&#10;Arroz Branco | 150g | 190 | 3 | 42 | 1&#10;Peito de Frango | 150g | 240 | 46 | 0 | 5"></textarea>
+      <label>Bloco de Refeições:</label>
+      <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14&#10;Pão Integral | 2 fatias | 120 | 4 | 22 | 2&#10;&#10;[Carbo Baixo]&#10;Dias: Terça, Quinta, Sábado, Domingo&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 4 un | 280 | 24 | 2 | 18"></textarea>
       
       <button class="btn" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
     </div>
 
-    <!-- TAB 4: CADASTRO E PAGAMENTO -->
     <div id="secCadastro" class="panel-card hidden">
       <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
       
       <label>Nome Exibido</label>
       <input type="text" id="editName">
 
-      <label>Nova Senha (deixe em branco se não quiser alterar)</label>
+      <label>Nova Senha (deixe em branco para não alterar)</label>
       <input type="password" id="editPassword" placeholder="Sua nova senha...">
 
       <label>Status do Pagamento</label>
@@ -200,7 +193,6 @@
       </div>
     </div>
 
-    <!-- TELA DE IMPORTACAO / NOVO ALUNO -->
     <div id="secNovo" class="panel-card hidden">
       <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
       
@@ -214,7 +206,7 @@
       <textarea id="rawWorkout" rows="6" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto | 3x | 8-10&#10;Crucifixo Inclinado | 3x | 10-12"></textarea>
 
       <label>Bloco da Dieta (Texto Puro)</label>
-      <textarea id="rawDiet" rows="6" placeholder="CAFÉ DA MANHÃ&#10;Ovos | 3 un | 210 | 18 | 2 | 14"></textarea>
+      <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;CAFÉ DA MANHÃ&#10;Ovos | 3 un | 210 | 18 | 2 | 14"></textarea>
 
       <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
     </div>
