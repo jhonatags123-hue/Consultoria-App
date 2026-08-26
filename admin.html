@@ -55,8 +55,38 @@
   .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
   .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
 
-  .ex-clickable { background:#0d0204; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
-  .ex-clickable:hover { border-color:var(--gold); background:#170408; }
+  /* CARD EXPANSÍVEL DE DIVISÃO DE TREINO (LOWER / UPPER) */
+  .day-accordion-header {
+    background: linear-gradient(135deg, #1f060c, #110205);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all .2s ease;
+  }
+  .day-accordion-header:hover {
+    border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(212,160,42,0.15);
+  }
+  .day-accordion-header b { font-size: 15px; color: #fff; }
+
+  /* LISTA DE EXERCÍCIOS OCULTA ATÉ O CLIQUE */
+  .day-accordion-body {
+    background: #0d0204;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    padding: 12px;
+    margin-top: -12px;
+    margin-bottom: 12px;
+  }
+
+  .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
+  .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
   .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; }
   .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
@@ -79,7 +109,6 @@
   .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
 
-  /* MODAL DE GRAFICO DE PROGRESSAO */
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
   .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
 </style>
@@ -99,7 +128,6 @@
   </div>
 </div>
 
-<!-- MODAL DE DETALHES DO EXERCÍCIO & GRÁFICO -->
 <div id="chartModal" class="modal-overlay hidden">
   <div class="modal-chart">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -381,6 +409,7 @@
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
+  // INTERFACE NÍVEL 1: BOTOES DE DIVISÕES (LOWER / UPPER)
   function renderWorkoutView() {
     const div = document.getElementById('workoutOverview');
     div.innerHTML = "";
@@ -391,9 +420,21 @@
     }
 
     currentStudentData.days.forEach((day, dayIdx) => {
-      let html = `<div style='background:#0d0204; border:1px solid var(--border); padding:12px; border-radius:10px; margin-bottom:12px;'>
-        <b style='color:var(--gold); font-size:14px;'>${day.title}</b><hr style='border-color:var(--border); margin:8px 0;'>`;
+      const numEx = (day.exercicios || []).length;
       
+      let html = `
+        <div class="day-accordion-header" onclick="toggleDayAccordion(${dayIdx})">
+          <div>
+            <b>🏋️ ${day.title}</b>
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
+          </div>
+          <span id="accordionArrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform .2s;">▼</span>
+        </div>
+
+        <div id="accordionBody_${dayIdx}" class="day-accordion-body hidden">
+      `;
+
+      // INTERFACE NÍVEL 2: EXERCÍCIOS DENTRO DA DIVISÃO
       (day.exercicios || []).forEach((ex, exIdx) => {
         html += `
           <div class="ex-clickable" onclick="verEvolucaoExercício(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
@@ -408,6 +449,21 @@
     });
   }
 
+  // ALTERNA A VISIBILIDADE DAS DIVISÕES (LOWER / UPPER)
+  function toggleDayAccordion(dayIdx) {
+    const body = document.getElementById(`accordionBody_${dayIdx}`);
+    const arrow = document.getElementById(`accordionArrow_${dayIdx}`);
+    
+    if (body.classList.contains('hidden')) {
+      body.classList.remove('hidden');
+      arrow.style.transform = 'rotate(180deg)';
+    } else {
+      body.classList.add('hidden');
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+
+  // INTERFACE NÍVEL 3: MODAL DE CARGAS E GRÁFICO DO EXERCÍCIO
   function verEvolucaoExercício(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr}x (${repsStr})`;
