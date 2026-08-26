@@ -23,7 +23,7 @@
     --border-soft: rgba(212,160,42,0.15);
     --accent: #b81d36;
     --accent-2: #841628;
-    --gold: #d4a02a;
+    --gold: #dcaa3a;
     --gold-soft: #eac267;
     --text: #f9efec;
     --muted: #c9a4ac;
@@ -63,10 +63,20 @@
   .menu-btn:hover { border-color:var(--gold); }
   .menu-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
 
-  .days { display:flex; gap:7px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
-  .day-btn { padding:9px 16px; background:#140307; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; transition:all .18s ease; }
-  .day-btn:hover { border-color:var(--gold); color:#fff; }
-  .day-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; border-color:var(--gold); font-weight:700; }
+  .day-accordion-header {
+    background: linear-gradient(135deg, var(--card-2), var(--card));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: all .2s ease;
+    margin-bottom: 8px;
+  }
+  .day-accordion-header:hover { border-color: var(--gold); }
 
   .item { background:#140307; border:1px solid var(--border); border-radius:14px; padding:15px; margin-bottom:12px; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
   .item-title { font-weight:800; font-size:15px; color:#fff; }
@@ -269,7 +279,6 @@
   </div>
 
   <div id="tabTreino">
-    <div class="days" id="daysList"></div>
     <div id="exercisesList"></div>
     <button class="btn-login btn-gold" style="margin-top:14px;" onclick="saveStudentLogs()">💾 SALVAR CARGAS E REPETIÇÕES</button>
   </div>
@@ -319,6 +328,13 @@
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
+    
+    // Auto-preenche usuário se passado via URL link (ex: index.html?aluno=lucas)
+    const paramAluno = params.get('aluno');
+    if (paramAluno && document.getElementById('loginUser')) {
+      document.getElementById('loginUser').value = paramAluno;
+    }
+
     if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
@@ -476,38 +492,65 @@
     setupDiet(data.refeicoes || []);
   }
 
+  // RENDERIZAÇÃO DOS DIAS DE TREINO EM FORMATO EXPANSÍVEL (SANFONA/ACORDEÃO)
   function setupWorkout(days) {
-    const daysList = document.getElementById('daysList');
-    daysList.innerHTML = '';
-    
+    const exercisesContainer = document.getElementById('exercisesList');
+    exercisesContainer.innerHTML = '';
+
     if (!days || days.length === 0) {
-      document.getElementById('exercisesList').innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está em preparação.</div>';
+      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está sendo montado.</div>';
       return;
     }
 
-    days.forEach((day, index) => {
-      const btn = document.createElement('button');
-      btn.className = `day-btn ${index === 0 ? 'active' : ''}`;
-      btn.textContent = day.title;
-      btn.onclick = () => {
-        document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderExercises(day, index);
+    days.forEach((day, dayIdx) => {
+      const dayWrapper = document.createElement('div');
+      dayWrapper.style.marginBottom = '12px';
+
+      const dayHeader = document.createElement('div');
+      dayHeader.className = 'day-accordion-header';
+      dayHeader.innerHTML = `
+        <div>
+          <b style="font-size:15px; color:#fff;">🏋️ ${day.title}</b>
+          <div style="font-size:11px; color:var(--gold); margin-top:2px;">${(day.exercicios || []).length} Exercícios</div>
+        </div>
+        <span id="arrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform 0.2s ease;">▼</span>
+      `;
+
+      const dayBody = document.createElement('div');
+      dayBody.id = `dayBody_${dayIdx}`;
+      dayBody.className = 'hidden';
+      dayBody.style.paddingTop = '8px';
+
+      dayHeader.onclick = () => {
+        const isHidden = dayBody.classList.contains('hidden');
+        const arrow = document.getElementById(`arrow_${dayIdx}`);
+
+        if (isHidden) {
+          dayBody.classList.remove('hidden');
+          arrow.style.transform = 'rotate(180deg)';
+          dayHeader.style.borderColor = 'var(--gold)';
+        } else {
+          dayBody.classList.add('hidden');
+          arrow.style.transform = 'rotate(0deg)';
+          dayHeader.style.borderColor = 'var(--border)';
+        }
       };
-      daysList.appendChild(btn);
+
+      renderExercisesForDay(day, dayIdx, dayBody);
+
+      dayWrapper.appendChild(dayHeader);
+      dayWrapper.appendChild(dayBody);
+      exercisesContainer.appendChild(dayWrapper);
     });
-    if (days.length > 0) renderExercises(days[0], 0);
   }
 
-  function renderExercises(day, dayIdx) {
-    const list = document.getElementById('exercisesList');
-    list.innerHTML = '';
+  function renderExercisesForDay(day, dayIdx, container) {
     const user = loggedUserCode || localStorage.getItem('logged_user');
 
     (day.exercicios || []).forEach((ex, exIdx) => {
       const numSeries = parseInt(ex.series) || 1;
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '') + ' ' + (ex.series || '')).toLowerCase();
-      
+
       const isCluster = metaText.includes('cluster');
       const hasBackoff = metaText.includes('back off') || metaText.includes('back-off') || metaText.includes('backoff');
       const hasNormalSeries = metaText.includes('série') || metaText.includes('serie') || metaText.includes('+') || (!isCluster && !hasBackoff);
@@ -620,7 +663,7 @@
 
       html += `</div>`;
       div.innerHTML += html;
-      list.appendChild(div);
+      container.appendChild(div);
     });
   }
 
@@ -830,7 +873,6 @@
     }
   }
 
-  // --- ROTA DA IA SEGURA VIA BACKEND ---
   async function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const history = document.getElementById('chatHistory');
