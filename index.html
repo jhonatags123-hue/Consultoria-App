@@ -79,10 +79,10 @@
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
 
   .diet-container { display:flex; flex-direction:column; gap:16px; }
-  .diet-filter-row { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; }
-  .diet-filter-btn { flex:1; padding:11px 8px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:11px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
+  .diet-filter-row { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; }
+  .diet-filter-btn { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:12px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
   .diet-filter-btn:hover { border-color:var(--gold); }
-  .diet-filter-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border-color:var(--accent); }
+  .diet-filter-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
 
   .meal-table-card { background:#110307; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
   .meal-header { background:linear-gradient(90deg, #200610, #170309); padding:11px 15px; font-size:13px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.03em; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; }
@@ -213,7 +213,6 @@
         <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 60,00/mês</option>
         <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
         <option value="TREINO_DUPLA">👥 Apenas Treino para Dois (Anual) — R$ 80,00/mês (R$ 40,00 cada)</option>
-        <option value="HORA_AULA">⏱️ Hora/Aula Presencial (A Combinar)</option>
       </select>
 
       <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
@@ -283,7 +282,7 @@
   <div id="tabChat" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 IA Assistente de Treino 24h</div>
     <div class="chat-box" id="chatHistory">
-      <div class="msg msg-ai"><b>Assistente:</b> Olá! Sou sua IA de suporte. Tem alguma dúvida sobre a execução do exercício, tempo de descanso ou adaptação do treino hoje?</div>
+      <div class="msg msg-ai"><b>Assistente:</b> Olá! Sou sua IA de suporte. Tem alguma dúvida sobre a execução dos exercícios, dias de carbo ou adaptação do treino hoje?</div>
     </div>
     <div class="chat-input-row">
       <input type="text" id="chatInput" class="chat-input" placeholder="Pergunte aqui..." onkeypress="if(event.key==='Enter') sendChatMessage()">
@@ -314,7 +313,7 @@
 
   let currentData = null;
   let loggedUserCode = "";
-  let activeDietTag = "TODOS";
+  let activeDietTag = "";
 
   window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
@@ -618,7 +617,7 @@
       }
 
       html += `</div>`;
-      div.innerHTML = html;
+      div.innerHTML += html;
       list.appendChild(div);
     });
   }
@@ -646,6 +645,7 @@
     }
   }
 
+  // --- MOTOR INTELIGENTE DE DIETAS E DIAS ---
   function setupDiet(refeicoes) {
     const filterContainer = document.getElementById('dietFilterContainer');
     const list = document.getElementById('mealsList');
@@ -653,35 +653,81 @@
     list.innerHTML = '';
 
     if (!refeicoes || refeicoes.length === 0) {
-      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada para este protocolo.</div>';
+      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada.</div>';
       return;
     }
 
-    const hasAlto = refeicoes.some(r => (r.titulo || '').includes('[Carbo Alto]'));
-    const hasBaixo = refeicoes.some(r => (r.titulo || '').includes('[Carbo Baixo]'));
-    const hasMedio = refeicoes.some(r => (r.titulo || '').includes('[Carbo Medio]') || (r.titulo || '').includes('[Carbo Médio]'));
+    const diasSemanaNomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+    const diaHojeNome = diasSemanaNomes[new Date().getDay()];
 
-    if (hasAlto || hasBaixo || hasMedio) {
-      if (activeDietTag === 'TODOS') {
-        if (hasAlto) activeDietTag = 'Alto';
-        else if (hasBaixo) activeDietTag = 'Baixo';
-        else if (hasMedio) activeDietTag = 'Medio';
+    let groups = [];
+    refeicoes.forEach(r => {
+      const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
+      const groupName = matchGroup ? matchGroup[1].trim() : 'Geral';
+      
+      let existingGroup = groups.find(g => g.name.toLowerCase() === groupName.toLowerCase());
+      if (!existingGroup) {
+        existingGroup = { name: groupName, daysText: '', isToday: false };
+        groups.push(existingGroup);
       }
 
+      const matchDays = (r.alimentos || '' ) + ' ' + (r.titulo || '');
+      const cleanMatch = matchDays.toLowerCase();
+
+      if (cleanMatch.includes('segunda') || cleanMatch.includes('terça') || cleanMatch.includes('quarta') || cleanMatch.includes('quinta') || cleanMatch.includes('sexta') || cleanMatch.includes('sábado') || cleanMatch.includes('domingo')) {
+        if (!existingGroup.daysText) {
+          let extracted = '';
+          if (cleanMatch.includes('segunda')) extracted += 'Seg, ';
+          if (cleanMatch.includes('terça')) extracted += 'Ter, ';
+          if (cleanMatch.includes('quarta')) extracted += 'Qua, ';
+          if (cleanMatch.includes('quinta')) extracted += 'Qui, ';
+          if (cleanMatch.includes('sexta')) extracted += 'Sex, ';
+          if (cleanMatch.includes('sábado')) extracted += 'Sáb, ';
+          if (cleanMatch.includes('domingo')) extracted += 'Dom, ';
+          existingGroup.daysText = extracted.replace(/,\s*$/, '');
+        }
+
+        if (cleanMatch.includes(diaHojeNome)) {
+          existingGroup.isToday = true;
+        }
+      }
+    });
+
+    if (!activeDietTag || !groups.some(g => g.name === activeDietTag)) {
+      const todayGroup = groups.find(g => g.isToday);
+      activeDietTag = todayGroup ? todayGroup.name : (groups[0] ? groups[0].name : '');
+    }
+
+    if (groups.length > 1) {
       let filterBtns = '';
-      if (hasAlto) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Alto'?'active':''}" onclick="setDietFilter('Alto')">🟢 CARBO ALTO</button>`;
-      if (hasBaixo) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Baixo'?'active':''}" onclick="setDietFilter('Baixo')">🔴 CARBO BAIXO</button>`;
-      if (hasMedio) filterBtns += `<button class="diet-filter-btn ${activeDietTag==='Medio'?'active':''}" onclick="setDietFilter('Medio')">🟡 CARBO MÉDIO</button>`;
-      
+      groups.forEach(g => {
+        const isAlto = g.name.toLowerCase().includes('alto');
+        const isBaixo = g.name.toLowerCase().includes('baixo');
+
+        let icon = '🟢';
+        if (isBaixo) icon = '🔴';
+        else if (!isAlto) icon = '🟡';
+
+        const activeClass = (activeDietTag === g.name) ? 'active' : '';
+        const badgeHoje = g.isToday ? ' <span style="font-size:9px; background:var(--gold); color:#000; padding:1px 4px; border-radius:4px; font-weight:800;">HOJE</span>' : '';
+        const subText = g.daysText ? `(${g.daysText})` : '';
+
+        filterBtns += `
+          <button class="diet-filter-btn ${activeClass}" onclick="setDietFilter('${g.name}')">
+            <span>${icon} ${g.name.toUpperCase()} ${badgeHoje}</span>
+            <span style="font-size:9px; opacity:0.85; font-weight:normal; margin-top:2px;">${subText}</span>
+          </button>
+        `;
+      });
+
       filterContainer.innerHTML = filterBtns;
     }
 
     const filtered = refeicoes.filter(r => {
-      const title = r.titulo || '';
-      if (activeDietTag === 'Alto') return title.includes('[Carbo Alto]') || !title.includes('[Carbo');
-      if (activeDietTag === 'Baixo') return title.includes('[Carbo Baixo]') || !title.includes('[Carbo');
-      if (activeDietTag === 'Medio') return title.includes('[Carbo Medio]') || title.includes('[Carbo Médio]') || !title.includes('[Carbo');
-      return true;
+      if (groups.length <= 1) return true;
+      const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
+      const groupName = matchGroup ? matchGroup[1].trim() : 'Geral';
+      return groupName.toLowerCase() === activeDietTag.toLowerCase();
     });
 
     filtered.forEach(ref => {
@@ -783,6 +829,7 @@
     }
   }
 
+  // --- RESPOSTA DE IA INTELIGENTE BASEADA NO PROTOCOLO DO BANCO ---
   function sendChatMessage() {
     const input = document.getElementById('chatInput');
     const history = document.getElementById('chatHistory');
@@ -795,7 +842,38 @@
     history.scrollTop = history.scrollHeight;
 
     setTimeout(() => {
-      let reply = "Mantenha o foco na cadência do movimento e respeite o tempo de descanso entre as séries.";
+      const q = text.toLowerCase();
+      let reply = "";
+
+      const alunoNome = currentData?.clientName || "aluno";
+      const refeicoes = currentData?.refeicoes || [];
+
+      const diasSemanaNomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+      const diaHojeNome = diasSemanaNomes[new Date().getDay()];
+
+      let grupoHoje = "";
+      refeicoes.forEach(r => {
+        const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
+        const groupName = matchGroup ? matchGroup[1].trim() : '';
+        const textBlock = ((r.titulo || '') + ' ' + (r.alimentos || '')).toLowerCase();
+
+        if (textBlock.includes(diaHojeNome) && groupName) {
+          grupoHoje = groupName;
+        }
+      });
+
+      if (q.includes('hoje') || q.includes('carbo') || q.includes('dieta')) {
+        if (grupoHoje) {
+          reply = `Analisando seu plano: Hoje (**${diaHojeNome.toUpperCase()}**) seu protocolo está programado para **${grupoHoje.toUpperCase()}**. Vá na aba DIETA para ver os alimentos e proporções exatas do dia!`;
+        } else {
+          reply = `Hoje é **${diaHojeNome.toUpperCase()}**. Confira na aba DIETA qual das abas corresponde à sua rotina de hoje!`;
+        }
+      }
+
+      if (!reply) {
+        reply = `Olá, ${alunoNome}! Tenho acesso ao seu protocolo. Como posso te ajudar com dúvidas sobre exercícios ou refeições hoje?`;
+      }
+
       history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${reply}</div>`;
       history.scrollTop = history.scrollHeight;
     }, 600);
