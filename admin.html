@@ -270,10 +270,10 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="Lower&#10;1. STIFF 2×6-8&#10;2. AGACHAMENTO 2×6-8&#10;&#10;Upper&#10;1. Supino Inclinado 2×6-7"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="Upper 1 Segunda&#10;Supino Reto Barra 1 Cluster + 1 Back-off&#10;Remada Baixa 1 Cluster&#10;&#10;Lower 1 Terça&#10;Cadeira Flexora 3x 8-10"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;CAFÉ DA MANHÃ&#10;Ovos | 3 un | 210 | 18 | 2 | 14"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -662,6 +662,7 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
+  // PARSER INTELIGENTE CORRIGIDO PARA NÃOO MISTURAR EXERCÍCIOS COMO DIAS
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -669,30 +670,47 @@
     const days = [];
     let currentDay = null;
 
+    const dayKeywords = ['upper', 'lower', 'treino', 'costas', 'peito', 'pernas', 'ombro', 'bracos', 'fullbody'];
+
     lines.forEach(line => {
       const cleanLine = line.trim();
       if (!cleanLine) return;
 
-      const match = cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+)\s*[xX×]\s*([\d\-\+]+.*)$/i);
+      const lowerLine = cleanLine.toLowerCase();
+      
+      const isDayHeader = dayKeywords.some(kw => lowerLine.includes(kw)) && 
+                          !lowerLine.includes('cluster') && 
+                          !lowerLine.includes('myo-reps') && 
+                          !lowerLine.includes('back-off') &&
+                          !lowerLine.includes('maquina') &&
+                          !lowerLine.includes('barra') &&
+                          !lowerLine.includes('polia');
 
-      if (match) {
+      if (isDayHeader) {
+        currentDay = { title: cleanLine, exercicios: [] };
+        days.push(currentDay);
+      } else {
         if (!currentDay) {
           currentDay = { title: "Treino Geral", exercicios: [] };
           days.push(currentDay);
         }
 
-        const nomeEx = match[1].trim();
-        const numSeries = match[2].trim();
-        const numReps = match[3].trim();
+        const match = cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+)\s*[xX×]\s*([\d\-\+]+.*)$/i) ||
+                      cleanLine.match(/^(?:\d+[\.\)-]\s*)?(.+?)\s+(\d+\s*(?:Cluster|Myo-Reps|Back-off|x|\+).+)$/i);
 
-        currentDay.exercicios.push({
-          nome: nomeEx,
-          series: numSeries,
-          reps: numReps
-        });
-      } else {
-        currentDay = { title: cleanLine, exercicios: [] };
-        days.push(currentDay);
+        if (match && match.length >= 3) {
+          currentDay.exercicios.push({
+            nome: match[1].trim(),
+            series: match[2].trim().replace(/[^\d]/g, '') || "3",
+            reps: match[3] ? match[3].trim() : "8-10"
+          });
+        } else {
+          currentDay.exercicios.push({
+            nome: cleanLine.replace(/^[0-9]+[\.\)-]\s*/, ''),
+            series: "3",
+            reps: "Até a falha / Execução correta"
+          });
+        }
       }
     });
 
@@ -743,7 +761,6 @@
     switchTab('resumo');
   }
 
-  // GERADOR E COPIADOR DE LINK DE ACESSO DO ALUNO
   function copiarLinkAcessoAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
     const baseUrl = window.location.href.replace('admin.html', 'index.html');
