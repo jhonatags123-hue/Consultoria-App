@@ -58,8 +58,8 @@
   .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
   .header-app h1 { font-size:22px; text-align:left; }
   .header-actions { display:flex; gap:6px; }
-  .menu { display:flex; gap:5px; margin-bottom:16px; overflow-x:auto; }
-  .menu-btn { flex:1; padding:11px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:11px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
+  .menu { display:flex; gap:4px; margin-bottom:16px; overflow-x:auto; }
+  .menu-btn { flex:1; padding:10px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:10px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
   .menu-btn:hover { border-color:var(--gold); }
   .menu-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
 
@@ -265,8 +265,8 @@
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
         <button class="btn-header" onclick="solicitarPermissaoPush()">🔔 Notificações</button>
+        <button class="btn-header" id="btnConfig" onclick="showTab('config')">⚙️ SENHA</button>
         <button class="btn-header" onclick="logout()">Sair</button>
-        <button class="menu-btn" id="btnConfig" onclick="showTab('config')">⚙️ SENHA</button>
       </div>
     </div>
     <div class="sub" id="billingInfo"></div>
@@ -306,6 +306,13 @@
     <textarea id="feedbackText" class="input-field" rows="5" placeholder="Descreva sua intensidade nos treinos, dores musculares, adesão à dieta e dificuldades..."></textarea>
     <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP DO PERSONAL</button>
   </div>
+
+  <div id="tabConfig" class="card hidden">
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
+    <label class="label-fdb">Nova Senha Pessoal</label>
+    <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha...">
+    <button class="btn-login btn-gold" style="margin-top:12px;" onclick="alterarSenhaAluno()">💾 SALVAR NOVA SENHA</button>
+  </div>
 </div>
 
 <script>
@@ -329,8 +336,6 @@
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
     const params = new URLSearchParams(window.location.search);
-    
-    // Auto-preenche usuário se passado via URL link (ex: index.html?aluno=lucas)
     const paramAluno = params.get('aluno');
     if (paramAluno && document.getElementById('loginUser')) {
       document.getElementById('loginUser').value = paramAluno;
@@ -493,7 +498,7 @@
     setupDiet(data.refeicoes || []);
   }
 
-  // RENDERIZAÇÃO DOS DIAS DE TREINO EM FORMATO EXPANSÍVEL (SANFONA/ACORDEÃO)
+  // RENDERIZAÇÃO DOS DIAS DE TREINO EM FORMATO SANFONA (ACORDEÃO)
   function setupWorkout(days) {
     const exercisesContainer = document.getElementById('exercisesList');
     exercisesContainer.innerHTML = '';
@@ -853,11 +858,13 @@
     document.getElementById('tabDieta').classList.add('hidden');
     document.getElementById('tabChat').classList.add('hidden');
     document.getElementById('tabFeedback').classList.add('hidden');
+    document.getElementById('tabConfig').classList.add('hidden');
 
     document.getElementById('btnTreino').classList.remove('active');
     document.getElementById('btnDieta').classList.remove('active');
     document.getElementById('btnChat').classList.remove('active');
     document.getElementById('btnFeedback').classList.remove('active');
+    document.getElementById('btnConfig').classList.remove('active');
 
     if (tab === 'treino') {
       document.getElementById('tabTreino').classList.remove('hidden');
@@ -871,6 +878,34 @@
     } else if (tab === 'feedback') {
       document.getElementById('tabFeedback').classList.remove('hidden');
       document.getElementById('btnFeedback').classList.add('active');
+    } else if (tab === 'config') {
+      document.getElementById('tabConfig').classList.remove('hidden');
+      document.getElementById('btnConfig').classList.add('active');
+    }
+  }
+
+  async function alterarSenhaAluno() {
+    const novaSenha = document.getElementById('alunoNovaSenha').value.trim();
+    if (!novaSenha) return alert("Digite a nova senha.");
+
+    if (!currentData) currentData = {};
+    currentData.senha = novaSenha;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+
+      if (res.ok) {
+        alert("🎉 Senha alterada com sucesso! Use-a nos próximos acessos.");
+        document.getElementById('alunoNovaSenha').value = '';
+      } else {
+        alert("Erro ao salvar nova senha no servidor.");
+      }
+    } catch(e) {
+      alert("Erro de conexão com o servidor.");
     }
   }
 
