@@ -135,6 +135,9 @@
       <label class="label-fdb" style="margin-top:8px;">CPF (Para emissão da cobrança)</label>
       <input type="text" id="anamCpf" class="input-field" placeholder="Ex: 000.000.000-00" required>
 
+      <label class="label-fdb" style="margin-top:8px;">WhatsApp / Telefone</label>
+      <input type="tel" id="anamTelefone" class="input-field" placeholder="Ex: (51) 99999-9999" required>
+
       <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
           <label class="label-fdb">Peso (kg)</label>
@@ -205,9 +208,10 @@
       <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
         <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
-        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 65,00/mês</option>
+        <option value="COMPLETA_ANUAL">🏆 Completa Anual (Treino + Dieta) — 12x R$ 85,00</option>
+        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 60,00/mês</option>
         <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
-        <option value="TREINO_DUPLA">👥 Apenas Treino (Anual em Dupla) — R$ 40,00/mês (cada)</option>
+        <option value="TREINO_DUPLA">👥 Apenas Treino para Dois (Anual) — R$ 80,00/mês (R$ 40,00 cada)</option>
         <option value="HORA_AULA">⏱️ Hora/Aula Presencial (A Combinar)</option>
       </select>
 
@@ -297,13 +301,11 @@
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 
-  // MAPEAMENTO DE LINKS DO ASAAS PARA CADA PLANO
+  // MAPEAMENTO DE LINKS DO ASAAS — apenas para os planos com pagamento anual via cartão
   const ASAAS_LINKS = {
-    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
-    'TREINO_DUPLA': "https://www.asaas.com/c/omsltaq25btnizvo",
-    'HORA_AULA': "https://www.asaas.com/c/5gd9tb7c0szjdwbd"
+    'TREINO_DUPLA': "https://www.asaas.com/c/omsltaq25btnizvo"
   };
 
   let currentData = null;
@@ -425,11 +427,12 @@
     const nome = document.getElementById('anamNome').value.trim();
     const email = document.getElementById('anamEmail').value.trim();
     const cpf = document.getElementById('anamCpf').value.trim();
+    const telefone = document.getElementById('anamTelefone').value.trim();
     const formaPagamento = document.getElementById('anamFormaPagamento').value;
     const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
     const btn = document.getElementById('btnSubmitAnam');
 
-    if (!nome || !email || !cpf) return alert("Preencha nome, e-mail e CPF.");
+    if (!nome || !email || !cpf || !telefone) return alert("Preencha nome, e-mail, CPF e WhatsApp.");
 
     btn.textContent = "Processando...";
     btn.disabled = true;
@@ -441,7 +444,7 @@
       email: email,
       cpf: cpf,
       tipoConsultoria: tipoConsultoria,
-      telefone: document.getElementById('anamNasc').value.trim(),
+      telefone: telefone,
       objetivo: document.getElementById('anamObjetivo').value,
       rotina: document.getElementById('anamHorarioTreino').value.trim(),
       formaPagamento: formaPagamento
@@ -454,8 +457,11 @@
         body: JSON.stringify(anamneseData)
       });
 
-      if (formaPagamento === 'ASAAS_LINK') {
-        const redirectUrl = ASAAS_LINKS[tipoConsultoria] || ASAAS_LINKS['COMPLETA_MENSAL'];
+      // Só redireciona pro Asaas se existir um link cadastrado para o plano escolhido.
+      // Caso contrário (planos mensais recorrentes, hora-aula, etc.) segue no fluxo de Pix.
+      const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
+
+      if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
         document.getElementById('anamneseScreen').innerHTML = `
