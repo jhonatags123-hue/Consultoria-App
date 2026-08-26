@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultoria Esportiva — Jhonata</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -15,74 +15,101 @@
 </script>
 
 <style>
-  :root { --bg: #0e0205; --card: #1c0409; --border: #3b0813; --accent: #b81d36; --gold: #d4a02a; --text: #fff; --muted: #c9a4ac; --green: #25d366; }
+  :root {
+    --bg: #0a0104;
+    --bg-grad: radial-gradient(900px 500px at 50% -5%, #240710 0%, #0a0104 60%);
+    --card: #180409;
+    --card-2: #1e050b;
+    --border: #350c15;
+    --border-soft: rgba(212,160,42,0.15);
+    --accent: #b81d36;
+    --accent-2: #841628;
+    --gold: #d4a02a;
+    --gold-soft: #eac267;
+    --text: #f9efec;
+    --muted: #c9a4ac;
+    --green: #25d366;
+  }
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; padding:16px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
-  .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:20px; margin-bottom:14px; }
-  h1 { font-size:22px; font-weight:800; color:var(--text); text-align:center; }
-  .sub { color:var(--gold); font-size:12px; margin-top:4px; font-weight:600; text-align:center; }
-  
-  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:16px; }
-  .input-field { width:100%; background:#170307; border:1px solid var(--border); color:#fff; padding:12px; border-radius:8px; font-size:14px; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+  body { background:var(--bg-grad); color:var(--text); font-family:'Inter',sans-serif; padding:18px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .card { background:linear-gradient(180deg, var(--card-2), var(--card)); border:1px solid var(--border); border-top:1px solid var(--border-soft); border-radius:16px; padding:22px; margin-bottom:14px; box-shadow:0 10px 26px rgba(0,0,0,0.35); }
+  h1 { font-family:'Bebas Neue',sans-serif; font-size:26px; font-weight:400; letter-spacing:0.03em; color:var(--text); text-align:center; }
+  .sub { color:var(--gold); font-size:12px; margin-top:5px; font-weight:600; text-align:center; }
+
+  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:18px; }
+  .input-field { width:100%; background:#140307; border:1px solid var(--border); color:#fff; padding:13px; border-radius:10px; font-size:14px; transition:border-color .18s ease, box-shadow .18s ease; }
+  .input-field:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,160,42,0.15); }
+  .input-field::placeholder { color:#7a5a60; }
   select.input-field { color:#fff; cursor:pointer; }
   textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
-  .btn-login { width:100%; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:15px; cursor:pointer; margin-top:8px; text-transform:uppercase; }
-  .btn-wpp { background:#25d366; color:#000; font-weight:800; }
-  .btn-gold { background:var(--gold); color:#210309; font-weight:800; }
-  .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:4px 8px; border-radius:6px; font-size:11px; cursor:pointer; }
-  .error-msg { color:var(--accent); font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
+  .btn-login { width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border:none; padding:13px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; margin-top:8px; text-transform:uppercase; letter-spacing:0.04em; transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 6px 18px rgba(184,29,54,0.28); }
+  .btn-login:hover { transform:translateY(-1px); }
+  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; font-weight:800; box-shadow:0 6px 18px rgba(37,211,102,0.22); }
+  .btn-gold { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; font-weight:800; box-shadow:0 6px 18px rgba(212,160,42,0.22); }
+  .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 10px; border-radius:8px; font-size:11px; cursor:pointer; transition:all .18s ease; }
+  .btn-header:hover { border-color:var(--gold); color:#fff; }
+  .error-msg { color:#ff6b7f; font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
 
-  .progress-bar-bg { width:100%; background:#170307; border:1px solid var(--border); height:8px; border-radius:4px; margin:12px 0; overflow:hidden; }
-  .progress-bar-fill { width:14%; background:var(--gold); height:100%; transition:width 0.3s ease; }
-  .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; }
+  .progress-bar-bg { width:100%; background:#140307; border:1px solid var(--border); height:8px; border-radius:6px; margin:14px 0; overflow:hidden; }
+  .progress-bar-fill { width:14%; background:linear-gradient(90deg, var(--gold), var(--gold-soft)); height:100%; transition:width 0.3s ease; }
+  .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; letter-spacing:0.03em; }
 
   .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .header-app h1 { font-size:22px; text-align:left; }
   .header-actions { display:flex; gap:6px; }
-  .menu { display:flex; gap:4px; margin-bottom:16px; overflow-x:auto; }
-  .menu-btn { flex:1; padding:10px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:10px; cursor:pointer; text-align:center; white-space:nowrap; }
-  .menu-btn.active { background:var(--accent); border-color:var(--accent); }
+  .menu { display:flex; gap:5px; margin-bottom:16px; overflow-x:auto; }
+  .menu-btn { flex:1; padding:11px 4px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:11px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
+  .menu-btn:hover { border-color:var(--gold); }
+  .menu-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
 
-  .days { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
-  .day-btn { padding:8px 14px; background:#170307; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; }
-  .day-btn.active { background:var(--gold); color:#210309; border-color:var(--gold); }
+  .days { display:flex; gap:7px; overflow-x:auto; padding-bottom:6px; margin-bottom:14px; scrollbar-width:none; }
+  .day-btn { padding:9px 16px; background:#140307; border:1px solid var(--border); color:var(--muted); font-size:12px; font-weight:600; border-radius:20px; white-space:nowrap; cursor:pointer; transition:all .18s ease; }
+  .day-btn:hover { border-color:var(--gold); color:#fff; }
+  .day-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; border-color:var(--gold); font-weight:700; }
 
-  .item { background:#170307; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .item { background:#140307; border:1px solid var(--border); border-radius:14px; padding:15px; margin-bottom:12px; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
   .item-title { font-weight:800; font-size:15px; color:#fff; }
-  .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:2px; margin-bottom:10px; }
-  
-  .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
-  .series-row { display:flex; align-items:center; gap:6px; background:#22050b; padding:8px 10px; border-radius:8px; border:1px solid #3d0815; flex-wrap:wrap; }
+  .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:3px; margin-bottom:10px; }
+
+  .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
+  .series-row { display:flex; align-items:center; gap:6px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:wrap; }
   .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:55px; }
   .unit { font-size:10px; color:var(--muted); }
-  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:6px !important; margin-bottom:0 !important; font-size:12px; }
+  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
 
   .diet-container { display:flex; flex-direction:column; gap:16px; }
   .diet-filter-row { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; }
-  .diet-filter-btn { flex:1; padding:10px 8px; border-radius:8px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:11px; cursor:pointer; text-align:center; white-space:nowrap; }
-  .diet-filter-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .diet-filter-btn { flex:1; padding:11px 8px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:11px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
+  .diet-filter-btn:hover { border-color:var(--gold); }
+  .diet-filter-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border-color:var(--accent); }
 
-  .meal-table-card { background:#120306; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-  .meal-header { background:#1a050a; padding:10px 14px; font-size:13px; font-weight:800; color:#fff; text-transform:uppercase; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; }
-  
+  .meal-table-card { background:#110307; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
+  .meal-header { background:linear-gradient(90deg, #200610, #170309); padding:11px 15px; font-size:13px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.03em; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; }
+
   .diet-table { width:100%; border-collapse:collapse; font-size:11px; text-align:left; }
-  .diet-table th { background:#1c0409; color:var(--muted); padding:8px; font-weight:700; border-bottom:1px solid var(--border); text-transform:uppercase; font-size:10px; }
-  .diet-table td { padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); color:#fff; }
+  .diet-table th { background:#180409; color:var(--muted); padding:9px 8px; font-weight:700; border-bottom:1px solid var(--border); text-transform:uppercase; font-size:10px; letter-spacing:0.03em; }
+  .diet-table td { padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05); color:#fff; }
+  .diet-table tr:hover td { background:rgba(255,255,255,0.02); }
   .diet-table td.qty { color:var(--gold); font-weight:700; }
   .diet-table td.kcal { color:#7fd68a; font-weight:600; }
-  
+
   .total-row { background:#1a050a; font-weight:800; }
   .total-row td { color:var(--gold) !important; border-bottom:none; }
 
-  .chat-box { background:#170307; border:1px solid var(--border); border-radius:12px; height:280px; padding:12px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
-  .msg { padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
-  .msg-user { background:var(--accent); color:#fff; align-self:flex-end; }
-  .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; }
+  .chat-box { background:#140307; border:1px solid var(--border); border-radius:14px; height:280px; padding:13px; overflow-y:auto; margin-bottom:10px; display:flex; flex-direction:column; gap:10px; }
+  .msg { padding:10px 13px; border-radius:12px; font-size:13px; line-height:1.45; max-width:85%; word-break:break-word; }
+  .msg-user { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; align-self:flex-end; border-bottom-right-radius:3px; }
+  .msg-ai { background:var(--card); border:1px solid var(--border); color:var(--text); align-self:flex-start; border-bottom-left-radius:3px; }
 
   .chat-input-row { display:flex; gap:8px; }
-  .chat-input { flex:1; background:var(--card); border:1px solid var(--border); color:#fff; padding:10px 12px; border-radius:8px; font-size:13px; }
-  .chat-btn { background:var(--gold); color:#210309; border:none; padding:10px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
+  .chat-input { flex:1; background:var(--card); border:1px solid var(--border); color:#fff; padding:11px 13px; border-radius:10px; font-size:13px; }
+  .chat-input:focus { outline:none; border-color:var(--gold); }
+  .chat-btn { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; border:none; padding:11px 17px; border-radius:10px; font-weight:700; cursor:pointer; transition:transform .15s ease; }
+  .chat-btn:hover { transform:translateY(-1px); }
 
-  .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:4px; }
+  .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
 </style>
 </head>
@@ -269,8 +296,6 @@
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  const ADMIN_USER = "jhonata";
-  const ADMIN_PASS = "0304";
 
   // MAPEAMENTO DE LINKS DO ASAAS PARA CADA PLANO
   const ASAAS_LINKS = {
@@ -295,8 +320,14 @@
 
     const loggedUser = localStorage.getItem('logged_user');
     const token = localStorage.getItem('aluno_token');
+    const adminToken = localStorage.getItem('admin_token');
 
-    if (loggedUser && loggedUser !== ADMIN_USER && token) {
+    if (adminToken && !token) {
+      window.location.href = "admin.html";
+      return;
+    }
+
+    if (loggedUser && token) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
         if (res.ok) {
@@ -341,12 +372,28 @@
     errorDiv.classList.add('hidden');
     btn.textContent = "Acessando...";
 
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      localStorage.setItem('logged_user', ADMIN_USER);
-      window.location.href = "admin.html";
-      return;
+    // 1) Tenta autenticar como Admin diretamente no backend (sem senha exposta no código)
+    try {
+      const adminRes = await fetch(`${BACKEND_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user, pass })
+      });
+
+      if (adminRes.ok) {
+        const adminData = await adminRes.json();
+        if (adminData.token) {
+          localStorage.setItem('admin_token', adminData.token);
+          localStorage.setItem('logged_user', user);
+          window.location.href = "admin.html";
+          return;
+        }
+      }
+    } catch (adminErr) {
+      // Se o backend estiver fora do ar para essa rota, segue tentando como aluno
     }
 
+    // 2) Tenta autenticar como Aluno
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
         method: 'POST',
@@ -715,6 +762,7 @@
   function logout() { 
     localStorage.removeItem('logged_user'); 
     localStorage.removeItem('aluno_token');
+    localStorage.removeItem('admin_token');
     location.reload(); 
   }
 
