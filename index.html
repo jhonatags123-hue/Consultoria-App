@@ -908,7 +908,7 @@
       document.getElementById('btnTreino').classList.add('active');
     } else if (tab === 'dieta') {
       document.getElementById('tabDieta').classList.remove('hidden');
-      document.getElementById('btnDieta').classList.active;
+      document.getElementById('btnDieta').classList.add('active');
     } else if (tab === 'chat') {
       document.getElementById('tabChat').classList.remove('hidden');
       document.getElementById('btnChat').classList.add('active');
@@ -969,7 +969,8 @@
       });
 
       const data = await res.json();
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${data.resposta}</div>`;
+      const respostaFormatada = data.resposta || "Não consegui obter uma resposta da IA agora.";
+      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${respostaFormatada}</div>`;
     } catch(e) {
       history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> Ocorreu uma oscilação na conexão com a IA. Tente novamente em instantes.</div>`;
     }
