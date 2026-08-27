@@ -109,6 +109,11 @@
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
   .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
+  
+  .chat-box { background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px; }
+  .msg-bubble { padding:10px 14px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
+  .msg-user-bubble { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; align-self:flex-end; }
+  .msg-ai-bubble { background:#180509; border:1px solid var(--border); color:#fff; align-self:flex-start; }
 </style>
 </head>
 <body>
@@ -181,6 +186,7 @@
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editar Treino</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
+        <button class="tab-btn" id="tab5" onclick="switchTab('chatAdmin')">🤖 IA Personal</button>
       </div>
 
       <div id="secResumo" class="panel-card">
@@ -257,6 +263,20 @@
           <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
           <button class="btn btn-wpp" style="flex:1;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
           <button class="btn btn-danger" style="width:120px;" onclick="deletarAluno()">🗑️ Excluir</button>
+        </div>
+      </div>
+
+      <div id="secChatAdmin" class="panel-card hidden">
+        <div class="panel-title">🤖 Assistente IA do Treinador</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Consulte a IA para obter sugestões de treinos, montagem de macros ou tirar dúvidas sobre o aluno selecionado no momento.</p>
+
+        <div class="chat-box" id="adminChatHistory">
+          <div class="msg-bubble msg-ai-bubble"><b>Assistente IA:</b> Olá, Treinador! Como posso te ajudar na montagem de treinos e dietas hoje?</div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="adminChatInput" placeholder="Pergunte algo sobre treinos, cargas ou sobre o aluno selecionado..." onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
+          <button class="btn" style="width:110px;" onclick="sendAdminChatMessage()">Enviar</button>
         </div>
       </div>
 
@@ -533,6 +553,7 @@
     document.getElementById('secTreino').classList.add('hidden');
     document.getElementById('secDieta').classList.add('hidden');
     document.getElementById('secCadastro').classList.add('hidden');
+    document.getElementById('secChatAdmin').classList.add('hidden');
     document.getElementById('secNovo').classList.add('hidden');
 
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -549,6 +570,9 @@
     } else if (tab === 'cadastro') {
       document.getElementById('secCadastro').classList.remove('hidden');
       document.getElementById('tab4').classList.add('active');
+    } else if (tab === 'chatAdmin') {
+      document.getElementById('secChatAdmin').classList.remove('hidden');
+      document.getElementById('tab5').classList.add('active');
     } else if (tab === 'novo') {
       document.getElementById('secNovo').classList.remove('hidden');
     }
@@ -662,7 +686,36 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  // PARSER ULTRA-INTELIGENTE SUPORTA MYO-REPS, CLUSTER E BACK-OFF
+  async function sendAdminChatMessage() {
+    const input = document.getElementById('adminChatInput');
+    const history = document.getElementById('adminChatHistory');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    history.innerHTML += `<div class="msg-bubble msg-user-bubble"><b>Você:</b> ${text}</div>`;
+    input.value = '';
+    history.scrollTop = history.scrollHeight;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          codigo: 'admin', 
+          mensagem: text,
+          contexto: currentStudentData || {} 
+        })
+      });
+
+      const data = await res.json();
+      history.innerHTML += `<div class="msg-bubble msg-ai-bubble"><b>Assistente IA:</b> ${data.resposta}</div>`;
+    } catch(e) {
+      history.innerHTML += `<div class="msg-bubble msg-ai-bubble" style="color:var(--accent);">Erro ao consultar a IA. Tente novamente em instantes.</div>`;
+    }
+    history.scrollTop = history.scrollHeight;
+  }
+
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
