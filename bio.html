@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jhonata Personal — Consultoria Completa</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<title>Jhonata Cavalcante — Consultoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #090204;
@@ -31,146 +31,186 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
   }
 
-  /* Cabeçalho da Bio */
-  .profile { text-align: center; margin-bottom: 24px; }
-  .profile h1 { font-family: 'Bebas Neue', sans-serif; font-size: 34px; letter-spacing: 1px; color: #fff; line-height: 1; }
-  .profile p { font-size: 13px; color: var(--gold); font-weight: 600; margin-top: 6px; }
+  /* Cabeçalho */
+  .profile { text-align: center; margin-bottom: 22px; margin-top: 8px; }
+  .profile h1 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1.5px; color: #fff; line-height: 1; }
+  .profile p { font-size: 13px; color: var(--gold); font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
 
-  /* Acesso Direto ao App */
+  /* Botão Acesso ao App */
   .btn-app {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-    color: #1a0307; font-weight: 800; font-size: 13px; text-transform: uppercase;
-    letter-spacing: 0.03em; padding: 15px; border-radius: 14px; text-decoration: none;
+    color: #1a0307; font-weight: 900; font-size: 13px; text-transform: uppercase;
+    letter-spacing: 0.04em; padding: 15px; border-radius: 14px; text-decoration: none;
     box-shadow: 0 6px 20px rgba(220,170,58,0.22); margin-bottom: 20px;
     transition: transform .18s ease;
   }
   .btn-app:hover { transform: translateY(-2px); }
 
-  /* Card da Consultoria Completa */
-  .plan-card {
-    background: linear-gradient(180deg, #1c060a, #130407);
-    border: 1px solid var(--gold); border-radius: 18px;
-    padding: 20px; box-shadow: 0 10px 28px rgba(220,170,58,0.15);
-  }
-  .plan-header { display: flex; justify-content: space-between; align-items: flex-start; }
-  .plan-badge {
-    background: rgba(220,170,58,0.15); border: 1px solid var(--gold); color: var(--gold);
-    font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;
-  }
-  .plan-title { font-size: 22px; font-weight: 800; color: #fff; margin-top: 6px; }
-  .plan-desc { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.45; }
+  /* Container das Abas Fechadas */
+  .options-container { display: flex; flex-direction: column; gap: 12px; width: 100%; }
 
-  /* Botão da Aba/Questões */
-  .tab-accordion-btn {
-    width: 100%; background: #0d0204; border: 1px solid var(--border);
-    color: var(--gold); padding: 12px 16px; border-radius: 12px; font-size: 13px;
-    font-weight: 700; cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; margin-top: 16px; transition: border-color .18s;
+  .tab-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; transition: border-color .2s ease;
   }
-  .tab-accordion-btn:hover { border-color: var(--gold); }
+  .tab-card.active { border-color: var(--gold); box-shadow: 0 8px 24px rgba(220,170,58,0.15); }
+
+  /* Título da Aba (O que fica visível) */
+  .tab-header {
+    padding: 18px 20px; cursor: pointer; display: flex;
+    justify-content: space-between; align-items: center; user-select: none;
+  }
+  .tab-header h2 { font-size: 17px; font-weight: 800; color: #fff; }
+  .tab-icon { font-size: 14px; color: var(--gold); transition: transform 0.3s ease; }
+  .tab-card.active .tab-icon { transform: rotate(180deg); }
 
   /* Conteúdo Revelado ao Clicar */
-  .tab-content {
-    background: #0d0204; border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 16px; margin-top: -4px; margin-bottom: 14px;
-    font-size: 12px; color: var(--text); line-height: 1.5;
+  .tab-body {
+    background: #0d0204; border-top: 1px solid var(--border); padding: 18px;
+    font-size: 13px; color: var(--text); line-height: 1.5;
   }
-  .tab-content ul { list-style: none; padding-left: 0; }
-  .tab-content li { margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-  .tab-content li::before { content: "✔"; color: var(--green); font-weight: 800; }
 
-  /* Botão de Contratação */
-  .btn-wpp {
+  .explain-box { margin-bottom: 16px; }
+  .explain-title { font-size: 12px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .explain-list { list-style: none; padding: 0; }
+  .explain-list li { margin-bottom: 7px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .explain-list li::before { content: "✔"; color: var(--green); font-weight: 800; }
+
+  /* Bloco Chamativo de Preços */
+  .price-highlight-box {
+    background: linear-gradient(135deg, #21050c, #140307);
+    border: 1px solid var(--gold); border-radius: 14px; padding: 16px;
+    text-align: center; margin-top: 14px; box-shadow: inset 0 0 15px rgba(220,170,58,0.08);
+  }
+  .price-highlight-box .tag { font-size: 10px; font-weight: 800; color: #000; background: var(--gold); padding: 3px 8px; border-radius: 20px; text-transform: uppercase; display: inline-block; margin-bottom: 6px; }
+  .price-highlight-box .price-main { font-size: 24px; font-weight: 900; color: #fff; margin: 4px 0; }
+  .price-highlight-box .price-sub { font-size: 11px; color: var(--muted); }
+
+  /* Botão de Ação */
+  .btn-action {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
     background: linear-gradient(135deg, #34e37a, #1fae55); color: #04210f;
     font-weight: 800; font-size: 13px; text-transform: uppercase; padding: 15px;
     border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(37,211,102,0.22);
-    margin-top: 10px; transition: transform .15s ease;
+    margin-top: 14px; transition: transform .15s ease;
   }
-  .btn-wpp:hover { transform: translateY(-1px); }
+  .btn-action:hover { transform: translateY(-1px); }
 
-  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 28px; }
+  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: auto; padding-top: 24px; }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-  <!-- CABEÇALHO -->
+  <!-- CABEÇALHO DA BIO -->
   <div class="profile">
-    <h1>JHONATA PERSONAL</h1>
-    <p>Treino de Alta Performance & Nutrição Cíclica</p>
+    <h1>JHONATA CAVALCANTE</h1>
+    <p>Consultoria de Alta Performance e Hipertrofia</p>
   </div>
 
-  <!-- BOTAO ENTRAR NO APP -->
+  <!-- ACESSO DIRETO AO APP DO ALUNO -->
   <a href="index.html" class="btn-app">
     📲 Acessar Área do Aluno
   </a>
 
-  <!-- ÚNICA OPÇÃO: CONSULTORIA COMPLETA -->
-  <div class="plan-card">
-    <div class="plan-header">
-      <div>
-        <span class="plan-badge">🏆 EXCLUSIVO</span>
-        <div class="plan-title">Consultoria Completa</div>
+  <!-- CONTAINER DE ABAS -->
+  <div class="options-container">
+
+    <!-- ABA 1: CONSULTORIA COMPLETA -->
+    <div class="tab-card" id="cardCompleta">
+      <div class="tab-header" onclick="toggleTab('Completa')">
+        <h2>🏆 Consultoria Completa</h2>
+        <span class="tab-icon" id="iconCompleta">▼</span>
       </div>
-      <div style="text-align:right;">
-        <span style="font-size:11px; color:var(--muted);">A partir de</span>
-        <div style="font-size:19px; font-weight:800; color:var(--gold);">R$ 85<small style="font-size:11px; color:var(--muted);">/mês</small></div>
+
+      <div class="tab-body hidden" id="bodyCompleta">
+        <div class="explain-box">
+          <div class="explain-title">O que está incluso:</div>
+          <ul class="explain-list">
+            <li><b>Treino de Alta Performance:</b> Periodização focada em hipertrofia e força máxima.</li>
+            <li><b>Nutrição Cíclica:</b> Estratégia de ciclo de carboidratos ajustada aos treinos.</li>
+            <li><b>App Exclusivo:</b> Acesso individual com histórico de cargas e repetições.</li>
+            <li><b>Gráfico de Evolução:</b> Acompanhamento da sua progressão semanal.</li>
+            <li><b>IA Assistente 24h:</b> Tira dúvidas no aplicativo a qualquer momento.</li>
+            <li><b>Suporte Direto:</b> Contato contínuo com o personal via WhatsApp.</li>
+          </ul>
+        </div>
+
+        <!-- BLOCO CHAMATIVO DE PREÇOS -->
+        <div class="price-highlight-box">
+          <span class="tag">🔥 Plano Recomendado</span>
+          <div class="price-main">A partir de R$ 85,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
+          <div class="price-sub">Planos Mensal (R$ 150), Trimestral, Semestral e Anual</div>
+        </div>
+
+        <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-action">
+          🚀 PREENCHER ANAMNESE COMPLETA
+        </a>
       </div>
     </div>
-    
-    <div class="plan-desc">Prescrição individualizada de Treino + Ciclo de Carboidratos com acompanhamento contínuo diretamente no App.</div>
 
-    <!-- BOTÃO PARA ABRIR AS QUESTÕES/INFORMAÇÕES -->
-    <button class="tab-accordion-btn" onclick="toggleAccordion('detalhesCompleta', 'setaCompleta')">
-      <span>📋 Ver detalhes e como funciona</span>
-      <span id="setaCompleta">▼</span>
-    </button>
+    <!-- ABA 2: CONSULTORIA DE TREINAMENTO -->
+    <div class="tab-card" id="cardTreino">
+      <div class="tab-header" onclick="toggleTab('Treino')">
+        <h2>💪 Consultoria De Treinamento</h2>
+        <span class="tab-icon" id="iconTreino">▼</span>
+      </div>
 
-    <!-- QUESTÕES E DETALHES REVELADOS AO CLICAR -->
-    <div id="detalhesCompleta" class="tab-content hidden">
-      <ul>
-        <li><b>Treino Personalizado:</b> Montado para o seu objetivo (Hipertrofia / Definição).</li>
-        <li><b>Ciclo de Carboidratos:</b> Plano alimentar ajustado aos dias de treino.</li>
-        <li><b>App Exclusivo:</b> Acesso com login e senha individuais.</li>
-        <li><b>Acompanhamento de Cargas:</b> Registro e gráfico de evolução semanal.</li>
-        <li><b>IA Assistente 24h:</b> Suporte imediato no aplicativo para dúvidas rápidas.</li>
-        <li><b>Suporte Direto:</b> Contato contínuo via WhatsApp do Personal.</li>
-      </ul>
+      <div class="tab-body hidden" id="bodyTreino">
+        <div class="explain-box">
+          <div class="explain-title">O que está incluso:</div>
+          <ul class="explain-list">
+            <li><b>Ficha de Treino Personalizada:</b> Técnicas avançadas (Cluster Sets, Rest-Pause, Back-off).</li>
+            <li><b>Aplicativo Exclusivo:</b> Ficha digital instalada direto na tela do seu celular.</li>
+            <li><b>Registro de Cargas:</b> Anote suas cargas a cada treino e veja sua evolução.</li>
+            <li><b>Ajustes Periódicos:</b> Atualizações na ficha para evitar estagnação.</li>
+            <li><b>Foco Total no Treino:</b> Ideal para quem já cuida da própria alimentação.</li>
+          </ul>
+        </div>
+
+        <!-- BLOCO CHAMATIVO DE PREÇOS -->
+        <div class="price-highlight-box">
+          <span class="tag">⚡ Foco em Performance</span>
+          <div class="price-main">A partir de R$ 50,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
+          <div class="price-sub">Plano Mensal (R$ 60), Anual e Pacote para Duplas</div>
+        </div>
+
+        <a href="index.html?modo=anamnese&plano=TREINO_MENSAL" class="btn-action" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307;">
+          🏋️ PREENCHER ANAMNESE DE TREINO
+        </a>
+      </div>
     </div>
 
-    <!-- BOTÃO DE INÍCIO DA ANAMNESE -->
-    <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-wpp">
-      🚀 PREENCHER ANAMNESE & COMEÇAR
-    </a>
   </div>
 
-  <!-- CONTATO DIRETO -->
   <div style="text-align:center; margin-top:20px;">
-    <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Quero%20saber%20mais%20sobre%20a%20Consultoria%20Completa." target="_blank" style="color:var(--muted); font-size:12px; text-decoration:underline;">
-      Dúvidas? Fale direto no WhatsApp
+    <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Gostaria%20de%20tirar%20uma%20d%C3%BAvida%20sobre%20a%20consultoria." target="_blank" style="color:var(--muted); font-size:12px; text-decoration:underline;">
+      Dúvidas? Fale diretamente comigo no WhatsApp
     </a>
   </div>
 
   <footer>
-    © Jhonata Personal — Consultoria Esportiva
+    © Jhonata Cavalcante — Consultoria Esportiva
   </footer>
 
   <script>
-    function toggleAccordion(idContent, idArrow) {
-      const content = document.getElementById(idContent);
-      const arrow = document.getElementById(idArrow);
+    function toggleTab(type) {
+      const card = document.getElementById(`card${type}`);
+      const body = document.getElementById(`body${type}`);
+      
+      const isHidden = body.classList.contains('hidden');
 
-      if (content.classList.contains('hidden')) {
-        content.classList.remove('hidden');
-        arrow.textContent = '▲';
-      } else {
-        content.classList.add('hidden');
-        arrow.textContent = '▼';
+      // Fecha todas as abas
+      document.querySelectorAll('.tab-body').forEach(b => b.classList.add('hidden'));
+      document.querySelectorAll('.tab-card').forEach(c => c.classList.remove('active'));
+
+      // Se a aba clicada estava fechada, abre ela
+      if (isHidden) {
+        body.classList.remove('hidden');
+        card.classList.add('active');
       }
     }
   </script>
