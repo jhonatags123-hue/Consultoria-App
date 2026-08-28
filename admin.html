@@ -260,7 +260,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="A - Peito e Tríceps&#10;Supino Reto Barra 1 Cluster + 1 Back-off&#10;Remada Baixa 1 Cluster&#10;&#10;B - Costas e Bíceps&#10;Puxada Alta 3x 8-10"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - Peito e Tríceps&#10;Supino Reto Barra&#10;Remada Baixa (Cluster)&#10;Tríceps Testa (1 Cluster + 1 Back-off)&#10;&#10;GLOBAL: 3x 6-8&#10;&#10;B - Costas e Bíceps&#10;Puxada Alta 3x 8-10"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
@@ -673,7 +673,7 @@
         body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
       });
       if (res.ok) {
-        alert("🎉 Dados salvos com sucesso no banco Neon!");
+        alert("🎉 Dados salvos com sucesso no banco!");
         fetchAlunos();
         renderWorkoutView();
         switchTab('resumo');
@@ -681,12 +681,16 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
+  /* PARSER INTELIGENTE: SUPORTA COMANDO GLOBAL + IGNORA GLOBAL SE HOUVER PARÊNTESES OU NÚMEROS PRÓPRIOS */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const lines = rawText.split('\n');
     const days = [];
     let currentDay = null;
+
+    let globalSeries = "3";
+    let globalReps = "8-10";
 
     const dayKeywords = [
       'upper', 'lower', 'treino', 'costas', 'peito', 'pernas', 'ombro', 'bracos', 'fullbody',
@@ -699,6 +703,17 @@
 
       const lowerLine = cleanLine.toLowerCase();
 
+      // 1. Detecta Troca de Regra Global no topo (ex: "GLOBAL: 2x 6-8", "2x6-8", "GLOBAL: 3x6-8")
+      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries') || /^\d+\s*x\s*[\d\-\+]+/i.test(cleanLine)) {
+        const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
+        if (matchGlobal) {
+          globalSeries = matchGlobal[1];
+          globalReps = matchGlobal[2];
+        }
+        return;
+      }
+
+      // 2. Detecta início de um novo dia
       const isAbcHeader = /^(treino\s+)?[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
                           /^dia\s+\d+/i.test(cleanLine) ||
                           /^abc/i.test(cleanLine);
@@ -731,66 +746,79 @@
 
         let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
 
-        const isCluster = lowerLine.includes('cluster');
-        const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
-        const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
+        // 3. SE O EXERCÍCIO TIVER PARÊNTESES OU NÚMEROS PRÓPRIOS -> IGNORA O GLOBAL E PROCESSA A LÓGICA ESPECÍFICA
+        const hasParentheses = /\(.*\)/.test(cleanLine);
+        const hasCustomNumbers = /(\d+\s*[xX×])|(\d+\s*cluster)/i.test(cleanLine);
 
-        let series = "3";
-        let reps = "8-10";
+        if (hasParentheses || hasCustomNumbers) {
+          const isCluster = lowerLine.includes('cluster');
+          const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
+          const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
 
-        const matchX = cleanLine.match(/(\d+)\s*[xX×]/);
-        if (matchX) {
-          series = matchX[1];
-        } else {
-          const matchClusterNum = cleanLine.match(/(\d+)\s*cluster/i);
-          if (matchClusterNum) {
-            series = matchClusterNum[1];
+          let series = "3";
+          let reps = "8-10";
+
+          const matchX = cleanLine.match(/(\d+)\s*[xX×]/);
+          if (matchX) {
+            series = matchX[1];
           } else {
-            const matchTrailing = cleanLine.match(/\s+([1-6])$/);
-            if (matchTrailing) {
-              series = matchTrailing[1];
-            } else if (isCluster || isBackoff) {
-              series = "1";
+            const matchClusterNum = cleanLine.match(/(\d+)\s*cluster/i);
+            if (matchClusterNum) {
+              series = matchClusterNum[1];
+            } else {
+              const matchTrailing = cleanLine.match(/\s+([1-6])$/);
+              if (matchTrailing) {
+                series = matchTrailing[1];
+              } else if (isCluster || isBackoff) {
+                series = "1";
+              }
             }
           }
+
+          const matchReps = cleanLine.match(/(\d+[\-\+]\d+|\d+\s*reps)/i);
+          if (matchReps) {
+            reps = matchReps[1];
+          } else if (isMyoReps) {
+            reps = "Myo-Reps";
+          } else if (isCluster && isBackoff) {
+            reps = "Cluster + Back-off";
+          } else if (isCluster) {
+            reps = "Cluster";
+          } else if (isBackoff) {
+            reps = "Back-off";
+          }
+
+          name = name.replace(/\b\d+\s*[xX×]\s*[\d\-\+]*\b/gi, '');
+          name = name.replace(/\b\d+\s*Cluster\b/gi, '');
+          name = name.replace(/\b\d+\s*Back-off\b/gi, '');
+          name = name.replace(/\b\d+\s*Back off\b/gi, '');
+          name = name.replace(/\bCluster\b/gi, '');
+          name = name.replace(/\bBack-off\b/gi, '');
+          name = name.replace(/\bBack off\b/gi, '');
+          name = name.replace(/\bBackoff\b/gi, '');
+          name = name.replace(/\bMyo-Reps\b/gi, '');
+          name = name.replace(/\bMyo reps\b/gi, '');
+          name = name.replace(/\bMyoreps\b/gi, '');
+          name = name.replace(/\b1x\b/gi, '');
+          name = name.replace(/\b2x\b/gi, '');
+          name = name.replace(/\b3x\b/gi, '');
+          name = name.replace(/[\+\-\,\.\/]+/g, ' ');
+          name = name.replace(/\s+([1-6])$/, '');
+          name = name.replace(/\s+/g, ' ').trim();
+
+          currentDay.exercicios.push({
+            nome: name || cleanLine,
+            series: series,
+            reps: reps
+          });
+        } else {
+          // SE NÃO TEM PARÊNTESES NEM NÚMEROS PRÓPRIOS -> APLICA A REGRA GLOBAL ATUAL!
+          currentDay.exercicios.push({
+            nome: name,
+            series: globalSeries,
+            reps: globalReps
+          });
         }
-
-        const matchReps = cleanLine.match(/(\d+[\-\+]\d+|\d+\s*reps)/i);
-        if (matchReps) {
-          reps = matchReps[1];
-        } else if (isMyoReps) {
-          reps = "Myo-Reps";
-        } else if (isCluster && isBackoff) {
-          reps = "Cluster + Back-off";
-        } else if (isCluster) {
-          reps = "Cluster";
-        } else if (isBackoff) {
-          reps = "Back-off";
-        }
-
-        name = name.replace(/\b\d+\s*[xX×]\s*[\d\-\+]*\b/gi, '');
-        name = name.replace(/\b\d+\s*Cluster\b/gi, '');
-        name = name.replace(/\b\d+\s*Back-off\b/gi, '');
-        name = name.replace(/\b\d+\s*Back off\b/gi, '');
-        name = name.replace(/\bCluster\b/gi, '');
-        name = name.replace(/\bBack-off\b/gi, '');
-        name = name.replace(/\bBack off\b/gi, '');
-        name = name.replace(/\bBackoff\b/gi, '');
-        name = name.replace(/\bMyo-Reps\b/gi, '');
-        name = name.replace(/\bMyo reps\b/gi, '');
-        name = name.replace(/\bMyoreps\b/gi, '');
-        name = name.replace(/\b1x\b/gi, '');
-        name = name.replace(/\b2x\b/gi, '');
-        name = name.replace(/\b3x\b/gi, '');
-        name = name.replace(/[\+\-\,\.\/]+/g, ' ');
-        name = name.replace(/\s+([1-6])$/, '');
-        name = name.replace(/\s+/g, ' ').trim();
-
-        currentDay.exercicios.push({
-          nome: name || cleanLine,
-          series: series,
-          reps: reps
-        });
       }
     });
 
