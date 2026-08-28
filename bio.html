@@ -3,387 +3,228 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jhonata Personal — Seleção de Modalidade</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<title>Jhonata Personal — Escolha seu Plano</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0c0105;
-    --bg-grad: radial-gradient(900px 500px at 50% 0%, #260810 0%, #0c0105 60%);
-    --card: #190409;
-    --card-2: #1f050b;
-    --border: #350c15;
-    --border-soft: rgba(212,160,42,0.16);
-    --accent: #b81d36;
-    --accent-2: #841628;
-    --gold: #d4a02a;
+    --bg: #090204;
+    --card: #150508;
+    --card-hover: #1c070b;
+    --border: #330b13;
+    --accent: #c4324f;
+    --accent-dark: #841628;
+    --gold: #dcaa3a;
     --gold-soft: #eac267;
-    --gold-glow: rgba(212, 160, 42, 0.28);
+    --text: #f8efec;
+    --muted: #a08086;
     --green: #25d366;
-    --text: #f9efec;
-    --muted: #c9a4ac;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   ::-webkit-scrollbar { width:6px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
   body {
-    background: var(--bg-grad);
+    background: radial-gradient(800px 500px at 50% 0%, #20050c 0%, #090204 100%);
     color: var(--text);
     font-family: 'Inter', sans-serif;
-    padding: 22px 16px 32px;
+    padding: 24px 16px;
     max-width: 480px;
     margin: 0 auto;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
   }
 
-  /* CABEÇALHO DO LINK DA BIO */
-  .selector-header {
-    text-align: center;
-    width: 100%;
-    margin-top: 6px;
-    margin-bottom: 6px;
+  /* Cabeçalho da Bio */
+  .profile { text-align: center; margin-bottom: 24px; }
+  .avatar-container {
+    width: 96px; height: 96px; margin: 0 auto 12px auto; border-radius: 50%;
+    padding: 3px; background: linear-gradient(135deg, var(--gold), var(--accent));
+    box-shadow: 0 8px 24px rgba(196,50,79,0.3);
   }
-  .selector-header h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 34px;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    color: #fff;
-  }
-  .selector-header p {
-    font-size: 12px;
-    color: var(--gold);
-    font-weight: 700;
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
+  .avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #20060d; }
+  .profile h1 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #fff; line-height: 1; }
+  .profile p { font-size: 13px; color: var(--gold); font-weight: 600; margin-top: 4px; }
+  .location { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-  /* BOTÕES PRINCIPAIS DE SELEÇÃO */
-  .main-choice-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
+  /* Banners e Botões Principais */
+  .btn-app {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #1a0307; font-weight: 800; font-size: 14px; text-transform: uppercase;
+    letter-spacing: 0.03em; padding: 16px; border-radius: 14px; text-decoration: none;
+    box-shadow: 0 6px 20px rgba(220,170,58,0.25); margin-bottom: 20px;
+    transition: transform .18s ease;
   }
-  .choice-card {
-    background: linear-gradient(180deg, var(--card-2), var(--card));
-    border: 2px solid var(--border);
-    border-radius: 18px;
-    padding: 18px 20px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.35);
-  }
-  .choice-card:hover { border-color: var(--gold); transform: translateY(-1px); }
-  .choice-card.active { border-color: var(--gold); box-shadow: 0 0 22px var(--gold-glow); }
-  .choice-info h2 { font-size: 16px; font-weight: 800; color: #fff; }
-  .choice-info span { font-size: 12px; color: var(--muted); }
-  .choice-icon { font-size: 16px; color: var(--gold); transition: transform 0.3s ease; }
-  .choice-card.active .choice-icon { transform: rotate(180deg); }
-
-  /* ESTILOS INTERNOS DA CONSULTORIA ONLINE E HORA-AULA */
-  .header-brand { text-align: center; padding: 14px 0 6px; }
-  .header-brand h1 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; font-weight: 400; letter-spacing: 0.04em; color: #fff; }
-  .header-brand .subhead { color: var(--muted); font-size: 12px; margin-top: 6px; font-weight: 500; }
-
-  .card {
-    background: linear-gradient(180deg, var(--card-2), var(--card));
-    border: 1px solid var(--border);
-    border-top: 1px solid var(--border-soft);
-    border-radius: 18px;
-    padding: 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 22px rgba(0,0,0,0.32);
-  }
+  .btn-app:hover { transform: translateY(-2px); }
 
   .section-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gold);
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
+    font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 12px; text-align: center;
   }
 
-  .comp-item { padding: 13px; border-radius: 12px; font-size: 13px; line-height: 1.55; margin-bottom: 8px; }
-  .comp-item.bad { background: rgba(0,0,0,0.25); color: var(--muted); border-left: 3px solid var(--border); }
-  .comp-item.good { background: rgba(184, 29, 54, 0.16); color: #fff; border-left: 3px solid var(--accent); }
-
-  .profile-box { padding: 11px 0; border-bottom: 1px solid var(--border); }
-  .profile-box:last-child { border-bottom: none; }
-  .profile-tag { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-  .profile-desc { font-size: 12px; color: var(--muted); line-height: 1.45; }
-
-  .testimonial-text { font-size: 13px; color: var(--muted); line-height: 1.65; font-style: italic; position:relative; padding-left:14px; border-left:2px solid var(--gold); }
-  .testimonial-author { font-size: 12px; font-weight: 700; color: var(--gold); margin-top: 10px; }
-
-  .features-list { display: flex; flex-direction: column; gap: 9px; }
-  .feature-item { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--muted); }
-  .feature-icon { font-size: 13px; color: #fff; background: var(--accent); width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; }
-
-  .plan-card { padding: 14px 0; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
-  .plan-card:last-child { border-bottom: none; }
-  .plan-title { font-size: 14px; font-weight: 700; color: #fff; }
-  .plan-price-old { text-decoration: line-through; color: var(--muted); font-size: 11px; }
-  .plan-price-main { font-size: 19px; font-weight: 800; color: #fff; margin: 2px 0; }
-  .plan-discount-pix { font-size: 12px; font-weight: 600; color: #7fd68a; margin-bottom: 4px; }
-
-  details { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-  details:last-child { border-bottom: none; }
-  summary { font-size: 13px; font-weight: 600; color: #fff; outline: none; }
-  details p { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-
-  .btn {
-    width: 100%;
-    padding: 13px;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 12px;
-    letter-spacing: 0.03em;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-    cursor: pointer;
-    border: none;
-    transition: transform .15s ease, box-shadow .15s ease;
-    text-transform: uppercase;
-    margin-top: 6px;
+  /* Cards de Modalidade */
+  .plan-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: all .2s ease;
   }
-  .btn:hover { transform: translateY(-1px); }
-  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: #fff; box-shadow: 0 6px 18px rgba(184,29,54,0.32); }
-  .btn-wpp { background: linear-gradient(135deg, #34e37a, #1fae55); color: #04210f; box-shadow: 0 6px 18px rgba(37,211,102,0.25); }
-
-  .presencial-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    gap: 8px;
+  .plan-card.featured {
+    border-color: var(--gold); background: linear-gradient(180deg, #1c060a, #130407);
+    box-shadow: 0 10px 28px rgba(220,170,58,0.15);
   }
-  .presencial-header h2 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    font-weight: 400;
-    letter-spacing: 0.03em;
-    color: #fff;
+  .plan-header { display: flex; justify-content: space-between; align-items: flex-start; }
+  .plan-badge {
+    background: rgba(220,170,58,0.15); border: 1px solid var(--gold); color: var(--gold);
+    font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 20px; text-transform: uppercase;
   }
+  .plan-title { font-size: 18px; font-weight: 800; color: #fff; margin-top: 4px; }
+  .plan-desc { font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
 
-  .location-badge {
-    background: #170308;
-    border: 1px solid var(--border);
-    color: var(--gold);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 7px 16px;
-    border-radius: 20px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    margin: 4px 0;
+  /* Acordeão de Abas Internas */
+  .tab-accordion-btn {
+    width: 100%; background: #0d0204; border: 1px solid var(--border);
+    color: var(--gold); padding: 10px 14px; border-radius: 10px; font-size: 12px;
+    font-weight: 700; cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; margin-top: 14px; transition: background .18s;
   }
+  .tab-accordion-btn:hover { background: #180509; border-color: var(--gold); }
 
+  .tab-content {
+    background: #0d0204; border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 10px 10px; padding: 14px; margin-top: -4px; margin-bottom: 12px;
+    font-size: 12px; color: var(--text); line-height: 1.5;
+  }
+  .tab-content ul { list-style: none; padding-left: 0; }
+  .tab-content li { margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .tab-content li::before { content: "✔"; color: var(--green); font-weight: 800; }
+
+  .btn-wpp {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, #34e37a, #1fae55); color: #04210f;
+    font-weight: 800; font-size: 13px; text-transform: uppercase; padding: 14px;
+    border-radius: 12px; text-decoration: none; box-shadow: 0 4px 14px rgba(37,211,102,0.2);
+    margin-top: 12px; transition: transform .15s ease;
+  }
+  .btn-wpp:hover { transform: translateY(-1px); }
+
+  /* Rodapé */
+  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 32px; padding-bottom: 16px; }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
-  <!-- CABEÇALHO DO SELETOR -->
-  <div class="selector-header">
-    <h1>JHONATA TREINADOR</h1>
-    <p>Treino de Alta Performance e Hipertrofia</p>
+  <!-- CABEÇALHO BIO -->
+  <div class="profile">
+    <div class="avatar-container">
+      <div class="avatar-img" style="background: url('https://via.placeholder.com/150') center/cover;"></div>
+    </div>
+    <h1>JHONATA PERSONAL</h1>
+    <p>Consultoria Esportiva & Nutrição Cíclica</p>
+    <div class="location">📍 Atendimento Online & Presencial</div>
   </div>
 
-  <!-- BARRAS DE SELEÇÃO -->
-  <div class="main-choice-container">
-    <div class="choice-card" id="cardOnline" onclick="toggleOption('online')">
-      <div class="choice-info">
-        <h2>🏆 Consultoria Completa</h2>
-        <span>Treino + Dieta com App Exclusivo</span>
+  <!-- ACESSO DIRETO AO APP -->
+  <a href="index.html" class="btn-app">
+    <span>📲 ENTRAR NO APLICATIVO DO ALUNO</span>
+  </a>
+
+  <div class="section-title">Escolha a Modalidade Ideal</div>
+
+  <!-- PLANO 1: CONSULTORIA COMPLETA (DESTAQUE) -->
+  <div class="plan-card featured">
+    <div class="plan-header">
+      <div>
+        <span class="plan-badge">🏆 MAIS VENDIDO</span>
+        <div class="plan-title">Consultoria Completa</div>
       </div>
-      <div class="choice-icon">▼</div>
+      <div style="text-align:right;">
+        <span style="font-size:11px; color:var(--muted);">A partir de</span>
+        <div style="font-size:18px; font-weight:800; color:var(--gold);">R$ 85<small style="font-size:11px; color:var(--muted);">/mês</small></div>
+      </div>
+    </div>
+    <div class="plan-desc">Prescrição individualizada de Treino de Alta Intensidade + Ciclo de Carboidratos com acompanhamento contínuo no App.</div>
+
+    <!-- BOTÃO DA ABA INTERATIVA DE DETALHES -->
+    <button class="tab-accordion-btn" onclick="toggleAccordion('detalhesCompleta', 'setaCompleta')">
+      <span>📋 O que está incluso na Completa?</span>
+      <span id="setaCompleta">▼</span>
+    </button>
+
+    <!-- CONTEÚDO DA ABA DE DETALHES -->
+    <div id="detalhesCompleta" class="tab-content hidden">
+      <ul>
+        <li>Treino 100% focado no seu objetivo (Hipertrofia / Perda de Gordura)</li>
+        <li>Plano Alimentar Cíclico (Carbo Alto / Médio / Baixo)</li>
+        <li>Acesso completo ao Aplicativo Exclusivo</li>
+        <li>Registro e Gráfico de Evolução Semanal de Cargas</li>
+        <li>Assistente IA 24h para tirar dúvidas de execução</li>
+        <li>Suporte direto no WhatsApp do Personal</li>
+      </ul>
     </div>
 
-    <div class="choice-card" id="cardTreino" onclick="toggleOption('treino')">
-      <div class="choice-info">
-        <h2>💪 Consultoria de Treino</h2>
-        <span>Foco total no treino, sem acompanhamento de dieta</span>
-      </div>
-      <div class="choice-icon">▼</div>
-    </div>
-
-    <div class="choice-card" id="cardPresencial" onclick="toggleOption('presencial')">
-      <div class="choice-info">
-        <h2>🏋️ Hora-Aula Presencial</h2>
-        <span>Aulas em Novo Hamburgo & Campo Bom / RS</span>
-      </div>
-      <div class="choice-icon">▼</div>
-    </div>
+    <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-wpp">
+      🚀 QUERO A CONSULTORIA COMPLETA
+    </a>
   </div>
 
-  <!-- CONTEÚDO REVELADO: CONSULTORIA COMPLETA -->
-  <div id="onlineDetails" class="hidden" style="width:100%; margin-top:10px;">
-    
-    <div class="header-brand">
-      <h1>CONSULTORIA COMPLETA</h1>
-      <div class="subhead">Treinamento de alta performance & nutrição calculada</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Por que o método funciona?</div>
-      <div class="comp-item bad">
-        <b>Fichas em PDF / Papel:</b> Cargas esquecidas, treino no piloto automático e estagnação de resultados.
+  <!-- PLANO 2: APENAS TREINO -->
+  <div class="plan-card">
+    <div class="plan-header">
+      <div>
+        <span class="plan-badge" style="border-color:var(--border); color:var(--muted);">🏋️ PERFORMANCE</span>
+        <div class="plan-title">Consultoria de Treino</div>
       </div>
-      <div class="comp-item good">
-        <b>App Próprio:</b> Histórico de cargas salvo e progressão calculada para ganho muscular constante.
+      <div style="text-align:right;">
+        <span style="font-size:11px; color:var(--muted);">A partir de</span>
+        <div style="font-size:18px; font-weight:800; color:#fff;">R$ 50<small style="font-size:11px; color:var(--muted);">/mês</small></div>
       </div>
     </div>
+    <div class="plan-desc">Montagem de rotina de treinos avançados (Cluster Sets, Rest-Pause, Back-off) para quem já possui acompanhamento nutricional.</div>
 
-    <div class="card">
-      <div class="section-title">Metodologia & Técnica</div>
-      <p style="font-size:13px; color:var(--muted); line-height:1.5;">
-        Estratégias ajustadas individualmente com técnicas avançadas (<i>Rest-Pause, Cluster Sets e Carga Progressiva</i>) para maximizar hipertrofia e definição sem desperdiçar tempo.
-      </p>
+    <!-- BOTÃO DA ABA INTERATIVA DE DETALHES -->
+    <button class="tab-accordion-btn" onclick="toggleAccordion('detalhesTreino', 'setaTreino')">
+      <span>📋 O que está incluso no Treino?</span>
+      <span id="setaTreino">▼</span>
+    </button>
+
+    <!-- CONTEÚDO DA ABA DE DETALHES -->
+    <div id="detalhesTreino" class="tab-content hidden">
+      <ul>
+        <li>Ficha de Treino totalmente personalizada</li>
+        <li>Vídeos explicativos e métricas de carga por exercício</li>
+        <li>Acesso às ferramentas do App do Aluno</li>
+        <li>Ajustes periódicos no programa de treino</li>
+      </ul>
     </div>
 
-    <div class="card">
-      <div class="section-title">Para quem é a consultoria</div>
-      <div class="profile-box">
-        <div class="profile-tag">Iniciantes</div>
-        <div class="profile-desc">Passo a passo estruturado para executar exercícios com segurança e evoluir desde a primeira semana.</div>
-      </div>
-      <div class="profile-box">
-        <div class="profile-tag">Praticantes Estagnados</div>
-        <div class="profile-desc">Periodização inteligente e quebra de platô para quem treina pesado mas parou de ver mudanças no espelho.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Depoimento</div>
-      <div class="testimonial-text">
-        "Sinto que tô ganhando massa magra e diminuindo a gordura. Mesmo aumentando os carboidratos pra aguentar melhor as corridas, os resultados continuam aparecendo. Muito satisfeito com a evolução!"
-      </div>
-      <div class="testimonial-author">— Aluno da Consultoria</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Seu Acesso Exclusivo</div>
-      <div class="features-list">
-        <div class="feature-item"><span class="feature-icon">✔</span> Login e senha individuais</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Aplicativo instalado na tela do celular</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Registro de cargas e repetições</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Assistente IA para substituição de alimentos</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Planos Disponíveis</div>
-
-      <div class="plan-card">
-        <div class="plan-title">Mensal Recorrente</div>
-        <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('COMPLETA_MENSAL')">ASSINAR MENSAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title">Trimestral (3 Meses)</div>
-        <div class="plan-price-old">De R$ 450,00</div>
-        <div class="plan-price-main">3x R$ 130,00</div>
-        <div class="plan-discount-pix">R$ 350,00 à vista no PIX</div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('COMPLETA_TRIMESTRAL')">ASSINAR TRIMESTRAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title" style="color:#fff;">Semestral (6 Meses) — Recomendado</div>
-        <div class="plan-price-old">De R$ 900,00</div>
-        <div class="plan-price-main">6x R$ 110,00</div>
-        <div class="plan-discount-pix">R$ 600,00 à vista no PIX</div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('COMPLETA_SEMESTRAL')">ASSINAR SEMESTRAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title">Anual (12 Meses)</div>
-        <div class="plan-price-old">De R$ 1.800,00</div>
-        <div class="plan-price-main">12x R$ 85,00</div>
-        <div class="plan-discount-pix">R$ 960,00 à vista no PIX</div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('COMPLETA_ANUAL')">ASSINAR ANUAL</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Dúvidas Frequentes</div>
-      <details>
-        <summary>Em quanto tempo recebo meu protocolo?</summary>
-        <p>Em até 24h a 48h úteis após o preenchimento da anamnese.</p>
-      </details>
-      <details>
-        <summary>Como funciona a IA do app?</summary>
-        <p>Calcula trocas e equivalências exatas de alimentos em segundos diretamente na tela.</p>
-      </details>
-    </div>
+    <a href="index.html?modo=anamnese&plano=TREINO_MENSAL" class="btn-wpp" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307;">
+      🏋️ CONTRATAR APENAS TREINO
+    </a>
   </div>
 
-  <!-- CONTEÚDO REVELADO: CONSULTORIA DE TREINO -->
-  <div id="treinoDetails" class="hidden" style="width:100%; margin-top:10px;">
-
-    <div class="header-brand">
-      <h1>CONSULTORIA DE TREINO</h1>
-      <div class="subhead">Foco 100% na evolução do treino, com progressão de cargas no app</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">O que está incluso</div>
-      <div class="features-list">
-        <div class="feature-item"><span class="feature-icon">✔</span> Ficha de treino 100% personalizada</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Login e senha individuais no app</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Registro de cargas e repetições a cada treino</div>
-        <div class="feature-item"><span class="feature-icon">✔</span> Ajustes periódicos de acordo com a evolução</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Para quem é</div>
-      <div class="profile-box">
-        <div class="profile-tag">Já tem a dieta resolvida</div>
-        <div class="profile-desc">Quer acompanhamento profissional só na parte de treino, sem pagar pelo pacote de nutrição.</div>
-      </div>
-      <div class="profile-box">
-        <div class="profile-tag">Treina com um parceiro(a)</div>
-        <div class="profile-desc">Pode dividir o pacote em dupla e economizar por pessoa.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Planos Disponíveis</div>
-
-      <div class="plan-card">
-        <div class="plan-title">Mensal</div>
-        <div class="plan-price-main">R$ 60,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('TREINO_MENSAL')">ASSINAR MENSAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title" style="color:#fff;">Anual — Melhor Custo-Benefício</div>
-        <div class="plan-price-main">R$ 50,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
-        <div class="plan-discount-pix">Fechando os 12 meses de uma vez</div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('TREINO_ANUAL')">ASSINAR ANUAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title">Pacote para Dupla (2 pessoas)</div>
-        <div class="plan-price-main">R$ 80,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
-        <div class="plan-discount-pix">R$ 40,00 por pessoa</div>
-        <button class="btn btn-primary" onclick="irParaAnamnese('TREINO_DUPLA')">ASSINAR EM DUPLA</button>
-      </div>
-    
+  <!-- CONTATO DIRETO -->
+  <div style="text-align:center; margin-top:20px;">
+    <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Gostaria%20de%20tirar%20uma%20d%C3%BAvida%20sobre%20a%20consultoria." target="_blank" style="color:var(--muted); font-size:12px; text-decoration:underline;">
+      Dúvidas? Fale diretamente comigo no WhatsApp
+    </a>
   </div>
-</script>
+
+  <footer>
+    © Jhonata Personal — Consultoria Esportiva de Elite
+  </footer>
+
+  <script>
+    function toggleAccordion(idContent, idArrow) {
+      const content = document.getElementById(idContent);
+      const arrow = document.getElementById(idArrow);
+
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.textContent = '▲';
+      } else {
+        content.classList.add('hidden');
+        arrow.textContent = '▼';
+      }
+    }
+  </script>
 </body>
 </html>
