@@ -382,84 +382,8 @@
         <div class="plan-discount-pix">R$ 40,00 por pessoa</div>
         <button class="btn btn-primary" onclick="irParaAnamnese('TREINO_DUPLA')">ASSINAR EM DUPLA</button>
       </div>
-    </div>
-  </div>
-
-  <!-- CONTEÚDO REVELADO: HORA-AULA PRESENCIAL -->
-  <div id="presencialDetails" class="hidden" style="width:100%; margin-top:10px;">
     
-    <div class="card presencial-header">
-      <h2>Atendimento Presencial VIP</h2>
-      <div class="location-badge">📍 Novo Hamburgo e Campo Bom / RS</div>
-      <p style="font-size:12px; color:var(--muted); margin-top:6px; line-height:1.5;">
-        Acompanhamento lado a lado focado na máxima hipertrofia, ajuste biomecânico e intensidade real para destravar seus resultados na academia.
-      </p>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Pacotes de Hora-Aula</div>
-
-      <div class="plan-card">
-        <div class="plan-title">Hora-Aula Avulsa</div>
-        <div class="plan-price-main">R$ 60,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/hora</span></div>
-        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Acompanhamento individual e correção técnica presencial.</div>
-        <button class="btn btn-wpp" onclick="contactWpp('Hora-Aula Avulsa', 'R$ 60,00/hora', '1 aula avulsa')">💬 AGENDAR AULA AVULSA</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title">Pacote Semanal (3x por semana)</div>
-        <div class="plan-price-main">R$ 150,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/semana</span></div>
-        <div class="plan-discount-pix">R$ 50,00 por aula (Economize R$ 30,00)</div>
-        <button class="btn btn-wpp" onclick="contactWpp('Pacote Semanal', 'R$ 150,00/semana', '3 aulas por semana')">💬 FECHAR PACOTE SEMANAL</button>
-      </div>
-
-      <div class="plan-card">
-        <div class="plan-title" style="color:#fff;">Pacote Mensal VIP (3x por semana)</div>
-        <div class="plan-price-old">De R$ 720,00</div>
-        <div class="plan-price-main">R$ 480,00 <span style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</span></div>
-        <div class="plan-discount-pix">Apenas R$ 40,00 por aula (12 aulas no mês)</div>
-        <button class="btn btn-wpp" onclick="contactWpp('Pacote Mensal VIP', 'R$ 480,00/mês', '12 aulas no mês, 3x por semana')">💬 GARANTIR VAGA MENSAL</button>
-      </div>
-    </div>
   </div>
-  
-<script>
-  const PHONE_NUMBER = "5551990169026";
-
-  function toggleOption(option) {
-    const sections = {
-      online: document.getElementById('onlineDetails'),
-      treino: document.getElementById('treinoDetails'),
-      presencial: document.getElementById('presencialDetails')
-    };
-    const cards = {
-      online: document.getElementById('cardOnline'),
-      treino: document.getElementById('cardTreino'),
-      presencial: document.getElementById('cardPresencial')
-    };
-
-    const isHidden = sections[option].classList.contains('hidden');
-
-    Object.keys(sections).forEach(key => {
-      sections[key].classList.add('hidden');
-      cards[key].classList.remove('active');
-    });
-
-    if (isHidden) {
-      sections[option].classList.remove('hidden');
-      cards[option].classList.add('active');
-      sections[option].scrollIntoView({ behavior: 'smooth' });
-    }
-  }
-
-  function irParaAnamnese(planoCode) {
-    window.location.href = `./index.html?modo=anamnese&plano=${planoCode}`;
-  }
-
-  function contactWpp(planName, priceLabel, aulasInfo) {
-    const msg = `Olá Personal Jhonata! Quero fechar o *${planName}* (${priceLabel} — ${aulasInfo}) para hora-aula presencial em Novo Hamburgo / Campo Bom. Pode me passar os próximos passos?`;
-    window.open(`https://wa.me/${PHONE_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
-  }
 </script>
 </body>
 </html>
