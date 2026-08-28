@@ -57,30 +57,16 @@
 
   .day-accordion-header {
     background: linear-gradient(135deg, #1f060c, #110205);
-    border: 1px solid var(--border);
-    padding: 14px 16px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all .2s ease;
+    border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
+    margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; transition: all .2s ease;
   }
-  .day-accordion-header:hover {
-    border-color: var(--gold);
-    box-shadow: 0 4px 12px rgba(212,160,42,0.15);
-  }
+  .day-accordion-header:hover { border-color: var(--gold); }
   .day-accordion-header b { font-size: 15px; color: #fff; }
 
   .day-accordion-body {
-    background: #0d0204;
-    border: 1px solid var(--border);
-    border-top: none;
-    border-radius: 0 0 12px 12px;
-    padding: 12px;
-    margin-top: -12px;
-    margin-bottom: 12px;
+    background: #0d0204; border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 12px 12px; padding: 12px; margin-top: -12px; margin-bottom: 12px;
   }
 
   .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
@@ -109,11 +95,6 @@
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
   .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
-  
-  .chat-box { background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px; }
-  .msg-bubble { padding:10px 14px; border-radius:10px; font-size:13px; line-height:1.4; max-width:85%; word-break:break-word; }
-  .msg-user-bubble { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; align-self:flex-end; }
-  .msg-ai-bubble { background:#180509; border:1px solid var(--border); color:#fff; align-self:flex-start; }
 </style>
 </head>
 <body>
@@ -121,7 +102,7 @@
 <div id="loginScreen">
   <div class="login-card">
     <h2>PAINEL DO PERSONAL</h2>
-    <p>Digite suas credenciais administrativas para desbloquear o sistema</p>
+    <p>Digite suas credenciais administrativas</p>
     <label>Usuário Administrador</label>
     <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
     <label>Senha</label>
@@ -136,7 +117,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <div>
         <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Meta: 3x 8-10</span>
+        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas</span>
       </div>
       <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
     </div>
@@ -177,6 +158,7 @@
         <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
+        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
       </div>
     </aside>
 
@@ -186,7 +168,6 @@
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editar Treino</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
-        <button class="tab-btn" id="tab5" onclick="switchTab('chatAdmin')">🤖 IA Personal</button>
       </div>
 
       <div id="secResumo" class="panel-card">
@@ -236,10 +217,10 @@
 
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo. O sistema lerá e criará as abas no app do aluno!</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo.</p>
 
         <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14&#10;Pão Integral | 2 fatias | 120 | 4 | 22 | 2&#10;&#10;[Carbo Baixo]&#10;Dias: Terça, Quinta, Sábado, Domingo&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 4 un | 280 | 24 | 2 | 18"></textarea>
+        <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14"></textarea>
         
         <button class="btn" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
       </div>
@@ -250,8 +231,8 @@
         <label>Nome Exibido</label>
         <input type="text" id="editName">
 
-        <label>Nova Senha (deixe em branco para não alterar)</label>
-        <input type="password" id="editPassword" placeholder="Sua nova senha...">
+        <label>Redefinir Senha do Aluno (Deixe em branco para preservar a senha definida pelo aluno)</label>
+        <input type="password" id="editPassword" placeholder="Digite apenas se desejar redefinir a senha...">
 
         <label>Status do Pagamento</label>
         <select id="editStatus">
@@ -266,20 +247,6 @@
         </div>
       </div>
 
-      <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Consulte a IA para obter sugestões de treinos, montagem de macros ou tirar dúvidas sobre o aluno selecionado no momento.</p>
-
-        <div class="chat-box" id="adminChatHistory">
-          <div class="msg-bubble msg-ai-bubble"><b>Assistente IA:</b> Olá, Treinador! Como posso te ajudar na montagem de treinos e dietas hoje?</div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="adminChatInput" placeholder="Pergunte algo sobre treinos, cargas ou sobre o aluno selecionado..." onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
-          <button class="btn" style="width:110px;" onclick="sendAdminChatMessage()">Enviar</button>
-        </div>
-      </div>
-
       <div id="secNovo" class="panel-card hidden">
         <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
         
@@ -290,12 +257,26 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="Upper 1 Segunda&#10;Supino Reto Barra 1 Cluster + 1 Back-off&#10;Remada Baixa 1 Cluster&#10;&#10;Lower 1 Terça&#10;Cadeira Flexora 3x 8-10"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="A - Peito e Tríceps&#10;Supino Reto Barra 1 Cluster + 1 Back-off&#10;Remada Baixa 1 Cluster&#10;&#10;B - Costas e Bíceps&#10;Puxada Alta 3x 8-10"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
+      </div>
+
+      <div id="secChatAdmin" class="panel-card hidden">
+        <div class="panel-title">🤖 Assistente IA do Treinador</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
+
+        <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje?</div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="adminChatInput" placeholder="Pergunte sobre treinos ou nutrição..." onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
+          <button class="btn" style="width:110px;" onclick="sendAdminChatMessage()">Enviar</button>
+        </div>
       </div>
     </main>
   </div>
@@ -422,6 +403,7 @@
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = stVal;
+      document.getElementById('editPassword').value = ''; // Preserva a senha configurada pelo aluno
 
       renderWorkoutView();
       renderDaysSelect();
@@ -455,9 +437,9 @@
 
       (day.exercicios || []).forEach((ex, exIdx) => {
         html += `
-          <div class="ex-clickable" onclick="verEvolucaoExercício(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
+          <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
             <span>• <b>${ex.nome}</b></span>
-            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series}x (${ex.reps}) 📈</span>
+            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series}x (${ex.reps}) 📈 Evolução</span>
           </div>
         `;
       });
@@ -480,28 +462,36 @@
     }
   }
 
-  function verEvolucaoExercício(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
+  // AVALIAÇÃO DE PROGRESSÃO SEMANAL POR EXERCÍCIO
+  function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr}x (${repsStr})`;
 
-    const logs = currentStudentData.logs || {};
-    const user = currentStudentCode;
-    const numSeries = parseInt(seriesStr) || 1;
+    const weeklyLogs = currentStudentData.weekly_logs || {};
+    const key = `${dayIdx}_${exIdx}`;
+    const historicoSemanal = (weeklyLogs[key] || []).slice(-4); // Mantém os últimos 4 treinos/semanas
 
-    let seriesHtml = "<b>Cargas e Repetições Salvas:</b><br>";
+    let html = "<b>Progresso Semanal (Últimos 4 Treinos):</b><br>";
     let cargasValidas = [];
 
-    for (let s = 1; s <= numSeries; s++) {
-      const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-      const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-      const carga = logs[keyLoad] || localStorage.getItem(keyLoad) || '-';
-      const reps = logs[keyReps] || localStorage.getItem(keyReps) || '-';
-
-      seriesHtml += `<span style="color:var(--muted);">Série ${s}:</span> <b style="color:#fff;">${carga} kg</b> × <b style="color:var(--gold);">${reps} reps</b><br>`;
-      if (carga !== '-' && !isNaN(parseFloat(carga))) cargasValidas.push(parseFloat(carga));
+    if (historicoSemanal.length === 0) {
+      html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
+    } else {
+      historicoSemanal.forEach((reg, idx) => {
+        html += `
+          <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="color:var(--gold)">Treino ${idx + 1} (${reg.data}):</b><br>
+              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${reg.repsMed}</span>
+            </div>
+            <div style="font-size:15px; font-weight:800; color:#fff;">${reg.cargaMax} kg</div>
+          </div>
+        `;
+        if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
+      });
     }
 
-    document.getElementById('logsDetailList').innerHTML = seriesHtml;
+    document.getElementById('logsDetailList').innerHTML = html;
     document.getElementById('chartModal').classList.remove('hidden');
 
     renderChart(cargasValidas);
@@ -512,21 +502,21 @@
     if (chartInstance) chartInstance.destroy();
 
     const dataPoints = cargas.length > 0 ? cargas : [0];
-    const labels = dataPoints.map((_, i) => `Série ${i+1}`);
+    const labels = dataPoints.map((_, i) => `Semana ${i+1}`);
 
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Carga Utilizada (kg)',
+          label: 'Evolução de Carga (kg)',
           data: dataPoints,
           borderColor: '#dcaa3a',
           backgroundColor: 'rgba(220,170,58,0.12)',
           borderWidth: 3,
           fill: true,
           tension: 0.35,
-          pointRadius: 5,
+          pointRadius: 6,
           pointBackgroundColor: '#c4324f'
         }]
       },
@@ -553,8 +543,8 @@
     document.getElementById('secTreino').classList.add('hidden');
     document.getElementById('secDieta').classList.add('hidden');
     document.getElementById('secCadastro').classList.add('hidden');
-    document.getElementById('secChatAdmin').classList.add('hidden');
     document.getElementById('secNovo').classList.add('hidden');
+    document.getElementById('secChatAdmin').classList.add('hidden');
 
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
@@ -570,11 +560,10 @@
     } else if (tab === 'cadastro') {
       document.getElementById('secCadastro').classList.remove('hidden');
       document.getElementById('tab4').classList.add('active');
-    } else if (tab === 'chatAdmin') {
-      document.getElementById('secChatAdmin').classList.remove('hidden');
-      document.getElementById('tab5').classList.add('active');
     } else if (tab === 'novo') {
       document.getElementById('secNovo').classList.remove('hidden');
+    } else if (tab === 'chatAdmin') {
+      document.getElementById('secChatAdmin').classList.remove('hidden');
     }
   }
 
@@ -663,7 +652,11 @@
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
     
     const newPass = document.getElementById('editPassword').value.trim();
-    if (newPass) currentStudentData.senha = newPass;
+    if (newPass) {
+      currentStudentData.senha = newPass; // Atualiza a senha se explicitamente preenchida
+    } else {
+      delete currentStudentData.senha; // Remove a propriedade do payload enviado para preservar o valor do banco
+    }
 
     await salvarAlteracoes();
     document.getElementById('editPassword').value = "";
@@ -678,7 +671,7 @@
         body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
       });
       if (res.ok) {
-        alert("🎉 Alterações salvas com sucesso no banco Neon!");
+        alert("🎉 Dados salvos com sucesso no banco Neon!");
         fetchAlunos();
         renderWorkoutView();
         switchTab('resumo');
@@ -686,36 +679,7 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  async function sendAdminChatMessage() {
-    const input = document.getElementById('adminChatInput');
-    const history = document.getElementById('adminChatHistory');
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    history.innerHTML += `<div class="msg-bubble msg-user-bubble"><b>Você:</b> ${text}</div>`;
-    input.value = '';
-    history.scrollTop = history.scrollHeight;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          codigo: 'admin', 
-          mensagem: text,
-          contexto: currentStudentData || {} 
-        })
-      });
-
-      const data = await res.json();
-      history.innerHTML += `<div class="msg-bubble msg-ai-bubble"><b>Assistente IA:</b> ${data.resposta}</div>`;
-    } catch(e) {
-      history.innerHTML += `<div class="msg-bubble msg-ai-bubble" style="color:var(--accent);">Erro ao consultar a IA. Tente novamente em instantes.</div>`;
-    }
-    history.scrollTop = history.scrollHeight;
-  }
-
+  // PARSER DE TEXTO INTELIGENTE PARA BLOCOS DE TREINO
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -723,35 +687,44 @@
     const days = [];
     let currentDay = null;
 
-    const dayKeywords = ['upper', 'lower', 'treino', 'costas', 'peito', 'pernas', 'ombro', 'bracos', 'fullbody'];
+    const dayKeywords = [
+      'upper', 'lower', 'treino', 'costas', 'peito', 'pernas', 'ombro', 'bracos', 'fullbody',
+      'push', 'pull', 'legs', 'segunda', 'terça', 'terca', 'quarta', 'quinta', 'sexta', 'sábado', 'sabado', 'domingo'
+    ];
 
     lines.forEach(line => {
       const cleanLine = line.trim();
       if (!cleanLine) return;
 
       const lowerLine = cleanLine.toLowerCase();
-      
-      const isDayHeader = dayKeywords.some(kw => lowerLine.includes(kw)) && 
-                          !lowerLine.includes('cluster') && 
-                          !lowerLine.includes('myo-reps') && 
-                          !lowerLine.includes('myo reps') && 
-                          !lowerLine.includes('back-off') &&
-                          !lowerLine.includes('maquina') &&
-                          !lowerLine.includes('barra') &&
-                          !lowerLine.includes('polia') &&
-                          !lowerLine.includes('halter') &&
-                          !lowerLine.includes('flexora') &&
-                          !lowerLine.includes('extensora') &&
-                          !lowerLine.includes('press') &&
-                          !lowerLine.includes('stiff') &&
-                          !lowerLine.includes('voador');
+
+      const isAbcHeader = /^(treino\s+)?[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
+                          /^dia\s+\d+/i.test(cleanLine) ||
+                          /^abc/i.test(cleanLine);
+
+      const hasDayKeyword = dayKeywords.some(kw => lowerLine.includes(kw));
+      const hasTechnique = lowerLine.includes('cluster') || 
+                            lowerLine.includes('myo-reps') || 
+                            lowerLine.includes('myo reps') || 
+                            lowerLine.includes('back-off') || 
+                            lowerLine.includes('maquina') || 
+                            lowerLine.includes('barra') || 
+                            lowerLine.includes('polia') || 
+                            lowerLine.includes('halter') || 
+                            lowerLine.includes('flexora') || 
+                            lowerLine.includes('extensora') || 
+                            lowerLine.includes('stiff') || 
+                            lowerLine.includes('press') || 
+                            lowerLine.includes('voador');
+
+      const isDayHeader = isAbcHeader || (hasDayKeyword && !hasTechnique);
 
       if (isDayHeader) {
         currentDay = { title: cleanLine, exercicios: [] };
         days.push(currentDay);
       } else {
         if (!currentDay) {
-          currentDay = { title: "Treino Geral", exercicios: [] };
+          currentDay = { title: "Treino A", exercicios: [] };
           days.push(currentDay);
         }
 
@@ -836,7 +809,7 @@
     const payload = {
       clientName: nome,
       status_pagamento: 'pago',
-      days: parsedDays.length > 0 ? parsedDays : [{ title: "Treino Geral", exercicios: [] }],
+      days: parsedDays.length > 0 ? parsedDays : [{ title: "Treino A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
 
@@ -852,7 +825,7 @@
         fetchAlunos();
         switchTab('resumo');
       }
-    } catch(e) { alert("Erro ao criar."); }
+    } catch(e) { alert("Erro ao criar aluno."); }
   }
 
   async function deletarAluno() {
@@ -879,6 +852,32 @@
     const link = window.location.href.replace('admin.html', 'index.html?modo=anamnese');
     navigator.clipboard.writeText(link);
     alert("Link da Anamnese copiado para a área de transferência!");
+  }
+
+  async function sendAdminChatMessage() {
+    const input = document.getElementById('adminChatInput');
+    const history = document.getElementById('adminChatHistory');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${text}</div>`;
+    input.value = '';
+    history.scrollTop = history.scrollHeight;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mensagem: text, contexto: currentStudentData || {} })
+      });
+
+      const data = await res.json();
+      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
+    } catch(e) {
+      history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
+    }
+    history.scrollTop = history.scrollHeight;
   }
 </script>
 </body>
