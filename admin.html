@@ -174,7 +174,10 @@
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
             <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-            <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold);">@código</span>
+            <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
+              <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
+              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔑 Senha: ---</span>
+            </div>
           </div>
           <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
         </div>
@@ -231,8 +234,8 @@
         <label>Nome Exibido</label>
         <input type="text" id="editName">
 
-        <label>Redefinir Senha do Aluno (Deixe em branco para preservar a senha definida pelo aluno)</label>
-        <input type="password" id="editPassword" placeholder="Digite apenas se desejar redefinir a senha...">
+        <label>Senha do Aluno (Visualização / Edição Direta)</label>
+        <input type="text" id="editPassword" placeholder="Senha atual do aluno...">
 
         <label>Status do Pagamento</label>
         <select id="editStatus">
@@ -274,7 +277,7 @@
         </div>
 
         <div style="display:flex; gap:8px;">
-          <input type="text" id="adminChatInput" placeholder="Pergunte sobre treinos ou nutrição..." onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
+          <input type="text" id="adminChatInput" name="admin-chat-message" placeholder="Pergunte sobre treinos ou nutrição..." autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
           <button class="btn" style="width:110px;" onclick="sendAdminChatMessage()">Enviar</button>
         </div>
       </div>
@@ -396,6 +399,9 @@
       document.getElementById('studentName').textContent = currentStudentData.clientName || code;
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
       
+      const senhaAtual = currentStudentData.senha || 'Não definida';
+      document.getElementById('studentPassDisplay').textContent = `🔑 Senha: ${senhaAtual}`;
+
       const stPill = document.getElementById('studentStatusPill');
       const stVal = currentStudentData.status_pagamento || 'pago';
       stPill.textContent = stVal.toUpperCase();
@@ -403,7 +409,7 @@
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = stVal;
-      document.getElementById('editPassword').value = ''; // Preserva a senha configurada pelo aluno
+      document.getElementById('editPassword').value = senhaAtual;
 
       renderWorkoutView();
       renderDaysSelect();
@@ -469,7 +475,7 @@
 
     const weeklyLogs = currentStudentData.weekly_logs || {};
     const key = `${dayIdx}_${exIdx}`;
-    const historicoSemanal = (weeklyLogs[key] || []).slice(-4); // Mantém os últimos 4 treinos/semanas
+    const historicoSemanal = (weeklyLogs[key] || []).slice(-4);
 
     let html = "<b>Progresso Semanal (Últimos 4 Treinos):</b><br>";
     let cargasValidas = [];
@@ -653,13 +659,10 @@
     
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
-      currentStudentData.senha = newPass; // Atualiza a senha se explicitamente preenchida
-    } else {
-      delete currentStudentData.senha; // Remove a propriedade do payload enviado para preservar o valor do banco
+      currentStudentData.senha = newPass;
     }
 
     await salvarAlteracoes();
-    document.getElementById('editPassword').value = "";
   }
 
   async function salvarAlteracoes() {
@@ -679,7 +682,6 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  // PARSER DE TEXTO INTELIGENTE PARA BLOCOS DE TREINO
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -808,6 +810,7 @@
 
     const payload = {
       clientName: nome,
+      senha: codigo,
       status_pagamento: 'pago',
       days: parsedDays.length > 0 ? parsedDays : [{ title: "Treino A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
