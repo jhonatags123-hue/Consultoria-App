@@ -296,7 +296,7 @@
       <div class="msg msg-ai"><b>Assistente IA:</b> Olá! Sou seu assistente de treino. Como posso te ajudar com a execução dos exercícios ou seu plano hoje?</div>
     </div>
     <div class="chat-input-row">
-      <input type="text" id="chatInput" class="chat-input" placeholder="Pergunte aqui..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+      <input type="text" id="chatInput" name="chat-message" class="chat-input" placeholder="Pergunte aqui..." autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" onkeypress="if(event.key==='Enter') sendChatMessage()">
       <button class="chat-btn" onclick="sendChatMessage()">Enviar</button>
     </div>
   </div>
@@ -650,7 +650,7 @@
           historico.push({ data: dataHoje, cargaMax, repsMed });
         }
 
-        if (historico.length > 4) historico.shift(); // Retenção máxima de 4 semanas
+        if (historico.length > 4) historico.shift();
       }
     });
 
@@ -866,7 +866,7 @@
       });
 
       if (res.ok) {
-        alert("🎉 Senha alterada com sucesso! Use-a nos seus próximos acessos.");
+        alert("🎉 Senha alterada com sucesso! O treinador também conseguirá visualizar sua nova senha no painel.");
         document.getElementById('alunoNovaSenha').value = '';
       } else {
         alert("Erro ao salvar nova senha no servidor.");
