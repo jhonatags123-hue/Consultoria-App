@@ -572,12 +572,21 @@
     }
   }
 
-  function renderDaysSelect() {
+function renderDaysSelect() {
     const sel = document.getElementById('selectDay');
+    const containerListaDias = document.getElementById('exerciseList');
     sel.innerHTML = "";
-    (currentStudentData.days || []).forEach((d, i) => {
+    
+    if (!currentStudentData.days || currentStudentData.days.length === 0) {
+      sel.innerHTML = `<option value="">Nenhum dia cadastrado</option>`;
+      containerListaDias.innerHTML = "<p style='color:var(--muted); font-size:12px;'>Crie um dia de treino acima para começar.</p>";
+      return;
+    }
+
+    currentStudentData.days.forEach((d, i) => {
       sel.innerHTML += `<option value="${i}">${d.title}</option>`;
     });
+
     loadDayExercises();
   }
 
@@ -586,9 +595,26 @@
     const container = document.getElementById('exerciseList');
     container.innerHTML = "";
 
-    if (!currentStudentData.days || !currentStudentData.days[idx]) return;
+    if (!currentStudentData.days || idx === "" || !currentStudentData.days[idx]) return;
 
-    (currentStudentData.days[idx].exercicios || []).forEach((ex, exIdx) => {
+    const diaAtual = currentStudentData.days[idx];
+
+    // Painel superior com o botão de excluir o dia inteiro
+    let htmlHeaderDia = `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#1e050b; border:1px solid var(--accent); padding:10px 14px; border-radius:10px; margin-bottom:14px;">
+        <span style="font-size:13px; font-weight:800; color:#fff;">📅 Gerenciando: <span style="color:var(--gold);">${diaAtual.title}</span></span>
+        <button type="button" class="btn btn-danger" style="width:auto; padding:6px 12px; font-size:11px;" onclick="removerDiaTreino(${idx})">🗑️ Excluir Este Dia</button>
+      </div>
+    `;
+
+    container.innerHTML = htmlHeaderDia;
+
+    if (!diaAtual.exercicios || diaAtual.exercicios.length === 0) {
+      container.innerHTML += `<p style="color:var(--muted); font-size:12px; padding:10px 0;">Nenhum exercício neste dia ainda.</p>`;
+      return;
+    }
+
+    diaAtual.exercicios.forEach((ex, exIdx) => {
       container.innerHTML += `
         <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:8px; font-size:13px;">
           <span><b>${ex.nome}</b> — ${ex.series}x (${ex.reps})</span>
@@ -596,6 +622,21 @@
         </div>
       `;
     });
+  }
+
+  // Função para remover o dia selecionado
+  function removerDiaTreino(dayIdx) {
+    const diaNome = currentStudentData.days[dayIdx].title;
+    if (!confirm(`Tem certeza que deseja apagar todo o "${diaNome}" e seus exercícios?`)) return;
+
+    currentStudentData.days.splice(dayIdx, 1);
+    renderDaysSelect();
+    renderWorkoutView();
+  }
+
+    currentStudentData.days.splice(dayIdx, 1);
+    renderDaysSelect();
+    renderWorkoutView();
   }
 
   function addDay() {
