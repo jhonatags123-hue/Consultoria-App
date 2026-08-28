@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Esportiva — Jhonata</title>
+<title>Consultoria Esportiva — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -65,16 +65,9 @@
 
   .day-accordion-header {
     background: linear-gradient(135deg, var(--card-2), var(--card));
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
-    transition: all .2s ease;
-    margin-bottom: 8px;
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    user-select: none; transition: all .2s ease; margin-bottom: 8px;
   }
   .day-accordion-header:hover { border-color: var(--gold); }
 
@@ -118,11 +111,21 @@
   .chat-btn { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; border:none; padding:11px 17px; border-radius:10px; font-weight:700; cursor:pointer; transition:transform .15s ease; }
   .chat-btn:hover { transform:translateY(-1px); }
 
+  .save-indicator {
+    position: fixed; top: 14px; right: 14px;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #1a0307; padding: 7px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 800; display: none; z-index: 99999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6); letter-spacing: 0.03em;
+  }
+
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
 </style>
 </head>
 <body>
+
+<div id="saveIndicator" class="save-indicator">💾 Salvando alterações...</div>
 
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
@@ -219,10 +222,10 @@
         <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
         <option value="COMPLETA_TRIMESTRAL">🏆 Completa Trimestral — 3x R$ 130,00</option>
         <option value="COMPLETA_SEMESTRAL">🏆 Completa Semestral — 6x R$ 110,00</option>
-        <option value="COMPLETA_ANUAL">🏆 Completa Anual (Treino + Dieta) — 12x R$ 85,00</option>
+        <option value="COMPLETA_ANUAL">🏆 Completa Anual — 12x R$ 85,00</option>
         <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 60,00/mês</option>
         <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
-        <option value="TREINO_DUPLA">👥 Apenas Treino para Dois (Anual) — R$ 80,00/mês (R$ 40,00 cada)</option>
+        <option value="TREINO_DUPLA">👥 Apenas Treino em Dupla (Anual) — R$ 80,00/mês</option>
       </select>
 
       <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
@@ -235,7 +238,6 @@
         <div style="font-size:12px; color:var(--gold); font-weight:700;">📱 CHAVE PIX (E-MAIL)</div>
         <div style="font-size:14px; font-weight:800; color:#fff; margin:6px 0; word-break:break-all;">jhonatags123@gmail.com</div>
         <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">Titular: Jhonata (Consultoria Esportiva)</div>
-
         <button type="button" class="btn-login" style="margin-top:6px; background:var(--gold); color:#000; font-size:12px;" onclick="copiarChavePix()">📋 COPIAR CHAVE PIX</button>
       </div>
 
@@ -276,12 +278,11 @@
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
     <button class="menu-btn" id="btnChat" onclick="showTab('chat')">🤖 IA</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
-    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">⚙️ SENHA</button>
+    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
   </div>
 
   <div id="tabTreino">
     <div id="exercisesList"></div>
-    <button class="btn-login btn-gold" style="margin-top:14px;" onclick="saveStudentLogs()">💾 SALVAR CARGAS E REPETIÇÕES</button>
   </div>
 
   <div id="tabDieta" class="hidden">
@@ -331,6 +332,7 @@
   let currentData = null;
   let loggedUserCode = "";
   let activeDietTag = "";
+  let autoSaveTimer = null;
 
   window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
@@ -353,9 +355,8 @@
     }
 
     const loggedUser = localStorage.getItem('logged_user');
-    const token = localStorage.getItem('aluno_token');
 
-    if (loggedUser && token) {
+    if (loggedUser) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
         if (res.ok) {
@@ -419,7 +420,6 @@
       }
 
       localStorage.setItem('logged_user', user);
-      localStorage.setItem('aluno_token', result.token);
       loggedUserCode = user;
       loadStudentData(result.data);
     } catch (err) {
@@ -503,7 +503,7 @@
     exercisesContainer.innerHTML = '';
 
     if (!days || days.length === 0) {
-      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está sendo montado.</div>';
+      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
       return;
     }
 
@@ -549,10 +549,7 @@
     });
   }
 
-  // RENDERIZAÇÃO ULTRA-INTELIGENTE SUPORTA MYO-REPS, CLUSTER E SÉRIES NORMAIS
   function renderExercisesForDay(day, dayIdx, container) {
-    const user = loggedUserCode || localStorage.getItem('logged_user');
-
     (day.exercicios || []).forEach((ex, exIdx) => {
       const numSeries = parseInt(ex.series) || 3;
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -576,129 +573,19 @@
         <div class="series-container">
       `;
 
-      if (isMyoReps) {
-        const keyActLoad = `log_c_${user}_${dayIdx}_${exIdx}_act`;
-        const keyActReps = `log_r_${user}_${dayIdx}_${exIdx}_act`;
-        const keyMiniLoad = `log_c_${user}_${dayIdx}_${exIdx}_mini`;
-        const keyMiniReps = `log_r_${user}_${dayIdx}_${exIdx}_mini`;
+      for (let s = 1; s <= numSeries; s++) {
+        const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
+        const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
 
-        const savedActLoad = (currentData.logs && currentData.logs[keyActLoad]) || localStorage.getItem(keyActLoad) || '';
-        const savedActReps = (currentData.logs && currentData.logs[keyActReps]) || localStorage.getItem(keyActReps) || '';
-        const savedMiniLoad = (currentData.logs && currentData.logs[keyMiniLoad]) || localStorage.getItem(keyMiniLoad) || '';
-        const savedMiniReps = (currentData.logs && currentData.logs[keyMiniReps]) || localStorage.getItem(keyMiniReps) || '';
+        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+        const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
 
         html += `
           <div class="series-row">
-            <span class="series-tag" style="width:90px;">Série Ativação</span>
-            <input type="number" class="input-field input-log" id="${keyActLoad}" value="${savedActLoad}" placeholder="0" style="width:60px;">
+            <span class="series-tag">Série ${s}</span>
+            <input type="number" class="input-field input-log" data-day="${dayIdx}" data-ex="${exIdx}" data-key="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;" oninput="triggerAutoSave()">
             <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" id="${keyActReps}" value="${savedActReps}" placeholder="0" style="width:60px; margin-left:auto;">
-            <span class="unit">reps</span>
-          </div>
-          <div class="series-row" style="border:1px dashed var(--gold);">
-            <span class="series-tag" style="color:var(--gold); width:90px;">Mini-sets Myo</span>
-            <input type="number" class="input-field input-log" id="${keyMiniLoad}" value="${savedMiniLoad}" placeholder="0" style="width:60px;">
-            <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" id="${keyMiniReps}" value="${savedMiniReps}" placeholder="0" style="width:60px; margin-left:auto;">
-            <span class="unit">reps total</span>
-          </div>
-        `;
-      } else if (isCluster) {
-        const hasNormalBeforeCluster = (ex.reps || '').includes('8-10') || (ex.reps || '').includes('6-8') || (ex.reps || '').includes('10-12');
-
-        if (hasNormalBeforeCluster && numSeries > 1) {
-          for (let s = 1; s <= numSeries; s++) {
-            const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-            const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
-            const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
-
-            html += `
-              <div class="series-row">
-                <span class="series-tag">Série ${s}</span>
-                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
-                <span class="unit">kg</span>
-                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
-                <span class="unit">reps</span>
-              </div>
-            `;
-          }
-
-          const keyClLoad = `log_c_${user}_${dayIdx}_${exIdx}_cluster`;
-          const keyClBlocks = `log_b_${user}_${dayIdx}_${exIdx}_cluster`;
-          const keyClReps = `log_r_${user}_${dayIdx}_${exIdx}_cluster`;
-
-          const savedClLoad = (currentData.logs && currentData.logs[keyClLoad]) || localStorage.getItem(keyClLoad) || '';
-          const savedClBlocks = (currentData.logs && currentData.logs[keyClBlocks]) || localStorage.getItem(keyClBlocks) || '';
-          const savedClReps = (currentData.logs && currentData.logs[keyClReps]) || localStorage.getItem(keyClReps) || '';
-
-          html += `
-            <div class="series-row" style="border:1px dashed var(--green); margin-top:4px;">
-              <span class="series-tag" style="color:var(--green); width:70px;">Cluster</span>
-              <input type="number" class="input-field input-log" id="${keyClLoad}" value="${savedClLoad}" placeholder="0" style="flex:1;">
-              <span class="unit">kg</span>
-              <input type="number" class="input-field input-log" id="${keyClBlocks}" value="${savedClBlocks}" placeholder="0" style="flex:1;">
-              <span class="unit">blocos</span>
-              <input type="number" class="input-field input-log" id="${keyClReps}" value="${savedClReps}" placeholder="0" style="flex:1;">
-              <span class="unit">reps/bloco</span>
-            </div>
-          `;
-        } else {
-          for (let s = 1; s <= numSeries; s++) {
-            const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-            const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-            const keyBlocks = `log_b_${user}_${dayIdx}_${exIdx}_s${s}`;
-
-            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
-            const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
-            const savedBlocks = (currentData.logs && currentData.logs[keyBlocks]) || localStorage.getItem(keyBlocks) || '';
-
-            html += `
-              <div class="series-row">
-                <span class="series-tag">Cluster ${s}</span>
-                <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="flex:1;">
-                <span class="unit">kg</span>
-                <input type="number" class="input-field input-log" id="${keyBlocks}" value="${savedBlocks}" placeholder="0" style="flex:1;">
-                <span class="unit">blocos</span>
-                <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="flex:1;">
-                <span class="unit">reps/bloco</span>
-              </div>
-            `;
-          }
-        }
-      } else {
-        for (let s = 1; s <= numSeries; s++) {
-          const keyLoad = `log_c_${user}_${dayIdx}_${exIdx}_s${s}`;
-          const keyReps = `log_r_${user}_${dayIdx}_${exIdx}_s${s}`;
-
-          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || localStorage.getItem(keyLoad) || '';
-          const savedReps = (currentData.logs && currentData.logs[keyReps]) || localStorage.getItem(keyReps) || '';
-
-          html += `
-            <div class="series-row">
-              <span class="series-tag">Série ${s}</span>
-              <input type="number" class="input-field input-log" id="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;">
-              <span class="unit">kg</span>
-              <input type="number" class="input-field input-log" id="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;">
-              <span class="unit">reps</span>
-            </div>
-          `;
-        }
-      }
-
-      if (hasBackoff) {
-        const keyBoLoad = `log_bo_c_${user}_${dayIdx}_${exIdx}`;
-        const keyBoReps = `log_bo_r_${user}_${dayIdx}_${exIdx}`;
-
-        const savedBoLoad = (currentData.logs && currentData.logs[keyBoLoad]) || localStorage.getItem(keyBoLoad) || '';
-        const savedBoReps = (currentData.logs && currentData.logs[keyBoReps]) || localStorage.getItem(keyBoReps) || '';
-
-        html += `
-          <div class="series-row" style="border:1px dashed var(--gold); margin-top:4px;">
-            <span class="series-tag" style="color:var(--gold); width:70px;">Back-off</span>
-            <input type="number" class="input-field input-log" id="${keyBoLoad}" value="${savedBoLoad}" placeholder="0" style="width:65px;">
-            <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" id="${keyBoReps}" value="${savedBoReps}" placeholder="0" style="width:65px; margin-left:auto;">
+            <input type="number" class="input-field input-log" data-day="${dayIdx}" data-ex="${exIdx}" data-key="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;" oninput="triggerAutoSave()">
             <span class="unit">reps</span>
           </div>
         `;
@@ -710,26 +597,71 @@
     });
   }
 
-  async function saveStudentLogs() {
+  // AUTO-SAVE COM DEBOUNCE E CONSOLIDAÇÃO SEMANAL DAS CARGAS
+  function triggerAutoSave() {
+    const indicator = document.getElementById('saveIndicator');
+    indicator.style.display = 'block';
+
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(async () => {
+      await saveLogsAndConsolidateWeekly();
+      indicator.style.display = 'none';
+    }, 1500);
+  }
+
+  async function saveLogsAndConsolidateWeekly() {
     if (!currentData || !loggedUserCode) return;
     if (!currentData.logs) currentData.logs = {};
+    if (!currentData.weekly_logs) currentData.weekly_logs = {};
 
     const inputs = document.querySelectorAll('#tabTreino input.input-log');
+    const groupedByEx = {};
+
     inputs.forEach(input => {
-      currentData.logs[input.id] = input.value.trim();
-      localStorage.setItem(input.id, input.value.trim());
+      const key = input.dataset.key;
+      const valor = input.value.trim();
+      const dayIdx = input.dataset.day;
+      const exIdx = input.dataset.ex;
+      const exKey = `${dayIdx}_${exIdx}`;
+
+      currentData.logs[key] = valor;
+
+      if (!groupedByEx[exKey]) groupedByEx[exKey] = { cargas: [], reps: [] };
+      if (key.includes('_c_') && valor !== '') groupedByEx[exKey].cargas.push(parseFloat(valor));
+      if (key.includes('_r_') && valor !== '') groupedByEx[exKey].reps.push(parseFloat(valor));
+    });
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+
+    Object.keys(groupedByEx).forEach(exKey => {
+      const item = groupedByEx[exKey];
+      if (item.cargas.length > 0) {
+        const cargaMax = Math.max(...item.cargas);
+        const repsMed = item.reps.length > 0 ? Math.round(item.reps.reduce((a,b)=>a+b,0) / item.reps.length) : 0;
+
+        if (!currentData.weekly_logs[exKey]) currentData.weekly_logs[exKey] = [];
+
+        const historico = currentData.weekly_logs[exKey];
+        const indexHoje = historico.findIndex(h => h.data === dataHoje);
+
+        if (indexHoje >= 0) {
+          historico[indexHoje] = { data: dataHoje, cargaMax, repsMed };
+        } else {
+          historico.push({ data: dataHoje, cargaMax, repsMed });
+        }
+
+        if (historico.length > 4) historico.shift(); // Retenção máxima de 4 semanas
+      }
     });
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-
-      if (res.ok) alert("✅ Cargas salvas com sucesso!");
     } catch(err) {
-      alert("Falha de conexão com o servidor.");
+      console.error("Erro no auto-save:", err);
     }
   }
 
@@ -885,9 +817,7 @@
 
   function logout() { 
     localStorage.removeItem('logged_user'); 
-    localStorage.removeItem('aluno_token');
-    document.getElementById('mainContent').classList.add('hidden');
-    document.getElementById('loginScreen').classList.remove('hidden');
+    location.reload();
   }
 
   function showTab(tab) {
@@ -936,7 +866,7 @@
       });
 
       if (res.ok) {
-        alert("🎉 Senha alterada com sucesso! Use-a nos próximos acessos.");
+        alert("🎉 Senha alterada com sucesso! Use-a nos seus próximos acessos.");
         document.getElementById('alunoNovaSenha').value = '';
       } else {
         alert("Erro ao salvar nova senha no servidor.");
@@ -969,10 +899,9 @@
       });
 
       const data = await res.json();
-      const respostaFormatada = data.resposta || "Não consegui obter uma resposta da IA agora.";
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${respostaFormatada}</div>`;
+      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
     } catch(e) {
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> Ocorreu uma oscilação na conexão com a IA. Tente novamente em instantes.</div>`;
+      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> Oscilação temporária na IA. Tente novamente em instantes.</div>`;
     }
     history.scrollTop = history.scrollHeight;
   }
