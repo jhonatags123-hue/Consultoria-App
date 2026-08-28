@@ -260,7 +260,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;TERÇA - COSTAS E BÍCEPS&#10;Puxada Alta com Pegada Aberta&#10;Remada Baixa no Triângulo (Cluster)&#10;Remada Curvada com Barra&#10;Pulldown na Polia (Myo-reps)&#10;Rosca Direta com Barra W&#10;Rosca Martelo com Halteres"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8&#10;Supino Reto (Máquina ou Barra) 2x 6-8&#10;&#10;B - PUXAR (TERÇA)&#10;Remada Cavalinho 3x 8-10"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
@@ -714,7 +714,7 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  /* PARSER INTELIGENTE: SUPORTA COMANDO GLOBAL + IGNORA GLOBAL SE HOUVER PARÊNTESES OU NÚMEROS PRÓPRIOS */
+  /* PARSER CORRIGIDO: NUNCA TRANSFORMA EXERCÍCIOS COM SÉRIES/REPS EM DIAS DE TREINO */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -725,18 +725,13 @@
     let globalSeries = "3";
     let globalReps = "8-10";
 
-    const dayKeywords = [
-      'upper', 'lower', 'treino', 'costas', 'peito', 'pernas', 'ombro', 'bracos', 'fullbody',
-      'push', 'pull', 'legs', 'segunda', 'terça', 'terca', 'quarta', 'quinta', 'sexta', 'sábado', 'sabado', 'domingo'
-    ];
-
     lines.forEach(line => {
       const cleanLine = line.trim();
       if (!cleanLine) return;
 
       const lowerLine = cleanLine.toLowerCase();
 
-      // 1. Detecta Troca de Regra Global no topo (ex: "GLOBAL: 2x 6-8", "2x6-8", "GLOBAL: 3x6-8")
+      // 1. Detecta Troca de Regra Global no topo (ex: "GLOBAL: 2x 6-8")
       if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries') || /^\d+\s*x\s*[\d\-\+]+/i.test(cleanLine)) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
@@ -746,27 +741,15 @@
         return;
       }
 
-      // 2. Detecta início de um novo dia
-      const isAbcHeader = /^(treino\s+)?[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
-                          /^dia\s+\d+/i.test(cleanLine) ||
-                          /^abc/i.test(cleanLine);
+      // 2. REGRA RIGOROSA PARA CABEÇALHO DE DIA:
+      // Se a linha tem indicação de séries (ex: "3x", "4x") OU repetições (ex: "8-10"), É UM EXERCÍCIO, NÃO UM DIA!
+      const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
+      
+      const isExplicitDayHeader = /^[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
+                                  /^(treino|dia|bloco)\s+[a-g0-9]/i.test(cleanLine) ||
+                                  /^(upper|lower|push|pull|legs)\b/i.test(cleanLine);
 
-      const hasDayKeyword = dayKeywords.some(kw => lowerLine.includes(kw));
-      const hasTechnique = lowerLine.includes('cluster') || 
-                            lowerLine.includes('myo-reps') || 
-                            lowerLine.includes('myo reps') || 
-                            lowerLine.includes('back-off') || 
-                            lowerLine.includes('maquina') || 
-                            lowerLine.includes('barra') || 
-                            lowerLine.includes('polia') || 
-                            lowerLine.includes('halter') || 
-                            lowerLine.includes('flexora') || 
-                            lowerLine.includes('extensora') || 
-                            lowerLine.includes('stiff') || 
-                            lowerLine.includes('press') || 
-                            lowerLine.includes('voador');
-
-      const isDayHeader = isAbcHeader || (hasDayKeyword && !hasTechnique);
+      const isDayHeader = !hasWorkoutNumbers && (isExplicitDayHeader || cleanLine.includes('-'));
 
       if (isDayHeader) {
         currentDay = { title: cleanLine, exercicios: [] };
@@ -779,73 +762,40 @@
 
         let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
 
-        // 3. SE O EXERCÍCIO TIVER PARÊNTESES OU NÚMEROS PRÓPRIOS -> IGNORA O GLOBAL E PROCESSA A LÓGICA ESPECÍFICA
-        const hasParentheses = /\(.*\)/.test(cleanLine);
-        const hasCustomNumbers = /(\d+\s*[xX×])|(\d+\s*cluster)/i.test(cleanLine);
+        // 3. SE O EXERCÍCIO TIVER NÚMEROS PRÓPRIOS (ex: 3x 8-10) OU PARÊNTESES DE TÉCNICA
+        const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
-        if (hasParentheses || hasCustomNumbers) {
+        if (matchX) {
+          let series = matchX[1];
+          let reps = matchX[2] || globalReps;
+
+          // Limpa a quantidade de séries e reps do nome do exercício
+          name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+
+          currentDay.exercicios.push({
+            nome: name,
+            series: series,
+            reps: reps
+          });
+        } else if (/\(.*\)/.test(cleanLine)) {
+          // Se tem parênteses de técnica (ex: (Cluster)), mas sem séries numéricas
           const isCluster = lowerLine.includes('cluster');
           const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
           const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
 
-          let series = "3";
-          let reps = "8-10";
-
-          const matchX = cleanLine.match(/(\d+)\s*[xX×]/);
-          if (matchX) {
-            series = matchX[1];
-          } else {
-            const matchClusterNum = cleanLine.match(/(\d+)\s*cluster/i);
-            if (matchClusterNum) {
-              series = matchClusterNum[1];
-            } else {
-              const matchTrailing = cleanLine.match(/\s+([1-6])$/);
-              if (matchTrailing) {
-                series = matchTrailing[1];
-              } else if (isCluster || isBackoff) {
-                series = "1";
-              }
-            }
-          }
-
-          const matchReps = cleanLine.match(/(\d+[\-\+]\d+|\d+\s*reps)/i);
-          if (matchReps) {
-            reps = matchReps[1];
-          } else if (isMyoReps) {
-            reps = "Myo-Reps";
-          } else if (isCluster && isBackoff) {
-            reps = "Cluster + Back-off";
-          } else if (isCluster) {
-            reps = "Cluster";
-          } else if (isBackoff) {
-            reps = "Back-off";
-          }
-
-          name = name.replace(/\b\d+\s*[xX×]\s*[\d\-\+]*\b/gi, '');
-          name = name.replace(/\b\d+\s*Cluster\b/gi, '');
-          name = name.replace(/\b\d+\s*Back-off\b/gi, '');
-          name = name.replace(/\b\d+\s*Back off\b/gi, '');
-          name = name.replace(/\bCluster\b/gi, '');
-          name = name.replace(/\bBack-off\b/gi, '');
-          name = name.replace(/\bBack off\b/gi, '');
-          name = name.replace(/\bBackoff\b/gi, '');
-          name = name.replace(/\bMyo-Reps\b/gi, '');
-          name = name.replace(/\bMyo reps\b/gi, '');
-          name = name.replace(/\bMyoreps\b/gi, '');
-          name = name.replace(/\b1x\b/gi, '');
-          name = name.replace(/\b2x\b/gi, '');
-          name = name.replace(/\b3x\b/gi, '');
-          name = name.replace(/[\+\-\,\.\/]+/g, ' ');
-          name = name.replace(/\s+([1-6])$/, '');
-          name = name.replace(/\s+/g, ' ').trim();
+          let reps = globalReps;
+          if (isMyoReps) reps = "Myo-Reps";
+          else if (isCluster && isBackoff) reps = "Cluster + Back-off";
+          else if (isCluster) reps = "Cluster";
+          else if (isBackoff) reps = "Back-off";
 
           currentDay.exercicios.push({
-            nome: name || cleanLine,
-            series: series,
+            nome: name,
+            series: (isCluster || isBackoff) ? "1" : globalSeries,
             reps: reps
           });
         } else {
-          // SE NÃO TEM PARÊNTESES NEM NÚMEROS PRÓPRIOS -> APLICA A REGRA GLOBAL ATUAL!
+          // Exercício padrão sem números: usa a regra GLOBAL
           currentDay.exercicios.push({
             nome: name,
             series: globalSeries,
