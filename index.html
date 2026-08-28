@@ -5,13 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Consultoria Esportiva — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({ appId: "149311da-3e88-410f-a9b3-56a098d89b1c" });
-  });
-</script>
 
 <style>
   :root {
@@ -266,7 +259,6 @@
     <div class="header-app">
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
-        <button class="btn-header" onclick="solicitarPermissaoPush()">🔔 Notificações</button>
         <button class="btn-header" onclick="logout()">Sair</button>
       </div>
     </div>
@@ -296,7 +288,7 @@
       <div class="msg msg-ai"><b>Assistente IA:</b> Olá! Sou seu assistente de treino. Como posso te ajudar com a execução dos exercícios ou seu plano hoje?</div>
     </div>
     <div class="chat-input-row">
-      <input type="text" id="chatInput" name="chat-message" class="chat-input" placeholder="Pergunte aqui..." autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" onkeypress="if(event.key==='Enter') sendChatMessage()">
+      <textarea id="chatInput" name="chat-message" rows="1" class="chat-input" placeholder="Pergunte aqui..." autocomplete="one-time-code" data-lpignore="true" data-form-type="other" autocorrect="off" autocapitalize="sentences" spellcheck="true" style="resize:none; height:42px; padding:11px 13px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendChatMessage(); }"></textarea>
       <button class="chat-btn" onclick="sendChatMessage()">Enviar</button>
     </div>
   </div>
@@ -583,297 +575,264 @@
         html += `
           <div class="series-row">
             <span class="series-tag">Série ${s}</span>
-            <input type="number" class="input-field input-log" data-day="${dayIdx}" data-ex="${exIdx}" data-key="${keyLoad}" value="${savedLoad}" placeholder="0" style="width:65px;" oninput="triggerAutoSave()">
+            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" data-day="${dayIdx}" data-ex="${exIdx}" data-key="${keyReps}" value="${savedReps}" placeholder="0" style="width:65px; margin-left:auto;" oninput="triggerAutoSave()">
+            <input type="number" class="input-field input-log" style="width:60px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
       }
 
       html += `</div>`;
-      div.innerHTML += html;
+      div.innerHTML = html;
       container.appendChild(div);
     });
   }
 
-  // AUTO-SAVE COM DEBOUNCE E CONSOLIDAÇÃO SEMANAL DAS CARGAS
-  function triggerAutoSave() {
-    const indicator = document.getElementById('saveIndicator');
-    indicator.style.display = 'block';
+  function scheduleAutoSave(key, value, dayIdx, exIdx) {
+    if (!currentData.logs) currentData.logs = {};
+    currentData.logs[key] = value;
 
-    clearTimeout(autoSaveTimer);
+    if (dayIdx !== undefined && exIdx !== undefined) {
+      calculateAndStoreWeeklyLog(dayIdx, exIdx);
+    }
+
+    const ind = document.getElementById('saveIndicator');
+    ind.style.display = 'block';
+
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
     autoSaveTimer = setTimeout(async () => {
-      await saveLogsAndConsolidateWeekly();
-      indicator.style.display = 'none';
+      try {
+        await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+        });
+        ind.style.display = 'none';
+      } catch (e) {
+        ind.style.display = 'none';
+      }
     }, 1500);
   }
 
-  async function saveLogsAndConsolidateWeekly() {
-    if (!currentData || !loggedUserCode) return;
-    if (!currentData.logs) currentData.logs = {};
+  function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     if (!currentData.weekly_logs) currentData.weekly_logs = {};
+    const keyLog = `${dayIdx}_${exIdx}`;
 
-    const inputs = document.querySelectorAll('#tabTreino input.input-log');
-    const groupedByEx = {};
+    if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
-    inputs.forEach(input => {
-      const key = input.dataset.key;
-      const valor = input.value.trim();
-      const dayIdx = input.dataset.day;
-      const exIdx = input.dataset.ex;
-      const exKey = `${dayIdx}_${exIdx}`;
+    const exObj = currentData.days[dayIdx].exercicios[exIdx];
+    const numSeries = parseInt(exObj.series) || 3;
 
-      currentData.logs[key] = valor;
+    let maxCarga = 0;
+    let totalReps = 0;
+    let seriesPreenchidas = 0;
 
-      if (!groupedByEx[exKey]) groupedByEx[exKey] = { cargas: [], reps: [] };
-      if (key.includes('_c_') && valor !== '') groupedByEx[exKey].cargas.push(parseFloat(valor));
-      if (key.includes('_r_') && valor !== '') groupedByEx[exKey].reps.push(parseFloat(valor));
-    });
+    for (let s = 1; s <= numSeries; s++) {
+      const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+      const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
+      if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
+      if (!isNaN(rVal)) {
+        totalReps += rVal;
+        seriesPreenchidas++;
+      }
+    }
 
-    Object.keys(groupedByEx).forEach(exKey => {
-      const item = groupedByEx[exKey];
-      if (item.cargas.length > 0) {
-        const cargaMax = Math.max(...item.cargas);
-        const repsMed = item.reps.length > 0 ? Math.round(item.reps.reduce((a,b)=>a+b,0) / item.reps.length) : 0;
+    if (maxCarga > 0) {
+      const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "0";
+      const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-        if (!currentData.weekly_logs[exKey]) currentData.weekly_logs[exKey] = [];
+      if (!currentData.weekly_logs[keyLog]) currentData.weekly_logs[keyLog] = [];
 
-        const historico = currentData.weekly_logs[exKey];
-        const indexHoje = historico.findIndex(h => h.data === dataHoje);
+      let hist = currentData.weekly_logs[keyLog];
+      
+      const idxHoje = hist.findIndex(item => item.data === dataHoje);
+      if (idxHoje !== -1) {
+        hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps };
+      } else {
+        hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps });
+      }
 
-        if (indexHoje >= 0) {
-          historico[indexHoje] = { data: dataHoje, cargaMax, repsMed };
-        } else {
-          historico.push({ data: dataHoje, cargaMax, repsMed });
-        }
+      if (hist.length > 4) hist = hist.slice(-4);
+      currentData.weekly_logs[keyLog] = hist;
+    }
+  }
 
-        if (historico.length > 4) historico.shift();
+  function parseMealBlock(text) {
+    if (!text || typeof text !== 'string') return [];
+    
+    const lines = text.split('\n');
+    const items = [];
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('REFEIÇÃO') || trimmed.startsWith('CAFÉ') || trimmed.startsWith('ALMOÇO') || trimmed.startsWith('JANTAR')) return;
+
+      const parts = trimmed.split('|').map(p => p.trim());
+      if (parts.length >= 2) {
+        items.push({
+          nome: parts[0],
+          qtd: parts[1],
+          kcal: parts[2] || '-',
+          ptn: parts[3] || '-',
+          carb: parts[4] || '-',
+          fat: parts[5] || '-'
+        });
+      } else {
+        items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
       }
     });
 
-    try {
-      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
-      });
-    } catch(err) {
-      console.error("Erro no auto-save:", err);
-    }
+    return items;
   }
 
   function setupDiet(refeicoes) {
     const filterContainer = document.getElementById('dietFilterContainer');
-    const list = document.getElementById('mealsList');
+    const mealsContainer = document.getElementById('mealsList');
+
     filterContainer.innerHTML = '';
-    list.innerHTML = '';
+    mealsContainer.innerHTML = '';
 
     if (!refeicoes || refeicoes.length === 0) {
-      list.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Nenhuma dieta cadastrada.</div>';
+      mealsContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Plano alimentar em montagem.</div>';
       return;
     }
 
-    const diasSemanaNomes = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
-    const diaHojeNome = diasSemanaNomes[new Date().getDay()];
+    let parsedBlocks = [];
+    let currentCategory = "DIETA BASE";
 
-    let groups = [];
-    refeicoes.forEach(r => {
-      const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
-      const groupName = matchGroup ? matchGroup[1].trim() : 'Geral';
+    refeicoes.forEach(ref => {
+      let title = ref.titulo || "";
+      if (title.startsWith('[')) {
+        const tagMatch = title.match(/\[(.*?)\]/);
+        if (tagMatch) {
+          currentCategory = tagMatch[1].toUpperCase();
+          title = title.replace(/\[.*?\]/, '').trim();
+        }
+      }
+
+      const rawText = ref.alimentos || "";
+      let daysMatch = rawText.match(/Dias:\s*([^\n]+)/i);
+      let daysText = daysMatch ? daysMatch[1].trim() : "";
+
+      parsedBlocks.push({
+        category: currentCategory,
+        days: daysText,
+        mealTitle: title || "Refeição",
+        items: parseMealBlock(rawText)
+      });
+    });
+
+    const categories = [...new Set(parsedBlocks.map(b => b.category))];
+    activeDietTag = categories[0];
+
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = `diet-filter-btn ${cat === activeDietTag ? 'active' : ''}`;
       
-      let existingGroup = groups.find(g => g.name.toLowerCase() === groupName.toLowerCase());
-      if (!existingGroup) {
-        existingGroup = { name: groupName, daysText: '', isToday: false };
-        groups.push(existingGroup);
-      }
+      const matched = parsedBlocks.find(b => b.category === cat && b.days);
+      const subDays = matched ? matched.days : "";
 
-      const matchDays = (r.alimentos || '' ) + ' ' + (r.titulo || '');
-      const cleanMatch = matchDays.toLowerCase();
-
-      if (cleanMatch.includes('segunda') || cleanMatch.includes('terça') || cleanMatch.includes('quarta') || cleanMatch.includes('quinta') || cleanMatch.includes('sexta') || cleanMatch.includes('sábado') || cleanMatch.includes('domingo')) {
-        if (!existingGroup.daysText) {
-          let extracted = '';
-          if (cleanMatch.includes('segunda')) extracted += 'Seg, ';
-          if (cleanMatch.includes('terça')) extracted += 'Ter, ';
-          if (cleanMatch.includes('quarta')) extracted += 'Qua, ';
-          if (cleanMatch.includes('quinta')) extracted += 'Qui, ';
-          if (cleanMatch.includes('sexta')) extracted += 'Sex, ';
-          if (cleanMatch.includes('sábado')) extracted += 'Sáb, ';
-          if (cleanMatch.includes('domingo')) extracted += 'Dom, ';
-          existingGroup.daysText = extracted.replace(/,\s*$/, '');
-        }
-
-        if (cleanMatch.includes(diaHojeNome)) {
-          existingGroup.isToday = true;
-        }
-      }
+      btn.innerHTML = `<span>${cat}</span>${subDays ? `<small style="font-size:9px; color:var(--gold); opacity:0.8; margin-top:2px;">${subDays}</small>` : ''}`;
+      
+      btn.onclick = () => {
+        document.querySelectorAll('.diet-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeDietTag = cat;
+        renderDietCategory(parsedBlocks, cat);
+      };
+      filterContainer.appendChild(btn);
     });
 
-    if (!activeDietTag || !groups.some(g => g.name === activeDietTag)) {
-      const todayGroup = groups.find(g => g.isToday);
-      activeDietTag = todayGroup ? todayGroup.name : (groups[0] ? groups[0].name : '');
-    }
+    renderDietCategory(parsedBlocks, activeDietTag);
+  }
 
-    if (groups.length > 1) {
-      let filterBtns = '';
-      groups.forEach(g => {
-        const isAlto = g.name.toLowerCase().includes('alto');
-        const isBaixo = g.name.toLowerCase().includes('baixo');
+  function renderDietCategory(blocks, cat) {
+    const container = document.getElementById('mealsList');
+    container.innerHTML = '';
 
-        let icon = '🟢';
-        if (isBaixo) icon = '🔴';
-        else if (!isAlto) icon = '🟡';
+    const filtered = blocks.filter(b => b.category === cat);
 
-        const activeClass = (activeDietTag === g.name) ? 'active' : '';
-        const badgeHoje = g.isToday ? ' <span style="font-size:9px; background:var(--gold); color:#000; padding:1px 4px; border-radius:4px; font-weight:800;">HOJE</span>' : '';
-        const subText = g.daysText ? `(${g.daysText})` : '';
-
-        filterBtns += `
-          <button class="diet-filter-btn ${activeClass}" onclick="setDietFilter('${g.name}')">
-            <span>${icon} ${g.name.toUpperCase()} ${badgeHoje}</span>
-            <span style="font-size:9px; opacity:0.85; font-weight:normal; margin-top:2px;">${subText}</span>
-          </button>
-        `;
-      });
-
-      filterContainer.innerHTML = filterBtns;
-    }
-
-    const filtered = refeicoes.filter(r => {
-      if (groups.length <= 1) return true;
-      const matchGroup = (r.titulo || '').match(/\[(.*?)\]/);
-      const groupName = matchGroup ? matchGroup[1].trim() : 'Geral';
-      return groupName.toLowerCase() === activeDietTag.toLowerCase();
-    });
-
-    filtered.forEach(ref => {
-      const cleanTitle = (ref.titulo || '').replace(/\[.*?\]/g, '').trim();
-      const lines = (ref.alimentos || '').split('\n').filter(Boolean);
-
-      let tableRows = '';
-      let totKcal = 0, totProt = 0, totCarb = 0, totGord = 0;
-
-      lines.forEach(line => {
-        const parts = line.split('|').map(p => p.trim());
-        const alimento = parts[0] || line;
-        const qtd = parts[1] || '-';
-        const kcal = parseInt(parts[2]) || 0;
-        const prot = parseInt(parts[3]) || 0;
-        const carb = parseInt(parts[4]) || 0;
-        const gord = parseInt(parts[5]) || 0;
-
-        totKcal += kcal; totProt += prot; totCarb += carb; totGord += gord;
-
-        tableRows += `
-          <tr>
-            <td>${alimento}</td>
-            <td class="qty">${qtd}</td>
-            <td class="kcal">${kcal || '-'}</td>
-            <td>${prot || '-'}</td>
-            <td>${carb || '-'}</td>
-            <td>${gord || '-'}</td>
-          </tr>
-        `;
-      });
-
+    filtered.forEach(block => {
       const card = document.createElement('div');
       card.className = 'meal-table-card';
-      card.innerHTML = `
-        <div class="meal-header">${cleanTitle}</div>
+
+      let totalKcal = 0, totalPtn = 0, totalCarb = 0, totalFat = 0;
+      let hasMacros = false;
+
+      let tableHtml = `
+        <div class="meal-header">
+          <span>${block.mealTitle}</span>
+        </div>
         <table class="diet-table">
           <thead>
             <tr>
               <th>Alimento</th>
-              <th>Qtd.</th>
-              <th>Kcal</th>
-              <th>Prot</th>
-              <th>Carb</th>
-              <th>Gord</th>
+              <th style="text-align:right;">Qtd</th>
+              <th style="text-align:right;">Kcal</th>
+              <th style="text-align:right;">Ptn</th>
+              <th style="text-align:right;">Carb</th>
+              <th style="text-align:right;">Fat</th>
             </tr>
           </thead>
           <tbody>
-            ${tableRows}
-            <tr class="total-row">
-              <td colspan="2">TOTAL REFEIÇÃO</td>
-              <td>${totKcal || '-'}</td>
-              <td>${totProt || '-'}</td>
-              <td>${totCarb || '-'}</td>
-              <td>${totGord || '-'}</td>
-            </tr>
-          </tbody>
-        </table>
       `;
-      list.appendChild(card);
+
+      block.items.forEach(item => {
+        const k = parseFloat(item.kcal) || 0;
+        const p = parseFloat(item.ptn) || 0;
+        const c = parseFloat(item.carb) || 0;
+        const f = parseFloat(item.fat) || 0;
+
+        if (k > 0 || p > 0 || c > 0 || f > 0) hasMacros = true;
+
+        totalKcal += k; totalPtn += p; totalCarb += c; totalFat += f;
+
+        tableHtml += `
+          <tr>
+            <td><b>${item.nome}</b></td>
+            <td class="qty" style="text-align:right;">${item.qtd}</td>
+            <td class="kcal" style="text-align:right;">${item.kcal}</td>
+            <td style="text-align:right;">${item.ptn}</td>
+            <td style="text-align:right;">${item.carb}</td>
+            <td style="text-align:right;">${item.fat}</td>
+          </tr>
+        `;
+      });
+
+      if (hasMacros) {
+        tableHtml += `
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td style="text-align:right;">-</td>
+            <td style="text-align:right;">${Math.round(totalKcal)}</td>
+            <td style="text-align:right;">${Math.round(totalPtn)}g</td>
+            <td style="text-align:right;">${Math.round(totalCarb)}g</td>
+            <td style="text-align:right;">${Math.round(totalFat)}g</td>
+          </tr>
+        `;
+      }
+
+      tableHtml += `</tbody></table>`;
+      card.innerHTML = tableHtml;
+      container.appendChild(card);
     });
   }
 
-  function setDietFilter(tag) {
-    activeDietTag = tag;
-    setupDiet(currentData.refeicoes || []);
-  }
-
-  function logout() { 
-    localStorage.removeItem('logged_user'); 
-    location.reload();
-  }
-
   function showTab(tab) {
-    document.getElementById('tabTreino').classList.add('hidden');
-    document.getElementById('tabDieta').classList.add('hidden');
-    document.getElementById('tabChat').classList.add('hidden');
-    document.getElementById('tabFeedback').classList.add('hidden');
-    document.getElementById('tabConfig').classList.add('hidden');
+    ['treino', 'dieta', 'chat', 'feedback', 'config'].forEach(t => {
+      const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      if (el) el.classList.add('hidden');
+      if (btn) btn.classList.remove('active');
+    });
 
-    document.getElementById('btnTreino').classList.remove('active');
-    document.getElementById('btnDieta').classList.remove('active');
-    document.getElementById('btnChat').classList.remove('active');
-    document.getElementById('btnFeedback').classList.remove('active');
-    document.getElementById('btnConfig').classList.remove('active');
-
-    if (tab === 'treino') {
-      document.getElementById('tabTreino').classList.remove('hidden');
-      document.getElementById('btnTreino').classList.add('active');
-    } else if (tab === 'dieta') {
-      document.getElementById('tabDieta').classList.remove('hidden');
-      document.getElementById('btnDieta').classList.add('active');
-    } else if (tab === 'chat') {
-      document.getElementById('tabChat').classList.remove('hidden');
-      document.getElementById('btnChat').classList.add('active');
-    } else if (tab === 'feedback') {
-      document.getElementById('tabFeedback').classList.remove('hidden');
-      document.getElementById('btnFeedback').classList.add('active');
-    } else if (tab === 'config') {
-      document.getElementById('tabConfig').classList.remove('hidden');
-      document.getElementById('btnConfig').classList.add('active');
-    }
-  }
-
-  async function alterarSenhaAluno() {
-    const novaSenha = document.getElementById('alunoNovaSenha').value.trim();
-    if (!novaSenha) return alert("Digite a nova senha.");
-
-    if (!currentData) currentData = {};
-    currentData.senha = novaSenha;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
-      });
-
-      if (res.ok) {
-        alert("🎉 Senha alterada com sucesso! O treinador também conseguirá visualizar sua nova senha no painel.");
-        document.getElementById('alunoNovaSenha').value = '';
-      } else {
-        alert("Erro ao salvar nova senha no servidor.");
-      }
-    } catch(e) {
-      alert("Erro de conexão com o servidor.");
-    }
+    const activeTab = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    if (activeTab) activeTab.classList.remove('hidden');
+    if (activeBtn) activeBtn.classList.add('active');
   }
 
   async function sendChatMessage() {
@@ -889,39 +848,54 @@
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          codigo: loggedUserCode, 
-          mensagem: text,
-          contexto: currentData 
-        })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: loggedUserCode, mensagem: text, contexto: currentData })
       });
 
-      const data = await res.json();
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
-    } catch(e) {
-      history.innerHTML += `<div class="msg msg-ai"><b>Assistente IA:</b> Oscilação temporária na IA. Tente novamente em instantes.</div>`;
+      const result = await res.json();
+      history.innerHTML += `<div class="msg msg-ai"><b>IA Assistente:</b> ${result.resposta || "Não foi possível gerar resposta."}</div>`;
+    } catch (e) {
+      history.innerHTML += `<div class="msg msg-ai" style="color:var(--accent);">Erro ao conectar com a IA. Tente novamente.</div>`;
     }
+
     history.scrollTop = history.scrollHeight;
   }
 
   function sendWhatsAppFeedback() {
     const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return alert("Escreva seu feedback antes de enviar.");
+    if (!text) return alert("Digite seu feedback antes de enviar.");
 
-    const studentName = currentData?.clientName || "Aluno";
-    const phone = "5551990169026";
-    const msg = `💬 *Feedback de Treino — ${studentName}*%0A%0A${encodeURIComponent(text)}`;
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+    const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+    const msg = `📱 *RELATÓRIO SEMANAL DO ALUNO*%0A%0A👤 *Aluno:* ${nome}%0A💬 *Relatório:*%0A${encodeURIComponent(text)}`;
+    window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
   }
 
-  function solicitarPermissaoPush() {
-    if (window.OneSignalDeferred) {
-      OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.Notifications.requestPermission();
+  async function alterarSenhaAluno() {
+    const novaSenha = document.getElementById('alunoNovaSenha').value.trim();
+    if (!novaSenha) return alert("Digite uma nova senha.");
+
+    currentData.senha = novaSenha;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
+
+      if (res.ok) {
+        alert("🎉 Senha alterada com sucesso!");
+        document.getElementById('alunoNovaSenha').value = "";
+      }
+    } catch (e) {
+      alert("Erro ao alterar senha.");
     }
+  }
+
+  function logout() {
+    localStorage.removeItem('logged_user');
+    location.href = "index.html";
   }
 </script>
 </body>
