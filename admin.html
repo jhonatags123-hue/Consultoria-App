@@ -277,8 +277,8 @@
         </div>
 
         <div style="display:flex; gap:8px;">
-          <input type="text" id="adminChatInput" name="admin-chat-message" placeholder="Pergunte sobre treinos ou nutrição..." autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="true" onkeypress="if(event.key==='Enter') sendAdminChatMessage()">
-          <button class="btn" style="width:110px;" onclick="sendAdminChatMessage()">Enviar</button>
+          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." autocomplete="one-time-code" data-lpignore="true" data-form-type="other" autocorrect="off" autocapitalize="sentences" spellcheck="true" style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
+          <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
         </div>
       </div>
     </main>
@@ -468,7 +468,6 @@
     }
   }
 
-  // AVALIAÇÃO DE PROGRESSÃO SEMANAL POR EXERCÍCIO
   function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr}x (${repsStr})`;
