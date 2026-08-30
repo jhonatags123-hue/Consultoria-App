@@ -200,7 +200,7 @@
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino por Crossover e modifique o treino B para 1x+cluster">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
             <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
           </div>
         </div>
@@ -208,7 +208,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;Supino Reto 1x+cluster&#10;Tríceps Corda 1x+backoff"></textarea>
+            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;LOWER (TERÇA)&#10;Agachamento 3x 6-8&#10;Mesa Flexora 1x+cluster"></textarea>
           </div>
 
           <div>
@@ -273,7 +273,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;B - LOWER&#10;Agachamento 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
@@ -488,7 +488,7 @@
     const btn = document.getElementById('btnAiCmd');
     const cmd = input.value.trim();
 
-    if (!cmd) return alert("Digite o comando para a IA (ex: 'Substitua o Supino por Crossover e modifique o treino B para 1x+cluster').");
+    if (!cmd) return alert("Digite o comando para a IA.");
 
     const txtOriginal = btn.textContent;
     btn.textContent = "⚡ Modificando...";
@@ -501,7 +501,8 @@
         body: JSON.stringify({
           mensagem: `Você é um assistente de personal trainer.
 Receba o texto de ficha de treino abaixo e aplique a seguinte modificação solicitada pelo treinador: "${cmd}".
-Mantenha exatamente a estrutura do texto (nome dos dias e linhas dos exercícios). Retorne APENAS o novo texto da ficha pronto, sem introduções ou saudações.
+Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A, etc.) deve ficar sozinho na linha do título do dia. Não coloque exercícios junto no título.
+Retorne APENAS o novo texto da ficha pronto, sem introduções ou saudações.
 
 Ficha Atual:
 ${tx.value}`
@@ -802,7 +803,7 @@ ${textoDieta}`
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  /* PARSER INTELIGENTE CORRIGIDO */
+  /* PARSER DEFINITIVO: TRAVAMENTO RIGIDO CONTRA NOMES DE EXERCICIOS NO TITULO */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -813,12 +814,19 @@ ${textoDieta}`
     let globalSeries = "3";
     let globalReps = "8-10";
 
+    // Palavras reservadas que garantem que a linha é um NOME DE EXERCÍCIO e NUNCA um título de dia
+    const exerciseKeywords = ['supino', 'remada', 'puxada', 'elevação', 'elevacao', 'pélvica', 'pelvica', 'flexora', 'extensora', 'rosca', 'tríceps', 'triceps', 'agachamento', 'leg press', 'crucifixo', 'cross', 'desenvolvimento', 'afundo', 'panturrilha', 'stiff', 'terra'];
+
+    // Termos aceitos estritamente como DIVISÃO / DIA DE TREINO
+    const validDivisionRegex = /^(upper|lower|fullbody|push|pull|legs|treino\s+[a-g0-9]|dia\s+[a-g0-9]|[a-g]\s*[\-\:\)]|\b[a-g]\b)/i;
+
     lines.forEach(line => {
       const cleanLine = line.trim();
       if (!cleanLine) return;
 
       const lowerLine = cleanLine.toLowerCase();
 
+      // Configuração global de séries
       if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries')) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
@@ -828,19 +836,20 @@ ${textoDieta}`
         return;
       }
 
+      // Checa se contem algum exercício famoso para PROIBIR de virar dia
+      const isKnownExercise = exerciseKeywords.some(ex => lowerLine.includes(ex));
       const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
-      const isExplicitDayHeader = /^[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
-                                  /^(treino|dia|bloco)\s+[a-g0-9]/i.test(cleanLine) ||
-                                  /^(upper|lower|push|pull|legs)\b/i.test(cleanLine);
 
-      const isDayHeader = !hasWorkoutNumbers && (isExplicitDayHeader || cleanLine.includes('-'));
+      // Linha é DIA DE TREINO se bater com a regex de divisões E NÃO for um exercício conhecido E NÃO tiver repetições/números soltos
+      const isDayHeader = validDivisionRegex.test(cleanLine) && !isKnownExercise && !hasWorkoutNumbers;
 
       if (isDayHeader) {
-        currentDay = { title: cleanLine, exercicios: [] };
+        currentDay = { title: cleanLine.toUpperCase(), exercicios: [] };
         days.push(currentDay);
       } else {
+        // Se ainda não existia nenhum dia criado, cria o Treino A padrão
         if (!currentDay) {
-          currentDay = { title: "Treino A", exercicios: [] };
+          currentDay = { title: "TREINO A", exercicios: [] };
           days.push(currentDay);
         }
 
@@ -919,7 +928,7 @@ ${textoDieta}`
       clientName: nome,
       senha: codigo,
       status_pagamento: 'pago',
-      days: parsedDays.length > 0 ? parsedDays : [{ title: "Treino A", exercicios: [] }],
+      days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
 
