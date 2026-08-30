@@ -68,7 +68,6 @@
   .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
   .item-title { font-weight:800; font-size:15px; color:#fff; flex:1; }
 
-  /* SELETOR DE MODOS/TÉCNICAS PELO ALUNO */
   .mode-select {
     background: #210410; border: 1px solid var(--border); color: var(--gold);
     font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; cursor: pointer;
@@ -111,18 +110,13 @@
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
-
-  .senha-temp-box {
-    background:#170307; border:1px dashed var(--gold); border-radius:10px;
-    padding:14px; margin-top:14px; text-align:center;
-  }
-  .senha-temp-box .valor { font-size:22px; font-weight:800; color:var(--gold); letter-spacing:0.1em; margin-top:4px; }
 </style>
 </head>
 <body>
 
 <div id="saveIndicator" class="save-indicator">💾 Salvando alterações...</div>
 
+<!-- TELA DA ANAMNESE -->
 <div id="anamneseScreen" class="card hidden">
   <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
   <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
@@ -133,9 +127,21 @@
   <div id="stepCounter" class="step-counter">Etapa 1 de 7</div>
 
   <form onsubmit="event.preventDefault();" class="login-box">
+    <!-- ETAPA 1: DADOS PESSOAIS -->
     <div id="anamStep1">
       <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div style="flex:1;">
+          <label class="label-fdb">Data de Nascimento</label>
+          <input type="date" id="anamNascimento" class="input-field" required>
+        </div>
+        <div style="flex:1;">
+          <label class="label-fdb">Idade</label>
+          <input type="number" id="anamIdade" class="input-field" placeholder="Ex: 25" required>
+        </div>
+      </div>
 
       <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
       <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
@@ -159,6 +165,7 @@
       <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
     </div>
 
+    <!-- ETAPA 2: OBJETIVO & MOTIVAÇÃO -->
     <div id="anamStep2" class="hidden">
       <label class="label-fdb">2. O que te motivou a buscar ajuda?</label>
       <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética" required>
@@ -173,6 +180,7 @@
       </div>
     </div>
 
+    <!-- ETAPA 3: HÁBITOS ALIMENTARES -->
     <div id="anamStep3" class="hidden">
       <label class="label-fdb">3. Quantas refeições faz por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4">
@@ -182,6 +190,7 @@
       </div>
     </div>
 
+    <!-- ETAPA 4: ROTINA -->
     <div id="anamStep4" class="hidden">
       <label class="label-fdb">4. Horário de treino e rotina:</label>
       <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: 18h">
@@ -191,6 +200,7 @@
       </div>
     </div>
 
+    <!-- ETAPA 5: ALIMENTOS -->
     <div id="anamStep5" class="hidden">
       <label class="label-fdb">5. Alimentos preferidos / Alergias:</label>
       <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, arroz..."></textarea>
@@ -200,6 +210,7 @@
       </div>
     </div>
 
+    <!-- ETAPA 6: SUPLEMENTOS -->
     <div id="anamStep6" class="hidden">
       <label class="label-fdb">6. Medicamentos ou suplementos em uso:</label>
       <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina">
@@ -209,6 +220,7 @@
       </div>
     </div>
 
+    <!-- ETAPA 7: PLANO E FINALIZAÇÃO -->
     <div id="anamStep7" class="hidden">
       <label class="label-fdb">7. Rotina no final de semana:</label>
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
@@ -245,6 +257,7 @@
   </form>
 </div>
 
+<!-- TELA DE LOGIN -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
   <div class="sub">Acesse sua área exclusiva de aluno</div>
@@ -257,6 +270,7 @@
   <div id="loginError" class="error-msg hidden"></div>
 </div>
 
+<!-- TELA PRINCIPAL (APP DO ALUNO) -->
 <div id="mainContent" class="hidden">
   <div class="card">
     <div class="header-app">
@@ -423,8 +437,11 @@
     }
   }
 
+  /* ENVIO DA ANAMNESE COM TELA FINAL CUSTOMIZADA */
   async function sendAnamneseAppDirect() {
     const nome = document.getElementById('anamNome').value.trim();
+    const nascimento = document.getElementById('anamNascimento').value;
+    const idade = document.getElementById('anamIdade').value.trim();
     const email = document.getElementById('anamEmail').value.trim();
     const cpf = document.getElementById('anamCpf').value.trim();
     const telefone = document.getElementById('anamTelefone').value.trim();
@@ -432,7 +449,9 @@
     const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
     const btn = document.getElementById('btnSubmitAnam');
 
-    if (!nome || !email || !cpf || !telefone) return alert("Preencha nome, e-mail, CPF e WhatsApp.");
+    if (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
+      return alert("Preencha nome, data de nascimento, idade, e-mail, CPF e WhatsApp.");
+    }
 
     btn.textContent = "Processando...";
     btn.disabled = true;
@@ -441,6 +460,8 @@
     const anamneseData = {
       codigo: userCode,
       nome: nome,
+      nascimento: nascimento,
+      idade: idade,
       email: email,
       cpf: cpf,
       tipoConsultoria: tipoConsultoria,
@@ -463,27 +484,39 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(anamneseData)
       });
-      const result = await res.json();
+      await res.json();
 
       const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
 
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        const senhaTemp = result.senhaTemporaria || '';
         document.getElementById('anamneseScreen').innerHTML = `
-          <div style="text-align:center; padding:20px;">
-            <div style="font-size:40px; margin-bottom:10px;">📋✅</div>
-            <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Registrada!</h2>
-            <p style="font-size:13px; color:var(--muted); margin-top:8px;">Realize o Pix para <b>jhonatags123@gmail.com</b> e envie o comprovante no WhatsApp do Personal para liberação do acesso.</p>
-            ${senhaTemp ? `
-            <div class="senha-temp-box">
-              <div style="font-size:12px; color:var(--muted);">Guarde seus dados de acesso — usuário e senha:</div>
-              <div class="valor">@${result.codigo}</div>
-              <div class="valor">${senhaTemp}</div>
-              <div style="font-size:11px; color:var(--muted); margin-top:6px;">Você pode trocar essa senha depois de logar, na aba "Senha".</div>
-            </div>` : ''}
-            <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar ao Início</a>
+          <div style="text-align:center; padding:24px 10px;">
+            <div style="font-size:48px; margin-bottom:12px;">🏆💪</div>
+            <h2 style="font-size:22px; font-weight:800; color:#fff; font-family:'Bebas Neue', sans-serif; letter-spacing:1px;">
+              MUITO OBRIGADO PELA CONFIANÇA!
+            </h2>
+            <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
+              Sua Anamnese foi recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
+            </p>
+
+            <div style="background:#170307; border:1px solid var(--gold); border-radius:12px; padding:16px; margin-top:16px; text-align:left;">
+              <div style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">
+                ⏳ Prazo de Liberação & Treino:
+              </div>
+              <p style="font-size:12.5px; color:var(--text); line-height:1.5;">
+                O seu protocolo personalizado e o seu <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
+              </p>
+            </div>
+
+            <div style="font-size:12px; color:var(--muted); margin-top:14px;">
+              📌 Se efetuou o pagamento via Pix Direto, lembre-se de enviar o comprovante no meu WhatsApp para acelerar a liberação!
+            </div>
+
+            <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
+              📲 FALAR COM O PERSONAL NO WHATSAPP
+            </a>
           </div>
         `;
       }
@@ -560,7 +593,6 @@
     return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
   }
 
-  /* ALTERAÇÃO DO MODO DO EXERCÍCIO PELO PRÓPRIO ALUNO */
   function changeExerciseMode(dayIdx, exIdx, selectedMode) {
     if (!currentData.exercise_modes) currentData.exercise_modes = {};
     currentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
@@ -573,6 +605,7 @@
     }
   }
 
+  /* RENDERIZAÇÃO INTELIGENTE BASEADA NO NÚMERO DE SÉRIES E PERMISSÃO DO ADMIN */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -580,6 +613,9 @@
 
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '');
+
+      let numSeriesPrescritas = parseInt(seriesStr) || 3;
+      if (seriesStr.includes('+')) numSeriesPrescritas = 2;
 
       let defaultMode = 'convencional';
       if (metaText.includes('myo') || seriesStr.toLowerCase().includes('myo')) defaultMode = 'myoreps';
@@ -592,14 +628,32 @@
       const div = document.createElement('div');
       div.className = 'item';
 
+      // VERIFICA SE O PERSONAL LIBEROU A PERMISSÃO PARA ESTE ALUNO NO ADMIN
+      const podeAlterarTecnicas = currentData.permitirTecnicas === true;
+
+      let optionsHtml = '';
+      if (numSeriesPrescritas === 2) {
+        optionsHtml = `
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 2 Séries Convencionais</option>
+          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
+          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 1 Top Set + 1 Back-off</option>
+        `;
+      } else {
+        optionsHtml = `
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 3 Séries Convencionais</option>
+          <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Myo-Reps Protocol</option>
+          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 2 Séries + 1 Back-off</option>
+        `;
+      }
+
+      // Se o personal NÃO liberou, o seletor de modalidades fica oculto (display:none)
+      const selectorStyle = podeAlterarTecnicas ? '' : 'style="display:none;"';
+
       let html = `
         <div class="item-header">
           <div class="item-title">${cleanName}</div>
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 Convencional</option>
-            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
-            <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 Back-off Set</option>
-            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Myo-Reps</option>
+          <select class="mode-select" ${selectorStyle} onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            ${optionsHtml}
           </select>
         </div>
         <div class="series-container">
@@ -661,44 +715,75 @@
         `;
 
       } else if (activeMode === 'backoff') {
-        const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
-        const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
-        const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
-        const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
+        if (numSeriesPrescritas === 2) {
+          const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
+          const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
+          const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
+          const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
 
-        html += `
-          <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
-            <span class="series-tag" style="color:var(--gold); width:110px;">🔥 SÉRIE 1 (TOP):</span>
-            <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-        `;
+          const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
+          const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+          const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+          const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
-        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-        html += `
-          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
-            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">
-              ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA
-            </div>
-            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-              <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 2 (BACK):</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+          html += `
+            <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
+              <span class="series-tag" style="color:var(--gold); width:110px;">🔥 TOP SET:</span>
+              <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
-          </div>
-        `;
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+                <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">kg</span>
+                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">reps</span>
+              </div>
+            </div>
+          `;
+        } else {
+          for (let s = 1; s <= 2; s++) {
+            const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
+            const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
+            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+            const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+
+            html += `
+              <div class="series-row">
+                <span class="series-tag">Série ${s}</span>
+                <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">kg</span>
+                <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">reps</span>
+              </div>
+            `;
+          }
+
+          const keyBoC = `log_c_${dayIdx}_${exIdx}_s3`;
+          const keyBoR = `log_r_${dayIdx}_${exIdx}_s3`;
+          const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+          const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+          html += `
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+                <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 3 (BACK):</span>
+                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">kg</span>
+                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">reps</span>
+              </div>
+            </div>
+          `;
+        }
 
       } else {
-        const numSeries = parseInt(seriesStr) || 3;
-        for (let s = 1; s <= numSeries; s++) {
+        for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
           const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
           const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
