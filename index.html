@@ -48,7 +48,7 @@
   .progress-bar-fill { width:14%; background:linear-gradient(90deg, var(--gold), var(--gold-soft)); height:100%; transition:width 0.3s ease; }
   .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; letter-spacing:0.03em; }
 
-  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .header-app { display:flex; justify-space-between; align-items:center; margin-bottom:8px; }
   .header-app h1 { font-size:22px; text-align:left; }
   .header-actions { display:flex; gap:6px; }
   .menu { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; }
@@ -243,8 +243,8 @@
   <div class="sub">Acesse sua área exclusiva de aluno</div>
   
   <form onsubmit="handleLogin(event)" class="login-box">
-    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário (ex: lucas)" required>
-    <input type="password" id="loginPass" class="input-field" placeholder="Sua senha" required>
+    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário (ex: lucas)" required autocomplete="username">
+    <input type="password" id="loginPass" class="input-field" placeholder="Sua senha" required autocomplete="current-password">
     <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
   </form>
   <div id="loginError" class="error-msg hidden"></div>
@@ -287,7 +287,7 @@
   <div id="tabConfig" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
     <label class="label-fdb">Nova Senha Pessoal</label>
-    <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha...">
+    <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha..." autocomplete="new-password">
     <button class="btn-login btn-gold" style="margin-top:12px;" onclick="alterarSenhaAluno()">💾 SALVAR NOVA SENHA</button>
   </div>
 </div>
@@ -544,7 +544,12 @@
     });
   }
 
-  /* RENDERIZADOR AVANÇADO CORRIGIDO SEM TITULO DUPLICADO E SEM GERENCIADOR DE SENHAS */
+  /* HELPER PARA CAMPOS SEM GERENCIADOR DE SENHAS */
+  function createLogInputAttr(nameKey) {
+    return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
+  }
+
+  /* RENDERIZADOR COM DESVÍNCULO TOTAL DE GERENCIADORES DE SENHAS */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -554,8 +559,7 @@
       const hasBackoff = metaText.includes('back-off') || metaText.includes('backoff') || metaText.includes('back off') || seriesStr.toLowerCase().includes('backoff');
       const isCluster = metaText.includes('cluster') || seriesStr.toLowerCase().includes('cluster');
 
-      // Limpa do nome qualquer tag suja entre parênteses para não duplicar visualmente
-      let cleanName = (ex.nome || '').replace(/\(cluster\+backoff\)|\(cluster\)|\(myo-reps\)|\(back-off\)|\(backoff\)/gi, '').trim();
+      let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
       const div = document.createElement('div');
       div.className = 'item';
@@ -568,7 +572,6 @@
 
       let html = `
         <div class="item-title">${cleanName} ${tagEx}</div>
-        <div class="item-meta">${ex.series} (${ex.reps || '8-10'})</div>
         <div class="series-container">
       `;
 
@@ -587,9 +590,9 @@
         html += `
           <div class="series-row" style="background:#261304; border:1px solid var(--gold);">
             <span class="series-tag" style="color:var(--gold); width:110px;">⚡ ATIVAÇÃO:</span>
-            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--gold); margin:3px 0 5px 4px; font-weight:700;">
@@ -597,14 +600,14 @@
           </div>
           <div class="series-row" style="background:#13060a; border:1px dashed var(--gold);">
             <span class="series-tag" style="color:var(--gold); width:110px;">🔹 MINI BLOCOS:</span>
-            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
 
-      // CASO 2: CLUSTER SET (FORMATO: PESO --- BLOCOS --- REPS DO ÚLTIMO BLOCO)
+      // CASO 2: CLUSTER SET
       } else if (isCluster) {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
@@ -618,13 +621,13 @@
           <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
             <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
             
-            <input type="number" class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
 
-            <input type="text" class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
 
-            <input type="text" class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--green); margin:4px 0 6px 4px; font-weight:700;">
@@ -632,7 +635,6 @@
           </div>
         `;
 
-        // Se tiver Back-off associado ao Cluster:
         if (hasBackoff) {
           const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
           const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
@@ -646,16 +648,16 @@
               </div>
               <div class="series-row" style="background:#140307; border:1px solid var(--border);">
                 <span class="series-tag" style="color:var(--accent); width:75px;">📉 BACK-OFF:</span>
-                <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">kg</span>
-                <input type="text" autocomplete="off" data-lpignore="true" data-form-type="other" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">reps</span>
               </div>
             </div>
           `;
         }
 
-      // CASO 3: BACK-OFF SET ISOLADO (Top Set + Back-off)
+      // CASO 3: BACK-OFF SET ISOLADO
       } else if (hasBackoff) {
         const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
         const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
@@ -665,9 +667,9 @@
         html += `
           <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
             <span class="series-tag" style="color:var(--gold); width:110px;">🔥 SÉRIE 1 (TOP):</span>
-            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
@@ -684,9 +686,9 @@
             </div>
             <div class="series-row" style="background:#140307; border:1px solid var(--border);">
               <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 2 (BACK):</span>
-              <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input type="text" autocomplete="off" data-lpignore="true" data-form-type="other" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
@@ -704,9 +706,9 @@
           html += `
             <div class="series-row">
               <span class="series-tag">Série ${s}</span>
-              <input type="number" class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           `;
