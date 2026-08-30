@@ -65,8 +65,15 @@
   .day-accordion-header:hover { border-color: var(--gold); }
 
   .item { background:#140307; border:1px solid var(--border); border-radius:14px; padding:15px; margin-bottom:12px; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
-  .item-title { font-weight:800; font-size:15px; color:#fff; }
-  .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:3px; margin-bottom:10px; }
+  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
+  .item-title { font-weight:800; font-size:15px; color:#fff; flex:1; }
+
+  /* SELETOR DE MODOS/TÉCNICAS PELO ALUNO */
+  .mode-select {
+    background: #210410; border: 1px solid var(--border); color: var(--gold);
+    font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; cursor: pointer;
+  }
+  .mode-select:focus { outline:none; border-color:var(--gold); }
 
   .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:5px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:nowrap; overflow-x:auto; }
@@ -438,10 +445,15 @@
       cpf: cpf,
       tipoConsultoria: tipoConsultoria,
       telefone: telefone,
+      peso: document.getElementById('anamPeso').value.trim(),
+      altura: document.getElementById('anamAltura').value.trim(),
+      motivacao: document.getElementById('anamMotivacao').value.trim(),
       objetivo: document.getElementById('anamObjetivo').value,
+      numRefeicoes: document.getElementById('anamNumRefeicoes').value.trim(),
       rotina: document.getElementById('anamHorarioTreino').value.trim(),
       gostos: document.getElementById('anamGostos').value.trim(),
       medicamentos: document.getElementById('anamMedicamentos').value.trim(),
+      fimDeSemana: document.getElementById('anamFimDeSemana').value.trim(),
       formaPagamento: formaPagamento
     };
 
@@ -544,39 +556,56 @@
     });
   }
 
-  /* HELPER PARA CAMPOS SEM GERENCIADOR DE SENHAS */
   function createLogInputAttr(nameKey) {
     return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
   }
 
-  /* RENDERIZADOR COM DESVÍNCULO TOTAL DE GERENCIADORES DE SENHAS */
+  /* ALTERAÇÃO DO MODO DO EXERCÍCIO PELO PRÓPRIO ALUNO */
+  function changeExerciseMode(dayIdx, exIdx, selectedMode) {
+    if (!currentData.exercise_modes) currentData.exercise_modes = {};
+    currentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
+
+    const dayBody = document.getElementById(`dayBody_${dayIdx}`);
+    if (dayBody) {
+      dayBody.innerHTML = '';
+      renderExercisesForDay(currentData.days[dayIdx], dayIdx, dayBody);
+      scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
+    }
+  }
+
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
+      const modeKey = `${dayIdx}_${exIdx}`;
+      const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
+
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '');
 
-      const isMyoReps = metaText.includes('myo') || seriesStr.toLowerCase().includes('myo');
-      const hasBackoff = metaText.includes('back-off') || metaText.includes('backoff') || metaText.includes('back off') || seriesStr.toLowerCase().includes('backoff');
-      const isCluster = metaText.includes('cluster') || seriesStr.toLowerCase().includes('cluster');
+      let defaultMode = 'convencional';
+      if (metaText.includes('myo') || seriesStr.toLowerCase().includes('myo')) defaultMode = 'myoreps';
+      else if (metaText.includes('cluster') || seriesStr.toLowerCase().includes('cluster')) defaultMode = 'cluster';
+      else if (metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.toLowerCase().includes('backoff')) defaultMode = 'backoff';
 
+      const activeMode = savedUserMode || defaultMode;
       let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
       const div = document.createElement('div');
       div.className = 'item';
 
-      let tagEx = '';
-      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[MYO-REPS PROTOCOL]</span>';
-      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[CLUSTER + BACK-OFF]</span>';
-      else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px; font-weight:800;">[CLUSTER SET]</span>';
-      else if (hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[BACK-OFF SET]</span>';
-
       let html = `
-        <div class="item-title">${cleanName} ${tagEx}</div>
+        <div class="item-header">
+          <div class="item-title">${cleanName}</div>
+          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 Convencional</option>
+            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
+            <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 Back-off Set</option>
+            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Myo-Reps</option>
+          </select>
+        </div>
         <div class="series-container">
       `;
 
-      // CASO 1: MYO-REPS
-      if (isMyoReps) {
+      if (activeMode === 'myoreps') {
         const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
         const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
         const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
@@ -607,8 +636,7 @@
           </div>
         `;
 
-      // CASO 2: CLUSTER SET
-      } else if (isCluster) {
+      } else if (activeMode === 'cluster') {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
         const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
@@ -620,13 +648,10 @@
         html += `
           <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
             <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
-            
             <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
-
             <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
@@ -635,30 +660,7 @@
           </div>
         `;
 
-        if (hasBackoff) {
-          const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
-          const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
-          const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-          const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-          html += `
-            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
-              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">
-                ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA
-              </div>
-              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-                <span class="series-tag" style="color:var(--accent); width:75px;">📉 BACK-OFF:</span>
-                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">kg</span>
-                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">reps</span>
-              </div>
-            </div>
-          `;
-        }
-
-      // CASO 3: BACK-OFF SET ISOLADO
-      } else if (hasBackoff) {
+      } else if (activeMode === 'backoff') {
         const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
         const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
         const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
@@ -694,7 +696,6 @@
           </div>
         `;
 
-      // CASO 4: TRADICIONAL
       } else {
         const numSeries = parseInt(seriesStr) || 3;
         for (let s = 1; s <= numSeries; s++) {
