@@ -802,7 +802,7 @@ ${textoDieta}`
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  /* PARSER INTELIGENTE COM SUPORTE A MYO-REPS, BACK-OFF E CLUSTER */
+  /* PARSER INTELIGENTE COM ATUALIZAÇÃO REQUISITADA DO MYO-REPS (40s E 15s) */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -854,8 +854,8 @@ ${textoDieta}`
           name = name.replace(/1x\+myoreps|1x\+myo|\(myo-reps\)|\(myoreps\)/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
-            series: "1 + Mini-sets",
-            reps: "Ativação (4-6 reps) + Mini-blocos (2 reps)",
+            series: "1 + Mini-blocos",
+            reps: "Ativação (4-6 reps, 40s desc) + Mini-blocos (2 reps, 15s desc)",
             isTecnico: true,
             tecnicaTipo: "MYO-REPS"
           });
