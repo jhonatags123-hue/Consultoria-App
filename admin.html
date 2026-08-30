@@ -95,6 +95,9 @@
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
   .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
+
+  .senha-row { display:flex; gap:8px; align-items:flex-end; }
+  .senha-row > div:first-child { flex:1; }
 </style>
 </head>
 <body>
@@ -176,7 +179,7 @@
             <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
             <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
               <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔑 Senha: ---</span>
+              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
             </div>
           </div>
           <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
@@ -234,8 +237,14 @@
         <label>Nome Exibido</label>
         <input type="text" id="editName">
 
-        <label>Senha do Aluno (Visualização / Edição Direta)</label>
-        <input type="text" id="editPassword" placeholder="Senha atual do aluno...">
+        <label>Senha do Aluno</label>
+        <div class="senha-row">
+          <div>
+            <input type="text" id="editPassword" placeholder="Deixe em branco para manter a senha atual">
+          </div>
+          <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
+        </div>
+        <p style="font-size:11px; color:var(--muted); margin-top:4px;">Por segurança a senha fica protegida e não é mais exibida em texto puro aqui. Use "Gerar Nova Senha" para criar uma senha temporária e repassar ao aluno.</p>
 
         <label>Status do Pagamento</label>
         <select id="editStatus">
@@ -292,7 +301,14 @@
   let allStudentsList = [];
   let chartInstance = null;
 
+  function authHeaders() {
+    const token = localStorage.getItem('admin_token');
+    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+  }
+
   window.onload = () => {
+    fetch(`${BACKEND_URL}/ping`).catch(() => {});
+
     const token = localStorage.getItem('admin_token');
     if (token) {
       document.getElementById('loginScreen').classList.add('hidden');
@@ -342,13 +358,12 @@
   }
 
   async function fetchAlunos() {
-    const token = localStorage.getItem('admin_token');
     const container = document.getElementById('alunosList');
     container.innerHTML = "Carregando...";
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: authHeaders()
       });
       if (!res.ok) { logoutAdmin(); return; }
       allStudentsList = await res.json();
@@ -388,19 +403,18 @@
 
   async function carregarAluno(code) {
     currentStudentCode = code;
-    const token = localStorage.getItem('admin_token');
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: authHeaders()
       });
       currentStudentData = await res.json();
 
       document.getElementById('studentName').textContent = currentStudentData.clientName || code;
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
-      
-      const senhaAtual = currentStudentData.senha || 'Não definida';
-      document.getElementById('studentPassDisplay').textContent = `🔑 Senha: ${senhaAtual}`;
+
+      // A senha agora fica hasheada no banco — não dá (nem deve) mostrar em texto puro.
+      document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
       const stPill = document.getElementById('studentStatusPill');
       const stVal = currentStudentData.status_pagamento || 'pago';
@@ -409,12 +423,32 @@
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = stVal;
-      document.getElementById('editPassword').value = senhaAtual;
+      document.getElementById('editPassword').value = '';
 
       renderWorkoutView();
       renderDaysSelect();
       loadDietView();
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
+  }
+
+  async function gerarNovaSenhaAluno() {
+    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}? A senha atual deixará de funcionar.`)) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
+        method: 'POST',
+        headers: authHeaders()
+      });
+      const data = await res.json();
+      if (res.ok && data.senhaTemporaria) {
+        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno (ex: pelo WhatsApp). Ele pode trocá-la depois de logar.`);
+      } else {
+        alert("❌ " + (data.error || "Erro ao gerar nova senha."));
+      }
+    } catch (e) {
+      alert("Erro ao conectar ao servidor.");
+    }
   }
 
   function renderWorkoutView() {
@@ -692,17 +726,20 @@
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
       currentStudentData.senha = newPass;
+    } else {
+      // Não altera a senha existente se o campo ficou em branco.
+      delete currentStudentData.senha;
     }
 
     await salvarAlteracoes();
+    document.getElementById('editPassword').value = '';
   }
 
   async function salvarAlteracoes() {
-    const token = localStorage.getItem('admin_token');
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
       });
       if (res.ok) {
@@ -826,15 +863,14 @@
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
 
-    const token = localStorage.getItem('admin_token');
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: authHeaders(),
         body: JSON.stringify({ codigo: codigo, payload: payload })
       });
       if (res.ok) {
-        alert("🎉 Aluno e treino criados com sucesso!");
+        alert(`🎉 Aluno criado! Senha inicial: ${codigo} (peça pra ele trocar no primeiro acesso, ou use "Gerar Nova Senha" depois).`);
         fetchAlunos();
         switchTab('resumo');
       }
@@ -843,10 +879,9 @@
 
   async function deletarAluno() {
     if (!confirm(`Tem certeza que deseja apagar o aluno @${currentStudentCode}?`)) return;
-    const token = localStorage.getItem('admin_token');
     await fetch(`${BACKEND_URL}/api/aluno/${currentStudentCode}`, {
       method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: authHeaders()
     });
     currentStudentCode = "";
     fetchAlunos();
@@ -881,7 +916,7 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({ mensagem: text, contexto: currentStudentData || {} })
       });
 
