@@ -70,7 +70,6 @@
 
   .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:6px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:wrap; }
-  .series-row.tecnica { background:rgba(196,50,79,0.12); border-color:var(--accent); }
   .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; }
   .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
@@ -544,7 +543,7 @@
     });
   }
 
-  /* RENDERIZADOR AVANÇADO CORRIGIDO: CLUSTER SEM TOP SET INÚTIL */
+  /* RENDERIZADOR AVANÇADO CORRIGIDO: CLUSTER EM LINHA ÚNICA + BACK-OFF OPCIONAL */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -569,7 +568,7 @@
         <div class="series-container">
       `;
 
-      // CASO 1: MYO-REPS
+      // CASO 1: MYO-REPS (Série de Ativação + Mini-blocos de 2 reps)
       if (isMyoReps) {
         const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
         const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
@@ -604,32 +603,27 @@
           </div>
         `;
 
-      // CASO 2: CLUSTER SET (PURO OU COM BACK-OFF INTEGRADO)
+      // CASO 2: CLUSTER SET (UMA ÚNICA LINHA SIMPLES + BACK-OFF SE HOUVER)
       } else if (isCluster) {
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cluster`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cluster`;
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+
         html += `
-          <div style="font-size:10px; color:var(--green); margin:2px 0 8px 4px; font-weight:700;">
-            ⏱️ DESCANSO INTRA-SÉRIE: 15 A 20 SEGUNDOS ENTRE CADA BLOCO
+          <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
+            <span class="series-tag" style="color:var(--green); width:115px;">🟢 CLUSTER SET:</span>
+            <input type="number" class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Kg" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input type="text" class="input-field input-log" style="width:90px; border-color:var(--green) !important;" placeholder="Blocos x Reps" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--green); margin:4px 0 6px 4px; font-weight:700;">
+            ⏱️ Descanso de 15s a 20s entre cada bloco.
           </div>
         `;
 
-        for (let b = 1; b <= 4; b++) {
-          const keyClC = `log_c_${dayIdx}_${exIdx}_cl${b}`;
-          const keyClR = `log_r_${dayIdx}_${exIdx}_cl${b}`;
-          const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-          const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-
-          html += `
-            <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.25);">
-              <span class="series-tag" style="color:var(--green); width:135px;">🟢 Bloco Cluster ${b}:</span>
-              <input type="number" class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Kg" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:75px; border-color:var(--green) !important;" placeholder="2-3 reps" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">reps</span>
-            </div>
-          `;
-        }
-
-        // Se tiver Back-off associado ao Cluster:
+        // Se tiver Back-off associado ao Cluster, adiciona apenas uma linha simples abaixo:
         if (hasBackoff) {
           const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
           const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
@@ -637,15 +631,15 @@
           const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
           html += `
-            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:10px; margin-top:8px;">
-              <div style="font-size:11px; font-weight:800; color:#ff6b7f; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
-                ⚠️ <span>BACK-OFF: REDUZIR 20% A 30% DA CARGA DO CLUSTER</span>
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:6px;">
+                ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA DO CLUSTER
               </div>
               <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-                <span class="series-tag" style="color:var(--accent); width:135px;">📉 SÉRIE BACK-OFF:</span>
+                <span class="series-tag" style="color:var(--accent); width:115px;">📉 BACK-OFF:</span>
                 <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">kg</span>
-                <input type="text" class="input-field input-log" style="width:75px; border-color:var(--accent) !important;" placeholder="10-12 reps" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <input type="text" class="input-field input-log" style="width:90px; border-color:var(--accent) !important;" placeholder="10-12 reps" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">reps</span>
               </div>
             </div>
