@@ -544,24 +544,22 @@
     });
   }
 
-  /* RENDERIZADOR INTELIGENTE DE EXERCÍCIOS E SÉRIES COMPOSTAS */
+  /* RENDERIZADOR AVANÇADO: MYO-REPS (4-6 REPS + 4-6 MINI-BLOCOS DE 2 REPS), BACK-OFF E OUTRAS TÉCNICAS */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '');
 
+      const isMyoReps = metaText.includes('myo') || seriesStr.toLowerCase().includes('myo');
+      const hasBackoff = metaText.includes('back-off') || metaText.includes('backoff') || metaText.includes('back off') || seriesStr.toLowerCase().includes('backoff');
       const isCluster = metaText.includes('cluster');
-      const hasBackoff = metaText.includes('back-off') || metaText.includes('back off') || metaText.includes('backoff');
-      const isMyoReps = metaText.includes('myo-reps') || metaText.includes('myo reps') || metaText.includes('myoreps');
-      
-      const isTecnico = ex.isTecnico || seriesStr.includes('+') || isCluster || hasBackoff || isMyoReps;
 
       const div = document.createElement('div');
       div.className = 'item';
 
       let tagEx = '';
-      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[MYO-REPS]</span>';
-      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[CLUSTER + BACK-OFF]</span>';
+      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[MYO-REPS PROTOCOL]</span>';
+      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[TOP SET + BACK-OFF]</span>';
       else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px; font-weight:800;">[CLUSTER SET]</span>';
       else if (hasBackoff) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[BACK-OFF SET]</span>';
 
@@ -571,54 +569,87 @@
         <div class="series-container">
       `;
 
-      if (isTecnico) {
-        // SÉRIE 1: TRABALHO PRINCIPAL (PESADA)
-        const keyLoad1 = `log_c_${dayIdx}_${exIdx}_s1`;
-        const keyReps1 = `log_r_${dayIdx}_${exIdx}_s1`;
-        const savedLoad1 = (currentData.logs && currentData.logs[keyLoad1]) || '';
-        const savedReps1 = (currentData.logs && currentData.logs[keyReps1]) || '';
+      // CASO 1: PROTOCOLO MYO-REPS (Série de Ativação 4-6 reps + 4 a 6 Mini-blocos de 2 reps)
+      if (isMyoReps) {
+        const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
+        const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
+        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
+        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
 
         html += `
-          <div class="series-row">
-            <span class="series-tag" style="color:var(--gold);">Série 1 (Pesada)</span>
-            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad1}" oninput="scheduleAutoSave('${keyLoad1}', this.value, ${dayIdx}, ${exIdx})">
+          <div class="series-row" style="background:#261304; border:1px solid var(--gold);">
+            <span class="series-tag" style="color:var(--gold); width:135px;">⚡ SÉRIE ATIVAÇÃO:</span>
+            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps" value="${savedReps1}" oninput="scheduleAutoSave('${keyReps1}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:75px;" placeholder="4-6 reps" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--gold); margin:4px 0 6px 4px; font-weight:700;">
+            ⏱️ Descanso de 5-10s (3-5 respirações fundas) entre cada mini-bloco:
           </div>
         `;
 
-        // SÉRIE 2: SÉRIE TÉCNICA (CLUSTER / BACK-OFF / MYO-REPS)
-        const keyLoad2 = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyReps2 = `log_r_${dayIdx}_${exIdx}_s2`;
-        const savedLoad2 = (currentData.logs && currentData.logs[keyLoad2]) || '';
-        const savedReps2 = (currentData.logs && currentData.logs[keyReps2]) || '';
+        // 4 a 6 Mini-blocos de 2 reps
+        for (let m = 1; m <= 5; m++) {
+          const keyMbC = `log_c_${dayIdx}_${exIdx}_mb${m}`;
+          const keyMbR = `log_r_${dayIdx}_${exIdx}_mb${m}`;
+          const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
+          const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
 
-        let rotuloTecnico = ex.tecnicaTipo || "Série Técnica";
-        if (!ex.tecnicaTipo) {
-          if (isCluster && hasBackoff) rotuloTecnico = "Cluster+Backoff";
-          else if (isCluster) rotuloTecnico = "Cluster Set";
-          else if (hasBackoff) rotuloTecnico = "Back-off Set";
-          else if (isMyoReps) rotuloTecnico = "Myo-Reps";
+          html += `
+            <div class="series-row" style="background:#13060a; border:1px dashed var(--border);">
+              <span class="series-tag" style="color:var(--muted); width:135px;">🔹 Mini-bloco ${m} (2 reps):</span>
+              <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input type="text" class="input-field input-log" style="width:75px;" placeholder="2 reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          `;
         }
 
+      // CASO 2: BACK-OFF SET (Top Set + Redução de 20-30% da carga)
+      } else if (hasBackoff) {
+        const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
+        const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
+        const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
+        const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
+
         html += `
-          <div class="series-row tecnica">
-            <span class="series-tag" style="color:var(--accent);">Série 2 (${rotuloTecnico})</span>
-            <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="Carga" value="${savedLoad2}" oninput="scheduleAutoSave('${keyLoad2}', this.value, ${dayIdx}, ${exIdx})">
+          <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
+            <span class="series-tag" style="color:var(--gold); width:135px;">🔥 SÉRIE 1 (TOP SET):</span>
+            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg Max" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:75px; border-color:var(--accent) !important;" placeholder="Reps" value="${savedReps2}" oninput="scheduleAutoSave('${keyReps2}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:75px;" placeholder="6-8 reps" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
 
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        html += `
+          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px;">
+            <div style="font-size:11px; font-weight:800; color:#ff6b7f; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
+              ⚠️ <span>BACK-OFF: REDUZIR 20% A 30% DA CARGA</span>
+            </div>
+            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+              <span class="series-tag" style="color:var(--accent); width:135px;">📉 SÉRIE 2 (BACK-OFF):</span>
+              <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input type="text" class="input-field input-log" style="width:75px; border-color:var(--accent) !important;" placeholder="10-12 reps" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          </div>
+        `;
+
+      // CASO 3: TRADICIONAL
       } else {
-        // SÉRIES TRADICIONAIS (1x, 2x, 3x, 4x, etc.)
         const numSeries = parseInt(seriesStr) || 3;
         for (let s = 1; s <= numSeries; s++) {
           const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
           const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
-
           const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
           const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
 
