@@ -70,7 +70,8 @@
 
   .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:6px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:wrap; }
-  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:55px; }
+  .series-row.tecnica { background:rgba(196,50,79,0.12); border-color:var(--accent); }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; }
   .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
 
@@ -260,7 +261,6 @@
     <div class="sub" id="billingInfo"></div>
   </div>
 
-  <!-- MENU SEM A GUIA DA IA -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
@@ -310,7 +310,6 @@
   let activeDietTag = "";
   let autoSaveTimer = null;
 
-  // Helper central pra sempre mandar o token do aluno logado junto das chamadas protegidas.
   function authHeaders() {
     const token = localStorage.getItem('aluno_token');
     const headers = { 'Content-Type': 'application/json' };
@@ -545,46 +544,94 @@
     });
   }
 
+  /* RENDERIZADOR INTELIGENTE DE EXERCÍCIOS E SÉRIES COMPOSTAS */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
-      const numSeries = parseInt(ex.series) || 3;
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
+      const seriesStr = String(ex.series || '');
 
       const isCluster = metaText.includes('cluster');
       const hasBackoff = metaText.includes('back-off') || metaText.includes('back off') || metaText.includes('backoff');
       const isMyoReps = metaText.includes('myo-reps') || metaText.includes('myo reps') || metaText.includes('myoreps');
+      
+      const isTecnico = ex.isTecnico || seriesStr.includes('+') || isCluster || hasBackoff || isMyoReps;
 
       const div = document.createElement('div');
       div.className = 'item';
 
       let tagEx = '';
-      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px;">[MYO-REPS]</span>';
-      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER + BACK-OFF]</span>';
-      else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px;">[CLUSTER]</span>';
-      else if (hasBackoff) tagEx = '<span style="color:var(--gold); font-size:10px;">[BACK-OFF]</span>';
+      if (isMyoReps) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[MYO-REPS]</span>';
+      else if (isCluster && hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[CLUSTER + BACK-OFF]</span>';
+      else if (isCluster) tagEx = '<span style="color:var(--green); font-size:10px; font-weight:800;">[CLUSTER SET]</span>';
+      else if (hasBackoff) tagEx = '<span style="color:var(--gold); font-size:10px; font-weight:800;">[BACK-OFF SET]</span>';
 
       let html = `
-        <div class="item-title">${ex.nome}</div>
-        <div class="item-meta">${numSeries}x (${ex.reps || '8-10'}) ${tagEx}</div>
+        <div class="item-title">${ex.nome} ${tagEx}</div>
+        <div class="item-meta">${ex.series}x (${ex.reps || '8-10'})</div>
         <div class="series-container">
       `;
 
-      for (let s = 1; s <= numSeries; s++) {
-        const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
-        const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
-
-        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
-        const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+      if (isTecnico) {
+        // SÉRIE 1: TRABALHO PRINCIPAL (PESADA)
+        const keyLoad1 = `log_c_${dayIdx}_${exIdx}_s1`;
+        const keyReps1 = `log_r_${dayIdx}_${exIdx}_s1`;
+        const savedLoad1 = (currentData.logs && currentData.logs[keyLoad1]) || '';
+        const savedReps1 = (currentData.logs && currentData.logs[keyReps1]) || '';
 
         html += `
           <div class="series-row">
-            <span class="series-tag">Série ${s}</span>
-            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="series-tag" style="color:var(--gold);">Série 1 (Pesada)</span>
+            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad1}" oninput="scheduleAutoSave('${keyLoad1}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="number" class="input-field input-log" style="width:60px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps" value="${savedReps1}" oninput="scheduleAutoSave('${keyReps1}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
+
+        // SÉRIE 2: SÉRIE TÉCNICA (CLUSTER / BACK-OFF / MYO-REPS)
+        const keyLoad2 = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyReps2 = `log_r_${dayIdx}_${exIdx}_s2`;
+        const savedLoad2 = (currentData.logs && currentData.logs[keyLoad2]) || '';
+        const savedReps2 = (currentData.logs && currentData.logs[keyReps2]) || '';
+
+        let rotuloTecnico = ex.tecnicaTipo || "Série Técnica";
+        if (!ex.tecnicaTipo) {
+          if (isCluster && hasBackoff) rotuloTecnico = "Cluster+Backoff";
+          else if (isCluster) rotuloTecnico = "Cluster Set";
+          else if (hasBackoff) rotuloTecnico = "Back-off Set";
+          else if (isMyoReps) rotuloTecnico = "Myo-Reps";
+        }
+
+        html += `
+          <div class="series-row tecnica">
+            <span class="series-tag" style="color:var(--accent);">Série 2 (${rotuloTecnico})</span>
+            <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="Carga" value="${savedLoad2}" oninput="scheduleAutoSave('${keyLoad2}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input type="text" class="input-field input-log" style="width:75px; border-color:var(--accent) !important;" placeholder="Reps" value="${savedReps2}" oninput="scheduleAutoSave('${keyReps2}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+        `;
+
+      } else {
+        // SÉRIES TRADICIONAIS (1x, 2x, 3x, 4x, etc.)
+        const numSeries = parseInt(seriesStr) || 3;
+        for (let s = 1; s <= numSeries; s++) {
+          const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
+          const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
+
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+
+          html += `
+            <div class="series-row">
+              <span class="series-tag">Série ${s}</span>
+              <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          `;
+        }
       }
 
       html += `</div>`;
@@ -627,7 +674,7 @@
     if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
     const exObj = currentData.days[dayIdx].exercicios[exIdx];
-    const numSeries = parseInt(exObj.series) || 3;
+    const numSeries = parseInt(exObj.series) || (exObj.series.includes('+') ? 2 : 3);
 
     let maxCarga = 0;
     let totalReps = 0;
