@@ -200,7 +200,7 @@
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino Reto por Crossover e configure a elevação lateral como 1x+myoreps">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino por Crossover e modifique o treino B para 1x+cluster">
             <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
           </div>
         </div>
@@ -802,7 +802,7 @@ ${textoDieta}`
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  /* PARSER INTELIGENTE COM ATUALIZAÇÃO REQUISITADA DO MYO-REPS (40s E 15s) */
+  /* PARSER INTELIGENTE CORRIGIDO */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -859,14 +859,14 @@ ${textoDieta}`
             isTecnico: true,
             tecnicaTipo: "MYO-REPS"
           });
-        } else if (hasBackoff) {
-          name = name.replace(/1x\+backoff|1x\+back-off|\(back-off\)|\(backoff\)/gi, '').trim();
+        } else if (hasCluster && hasBackoff) {
+          name = name.replace(/1x\+cluster\+backoff|1x\+cluster\+back-off/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
-            series: "1 Top Set + 1 Back-off",
-            reps: "Top Set + Back-off (-20% a 30% carga)",
+            series: "Cluster + Back-off",
+            reps: "Blocos Cluster (20s desc) + Back-off (-20% a 30% carga)",
             isTecnico: true,
-            tecnicaTipo: "BACK-OFF SET"
+            tecnicaTipo: "CLUSTER + BACK-OFF"
           });
         } else if (hasCluster) {
           name = name.replace(/1x\+cluster|\(cluster\)/gi, '').trim();
@@ -876,6 +876,15 @@ ${textoDieta}`
             reps: "Blocos de 2-3 reps (20s descanso intra-série)",
             isTecnico: true,
             tecnicaTipo: "CLUSTER SET"
+          });
+        } else if (hasBackoff) {
+          name = name.replace(/1x\+backoff|1x\+back-off|\(back-off\)|\(backoff\)/gi, '').trim();
+          currentDay.exercicios.push({
+            nome: name,
+            series: "1 Top Set + 1 Back-off",
+            reps: "Top Set + Back-off (-20% a 30% carga)",
+            isTecnico: true,
+            tecnicaTipo: "BACK-OFF SET"
           });
         } else {
           const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
