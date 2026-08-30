@@ -544,7 +544,7 @@
     });
   }
 
-  /* RENDERIZADOR AVANÇADO: PESO --- BLOCOS --- REPS DO ÚLTIMO BLOCO */
+  /* RENDERIZADOR AVANÇADO CORRIGIDO SEM TITULO DUPLICADO E SEM GERENCIADOR DE SENHAS */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -553,6 +553,9 @@
       const isMyoReps = metaText.includes('myo') || seriesStr.toLowerCase().includes('myo');
       const hasBackoff = metaText.includes('back-off') || metaText.includes('backoff') || metaText.includes('back off') || seriesStr.toLowerCase().includes('backoff');
       const isCluster = metaText.includes('cluster') || seriesStr.toLowerCase().includes('cluster');
+
+      // Limpa do nome qualquer tag suja entre parênteses para não duplicar visualmente
+      let cleanName = (ex.nome || '').replace(/\(cluster\+backoff\)|\(cluster\)|\(myo-reps\)|\(back-off\)|\(backoff\)/gi, '').trim();
 
       const div = document.createElement('div');
       div.className = 'item';
@@ -564,7 +567,7 @@
       else if (hasBackoff) tagEx = '<span style="color:var(--accent); font-size:10px; font-weight:800;">[BACK-OFF SET]</span>';
 
       let html = `
-        <div class="item-title">${ex.nome} ${tagEx}</div>
+        <div class="item-title">${cleanName} ${tagEx}</div>
         <div class="item-meta">${ex.series} (${ex.reps || '8-10'})</div>
         <div class="series-container">
       `;
@@ -645,7 +648,7 @@
                 <span class="series-tag" style="color:var(--accent); width:75px;">📉 BACK-OFF:</span>
                 <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">kg</span>
-                <input type="text" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <input type="text" autocomplete="off" data-lpignore="true" data-form-type="other" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">reps</span>
               </div>
             </div>
@@ -683,7 +686,7 @@
               <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 2 (BACK):</span>
               <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input type="text" autocomplete="off" data-lpignore="true" data-form-type="other" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
