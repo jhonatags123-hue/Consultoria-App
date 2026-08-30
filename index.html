@@ -103,6 +103,12 @@
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
+
+  .senha-temp-box {
+    background:#170307; border:1px dashed var(--gold); border-radius:10px;
+    padding:14px; margin-top:14px; text-align:center;
+  }
+  .senha-temp-box .valor { font-size:22px; font-weight:800; color:var(--gold); letter-spacing:0.1em; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -304,6 +310,14 @@
   let activeDietTag = "";
   let autoSaveTimer = null;
 
+  // Helper central pra sempre mandar o token do aluno logado junto das chamadas protegidas.
+  function authHeaders() {
+    const token = localStorage.getItem('aluno_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+  }
+
   window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
@@ -328,7 +342,9 @@
 
     if (loggedUser) {
       try {
-        const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`);
+        const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
+          headers: authHeaders()
+        });
         if (res.ok) {
           const data = await res.json();
           loggedUserCode = loggedUser;
@@ -390,6 +406,7 @@
       }
 
       localStorage.setItem('logged_user', user);
+      localStorage.setItem('aluno_token', result.token);
       loggedUserCode = user;
       loadStudentData(result.data);
     } catch (err) {
@@ -435,17 +452,26 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(anamneseData)
       });
+      const result = await res.json();
 
       const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
 
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
+        const senhaTemp = result.senhaTemporaria || '';
         document.getElementById('anamneseScreen').innerHTML = `
           <div style="text-align:center; padding:20px;">
             <div style="font-size:40px; margin-bottom:10px;">📋✅</div>
             <h2 style="font-size:20px; font-weight:800; color:#fff;">Anamnese Registrada!</h2>
             <p style="font-size:13px; color:var(--muted); margin-top:8px;">Realize o Pix para <b>jhonatags123@gmail.com</b> e envie o comprovante no WhatsApp do Personal para liberação do acesso.</p>
+            ${senhaTemp ? `
+            <div class="senha-temp-box">
+              <div style="font-size:12px; color:var(--muted);">Guarde seus dados de acesso — usuário e senha:</div>
+              <div class="valor">@${result.codigo}</div>
+              <div class="valor">${senhaTemp}</div>
+              <div style="font-size:11px; color:var(--muted); margin-top:6px;">Você pode trocar essa senha depois de logar, na aba "Senha".</div>
+            </div>` : ''}
             <a href="index.html" class="btn-login" style="display:inline-block; margin-top:16px; text-decoration:none;">Voltar ao Início</a>
           </div>
         `;
@@ -584,7 +610,7 @@
       try {
         await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: authHeaders(),
           body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
         });
         ind.style.display = 'none';
@@ -831,7 +857,7 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
 
@@ -846,6 +872,7 @@
 
   function logout() {
     localStorage.removeItem('logged_user');
+    localStorage.removeItem('aluno_token');
     location.href = "index.html";
   }
 </script>
