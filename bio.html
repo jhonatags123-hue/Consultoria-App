@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jhonata Cavalcante — Consultoria de Alta Performance</title>
+
+<!-- Tags para preview quando o link for compartilhado no Instagram/WhatsApp.
+     Troque og:image por um banner dedicado (1200x630) quando tiver um pronto —
+     por ora está usando o print de depoimento como imagem de fallback. -->
+<meta property="og:title" content="Jhonata Cavalcante — Consultoria de Alta Performance">
+<meta property="og:description" content="Metodologia inteligente de treino e nutrição para quebrar platôs e construir um físico denso, forte e funcional.">
+<meta property="og:image" content="depoimento1.jpg">
+<meta property="og:type" content="website">
+<meta name="description" content="Consultoria de treino e nutrição de alta performance com Jhonata Cavalcante.">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -68,6 +78,15 @@
     border-top: 1px dashed var(--border);
     text-shadow: 0 2px 10px rgba(220,170,58,0.3);
   }
+
+  /* Faixa de credibilidade rápida */
+  .trust-row {
+    display: flex; justify-content: center; gap: 18px; margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .trust-item { text-align: center; }
+  .trust-item .num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); line-height: 1; }
+  .trust-item .label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
 
   /* Card de Prova Social / Print de Aluno */
   .proof-card {
@@ -178,6 +197,15 @@
     <span class="slogan-highlight">⚡ BUSCANDO SEMPRE SUA MELHOR VERSÃO ⚡</span>
   </div>
 
+  <!-- FAIXA DE CREDIBILIDADE: preencha com seus números reais -->
+  <!-- Exemplo: <div class="num">3+</div><div class="label">Anos de Experiência</div> -->
+  <!--
+  <div class="trust-row">
+    <div class="trust-item"><div class="num">XX</div><div class="label">Alunos Atendidos</div></div>
+    <div class="trust-item"><div class="num">X+</div><div class="label">Anos de Experiência</div></div>
+  </div>
+  -->
+
 <!-- BLOCO DE PROVA SOCIAL COM O PRINT DO ALUNO -->
   <div class="proof-card">
     <div class="proof-title">💬 Resultado Real de Aluno</div>
@@ -192,8 +220,8 @@
   <!-- CONTAINER DE ABAS -->
   <div class="options-container">
 
-    <!-- ABA 1: CONSULTORIA COMPLETA -->
-    <div class="tab-card" id="cardCompleta">
+    <!-- ABA 1: CONSULTORIA COMPLETA (aberta por padrão — é o plano mais escolhido) -->
+    <div class="tab-card active" id="cardCompleta">
       <div class="tab-header" onclick="toggleTab('Completa')">
         <div>
           <h2>🏆 Consultoria Completa</h2>
@@ -202,7 +230,7 @@
         <span class="tab-icon" id="iconCompleta">▼</span>
       </div>
 
-      <div class="tab-body hidden" id="bodyCompleta">
+      <div class="tab-body" id="bodyCompleta">
         
         <div class="manifesto-text">
           "Uma abordagem inteligente e completa que une a ciência da carga progressiva com o acompanhamento nutricional do seu dia a dia. Aqui você não recebe apenas um plano, recebe o direcionamento para superar um platô atrás do outro."
@@ -241,15 +269,15 @@
           </ul>
         </div>
 
-        <!-- BLOCO CHAMATIVO DE PREÇOS -->
+        <!-- BLOCO CHAMATIVO DE PREÇOS: agora mostra o valor mensal real e destaca a economia anual -->
         <div class="price-highlight-box">
           <span class="tag">⭐ Protocolo Mais Escolhido</span>
-          <div class="price-main">A partir de R$ 85,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
-          <div class="price-sub">Planos Mensal (R$ 150), Trimestral, Semestral e Anual</div>
+          <div class="price-main">R$ 150,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
+          <div class="price-sub">No plano anual sai por R$ 85,00/mês — economize pagando anual</div>
         </div>
 
         <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-action">
-          🚀 PREENCHER ANAMNESE COMPLETA
+          🚀 QUERO COMEÇAR AGORA
         </a>
       </div>
     </div>
@@ -306,12 +334,12 @@
         <!-- BLOCO CHAMATIVO DE PREÇOS -->
         <div class="price-highlight-box">
           <span class="tag">🏋️ Foco em Performance Pura</span>
-          <div class="price-main">A partir de R$ 50,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
-          <div class="price-sub">Plano Mensal (R$ 60), Anual e Pacote para Duplas</div>
+          <div class="price-main">R$ 60,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
+          <div class="price-sub">No plano anual sai por R$ 50,00/mês — economize pagando anual</div>
         </div>
 
         <a href="index.html?modo=anamnese&plano=TREINO_MENSAL" class="btn-action" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307;">
-          🏋️ PREENCHER ANAMNESE DE TREINO
+          🏋️ QUERO ESSE TREINO
         </a>
       </div>
     </div>
