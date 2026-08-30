@@ -69,10 +69,11 @@
   .item-meta { color:var(--gold); font-size:12px; font-weight:700; margin-top:3px; margin-bottom:10px; }
 
   .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
-  .series-row { display:flex; align-items:center; gap:6px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:wrap; }
-  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; }
-  .unit { font-size:10px; color:var(--muted); }
-  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
+  .series-row { display:flex; align-items:center; gap:5px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:nowrap; overflow-x:auto; }
+  .series-row.tecnica { background:rgba(196,50,79,0.12); border-color:var(--accent); }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; flex-shrink:0; }
+  .unit { font-size:10px; color:var(--muted); flex-shrink:0; }
+  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px 4px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
 
   .diet-container { display:flex; flex-direction:column; gap:16px; }
   .diet-filter-row { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; }
@@ -543,7 +544,7 @@
     });
   }
 
-  /* RENDERIZADOR AVANÇADO CORRIGIDO: CLUSTER EM LINHA ÚNICA + BACK-OFF OPCIONAL */
+  /* RENDERIZADOR AVANÇADO: PESO --- BLOCOS --- REPS DO ÚLTIMO BLOCO */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -568,7 +569,7 @@
         <div class="series-container">
       `;
 
-      // CASO 1: MYO-REPS (Série de Ativação + Mini-blocos de 2 reps)
+      // CASO 1: MYO-REPS
       if (isMyoReps) {
         const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
         const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
@@ -582,48 +583,53 @@
 
         html += `
           <div class="series-row" style="background:#261304; border:1px solid var(--gold);">
-            <span class="series-tag" style="color:var(--gold); width:135px;">⚡ SÉRIE ATIVAÇÃO:</span>
-            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="series-tag" style="color:var(--gold); width:110px;">⚡ ATIVAÇÃO:</span>
+            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:75px;" placeholder="4-6 reps" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
-          <div style="font-size:10px; color:var(--gold); margin:4px 0 6px 4px; font-weight:700;">
-            ⏱️ Descanso de 40s após a Série de Ativação.
+          <div style="font-size:10px; color:var(--gold); margin:3px 0 5px 4px; font-weight:700;">
+            ⏱️ Descanso de 40s pós Ativação.
           </div>
           <div class="series-row" style="background:#13060a; border:1px dashed var(--gold);">
-            <span class="series-tag" style="color:var(--gold); width:135px;">🔹 MINI BLOCOS (2 reps):</span>
-            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="series-tag" style="color:var(--gold); width:110px;">🔹 MINI BLOCOS:</span>
+            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps totais" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
-          </div>
-          <div style="font-size:10px; color:var(--muted); margin:4px 0 2px 4px; font-weight:700;">
-            ⏱️ Descanso de 15s entre cada mini bloco até a falha.
           </div>
         `;
 
-      // CASO 2: CLUSTER SET (UMA ÚNICA LINHA SIMPLES + BACK-OFF SE HOUVER)
+      // CASO 2: CLUSTER SET (FORMATO: PESO --- BLOCOS --- REPS DO ÚLTIMO BLOCO)
       } else if (isCluster) {
-        const keyClC = `log_c_${dayIdx}_${exIdx}_cluster`;
-        const keyClR = `log_r_${dayIdx}_${exIdx}_cluster`;
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+
         const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
         const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
 
         html += `
           <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
-            <span class="series-tag" style="color:var(--green); width:115px;">🟢 CLUSTER SET:</span>
-            <input type="number" class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Kg" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
+            
+            <input type="number" class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:90px; border-color:var(--green) !important;" placeholder="Blocos x Reps" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+
+            <input type="text" class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+
+            <input type="text" class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--green); margin:4px 0 6px 4px; font-weight:700;">
-            ⏱️ Descanso de 15s a 20s entre cada bloco.
+            ⏱️ Descanso de 15s a 20s entre blocos.
           </div>
         `;
 
-        // Se tiver Back-off associado ao Cluster, adiciona apenas uma linha simples abaixo:
+        // Se tiver Back-off associado ao Cluster:
         if (hasBackoff) {
           const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
           const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
@@ -631,15 +637,15 @@
           const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
           html += `
-            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px;">
-              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:6px;">
-                ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA DO CLUSTER
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">
+                ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA
               </div>
               <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-                <span class="series-tag" style="color:var(--accent); width:115px;">📉 BACK-OFF:</span>
-                <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="series-tag" style="color:var(--accent); width:75px;">📉 BACK-OFF:</span>
+                <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">kg</span>
-                <input type="text" class="input-field input-log" style="width:90px; border-color:var(--accent) !important;" placeholder="10-12 reps" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <input type="text" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
                 <span class="unit">reps</span>
               </div>
             </div>
@@ -655,10 +661,10 @@
 
         html += `
           <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
-            <span class="series-tag" style="color:var(--gold); width:135px;">🔥 SÉRIE 1 (TOP SET):</span>
-            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg Max" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="series-tag" style="color:var(--gold); width:110px;">🔥 SÉRIE 1 (TOP):</span>
+            <input type="number" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input type="text" class="input-field input-log" style="width:75px;" placeholder="6-8 reps" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
+            <input type="text" class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
@@ -669,15 +675,15 @@
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         html += `
-          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px;">
-            <div style="font-size:11px; font-weight:800; color:#ff6b7f; margin-bottom:6px; display:flex; align-items:center; gap:4px;">
-              ⚠️ <span>BACK-OFF: REDUZIR 20% A 30% DA CARGA</span>
+          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">
+              ⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA
             </div>
             <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-              <span class="series-tag" style="color:var(--accent); width:135px;">📉 SÉRIE 2 (BACK-OFF):</span>
-              <input type="number" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 2 (BACK):</span>
+              <input type="number" class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:75px; border-color:var(--accent) !important;" placeholder="10-12 reps" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input type="text" class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
@@ -695,9 +701,9 @@
           html += `
             <div class="series-row">
               <span class="series-tag">Série ${s}</span>
-              <input type="number" class="input-field input-log" style="width:65px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <input type="number" class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <input type="text" class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           `;
