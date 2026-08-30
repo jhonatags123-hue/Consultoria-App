@@ -223,12 +223,15 @@
 
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Defina as abas com <code>[Carbo ...]</code> e coloque os dias da semana logo abaixo.</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva os alimentos e clique no botão para a IA buscar os macronutrientes na Tabela TACO.</p>
 
         <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="14" placeholder="[Carbo Alto]&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovos Mexidos | 3 un | 210 | 18 | 2 | 14"></textarea>
+        <textarea id="dietTextarea" rows="14" placeholder="REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovo cozido | 3 unidades&#10;Pão Integral | 2 fatias"></textarea>
         
-        <button class="btn" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros com TACO/IA</button>
+          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+        </div>
       </div>
 
       <div id="secCadastro" class="panel-card hidden">
@@ -413,7 +416,6 @@
       document.getElementById('studentName').textContent = currentStudentData.clientName || code;
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
 
-      // A senha agora fica hasheada no banco — não dá (nem deve) mostrar em texto puro.
       document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
       const stPill = document.getElementById('studentStatusPill');
@@ -705,6 +707,48 @@
     tx.value = str.trim();
   }
 
+  async function calcularMacrosComIA() {
+    const tx = document.getElementById('dietTextarea');
+    const btn = document.getElementById('btnCalcTaco');
+    const textoDieta = tx.value.trim();
+
+    if (!textoDieta) return alert("Digite os alimentos na caixa de texto primeiro.");
+
+    const txtOriginal = btn.textContent;
+    btn.textContent = "⏳ Calculando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ 
+          mensagem: `Converta este plano alimentar calculando calorias e macronutrientes exatos baseados na Tabela TACO/TBCA.
+Format para cada linha do alimento exatamente assim:
+Nome do Alimento | Quantidade | Kcal | Proteína(g) | Carbo(g) | Gordura(g)
+
+Mantenha os títulos das refeições e abas no topo. Retorne APENAS o texto pronto do plano alimentar sem explicações adicionais.
+
+Texto para processar:
+${textoDieta}` 
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.resposta) {
+        tx.value = data.resposta.trim();
+        alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
+      } else {
+        alert("❌ Não foi possível calcular os macros automaticamente.");
+      }
+    } catch(e) {
+      alert("❌ Erro ao conectar à IA para cálculo de macros.");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
   function salvarDieta() {
     const raw = document.getElementById('dietTextarea').value.trim();
     const blocks = raw.split(/\n\s*\n/);
@@ -727,7 +771,6 @@
     if (newPass) {
       currentStudentData.senha = newPass;
     } else {
-      // Não altera a senha existente se o campo ficou em branco.
       delete currentStudentData.senha;
     }
 
@@ -751,7 +794,6 @@
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
-  /* PARSER CORRIGIDO: NUNCA TRANSFORMA EXERCÍCIOS COM SÉRIES/REPS EM DIAS DE TREINO */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -768,7 +810,6 @@
 
       const lowerLine = cleanLine.toLowerCase();
 
-      // 1. Detecta Troca de Regra Global no topo (ex: "GLOBAL: 2x 6-8")
       if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries') || /^\d+\s*x\s*[\d\-\+]+/i.test(cleanLine)) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
@@ -778,10 +819,7 @@
         return;
       }
 
-      // 2. REGRA RIGOROSA PARA CABEÇALHO DE DIA:
-      // Se a linha tem indicação de séries (ex: "3x", "4x") OU repetições (ex: "8-10"), É UM EXERCÍCIO, NÃO UM DIA!
       const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
-      
       const isExplicitDayHeader = /^[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
                                   /^(treino|dia|bloco)\s+[a-g0-9]/i.test(cleanLine) ||
                                   /^(upper|lower|push|pull|legs)\b/i.test(cleanLine);
@@ -799,14 +837,12 @@
 
         let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
 
-        // 3. SE O EXERCÍCIO TIVER NÚMEROS PRÓPRIOS (ex: 3x 8-10) OU PARÊNTESES DE TÉCNICA
         const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
         if (matchX) {
           let series = matchX[1];
           let reps = matchX[2] || globalReps;
 
-          // Limpa a quantidade de séries e reps do nome do exercício
           name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
 
           currentDay.exercicios.push({
@@ -815,7 +851,6 @@
             reps: reps
           });
         } else if (/\(.*\)/.test(cleanLine)) {
-          // Se tem parênteses de técnica (ex: (Cluster)), mas sem séries numéricas
           const isCluster = lowerLine.includes('cluster');
           const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
           const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
@@ -832,7 +867,6 @@
             reps: reps
           });
         } else {
-          // Exercício padrão sem números: usa a regra GLOBAL
           currentDay.exercicios.push({
             nome: name,
             series: globalSeries,
