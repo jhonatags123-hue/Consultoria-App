@@ -195,13 +195,14 @@
         </div>
       </div>
 
+      <!-- EDITOR INTELIGENTE (TEXTO + PREVIEW AO VIVO + COMANDOS IA) -->
       <div id="secTreino" class="panel-card hidden">
         <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino Reto por Crossover e aumente 1 série no tríceps">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino Reto por Crossover e modifique o treino B para 1x+cluster">
             <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
           </div>
         </div>
@@ -209,7 +210,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Voador (Cluster)"></textarea>
+            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Supino Reto 1x+cluster&#10;Desenvolvimento (Cluster + Back-off)"></textarea>
           </div>
 
           <div>
@@ -274,7 +275,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8&#10;Supino Reto 1x+cluster"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
@@ -434,7 +435,6 @@
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
-  // RECONSTRÓI O TEXTO DO TREINO PARA EXIBIR NO EDITOR AO VIVO
   function carregarTreinoNoEditorAoVivo() {
     const tx = document.getElementById('liveWorkoutText');
     if (!currentStudentData.days || currentStudentData.days.length === 0) {
@@ -456,7 +456,6 @@
     atualizarPreviewAoVivo();
   }
 
-  // GERA O PREVIEW FORMATADO ENQUANTO VOCÊ DIGITA
   function atualizarPreviewAoVivo() {
     const raw = document.getElementById('liveWorkoutText').value;
     const container = document.getElementById('liveWorkoutPreview');
@@ -473,8 +472,9 @@
         <b style="color:var(--gold); font-size:13px;">🏋️ ${day.title}</b><br>`;
       
       day.exercicios.forEach(ex => {
+        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${ex.tecnicaTipo}]</span>` : '';
         html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-          <span>• ${ex.nome}</span>
+          <span>• ${ex.nome}${isTecnico}</span>
           <span style="color:var(--muted); font-weight:700;">${ex.series}x (${ex.reps})</span>
         </div>`;
       });
@@ -484,7 +484,6 @@
     });
   }
 
-  // EXECUTA A MODIFICAÇÃO SOLICITADA À IA NO TEXTO DO TREINO
   async function executarComandoIaTreino() {
     const input = document.getElementById('aiWorkoutCommand');
     const tx = document.getElementById('liveWorkoutText');
@@ -805,6 +804,7 @@ ${textoDieta}`
     } catch(e) { alert("Erro ao salvar no servidor."); }
   }
 
+  /* PARSER INTELIGENTE DE TREINO COM SUPORTE A NOTAÇÕES COMPOSTAS (1x+cluster, 1x+backoff) */
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -821,7 +821,8 @@ ${textoDieta}`
 
       const lowerLine = cleanLine.toLowerCase();
 
-      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries') || /^\d+\s*x\s*[\d\-\+]+/i.test(cleanLine)) {
+      // 1. Detecta regra global no topo (ex: GLOBAL: 2x 6-8)
+      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries')) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
           globalSeries = matchGlobal[1];
@@ -830,6 +831,7 @@ ${textoDieta}`
         return;
       }
 
+      // 2. Validação rigorosa de cabeçalhos de dias (A -, B -, Treino A, etc.)
       const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
       const isExplicitDayHeader = /^[a-g](\s*[\-\:\)]\s*.*)?$/i.test(cleanLine) ||
                                   /^(treino|dia|bloco)\s+[a-g0-9]/i.test(cleanLine) ||
@@ -848,41 +850,57 @@ ${textoDieta}`
 
         let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
 
-        const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+        // 3. CAPTURA NOTAÇÕES COMPOSTAS (Ex: 1x+cluster, 1x+backoff, 2x+myoreps ou parênteses avançados)
+        const matchCombo = cleanLine.match(/(\d+)\s*[xX×]\s*\+\s*([a-zA-Z\-]+)/i);
+        const hasClusterInText = lowerLine.includes('cluster');
+        const hasBackoffInText = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
 
-        if (matchX) {
-          let series = matchX[1];
-          let reps = matchX[2] || globalReps;
+        if (matchCombo || (hasClusterInText && hasBackoffInText) || hasClusterInText || hasBackoffInText) {
+          let principalSeries = "1";
+          let principalReps = globalReps;
+          let detalheTecnico = "";
 
-          name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+          if (matchCombo) {
+            principalSeries = matchCombo[1];
+            detalheTecnico = matchCombo[2].toUpperCase();
+            name = name.replace(/(\d+)\s*[xX×]\s*\+\s*([a-zA-Z\-]+)/gi, '').trim();
+          } else if (hasClusterInText && hasBackoffInText) {
+            detalheTecnico = "CLUSTER + BACK-OFF";
+          } else if (hasClusterInText) {
+            detalheTecnico = "CLUSTER SET";
+          } else if (hasBackoffInText) {
+            detalheTecnico = "BACK-OFF SET";
+          }
+
+          // Extrai séries/reps adicionais se presentes na mesma linha
+          const matchRepsNoName = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)/i);
+          if (matchRepsNoName) {
+            principalSeries = matchRepsNoName[1];
+            principalReps = matchRepsNoName[2];
+            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)/gi, '').trim();
+          }
 
           currentDay.exercicios.push({
             nome: name,
-            series: series,
-            reps: reps
+            series: `${principalSeries} + 1`,
+            reps: `${principalReps} (${detalheTecnico || 'Série Técnica'})`,
+            isTecnico: true,
+            tecnicaTipo: detalheTecnico || "CLUSTER"
           });
-        } else if (/\(.*\)/.test(cleanLine)) {
-          const isCluster = lowerLine.includes('cluster');
-          const isBackoff = lowerLine.includes('back-off') || lowerLine.includes('back off') || lowerLine.includes('backoff');
-          const isMyoReps = lowerLine.includes('myo-reps') || lowerLine.includes('myo reps') || lowerLine.includes('myoreps');
 
-          let reps = globalReps;
-          if (isMyoReps) reps = "Myo-Reps";
-          else if (isCluster && isBackoff) reps = "Cluster + Back-off";
-          else if (isCluster) reps = "Cluster";
-          else if (isBackoff) reps = "Back-off";
-
-          currentDay.exercicios.push({
-            nome: name,
-            series: (isCluster || isBackoff) ? "1" : globalSeries,
-            reps: reps
-          });
         } else {
-          currentDay.exercicios.push({
-            nome: name,
-            series: globalSeries,
-            reps: globalReps
-          });
+          // 4. CAPTURA PADRÃO DE EXERCÍCIO NUMÉRICO (Ex: 3x 8-10)
+          const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+
+          if (matchX) {
+            let series = matchX[1];
+            let reps = matchX[2] || globalReps;
+            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+
+            currentDay.exercicios.push({ nome: name, series: series, reps: reps });
+          } else {
+            currentDay.exercicios.push({ nome: name, series: globalSeries, reps: globalReps });
+          }
         }
       }
     });
