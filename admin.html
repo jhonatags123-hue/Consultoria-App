@@ -98,6 +98,11 @@
 
   .senha-row { display:flex; gap:8px; align-items:flex-end; }
   .senha-row > div:first-child { flex:1; }
+
+  /* ESTILOS DO EDITOR INTELIGENTE DUPLO */
+  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
+  @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
+  .preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
 </style>
 </head>
 <body>
@@ -168,7 +173,7 @@
     <main>
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editar Treino</button>
+        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
@@ -191,34 +196,31 @@
       </div>
 
       <div id="secTreino" class="panel-card hidden">
-        <div class="panel-title">🏋️ Gerenciador de Treinos do Aluno</div>
+        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
         
-        <div style="display:flex; gap:8px; margin-bottom:14px;">
-          <input type="text" id="newDayName" placeholder="Ex: Terça - Costas e Bíceps" style="margin-bottom:0;">
-          <button class="btn" style="width:140px;" onclick="addDay()">+ Adicionar Dia</button>
+        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Substitua o Supino Reto por Crossover e aumente 1 série no tríceps">
+            <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
+          </div>
         </div>
 
-        <label>Selecione o Dia para Editar:</label>
-        <select id="selectDay" onchange="loadDayExercises()"></select>
+        <div class="editor-grid">
+          <div>
+            <label>Texto da Ficha (Edite Direto Aqui):</label>
+            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Voador (Cluster)"></textarea>
+          </div>
 
-        <div style="background:#0d0204; border:1px dashed var(--border); padding:14px; border-radius:12px; margin-top:14px;">
-          <label style="margin-top:0;">Novo Exercício:</label>
-          <input type="text" id="exName" placeholder="Ex: Supino Inclinado com Halteres">
-          <div style="display:flex; gap:8px;">
-            <div style="flex:1;">
-              <label>Séries</label>
-              <input type="text" id="exSeries" placeholder="3">
-            </div>
-            <div style="flex:1;">
-              <label>Repetições / Observação</label>
-              <input type="text" id="exReps" placeholder="10-12 (RPE 8)">
+          <div>
+            <label>Preview da Ficha Formatada (Ao Vivo):</label>
+            <div id="liveWorkoutPreview" class="preview-card">
+              <p style="color:var(--muted); font-size:12px;">Digite o treino ao lado para visualizar a ficha montada.</p>
             </div>
           </div>
-          <button class="btn btn-soft" style="margin-top:6px;" onclick="addExercise()">+ Inserir Exercício na Lista</button>
         </div>
 
-        <div id="exerciseList" style="margin-top:16px;"></div>
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarAlteracoes()">💾 SALVAR NO BANCO DE DADOS</button>
+        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA ATUALIZADA NO BANCO</button>
       </div>
 
       <div id="secDieta" class="panel-card hidden">
@@ -247,7 +249,7 @@
           </div>
           <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
         </div>
-        <p style="font-size:11px; color:var(--muted); margin-top:4px;">Por segurança a senha fica protegida e não é mais exibida em texto puro aqui. Use "Gerar Nova Senha" para criar uma senha temporária e repassar ao aluno.</p>
+        <p style="font-size:11px; color:var(--muted); margin-top:4px;">Por segurança a senha fica protegida e não é exibida em texto puro.</p>
 
         <label>Status do Pagamento</label>
         <select id="editStatus">
@@ -272,7 +274,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8&#10;Supino Reto (Máquina ou Barra) 2x 6-8&#10;&#10;B - PUXAR (TERÇA)&#10;Remada Cavalinho 3x 8-10"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="GLOBAL: 2x 6-8&#10;&#10;A - EMPURRAR (SEGUNDA)&#10;Supino com Halteres Inclinado 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
@@ -415,7 +417,6 @@
 
       document.getElementById('studentName').textContent = currentStudentData.clientName || code;
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
-
       document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
       const stPill = document.getElementById('studentStatusPill');
@@ -428,14 +429,112 @@
       document.getElementById('editPassword').value = '';
 
       renderWorkoutView();
-      renderDaysSelect();
+      carregarTreinoNoEditorAoVivo();
       loadDietView();
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
+  // RECONSTRÓI O TEXTO DO TREINO PARA EXIBIR NO EDITOR AO VIVO
+  function carregarTreinoNoEditorAoVivo() {
+    const tx = document.getElementById('liveWorkoutText');
+    if (!currentStudentData.days || currentStudentData.days.length === 0) {
+      tx.value = "";
+      atualizarPreviewAoVivo();
+      return;
+    }
+
+    let text = "";
+    currentStudentData.days.forEach(day => {
+      text += `${day.title}\n`;
+      (day.exercicios || []).forEach(ex => {
+        text += `${ex.nome} ${ex.series}x ${ex.reps}\n`;
+      });
+      text += "\n";
+    });
+
+    tx.value = text.trim();
+    atualizarPreviewAoVivo();
+  }
+
+  // GERA O PREVIEW FORMATADO ENQUANTO VOCÊ DIGITA
+  function atualizarPreviewAoVivo() {
+    const raw = document.getElementById('liveWorkoutText').value;
+    const container = document.getElementById('liveWorkoutPreview');
+    const parsedDays = parseWorkoutText(raw);
+
+    container.innerHTML = "";
+    if (parsedDays.length === 0) {
+      container.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum treino reconhecido.</p>`;
+      return;
+    }
+
+    parsedDays.forEach(day => {
+      let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+        <b style="color:var(--gold); font-size:13px;">🏋️ ${day.title}</b><br>`;
+      
+      day.exercicios.forEach(ex => {
+        html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
+          <span>• ${ex.nome}</span>
+          <span style="color:var(--muted); font-weight:700;">${ex.series}x (${ex.reps})</span>
+        </div>`;
+      });
+
+      html += `</div>`;
+      container.innerHTML += html;
+    });
+  }
+
+  // EXECUTA A MODIFICAÇÃO SOLICITADA À IA NO TEXTO DO TREINO
+  async function executarComandoIaTreino() {
+    const input = document.getElementById('aiWorkoutCommand');
+    const tx = document.getElementById('liveWorkoutText');
+    const btn = document.getElementById('btnAiCmd');
+    const cmd = input.value.trim();
+
+    if (!cmd) return alert("Digite o comando para a IA (ex: 'Substitua agachamento por leg press').");
+
+    const txtOriginal = btn.textContent;
+    btn.textContent = "⚡ Modificando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          mensagem: `Você é um assistente de personal trainer.
+Receba o texto de ficha de treino abaixo e aplique a seguinte modificação solicitada pelo treinador: "${cmd}".
+Mantenha exatamente a estrutura do texto (nome dos dias e linhas dos exercícios). Retorne APENAS o novo texto da ficha pronto, sem introduções ou saudações.
+
+Ficha Atual:
+${tx.value}`
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.resposta) {
+        tx.value = data.resposta.trim();
+        atualizarPreviewAoVivo();
+        input.value = "";
+        alert("✅ Ficha alterada pela IA com sucesso!");
+      }
+    } catch(e) {
+      alert("❌ Erro ao processar comando na IA.");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
+  function salvarTreinoEditado() {
+    const raw = document.getElementById('liveWorkoutText').value;
+    currentStudentData.days = parseWorkoutText(raw);
+    salvarAlteracoes();
+  }
+
   async function gerarNovaSenhaAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}? A senha atual deixará de funcionar.`)) return;
+    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
@@ -444,7 +543,7 @@
       });
       const data = await res.json();
       if (res.ok && data.senhaTemporaria) {
-        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno (ex: pelo WhatsApp). Ele pode trocá-la depois de logar.`);
+        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno.`);
       } else {
         alert("❌ " + (data.error || "Erro ao gerar nova senha."));
       }
@@ -606,94 +705,6 @@
     } else if (tab === 'chatAdmin') {
       document.getElementById('secChatAdmin').classList.remove('hidden');
     }
-  }
-
-  function renderDaysSelect() {
-    const sel = document.getElementById('selectDay');
-    const containerListaDias = document.getElementById('exerciseList');
-    sel.innerHTML = "";
-
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      sel.innerHTML = `<option value="">Nenhum dia cadastrado</option>`;
-      containerListaDias.innerHTML = "<p style='color:var(--muted); font-size:12px;'>Crie um dia de treino acima para começar.</p>";
-      return;
-    }
-
-    (currentStudentData.days || []).forEach((d, i) => {
-      sel.innerHTML += `<option value="${i}">${d.title}</option>`;
-    });
-    loadDayExercises();
-  }
-
-  function loadDayExercises() {
-    const idx = document.getElementById('selectDay').value;
-    const container = document.getElementById('exerciseList');
-    container.innerHTML = "";
-
-    if (!currentStudentData.days || idx === "" || !currentStudentData.days[idx]) return;
-
-    const diaAtual = currentStudentData.days[idx];
-
-    let htmlHeaderDia = `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:#1e050b; border:1px solid var(--accent); padding:10px 14px; border-radius:10px; margin-bottom:14px;">
-        <span style="font-size:13px; font-weight:800; color:#fff;">📅 Gerenciando: <span style="color:var(--gold);">${diaAtual.title}</span></span>
-        <button type="button" class="btn btn-danger" style="width:auto; padding:6px 12px; font-size:11px;" onclick="removerDiaTreino(${idx})">🗑️ Excluir Este Dia</button>
-      </div>
-    `;
-
-    container.innerHTML = htmlHeaderDia;
-
-    if (!diaAtual.exercicios || diaAtual.exercicios.length === 0) {
-      container.innerHTML += `<p style="color:var(--muted); font-size:12px; padding:10px 0;">Nenhum exercício neste dia ainda.</p>`;
-      return;
-    }
-
-    diaAtual.exercicios.forEach((ex, exIdx) => {
-      container.innerHTML += `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:8px; font-size:13px;">
-          <span><b>${ex.nome}</b> — ${ex.series}x (${ex.reps})</span>
-          <button style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:800; font-size:14px;" onclick="removeEx(${idx}, ${exIdx})">✕</button>
-        </div>
-      `;
-    });
-  }
-
-  function removerDiaTreino(dayIdx) {
-    const diaNome = currentStudentData.days[dayIdx].title;
-    if (!confirm(`Tem certeza que deseja apagar todo o "${diaNome}" e seus exercícios?`)) return;
-
-    currentStudentData.days.splice(dayIdx, 1);
-    renderDaysSelect();
-    renderWorkoutView();
-  }
-
-  function addDay() {
-    const title = document.getElementById('newDayName').value.trim();
-    if (!title) return;
-    if (!currentStudentData.days) currentStudentData.days = [];
-    currentStudentData.days.push({ title: title, exercicios: [] });
-    document.getElementById('newDayName').value = "";
-    renderDaysSelect();
-  }
-
-  function addExercise() {
-    const dayIdx = document.getElementById('selectDay').value;
-    const name = document.getElementById('exName').value.trim();
-    const series = document.getElementById('exSeries').value.trim();
-    const reps = document.getElementById('exReps').value.trim();
-
-    if (!name || dayIdx === "") return;
-
-    currentStudentData.days[dayIdx].exercicios.push({ nome: name, series: series, reps: reps });
-    document.getElementById('exName').value = "";
-    document.getElementById('exSeries').value = "";
-    document.getElementById('exReps').value = "";
-    loadDayExercises();
-  }
-
-  function removeEx(dayIdx, exIdx) {
-    currentStudentData.days[dayIdx].exercicios.splice(exIdx, 1);
-    loadDayExercises();
   }
 
   function loadDietView() {
@@ -904,7 +915,7 @@ ${textoDieta}`
         body: JSON.stringify({ codigo: codigo, payload: payload })
       });
       if (res.ok) {
-        alert(`🎉 Aluno criado! Senha inicial: ${codigo} (peça pra ele trocar no primeiro acesso, ou use "Gerar Nova Senha" depois).`);
+        alert(`🎉 Aluno criado! Senha inicial: ${codigo}.`);
         fetchAlunos();
         switchTab('resumo');
       }
