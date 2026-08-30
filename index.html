@@ -70,7 +70,6 @@
 
   .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:6px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:wrap; }
-  .series-row.tecnica { background:rgba(196,50,79,0.12); border-color:var(--accent); }
   .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; }
   .unit { font-size:10px; color:var(--muted); }
   .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
@@ -544,7 +543,7 @@
     });
   }
 
-  /* RENDERIZADOR AVANÇADO: MYO-REPS, BACK-OFF, CLUSTER SETS E SÉRIES TRADICIONAIS */
+  /* RENDERIZADOR AVANÇADO DE EXERCÍCIOS COM ATUALIZAÇÃO REQUISITADA DO MYO-REPS */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
@@ -568,12 +567,17 @@
         <div class="series-container">
       `;
 
-      // CASO 1: PROTOCOLO MYO-REPS (Série de Ativação 4-6 reps + 5 Mini-blocos de 2 reps)
+      // CASO 1: PROTOCOLO MYO-REPS (Série de Ativação + Mini-blocos de 2 reps | 40s pós ativação e 15s entre blocos)
       if (isMyoReps) {
         const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
         const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
         const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
         const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
+
+        const keyMbC = `log_c_${dayIdx}_${exIdx}_mb`;
+        const keyMbR = `log_r_${dayIdx}_${exIdx}_mb`;
+        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
+        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
 
         html += `
           <div class="series-row" style="background:#261304; border:1px solid var(--gold);">
@@ -584,28 +588,21 @@
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--gold); margin:4px 0 6px 4px; font-weight:700;">
-            ⏱️ Descanso de 5-10s (3-5 respirações fundas) entre cada mini-bloco:
+            ⏱️ Descanso de 40s após a Série de Ativação.
+          </div>
+          <div class="series-row" style="background:#13060a; border:1px dashed var(--gold);">
+            <span class="series-tag" style="color:var(--gold); width:135px;">🔹 MINI BLOCOS (2 reps):</span>
+            <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input type="text" class="input-field input-log" style="width:75px;" placeholder="Reps totais" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--muted); margin:4px 0 2px 4px; font-weight:700;">
+            ⏱️ Descanso de 15s entre cada mini bloco até a falha.
           </div>
         `;
 
-        for (let m = 1; m <= 5; m++) {
-          const keyMbC = `log_c_${dayIdx}_${exIdx}_mb${m}`;
-          const keyMbR = `log_r_${dayIdx}_${exIdx}_mb${m}`;
-          const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
-          const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
-
-          html += `
-            <div class="series-row" style="background:#13060a; border:1px dashed var(--border);">
-              <span class="series-tag" style="color:var(--muted); width:135px;">🔹 Mini-bloco ${m} (2 reps):</span>
-              <input type="number" class="input-field input-log" style="width:65px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">kg</span>
-              <input type="text" class="input-field input-log" style="width:75px;" placeholder="2 reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">reps</span>
-            </div>
-          `;
-        }
-
-      // CASO 2: CLUSTER SET (Série dividida em mini-blocos com 20s de descanso intra-série)
+      // CASO 2: CLUSTER SET
       } else if (isCluster) {
         html += `
           <div style="font-size:10px; color:var(--green); margin:2px 0 8px 4px; font-weight:700;">
@@ -630,7 +627,7 @@
           `;
         }
 
-      // CASO 3: BACK-OFF SET (Top Set Pesada + Série Secundária com redução de 20-30% de Carga)
+      // CASO 3: BACK-OFF SET
       } else if (hasBackoff) {
         const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
         const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
