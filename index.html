@@ -437,7 +437,6 @@
     }
   }
 
-  /* ENVIO DA ANAMNESE COM TELA FINAL CUSTOMIZADA */
   async function sendAnamneseAppDirect() {
     const nome = document.getElementById('anamNome').value.trim();
     const nascimento = document.getElementById('anamNascimento').value;
@@ -605,31 +604,39 @@
     }
   }
 
-  /* RENDERIZAÇÃO INTELIGENTE BASEADA NO NÚMERO DE SÉRIES E PERMISSÃO DO ADMIN */
+  /* RENDERIZAÇÃO INTELIGENTE EXERCÍCIO POR EXERCÍCIO */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
       const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
 
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
-      const seriesStr = String(ex.series || '');
+      const seriesStr = String(ex.series || '').toLowerCase();
+
+      // 1. Checa se ESTE exercício específico tem uma técnica fixa prescrevida pelo Personal no Admin
+      const isTecnicaFixaAdmin = ex.isTecnico === true || 
+                                 metaText.includes('myo') || seriesStr.includes('myo') ||
+                                 metaText.includes('cluster') || seriesStr.includes('cluster') ||
+                                 metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
+
+      // 2. Define o modo inicial
+      let defaultMode = 'convencional';
+      if (metaText.includes('myo') || seriesStr.includes('myo')) defaultMode = 'myoreps';
+      else if (metaText.includes('cluster') || seriesStr.includes('cluster')) defaultMode = 'cluster';
+      else if (metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff')) defaultMode = 'backoff';
+
+      // Se for técnica fixa neste exercício, força a técnica do Admin. Se for normal, usa a escolha do aluno.
+      const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
+      let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+
+      // 3. Mostra o seletor SÓ SE o aluno tiver permissão E se ESTE exercício NÃO for técnica fixa
+      const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
 
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
       if (seriesStr.includes('+')) numSeriesPrescritas = 2;
 
-      let defaultMode = 'convencional';
-      if (metaText.includes('myo') || seriesStr.toLowerCase().includes('myo')) defaultMode = 'myoreps';
-      else if (metaText.includes('cluster') || seriesStr.toLowerCase().includes('cluster')) defaultMode = 'cluster';
-      else if (metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.toLowerCase().includes('backoff')) defaultMode = 'backoff';
-
-      const activeMode = savedUserMode || defaultMode;
-      let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-
       const div = document.createElement('div');
       div.className = 'item';
-
-      // VERIFICA SE O PERSONAL LIBEROU A PERMISSÃO PARA ESTE ALUNO NO ADMIN
-      const podeAlterarTecnicas = currentData.permitirTecnicas === true;
 
       let optionsHtml = '';
       if (numSeriesPrescritas === 2) {
@@ -646,8 +653,8 @@
         `;
       }
 
-      // Se o personal NÃO liberou, o seletor de modalidades fica oculto (display:none)
-      const selectorStyle = podeAlterarTecnicas ? '' : 'style="display:none;"';
+      // Oculta o dropdown apenas para o exercício atual se ele for técnica fixa
+      const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
 
       let html = `
         <div class="item-header">
