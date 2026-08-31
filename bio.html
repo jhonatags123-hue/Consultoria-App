@@ -27,7 +27,7 @@
     --green: #25d366;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
-  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar { width:4px; height:4px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
   body {
     background: radial-gradient(800px 500px at 50% 0%, #20050c 0%, #090204 100%);
@@ -74,59 +74,62 @@
   .benefit-item .ico { font-size: 18px; margin-bottom: 4px; }
   .benefit-item .txt { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.2; }
 
-  /* DEPOIMENTOS / PROVA SOCIAL EM GRADE COMPACTA */
   .section-label {
     font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase;
-    letter-spacing: 0.15em; text-align: center; margin: 24px 0 14px; display: flex; align-items: center; gap: 8px; justify-content: center;
+    letter-spacing: 0.15em; text-align: center; margin: 24px 0 12px; display: flex; align-items: center; gap: 8px; justify-content: center;
   }
   .section-label::before, .section-label::after { content: ""; display: block; width: 24px; height: 1px; background: var(--border); }
 
-  .proof-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+  /* CARROSSEL HORIZONTAL DENTRO DA SANFONA */
+  .proof-carousel {
+    display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
   }
   .proof-card {
-    background: var(--card);
+    flex: 0 0 130px;
+    scroll-snap-align: start;
+    background: #140307;
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
   }
   .proof-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     margin-bottom: 6px;
   }
   .testi-badge {
     background: rgba(37,211,102,0.12);
     border: 1px solid rgba(37,211,102,0.35);
     color: var(--green);
-    font-size: 8.5px;
+    font-size: 8px;
     font-weight: 800;
     padding: 2px 6px;
-    border-radius: 12px;
+    border-radius: 10px;
     text-transform: uppercase;
-    white-space: nowrap;
   }
-  .stars { color: var(--gold); font-size: 10px; letter-spacing: 1px; }
+  .stars { color: var(--gold); font-size: 9px; letter-spacing: 1px; }
   .proof-img {
     width: 100%;
-    height: 160px;
+    height: 120px;
     object-fit: cover;
     object-position: top;
-    border-radius: 8px;
+    border-radius: 6px;
     border: 1px solid var(--border);
     display: block;
   }
 
-  /* SELEÇÃO DE PLANOS / MODALIDADES */
+  /* ESTRUTURA DAS ABAS / CARDS */
   .tab-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 16px; }
   .tab-card.active { border-color: var(--gold); box-shadow: 0 10px 30px rgba(220,170,58,0.18); }
   .tab-header {
@@ -195,24 +198,44 @@
     <span class="slogan-highlight">⚡ BUSCANDO SEMPRE SUA MELHOR VERSÃO ⚡</span>
   </div>
 
-  <!-- PROVA SOCIAL / DEPOIMENTOS EM LADO A LADO -->
-  <div class="section-label">Resultados do Time</div>
+  <!-- PROVA SOCIAL / CARD SANFONA COMPACTO -->
+  <div class="section-label">Resultados & Prova Social</div>
 
-  <div class="proof-grid">
-    <div class="proof-card">
-      <div class="proof-header">
-        <span class="testi-badge">✅ Verificado</span>
-        <div class="stars">★★★★★</div>
+  <div class="tab-card" id="cardDepoimentos">
+    <div class="tab-header" onclick="toggleTab('Depoimentos')">
+      <div>
+        <h2 style="font-size: 15px;">⭐ Ver Resultados de Alunos</h2>
+        <span class="subtitle-tag">Clique para abrir os prints de conversas reais no WhatsApp</span>
       </div>
-      <img src="depoimento1.jpg" alt="Resultado Aluno 1" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+1'">
+      <span class="tab-icon" id="iconDepoimentos">▼</span>
     </div>
 
-    <div class="proof-card">
-      <div class="proof-header">
-        <span class="testi-badge">✅ Verificado</span>
-        <div class="stars">★★★★★</div>
+    <div class="tab-body hidden" id="bodyDepoimentos">
+      <div class="proof-carousel">
+        <div class="proof-card">
+          <div class="proof-header">
+            <span class="testi-badge">Verificado</span>
+            <div class="stars">★★★★★</div>
+          </div>
+          <img src="depoimento1.jpg" alt="Resultado Aluno 1" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+1'">
+        </div>
+
+        <div class="proof-card">
+          <div class="proof-header">
+            <span class="testi-badge">Verificado</span>
+            <div class="stars">★★★★★</div>
+          </div>
+          <img src="depoimento2.jpg" alt="Resultado Aluno 2" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+2'">
+        </div>
+
+        <div class="proof-card">
+          <div class="proof-header">
+            <span class="testi-badge">Verificado</span>
+            <div class="stars">★★★★★</div>
+          </div>
+          <img src="depoimento3.jpg" alt="Resultado Aluno 3" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+3'">
+        </div>
       </div>
-      <img src="depoimento2.jpg" alt="Resultado Aluno 2" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+2'">
     </div>
   </div>
 
@@ -226,7 +249,7 @@
         <h2>🏆 1. Consultoria Completa</h2>
         <span class="subtitle-tag">Treino Personalizado + Plano Alimentar</span>
       </div>
-      <span class="tab-icon">▼</span>
+      <span class="tab-icon" id="iconCompleta">▼</span>
     </div>
 
     <div class="tab-body" id="bodyCompleta">
@@ -267,7 +290,7 @@
         <h2>💪 2. Consultoria Apenas Treino</h2>
         <span class="subtitle-tag">Foco em Performance, Cargas & Hipertrofia</span>
       </div>
-      <span class="tab-icon">▼</span>
+      <span class="tab-icon" id="iconTreino">▼</span>
     </div>
 
     <div class="tab-body hidden" id="bodyTreino">
