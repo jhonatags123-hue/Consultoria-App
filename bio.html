@@ -74,24 +74,57 @@
   .benefit-item .ico { font-size: 18px; margin-bottom: 4px; }
   .benefit-item .txt { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.2; }
 
-  /* DEPOIMENTOS / PROVA SOCIAL */
+  /* DEPOIMENTOS / PROVA SOCIAL EM GRADE COMPACTA */
   .section-label {
     font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase;
     letter-spacing: 0.15em; text-align: center; margin: 24px 0 14px; display: flex; align-items: center; gap: 8px; justify-content: center;
   }
   .section-label::before, .section-label::after { content: ""; display: block; width: 24px; height: 1px; background: var(--border); }
 
+  .proof-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
   .proof-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
-    padding: 14px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
-  .proof-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .proof-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
   .testi-badge {
-    background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.35);
-    color: var(--green); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 20px; text-transform: uppercase;
+    background: rgba(37,211,102,0.12);
+    border: 1px solid rgba(37,211,102,0.35);
+    color: var(--green);
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
-  .stars { color: var(--gold); font-size: 12px; letter-spacing: 2px; }
-  .proof-img { width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block; margin-top: 6px; }
+  .stars { color: var(--gold); font-size: 10px; letter-spacing: 1px; }
+  .proof-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    object-position: top;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    display: block;
+  }
 
   /* SELEÇÃO DE PLANOS / MODALIDADES */
   .tab-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 16px; }
@@ -162,23 +195,25 @@
     <span class="slogan-highlight">⚡ BUSCANDO SEMPRE SUA MELHOR VERSÃO ⚡</span>
   </div>
 
-  <!-- PROVA SOCIAL / DEPOIMENTOS -->
+  <!-- PROVA SOCIAL / DEPOIMENTOS EM LADO A LADO -->
   <div class="section-label">Resultados do Time</div>
 
-  <div class="proof-card">
-    <div class="proof-header">
-      <span class="testi-badge">✅ Aluno Verificado</span>
-      <div class="stars">★★★★★</div>
+  <div class="proof-grid">
+    <div class="proof-card">
+      <div class="proof-header">
+        <span class="testi-badge">✅ Verificado</span>
+        <div class="stars">★★★★★</div>
+      </div>
+      <img src="depoimento1.jpg" alt="Resultado Aluno 1" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+1'">
     </div>
-    <img src="depoimento1.jpg" alt="Depoimento 1" class="proof-img" onerror="this.src='https://via.placeholder.com/500x250/180409/dcaa3a?text=Resultado+Aluno+1'">
-  </div>
 
-  <div class="proof-card">
-    <div class="proof-header">
-      <span class="testi-badge">✅ Aluno Verificado</span>
-      <div class="stars">★★★★★</div>
+    <div class="proof-card">
+      <div class="proof-header">
+        <span class="testi-badge">✅ Verificado</span>
+        <div class="stars">★★★★★</div>
+      </div>
+      <img src="depoimento2.jpg" alt="Resultado Aluno 2" class="proof-img" onerror="this.src='https://via.placeholder.com/300x400/180409/dcaa3a?text=Aluno+2'">
     </div>
-    <img src="depoimento2.jpg" alt="Depoimento 2" class="proof-img" onerror="this.src='https://via.placeholder.com/500x250/180409/dcaa3a?text=Resultado+Aluno+2'">
   </div>
 
   <!-- SELEÇÃO DE OPÇÕES: COMPLETA OU SÓ TREINO -->
@@ -188,7 +223,7 @@
   <div class="tab-card active" id="cardCompleta">
     <div class="tab-header" onclick="toggleTab('Completa')">
       <div>
-        <h2>🏆 1. Consultoría Completa</h2>
+        <h2>🏆 1. Consultoria Completa</h2>
         <span class="subtitle-tag">Treino Personalizado + Plano Alimentar</span>
       </div>
       <span class="tab-icon">▼</span>
