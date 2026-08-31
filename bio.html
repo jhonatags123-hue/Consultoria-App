@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jhonata Cavalcante — Consultoria de Alta Performance</title>
 
-<!-- Tags para preview quando o link for compartilhado no Instagram/WhatsApp.
-     Troque og:image por um banner dedicado (1200x630) quando tiver um pronto —
-     por ora está usando o print de depoimento como imagem de fallback. -->
+<!-- Meta Tags para Preview no WhatsApp/Instagram -->
 <meta property="og:title" content="Jhonata Cavalcante — Consultoria de Alta Performance">
-<meta property="og:description" content="Metodologia inteligente de treino e nutrição para quebrar platôs e construir um físico denso, forte e funcional.">
+<meta property="og:description" content="Treino e nutrição inteligente para quebrar platôs e construir um físico denso, forte e definitivo.">
 <meta property="og:image" content="depoimento1.jpg">
 <meta property="og:type" content="website">
-<meta name="description" content="Consultoria de treino e nutrição de alta performance com Jhonata Cavalcante.">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -36,319 +33,241 @@
     background: radial-gradient(800px 500px at 50% 0%, #20050c 0%, #090204 100%);
     color: var(--text);
     font-family: 'Inter', sans-serif;
-    padding: 28px 16px;
-    max-width: 480px;
+    padding: 24px 16px 50px;
+    max-width: 500px;
     margin: 0 auto;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
   }
 
-  /* Headings / Profile */
-  .profile { text-align: center; margin-bottom: 20px; }
+  /* HEADINGS / PROFILE */
+  .profile { text-align: center; margin-bottom: 18px; }
   .profile-badge {
     display: inline-block; background: rgba(220,170,58,0.12); border: 1px solid var(--gold);
     color: var(--gold); font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
     text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 10px;
   }
-  .profile h1 { font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 1.5px; color: #fff; line-height: 1; }
-  .profile p { font-size: 13px; color: var(--gold); font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .profile h1 { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 1.5px; color: #fff; line-height: 1; }
+  .profile p { font-size: 12.5px; color: var(--gold); font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
 
-  /* Subtitle / Positioning Ampliado */
-  .positioning-card {
+  /* HERO & POSICIONAMENTO */
+  .hero-card {
     background: linear-gradient(180deg, rgba(32, 6, 13, 0.95), rgba(21, 5, 8, 0.95));
-    border: 1px solid var(--gold); border-radius: 16px;
-    padding: 20px 18px; text-align: center; margin-bottom: 20px;
-    box-shadow: 0 10px 28px rgba(0,0,0,0.5), inset 0 0 15px rgba(220,170,58,0.08);
+    border: 1px solid var(--gold); border-radius: 20px;
+    padding: 22px 18px; text-align: center; margin-bottom: 20px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5), inset 0 0 15px rgba(220,170,58,0.08);
   }
-  .positioning-text {
-    font-size: 14px; color: #e6d3d6; line-height: 1.6; font-weight: 500;
-  }
-  .positioning-text strong { color: #fff; font-weight: 800; }
-  
-  /* Slogan Assinatura em Destaque */
+  .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: #fff; line-height: 1.1; margin-bottom: 10px; }
+  .hero-title span { color: var(--gold); }
+  .hero-text { font-size: 13.5px; color: #e6d3d6; line-height: 1.55; font-weight: 500; }
   .slogan-highlight {
-    display: block;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 24px;
-    letter-spacing: 1.5px;
-    color: var(--gold);
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--border);
-    text-shadow: 0 2px 10px rgba(220,170,58,0.3);
+    display: block; font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    letter-spacing: 1.5px; color: var(--gold); margin-top: 14px; padding-top: 12px;
+    border-top: 1px dashed var(--border); text-shadow: 0 2px 10px rgba(220,170,58,0.3);
   }
 
-  /* Faixa de credibilidade rápida */
-  .trust-row {
-    display: flex; justify-content: center; gap: 18px; margin-bottom: 20px;
-    flex-wrap: wrap;
+  /* BENEFÍCIOS RÁPIDOS */
+  .benefits-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .benefit-item {
+    background: #140307; border: 1px solid var(--border); border-radius: 12px;
+    padding: 10px; text-align: center;
   }
-  .trust-item { text-align: center; }
-  .trust-item .num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); line-height: 1; }
-  .trust-item .label { font-size: 9.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+  .benefit-item .ico { font-size: 18px; margin-bottom: 4px; }
+  .benefit-item .txt { font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.2; }
 
-  /* Card de Prova Social / Print de Aluno */
-  .proof-card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 16px; margin-bottom: 24px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4); text-align: center;
-  }
-  .proof-title {
-    font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase;
-    letter-spacing: 0.12em; margin-bottom: 6px; display: flex; align-items: center;
-    justify-content: center; gap: 6px;
-  }
-  .proof-img {
-    width: 100%; border-radius: 12px; border: 1px solid var(--border);
-    display: block; margin-top: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.5);
-  }
-
+  /* DEPOIMENTOS / PROVA SOCIAL */
   .section-label {
     font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase;
-    letter-spacing: 0.15em; text-align: center; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; justify-content: center;
+    letter-spacing: 0.15em; text-align: center; margin: 24px 0 14px; display: flex; align-items: center; gap: 8px; justify-content: center;
   }
-  .section-label::before, .section-label::after {
-    content: ""; display: block; width: 24px; height: 1px; background: var(--border);
-  }
+  .section-label::before, .section-label::after { content: ""; display: block; width: 24px; height: 1px; background: var(--border); }
 
-  /* Options Container */
-  .options-container { display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 20px; }
-
-  .tab-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
-    overflow: hidden; transition: all .25s ease;
+  .proof-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 14px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
   }
+  .proof-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .testi-badge {
+    background: rgba(37,211,102,0.12); border: 1px solid rgba(37,211,102,0.35);
+    color: var(--green); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 20px; text-transform: uppercase;
+  }
+  .stars { color: var(--gold); font-size: 12px; letter-spacing: 2px; }
+  .proof-img { width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block; margin-top: 6px; }
+
+  /* SELEÇÃO DE PLANOS / MODALIDADES */
+  .tab-card { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; margin-bottom: 16px; }
   .tab-card.active { border-color: var(--gold); box-shadow: 0 10px 30px rgba(220,170,58,0.18); }
-
   .tab-header {
-    padding: 20px; cursor: pointer; display: flex;
-    justify-content: space-between; align-items: center; user-select: none;
+    padding: 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
     background: linear-gradient(180deg, rgba(30, 6, 13, 0.5), rgba(21, 5, 8, 0.8));
   }
-  .tab-header h2 { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-  .tab-header .subtitle-tag { font-size: 11px; color: var(--gold); font-weight: 600; margin-top: 3px; display: block; }
-  .tab-icon { font-size: 14px; color: var(--gold); transition: transform 0.3s ease; }
+  .tab-header h2 { font-size: 17px; font-weight: 800; color: #fff; }
+  .subtitle-tag { font-size: 11px; color: var(--gold); font-weight: 600; margin-top: 2px; display: block; }
+  .tab-icon { font-size: 12px; color: var(--gold); transition: transform 0.3s ease; }
   .tab-card.active .tab-icon { transform: rotate(180deg); }
 
-  /* Body Content */
-  .tab-body {
-    background: #0d0204; border-top: 1px solid var(--border); padding: 20px;
-    font-size: 13px; color: var(--text); line-height: 1.6;
-  }
+  .tab-body { background: #0d0204; border-top: 1px solid var(--border); padding: 18px; font-size: 12.5px; line-height: 1.6; }
+  .manifesto-text { font-size: 12.5px; color: #e0d0d3; margin-bottom: 14px; border-left: 3px solid var(--accent); padding-left: 10px; font-style: italic; }
 
-  .manifesto-text {
-    font-size: 13px; color: #e0d0d3; line-height: 1.65; margin-bottom: 16px;
-    border-left: 3px solid var(--accent); padding-left: 12px; font-style: italic;
-  }
+  .tech-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 14px; }
+  .tech-pill { background: rgba(196,50,79,0.15); border: 1px solid var(--accent); color: #ff8a9e; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
 
-  .method-block { margin-bottom: 18px; }
-  .method-title { font-size: 12px; font-weight: 800; color: var(--gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
-  
   .feature-list { list-style: none; padding: 0; }
-  .feature-list li { margin-bottom: 10px; display: flex; align-items: flex-start; gap: 10px; font-size: 12.5px; color: var(--text); }
-  .feature-list li .bullet { color: var(--green); font-weight: 800; flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+  .feature-list li { margin-bottom: 8px; display: flex; gap: 8px; font-size: 12px; }
+  .feature-list li .bullet { color: var(--green); font-weight: 800; }
 
-  /* Highlight Pills for Techniques */
-  .tech-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 18px 0; }
-  .tech-pill {
-    background: rgba(196,50,79,0.15); border: 1px solid var(--accent); color: #ff8a9e;
-    font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 6px;
-  }
-
-  /* Price Highlight Box */
-  .price-highlight-box {
+  /* CAIXA DE PREÇO E CTA */
+  .price-box {
     background: linear-gradient(135deg, #21050c, #140307);
-    border: 1px solid var(--gold); border-radius: 14px; padding: 18px;
-    text-align: center; margin-top: 16px; box-shadow: inset 0 0 15px rgba(220,170,58,0.08);
+    border: 1px solid var(--gold); border-radius: 14px; padding: 16px; text-align: center; margin-top: 14px;
   }
-  .price-highlight-box .tag { font-size: 10px; font-weight: 800; color: #000; background: var(--gold); padding: 3px 10px; border-radius: 20px; text-transform: uppercase; display: inline-block; margin-bottom: 8px; letter-spacing: 0.05em; }
-  .price-highlight-box .price-main { font-size: 26px; font-weight: 900; color: #fff; margin: 2px 0; }
-  .price-highlight-box .price-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .price-box .tag { font-size: 9.5px; font-weight: 800; color: #000; background: var(--gold); padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
+  .price-box .price-main { font-size: 26px; font-weight: 900; color: #fff; margin: 4px 0 2px; }
+  .price-box .price-sub { font-size: 10.5px; color: var(--muted); }
 
-  /* Buttons */
   .btn-action {
     width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
     background: linear-gradient(135deg, #34e37a, #1fae55); color: #04210f;
-    font-weight: 800; font-size: 13.5px; text-transform: uppercase; padding: 16px;
+    font-weight: 800; font-size: 13.5px; text-transform: uppercase; padding: 15px;
     border-radius: 12px; text-decoration: none; box-shadow: 0 4px 16px rgba(37,211,102,0.25);
-    margin-top: 16px; transition: transform .15s ease; letter-spacing: 0.03em;
+    margin-top: 14px; letter-spacing: 0.03em;
   }
-  .btn-action:hover { transform: translateY(-1px); }
 
-  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: auto; padding-top: 24px; }
   .hidden { display: none !important; }
+  footer { text-align: center; font-size: 11px; color: var(--muted); margin-top: 30px; }
 </style>
 </head>
 <body>
 
-  <!-- CABEÇALHO DA BIO -->
+  <!-- CABEÇALHO -->
   <div class="profile">
     <span class="profile-badge">Alta Performance Esportiva</span>
     <h1>JHONATA CAVALCANTE</h1>
-    <p>Consultoria de Alta Performance e Hipertrofia</p>
+    <p>Personal Trainer & Nutricionista Esportivo</p>
   </div>
 
-  <!-- CONCEITO / SEGUNDO ESTÁGIO DO FUNIL -->
-  <div class="positioning-card">
-    <div class="positioning-text">
-      Metodologia inteligente baseada em <strong>progressão contínua</strong> e <strong>volume adaptável</strong> para quebrar qualquer platô e construir um físico denso, forte e realmente funcional.
+  <!-- HERO / PROPOSTA IRRESISTÍVEL -->
+  <div class="hero-card">
+    <h2 class="hero-title">TREINO E DIETA<br><span>FEITOS PARA VOCÊ</span></h2>
+    <div class="hero-text">
+      Metodologia baseada em <strong>progressão contínua</strong> para quebrar qualquer platô. Acompanhamento individual no app e suporte direto no WhatsApp.
     </div>
+
+    <div class="benefits-grid">
+      <div class="benefit-item"><div class="ico">🏋️</div><div class="txt">Treino 100% Personalizado</div></div>
+      <div class="benefit-item"><div class="ico">🥗</div><div class="txt">Dieta para o seu Gosto</div></div>
+      <div class="benefit-item"><div class="ico">📱</div><div class="txt">App de Acompanhamento</div></div>
+      <div class="benefit-item"><div class="ico">💬</div><div class="txt">Suporte Direto no Whats</div></div>
+    </div>
+
     <span class="slogan-highlight">⚡ BUSCANDO SEMPRE SUA MELHOR VERSÃO ⚡</span>
   </div>
 
-  <!-- FAIXA DE CREDIBILIDADE: preencha com seus números reais -->
-  <!-- Exemplo: <div class="num">3+</div><div class="label">Anos de Experiência</div> -->
-  <!--
-  <div class="trust-row">
-    <div class="trust-item"><div class="num">XX</div><div class="label">Alunos Atendidos</div></div>
-    <div class="trust-item"><div class="num">X+</div><div class="label">Anos de Experiência</div></div>
-  </div>
-  -->
+  <!-- PROVA SOCIAL / DEPOIMENTOS -->
+  <div class="section-label">Resultados do Time</div>
 
-<!-- BLOCO DE PROVA SOCIAL COM O PRINT DO ALUNO -->
   <div class="proof-card">
-    <div class="proof-title">💬 Resultado Real de Aluno</div>
-    <p style="font-size: 8px; color: var(--muted); margin-top: 2px;">
-      Ganho de massa magra, redução de gordura e acompanhamento de rotina:
-    </p>
-    <img src="depoimento1.jpg" alt="Depoimento de Aluno - Jhonata Personal" class="proof-img">
-    
-  </div>
-  <div class="section-label">Conheça as Modalidades</div>
-
-  <!-- CONTAINER DE ABAS -->
-  <div class="options-container">
-
-    <!-- ABA 1: CONSULTORIA COMPLETA (aberta por padrão — é o plano mais escolhido) -->
-    <div class="tab-card active" id="cardCompleta">
-      <div class="tab-header" onclick="toggleTab('Completa')">
-        <div>
-          <h2>🏆 Consultoria Completa</h2>
-          <span class="subtitle-tag">Treinamento Inteligente + Acompanhamento Nutricional</span>
-        </div>
-        <span class="tab-icon" id="iconCompleta">▼</span>
-      </div>
-
-      <div class="tab-body" id="bodyCompleta">
-        
-        <div class="manifesto-text">
-          "Uma abordagem inteligente e completa que une a ciência da carga progressiva com o acompanhamento nutricional do seu dia a dia. Aqui você não recebe apenas um plano, recebe o direcionamento para superar um platô atrás do outro."
-        </div>
-
-        <div class="method-block">
-          <div class="method-title">🔥 O Método de Treinamento Avançado:</div>
-          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
-            Ajustamos volume, intensidade e densidade para buscar a melhoria a cada sessão de treino.
-          </p>
-          
-          <div class="tech-pills">
-            <span class="tech-pill">Cluster Sets</span>
-            <span class="tech-pill">Back-off Sets</span>
-            <span class="tech-pill">Volume Adaptável</span>
-            <span class="tech-pill">Carga Progressiva</span>
-          </div>
-
-          <ul class="feature-list">
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Sobrecarga Progressiva:</b> Treinos desenhados para você superestimular o músculo e ser melhor a cada treino, construindo densidade real.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Acompanhamento de Rotina:</b> Monitoramento diário do seu desenvolvimento, ajustando o plano de acordo com sua resposta metabólica.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Análise no Aplicativo Exclusivo:</b> Acompanhe visualmente a sua evolução de cargas e performance sessão por sessão.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Suporte Direto:</b> Contato contínuo e acompanhamento constante do seu desenvolvimento.</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- BLOCO CHAMATIVO DE PREÇOS: agora mostra o valor mensal real e destaca a economia anual -->
-        <div class="price-highlight-box">
-          <span class="tag">⭐ Protocolo Mais Escolhido</span>
-          <div class="price-main">R$ 150,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
-          <div class="price-sub">No plano anual sai por R$ 85,00/mês — economize pagando anual</div>
-        </div>
-
-        <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-action">
-          🚀 QUERO COMEÇAR AGORA
-        </a>
-      </div>
+    <div class="proof-header">
+      <span class="testi-badge">✅ Aluno Verificado</span>
+      <div class="stars">★★★★★</div>
     </div>
-
-    <!-- ABA 2: CONSULTORIA DE TREINAMENTO -->
-    <div class="tab-card" id="cardTreino">
-      <div class="tab-header" onclick="toggleTab('Treino')">
-        <div>
-          <h2>💪 Consultoria De Treinamento</h2>
-          <span class="subtitle-tag">Carga Progressiva, Volume Adaptável & Físico Denso</span>
-        </div>
-        <span class="tab-icon" id="iconTreino">▼</span>
-      </div>
-
-      <div class="tab-body hidden" id="bodyTreino">
-        
-        <div class="manifesto-text">
-          "Esqueça os treinos genéricos e a estagnação. Desenvolvemos uma rotina inteligente focada na busca por um corpo forte, funcional e esteticamente denso, garantindo que você nunca mais fique preso no mesmo patamar."
-        </div>
-
-        <div class="method-block">
-          <div class="method-title">⚡ Técnicas Estratégicas Aplicadas:</div>
-          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">
-            Utilização prática de métodos para otimizar o tempo sob tensão e ultrapassar os limites naturais.
-          </p>
-
-          <div class="tech-pills">
-            <span class="tech-pill">Cluster Sets</span>
-            <span class="tech-pill">Back-off Sets</span>
-            <span class="tech-pill">Myo-Reps</span>
-            <span class="tech-pill">Periodização Cíclica</span>
-          </div>
-
-          <ul class="feature-list">
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Carga Progressiva Inteligente:</b> Foco contínuo em ultrapassar suas marcas e evoluir em toda sessão.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Volume Adaptável:</b> Ajustado estrategicamente para a sua capacidade de recuperação e nível de treino.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Métricas e Histórico no App:</b> Análise completa da sua progressão para validar que cada treino é uma versão melhor que a anterior.</span>
-            </li>
-            <li>
-              <span class="bullet">✔</span>
-              <span><b>Quebra de Platôs:</b> Estratégias táticas projetadas para quando os ganhos tradicionais param de funcionar.</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- BLOCO CHAMATIVO DE PREÇOS -->
-        <div class="price-highlight-box">
-          <span class="tag">🏋️ Foco em Performance Pura</span>
-          <div class="price-main">R$ 60,00 <small style="font-size:12px; font-weight:normal; color:var(--muted);">/mês</small></div>
-          <div class="price-sub">No plano anual sai por R$ 50,00/mês — economize pagando anual</div>
-        </div>
-
-        <a href="index.html?modo=anamnese&plano=TREINO_MENSAL" class="btn-action" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307;">
-          🏋️ QUERO ESSE TREINO
-        </a>
-      </div>
-    </div>
-
+    <img src="depoimento1.jpg" alt="Depoimento 1" class="proof-img" onerror="this.src='https://via.placeholder.com/500x250/180409/dcaa3a?text=Resultado+Aluno+1'">
   </div>
 
-  <div style="text-align:center; margin-top:10px;">
-    <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Ouvi%20seu%20recado%20sobre%20a%20metodologia%20de%20treino%20e%20quero%20tirar%20uma%20d%C3%BAvida." target="_blank" style="color:var(--muted); font-size:12px; text-decoration:underline;">
-      Dúvidas sobre o método? Fale diretamente comigo no WhatsApp
+  <div class="proof-card">
+    <div class="proof-header">
+      <span class="testi-badge">✅ Aluno Verificado</span>
+      <div class="stars">★★★★★</div>
+    </div>
+    <img src="depoimento2.jpg" alt="Depoimento 2" class="proof-img" onerror="this.src='https://via.placeholder.com/500x250/180409/dcaa3a?text=Resultado+Aluno+2'">
+  </div>
+
+  <!-- SELEÇÃO DE OPÇÕES: COMPLETA OU SÓ TREINO -->
+  <div class="section-label">Escolha sua Modalidade</div>
+
+  <!-- OPÇÃO 1: CONSULTORIA COMPLETA -->
+  <div class="tab-card active" id="cardCompleta">
+    <div class="tab-header" onclick="toggleTab('Completa')">
+      <div>
+        <h2>🏆 1. Consultoría Completa</h2>
+        <span class="subtitle-tag">Treino Personalizado + Plano Alimentar</span>
+      </div>
+      <span class="tab-icon">▼</span>
+    </div>
+
+    <div class="tab-body" id="bodyCompleta">
+      <div class="manifesto-text">
+        "A união perfeita da ciência do treino com a nutrição adaptada para a sua rotina diária."
+      </div>
+
+      <div class="tech-pills">
+        <span class="tech-pill">Cluster Sets</span>
+        <span class="tech-pill">Back-off Sets</span>
+        <span class="tech-pill">Volume Adaptável</span>
+        <span class="tech-pill">Ciclo de Carbos</span>
+      </div>
+
+      <ul class="feature-list">
+        <li><span class="bullet">✔</span><span><b>Treino Personalizado:</b> Focado em hipertrofia e densidade real.</span></li>
+        <li><span class="bullet">✔</span><span><b>Plano Alimentar:</b> Dieta calculada e ajustada ao seu gosto.</span></li>
+        <li><span class="bullet">✔</span><span><b>Métricas no App:</b> Acompanhe suas cargas e progresso semanal.</span></li>
+        <li><span class="bullet">✔</span><span><b>Suporte no WhatsApp:</b> Dúvidas tiradas diretamente comigo.</span></li>
+      </ul>
+
+      <div class="price-box">
+        <span class="tag">⭐ Protocolo Mais Completo</span>
+        <div class="price-main">R$ 150,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
+        <div class="price-sub">No plano anual sai por R$ 85,00/mês — economize no plano anual</div>
+      </div>
+
+      <a href="index.html?modo=anamnese&plano=COMPLETA_MENSAL" class="btn-action">
+        🚀 QUERO CONSULTORIA COMPLETA
+      </a>
+    </div>
+  </div>
+
+  <!-- OPÇÃO 2: APENAS TREINO -->
+  <div class="tab-card" id="cardTreino">
+    <div class="tab-header" onclick="toggleTab('Treino')">
+      <div>
+        <h2>💪 2. Consultoria Apenas Treino</h2>
+        <span class="subtitle-tag">Foco em Performance, Cargas & Hipertrofia</span>
+      </div>
+      <span class="tab-icon">▼</span>
+    </div>
+
+    <div class="tab-body hidden" id="bodyTreino">
+      <div class="manifesto-text">
+        "Ideal para quem já tem acompanhamento nutricional e busca uma ficha de treino avançada para quebrar platôs."
+      </div>
+
+      <div class="tech-pills">
+        <span class="tech-pill">Myo-Reps</span>
+        <span class="tech-pill">Cluster Sets</span>
+        <span class="tech-pill">Sobrecarga Progressiva</span>
+      </div>
+
+      <ul class="feature-list">
+        <li><span class="bullet">✔</span><span><b>Ficha de Treino Exclusiva:</b> Periodização e técnicas avançadas.</span></li>
+        <li><span class="bullet">✔</span><span><b>Registro no Aplicativo:</b> Histórico de cargas e evolução por exercício.</span></li>
+        <li><span class="bullet">✔</span><span><b>Suporte Técnico:</b> Correção de execução e ajuste de volume.</span></li>
+      </ul>
+
+      <div class="price-box">
+        <span class="tag">🏋️ Foco em Treinamento</span>
+        <div class="price-main">R$ 80,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
+        <div class="price-sub">No plano anual sai por R$ 55,00/mês — economize no plano anual</div>
+      </div>
+
+      <a href="index.html?modo=anamnese&plano=TREINO_MENSAL" class="btn-action" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307;">
+        🏋️ QUERO APENAS O TREINO
+      </a>
+    </div>
+  </div>
+
+  <!-- DUVIDAS WHATSAPP -->
+  <div style="text-align:center; margin-top:20px;">
+    <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Fiquei%20com%20uma%20d%C3%BAvida%20sobre%20as%20modalidades%20de%20consultoria." target="_blank" style="color:var(--muted); font-size:12px; text-decoration:underline;">
+      Dúvidas sobre os planos? Fale comigo no WhatsApp
     </a>
   </div>
 
@@ -360,14 +279,11 @@
     function toggleTab(type) {
       const card = document.getElementById(`card${type}`);
       const body = document.getElementById(`body${type}`);
-      
       const isHidden = body.classList.contains('hidden');
 
-      // Fecha todas as abas
       document.querySelectorAll('.tab-body').forEach(b => b.classList.add('hidden'));
       document.querySelectorAll('.tab-card').forEach(c => c.classList.remove('active'));
 
-      // Se a aba clicada estava fechada, abre ela
       if (isHidden) {
         body.classList.remove('hidden');
         card.classList.add('active');
