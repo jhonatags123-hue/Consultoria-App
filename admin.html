@@ -224,18 +224,17 @@
 
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva os alimentos e clique no botão para a IA buscar os macronutrientes na Tabela TACO.</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição via Tabela TACO.</p>
 
         <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="14" placeholder="REFEIÇÃO 1 - CAFÉ DA MANHÃ&#10;Ovo cozido | 3 unidades&#10;Pão Integral | 2 fatias"></textarea>
+        <textarea id="dietTextarea" rows="16" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
         
         <div style="display:flex; gap:10px; margin-top:12px;">
-          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros com TACO/IA</button>
+          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Substituições (TACO)</button>
           <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
         </div>
       </div>
 
-      <!-- ABA CADASTRO & DADOS ATUALIZADA COM O CAMPO PERMITIR TECNICAS -->
       <div id="secCadastro" class="panel-card hidden">
         <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
         
@@ -257,7 +256,6 @@
           <option value="pendente">🔴 Pendente / Suspenso</option>
         </select>
 
-        <!-- NOVO CAMPO: PERMITIR TÉCNICAS NO APP -->
         <div style="margin-top: 16px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
           <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
           <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
@@ -285,7 +283,7 @@
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;B - LOWER&#10;Agachamento 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto]&#10;Dias: Terça, Sexta, Domingo&#10;&#10;CAFÉ DA MANHÃ&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -436,7 +434,6 @@
       document.getElementById('editStatus').value = stVal;
       document.getElementById('editPassword').value = '';
       
-      // Carrega o estado da permissão de alterar técnicas
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
 
       renderWorkoutView();
@@ -728,6 +725,7 @@ ${tx.value}`
     tx.value = str.trim();
   }
 
+  /* ROTA CORRIGIDA PARA CÁLCULO DE MACROS & TABELA TACO NO ADMIN */
   async function calcularMacrosComIA() {
     const tx = document.getElementById('dietTextarea');
     const btn = document.getElementById('btnCalcTaco');
@@ -740,27 +738,21 @@ ${tx.value}`
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-substituicoes-ia`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ 
-          mensagem: `Converta este plano alimentar calculando calorias e macronutrientes exatos baseados na Tabela TACO/TBCA.
-Format para cada linha do alimento exatamente assim:
-Nome do Alimento | Quantidade | Kcal | Proteína(g) | Carbo(g) | Gordura(g)
-
-Mantenha os títulos das refeições e abas no topo. Retorne APENAS o texto pronto do plano alimentar sem explicações adicionais.
-
-Texto para processar:
-${textoDieta}` 
+          alimento: "Calcular Macronutrientes e Substituições TACO",
+          listaAtual: textoDieta 
         })
       });
 
       const data = await res.json();
-      if (res.ok && data.resposta) {
-        tx.value = data.resposta.trim();
+      if (res.ok && data.resultado) {
+        tx.value = data.resultado.trim();
         alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
       } else {
-        alert("❌ Não foi possível calcular os macros automaticamente.");
+        alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
       }
     } catch(e) {
       alert("❌ Erro ao conectar à IA para cálculo de macros.");
@@ -784,7 +776,6 @@ ${textoDieta}`
     salvarAlteracoes();
   }
 
-  /* SALVANDO A PERMISSÃO DE TÉCNICAS NO BANCO */
   async function salvarConfiguracoesConta() {
     currentStudentData.clientName = document.getElementById('editName').value.trim();
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
