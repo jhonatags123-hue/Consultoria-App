@@ -110,6 +110,131 @@
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
+
+  /* ---- ESTILOS DA ABA DE CHAT IA DO ALUNO ---- */
+  .chat-container {
+    background: #140307;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    height: 520px;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .chat-header {
+    background: #1e050b;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chat-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border: 1px solid var(--gold);
+    flex-shrink: 0;
+  }
+
+  .chat-info h3 { font-size: 13.5px; color: #fff; margin: 0; font-weight: 700; }
+  .chat-status { font-size: 10px; color: var(--green); font-weight: 600; }
+
+  .chat-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #0d0205;
+  }
+
+  .message {
+    max-width: 85%;
+    padding: 11px 13px;
+    border-radius: 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    word-wrap: break-word;
+  }
+
+  .msg-ia {
+    background: #1c060c;
+    color: #f9efec;
+    border: 1px solid var(--border);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+  }
+
+  .msg-user {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+    font-weight: 500;
+  }
+
+  .quick-prompts {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+    overflow-x: auto;
+    background: #120306;
+    border-top: 1px solid var(--border);
+  }
+
+  .quick-prompts button {
+    background: rgba(220,170,58,0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 5px 10px;
+    border-radius: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .chat-input-area {
+    display: flex;
+    padding: 10px;
+    background: #190409;
+    border-top: 1px solid var(--border);
+    gap: 8px;
+  }
+
+  .chat-input-area input {
+    flex: 1;
+    background: #0d0205;
+    border: 1px solid var(--border);
+    color: #fff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 12.5px;
+    outline: none;
+  }
+
+  .chat-input-area button {
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #1a0307;
+    border: none;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -231,9 +356,8 @@
         <option value="COMPLETA_TRIMESTRAL">🏆 Completa Trimestral — 3x R$ 130,00</option>
         <option value="COMPLETA_SEMESTRAL">🏆 Completa Semestral — 6x R$ 110,00</option>
         <option value="COMPLETA_ANUAL">🏆 Completa Anual — 12x R$ 85,00</option>
-        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 60,00/mês</option>
-        <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 50,00/mês</option>
-        <option value="TREINO_DUPLA">👥 Apenas Treino em Dupla (Anual) — R$ 80,00/mês</option>
+        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 80,00/mês</option>
+        <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 55,00/mês</option>
       </select>
 
       <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
@@ -282,22 +406,59 @@
     <div class="sub" id="billingInfo"></div>
   </div>
 
+  <!-- MENU DE NAVEGAÇÃO COM A NOVA ABA IA -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
+    <button class="menu-btn" id="btnIa" onclick="showTab('ia')">🤖 ASSISTENTE IA</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
     <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
   </div>
 
+  <!-- ABA 1: TREINO -->
   <div id="tabTreino">
     <div id="exercisesList"></div>
   </div>
 
+  <!-- ABA 2: DIETA -->
   <div id="tabDieta" class="hidden">
     <div id="dietFilterContainer" class="diet-filter-row"></div>
     <div id="mealsList" class="diet-container"></div>
   </div>
 
+  <!-- ABA 3: CHAT ASSISTENTE IA -->
+  <div id="tabIa" class="hidden">
+    <div class="chat-container">
+      <div class="chat-header">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-info">
+          <h3>Assistente Jhonata Personal</h3>
+          <span class="chat-status">● Online | Suporte a Treinos & Nutrição</span>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="message msg-ia">
+          👋 Olá! Sou o assistente de IA do seu Personal Trainer Jhonata. Como posso te ajudar hoje? 
+          Você pode me perguntar sobre seus treinos, substituição de alimentos (Tabela TACO) ou tirar dúvidas da dieta!
+        </div>
+      </div>
+
+      <div class="quick-prompts">
+        <button onclick="sendQuickPrompt('O que posso comer no pré-treino?')">🥗 Pré-Treino</button>
+        <button onclick="sendQuickPrompt('Como posso substituir 200g de Arroz?')">🍚 Substituir Arroz</button>
+        <button onclick="sendQuickPrompt('Explique como funciona o Myo-Reps')">⚡ Myo-Reps</button>
+        <button onclick="sendQuickPrompt('Qual é o meu treino cadastrado hoje?')">🏋️ Meu Treino</button>
+      </div>
+
+      <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Pergunte sobre treino ou dieta..." onkeypress="handleKeyPress(event)">
+        <button onclick="enviarMensagemIA()" id="btnEnviarChat">Enviar ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA 4: FEEDBACK -->
   <div id="tabFeedback" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">💬 Enviar Relatório Semanal</div>
     <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
@@ -305,6 +466,7 @@
     <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP DO PERSONAL</button>
   </div>
 
+  <!-- ABA 5: CONFIGURAÇÕES -->
   <div id="tabConfig" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
     <label class="label-fdb">Nova Senha Pessoal</label>
@@ -322,8 +484,7 @@
     'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
-    'TREINO_DUPLA': "https://www.asaas.com/c/omsltaq25btnizvo"
+    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u"
   };
 
   let currentData = null;
@@ -604,7 +765,6 @@
     }
   }
 
-  /* RENDERIZAÇÃO INTELIGENTE EXERCÍCIO POR EXERCÍCIO */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -613,23 +773,19 @@
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
-      // 1. Checa se ESTE exercício específico tem uma técnica fixa prescrevida pelo Personal no Admin
       const isTecnicaFixaAdmin = ex.isTecnico === true || 
                                  metaText.includes('myo') || seriesStr.includes('myo') ||
                                  metaText.includes('cluster') || seriesStr.includes('cluster') ||
                                  metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
 
-      // 2. Define o modo inicial
       let defaultMode = 'convencional';
       if (metaText.includes('myo') || seriesStr.includes('myo')) defaultMode = 'myoreps';
       else if (metaText.includes('cluster') || seriesStr.includes('cluster')) defaultMode = 'cluster';
       else if (metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff')) defaultMode = 'backoff';
 
-      // Se for técnica fixa neste exercício, força a técnica do Admin. Se for normal, usa a escolha do aluno.
       const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
       let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
-      // 3. Mostra o seletor SÓ SE o aluno tiver permissão E se ESTE exercício NÃO for técnica fixa
       const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
 
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
@@ -653,7 +809,6 @@
         `;
       }
 
-      // Oculta o dropdown apenas para o exercício atual se ele for técnica fixa
       const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
 
       let html = `
@@ -1047,7 +1202,7 @@
   }
 
   function showTab(tab) {
-    ['treino', 'dieta', 'feedback', 'config'].forEach(t => {
+    ['treino', 'dieta', 'ia', 'feedback', 'config'].forEach(t => {
       const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
       const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
       if (el) el.classList.add('hidden');
@@ -1058,6 +1213,74 @@
     const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
     if (activeTab) activeTab.classList.remove('hidden');
     if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  /* ---- FUNÇÕES DA IA DO CHAT DO ALUNO ---- */
+  async function enviarMensagemIA() {
+    const input = document.getElementById('chatInput');
+    const btn = document.getElementById('btnEnviarChat');
+    const chatMessages = document.getElementById('chatMessages');
+    const mensagem = input.value.trim();
+
+    if (!mensagem) return;
+
+    chatMessages.innerHTML += `<div class="message msg-user">${escapeHtml(mensagem)}</div>`;
+    input.value = '';
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    const tempId = 'loading-' + Date.now();
+    chatMessages.innerHTML += `<div class="message msg-ia" id="${tempId}">⏳ Consultando seu protocolo...</div>`;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    btn.disabled = true;
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          codigo: loggedUserCode,
+          mensagem: mensagem,
+          contexto: currentData || {}
+        })
+      });
+
+      const data = await response.json();
+      const loadingElem = document.getElementById(tempId);
+
+      if (data.success && data.resposta) {
+        loadingElem.innerHTML = data.resposta.replace(/\n/g, '<br>');
+      } else {
+        loadingElem.innerHTML = "⚠️ Não foi possível processar a pergunta. Tente novamente em instantes.";
+      }
+    } catch (err) {
+      console.error("Erro no chat IA:", err);
+      const loadingElem = document.getElementById(tempId);
+      if (loadingElem) loadingElem.innerHTML = "❌ Erro ao comunicar com o servidor.";
+    } finally {
+      btn.disabled = false;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  }
+
+  function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+      enviarMensagemIA();
+    }
+  }
+
+  function sendQuickPrompt(texto) {
+    document.getElementById('chatInput').value = texto;
+    enviarMensagemIA();
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 
   function sendWhatsAppFeedback() {
