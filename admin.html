@@ -725,7 +725,7 @@ ${tx.value}`
     tx.value = str.trim();
   }
 
-  /* ROTA CORRIGIDA PARA CÁLCULO DE MACROS & TABELA TACO NO ADMIN */
+  /* ROTA BLINDADA DE CÁLCULO DE MACROS & TABELA TACO */
   async function calcularMacrosComIA() {
     const tx = document.getElementById('dietTextarea');
     const btn = document.getElementById('btnCalcTaco');
@@ -749,8 +749,21 @@ ${tx.value}`
 
       const data = await res.json();
       if (res.ok && data.resultado) {
-        tx.value = data.resultado.trim();
-        alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
+        let respLimpa = data.resultado.trim();
+
+        // Filtra para remover qualquer texto/comentário de raciocínio da IA antes do bloco principal
+        const firstBracket = respLimpa.indexOf('[');
+        if (firstBracket !== -1) {
+          respLimpa = respLimpa.substring(firstBracket);
+        }
+
+        // Validação de Segurança: Só aceita a substituição se contiver a estrutura de colunas '|'
+        if (respLimpa.includes('|')) {
+          tx.value = respLimpa;
+          alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
+        } else {
+          alert("⚠️ A IA retornou um formato inesperado. O texto original foi mantido para evitar perda de dados.");
+        }
       } else {
         alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
       }
@@ -762,17 +775,45 @@ ${tx.value}`
     }
   }
 
+  /* SALVAR DIETA E SEPARAR EM BLOCOS DE REFEIÇÕES */
   function salvarDieta() {
     const raw = document.getElementById('dietTextarea').value.trim();
-    const blocks = raw.split(/\n\s*\n/);
-    
-    currentStudentData.refeicoes = blocks.map(b => {
-      const lines = b.trim().split('\n');
+    if (!raw) return alert("A caixa de texto da dieta está vazia.");
+
+    // Divide os blocos baseando-se nas abas entre colchetes [ ]
+    const rawBlocks = raw.split(/(?=\[.*?\])/g);
+    const refeicoesFormatadas = [];
+
+    rawBlocks.forEach(bloco => {
+      const cleanBloco = bloco.trim();
+      if (!cleanBloco) return;
+
+      const lines = cleanBloco.split('\n').map(l => l.trim()).filter(l => l !== '');
+      if (lines.length === 0) return;
+
       const title = lines[0];
       const items = lines.slice(1).join('\n');
-      return { titulo: title, alimentos: items };
+
+      if (title && items) {
+        refeicoesFormatadas.push({ titulo: title, alimentos: items });
+      }
     });
 
+    if (refeicoesFormatadas.length === 0) {
+      // Fallback para caso não haja colchetes nas linhas
+      const simpleBlocks = raw.split(/\n\s*\n/);
+      simpleBlocks.forEach(b => {
+        const lines = b.trim().split('\n');
+        if (lines.length > 0) {
+          refeicoesFormatadas.push({
+            titulo: lines[0],
+            alimentos: lines.slice(1).join('\n')
+          });
+        }
+      });
+    }
+
+    currentStudentData.refeicoes = refeicoesFormatadas;
     salvarAlteracoes();
   }
 
