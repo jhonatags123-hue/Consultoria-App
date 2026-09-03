@@ -410,7 +410,6 @@
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
-    <button class="menu-btn" id="btnIa" onclick="showTab('ia')">🤖 ASSISTENTE IA</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
     <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
   </div>
@@ -424,38 +423,6 @@
   <div id="tabDieta" class="hidden">
     <div id="dietFilterContainer" class="diet-filter-row"></div>
     <div id="mealsList" class="diet-container"></div>
-  </div>
-
-  <!-- ABA 3: CHAT ASSISTENTE IA -->
-  <div id="tabIa" class="hidden">
-    <div class="chat-container">
-      <div class="chat-header">
-        <div class="chat-avatar">🤖</div>
-        <div class="chat-info">
-          <h3>Assistente Jhonata Personal</h3>
-          <span class="chat-status">● Online | Suporte a Treinos & Nutrição</span>
-        </div>
-      </div>
-
-      <div class="chat-messages" id="chatMessages">
-        <div class="message msg-ia">
-          👋 Olá! Sou o assistente de IA do seu Personal Trainer Jhonata. Como posso te ajudar hoje? 
-          Você pode me perguntar sobre seus treinos, substituição de alimentos (Tabela TACO) ou tirar dúvidas da dieta!
-        </div>
-      </div>
-
-      <div class="quick-prompts">
-        <button onclick="sendQuickPrompt('O que posso comer no pré-treino?')">🥗 Pré-Treino</button>
-        <button onclick="sendQuickPrompt('Como posso substituir 200g de Arroz?')">🍚 Substituir Arroz</button>
-        <button onclick="sendQuickPrompt('Explique como funciona o Myo-Reps')">⚡ Myo-Reps</button>
-        <button onclick="sendQuickPrompt('Qual é o meu treino cadastrado hoje?')">🏋️ Meu Treino</button>
-      </div>
-
-      <div class="chat-input-area">
-        <input type="text" id="chatInput" placeholder="Pergunte sobre treino ou dieta..." onkeypress="handleKeyPress(event)">
-        <button onclick="enviarMensagemIA()" id="btnEnviarChat">Enviar ➔</button>
-      </div>
-    </div>
   </div>
 
   <!-- ABA 4: FEEDBACK -->
