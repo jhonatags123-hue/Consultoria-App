@@ -615,19 +615,26 @@
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
-      const isTecnicaFixaAdmin = ex.isTecnico === true || 
-                                 metaText.includes('myo') || seriesStr.includes('myo') ||
-                                 metaText.includes('cluster') || seriesStr.includes('cluster') ||
-                                 metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
+      // Identifica o que foi cadastrado pelo Admin no painel
+      const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
+      const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
+      const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
+      // Se no Admin você marcou como técnico OU colocou termos de técnica no nome/série, trava para o aluno
+      const isTecnicaFixaAdmin = ex.isTecnico === true || temMyo || temCluster || temBackoff;
+
+      // Define qual modo o Admin prescreveu
       let defaultMode = 'convencional';
-      if (metaText.includes('myo') || seriesStr.includes('myo')) defaultMode = 'myoreps';
-      else if (metaText.includes('cluster') || seriesStr.includes('cluster')) defaultMode = 'cluster';
-      else if (metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff')) defaultMode = 'backoff';
+      if (temBackoff) defaultMode = 'backoff';
+      else if (temCluster) defaultMode = 'cluster';
+      else if (temMyo) defaultMode = 'myoreps';
 
+      // Se for técnica fixa do Admin, TRAVA no defaultMode do Admin. 
+      // Se o Admin NÃO fixou, usa a escolha salva do aluno.
       const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
       let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
+      // Regra de permissão: O aluno SÓ pode alterar o select se o Admin PERMITIR no painel E a técnica NÃO for fixa
       const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
 
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
@@ -636,21 +643,24 @@
       const div = document.createElement('div');
       div.className = 'item';
 
+      // Monta as opções do Select de acordo com o número de séries prescritas
       let optionsHtml = '';
       if (numSeriesPrescritas === 2) {
         optionsHtml = `
           <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 2 Séries Convencionais</option>
           <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
-          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 1 Top Set + 1 Back-off</option>
+          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 Top Set / Cluster + Back-off</option>
         `;
       } else {
         optionsHtml = `
           <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 3 Séries Convencionais</option>
           <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Myo-Reps Protocol</option>
-          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 2 Séries + 1 Back-off</option>
+          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
+          <option value="backoff" ${activeMode === 'backoff' ? 'selected' : ''}>📉 Cluster / Top Set + Back-off</option>
         `;
       }
 
+      // O Select fica ESCONDIDO (display:none) quando for técnica definida pelo Admin!
       const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
 
       let html = `
@@ -663,6 +673,7 @@
         <div class="series-container">
       `;
 
+      // 1. MODO MYO-REPS
       if (activeMode === 'myoreps') {
         const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
         const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
@@ -694,7 +705,8 @@
           </div>
         `;
 
-      } else if (activeMode === 'cluster') {
+      // 2. MODO CLUSTER SET APENAS (Quando não tem Back-off)
+      } else if (activeMode === 'cluster' && !temBackoff) {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
         const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
@@ -718,74 +730,41 @@
           </div>
         `;
 
-      } else if (activeMode === 'backoff') {
-        if (numSeriesPrescritas === 2) {
-          const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
-          const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
-          const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
-          const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
+      // 3. MODO BACK-OFF (OU CLUSTER / TOP SET + BACK-OFF)
+      } else if (activeMode === 'backoff' || temBackoff) {
+        const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
+        const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
+        const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
+        const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
 
-          const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
-          const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
-          const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-          const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
-          html += `
-            <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
-              <span class="series-tag" style="color:var(--gold); width:110px;">🔥 TOP SET:</span>
-              <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
+        const tagPrincipal = temCluster ? "🟢 CLUSTER SET:" : "🔥 TOP SET:";
+
+        html += `
+          <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
+            <span class="series-tag" style="color:var(--gold); width:110px;">${tagPrincipal}</span>
+            <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+              <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="6-8" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
-            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
-              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
-              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-                <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
-                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">kg</span>
-                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">reps</span>
-              </div>
-            </div>
-          `;
-        } else {
-          for (let s = 1; s <= 2; s++) {
-            const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
-            const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
-            const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
-            const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+          </div>
+        `;
 
-            html += `
-              <div class="series-row">
-                <span class="series-tag">Série ${s}</span>
-                <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">kg</span>
-                <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">reps</span>
-              </div>
-            `;
-          }
-
-          const keyBoC = `log_c_${dayIdx}_${exIdx}_s3`;
-          const keyBoR = `log_r_${dayIdx}_${exIdx}_s3`;
-          const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-          const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-          html += `
-            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
-              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
-              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-                <span class="series-tag" style="color:var(--accent); width:110px;">📉 SÉRIE 3 (BACK):</span>
-                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">kg</span>
-                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-                <span class="unit">reps</span>
-              </div>
-            </div>
-          `;
-        }
-
+      // 4. MODO SÉRIES CONVENCIONAIS
       } else {
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
