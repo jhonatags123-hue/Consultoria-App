@@ -754,18 +754,18 @@ ${tx.value}`,
       if (res.ok && data.resultado) {
         let respLimpa = data.resultado.trim();
 
-        // Filtra para remover qualquer texto/comentário de raciocínio da IA antes do bloco principal
+        // Encontra onde começa o plano formatado (evita textos soltos antes da primeira chave ou caractere)
         const firstBracket = respLimpa.indexOf('[');
         if (firstBracket !== -1) {
           respLimpa = respLimpa.substring(firstBracket);
         }
 
-        // Validação de Segurança: Só aceita a substituição se contiver a estrutura de colunas '|'
+        // VALIDAÇÃO DE SEGURANÇA BLINDADA: Só substitui o texto se a IA usou separadores "|"
         if (respLimpa.includes('|')) {
           tx.value = respLimpa;
           alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
         } else {
-          alert("⚠️ A IA retornou um formato inesperado. O texto original foi mantido para evitar perda de dados.");
+          alert("⚠️ A IA não gerou as colunas com separadores (|) corretamente. Seu texto original foi MANTIDO intacto por segurança.");
         }
       } else {
         alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
