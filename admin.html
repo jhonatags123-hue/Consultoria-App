@@ -504,7 +504,7 @@
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
@@ -514,7 +514,8 @@ Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TR
 Retorne APENAS o novo texto da ficha pronto, sem introduções ou saudações.
 
 Ficha Atual:
-${tx.value}`
+${tx.value}`,
+          contexto: currentStudentData || {}
         })
       });
 
@@ -524,6 +525,8 @@ ${tx.value}`
         atualizarPreviewAoVivo();
         input.value = "";
         alert("✅ Ficha alterada pela IA com sucesso!");
+      } else {
+        alert("❌ " + (data.error || "Não foi possível modificar a ficha."));
       }
     } catch(e) {
       alert("❌ Erro ao processar comando na IA.");
@@ -1022,7 +1025,7 @@ ${tx.value}`
     history.scrollTop = history.scrollHeight;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ mensagem: text, contexto: currentStudentData || {} })
