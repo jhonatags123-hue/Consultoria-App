@@ -364,7 +364,6 @@
     const loggedUser = localStorage.getItem('logged_user');
     const alunoToken = localStorage.getItem('aluno_token');
 
-    // Validação estrita do login autônomo (exige usuário + token ativo)
     if (loggedUser && alunoToken) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
@@ -709,7 +708,7 @@
           </div>
         `;
 
-      // 2. MODO CLUSTER SET ISOLADO (Com exibição explícita dos blocos)
+      // 2. MODO CLUSTER SET ISOLADO
       } else if (activeMode === 'cluster' && !temBackoff) {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
@@ -734,39 +733,74 @@
           </div>
         `;
 
-      // 3. MODO BACK-OFF (OU CLUSTER / TOP SET + BACK-OFF)
+      // 3. MODO BACK-OFF (SUPORTE COMPLETO PARA CLUSTER + BACK-OFF OU TOP SET + BACK-OFF)
       } else if (activeMode === 'backoff' || temBackoff) {
-        const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
-        const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
-        const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
-        const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
-
         const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
         const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
         const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
-        const tagPrincipal = temCluster ? "🟢 CLUSTER SET:" : "🔥 TOP SET:";
+        if (temCluster) {
+          // CLUSTER + BACK-OFF: Exibe linha principal de Cluster (Peso, Blocos, Reps) + Caixa de Back-off
+          const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+          const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+          const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
 
-        html += `
-          <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
-            <span class="series-tag" style="color:var(--gold); width:110px;">${tagPrincipal}</span>
-            <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
-            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
-            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
-              <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+          const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+          const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+          const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+
+          html += `
+            <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
+              <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
+              <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit" style="font-size:9px;">blocos</span>
+              <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
-          </div>
-        `;
+            <div style="font-size:10px; color:var(--green); margin:2px 0 4px 4px; font-weight:700;">
+              ⏱️ Descanso de 15s a 20s entre blocos.
+            </div>
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+                <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">kg</span>
+                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">reps</span>
+              </div>
+            </div>
+          `;
+        } else {
+          // TOP SET + BACK-OFF
+          const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
+          const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
+          const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
+          const valTopR = (currentData.logs && currentData.logs[keyTopR]) || '';
+
+          html += `
+            <div class="series-row" style="background:#20060d; border:1px solid var(--accent);">
+              <span class="series-tag" style="color:var(--gold); width:110px;">🔥 TOP SET:</span>
+              <input ${createLogInputAttr(keyTopC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valTopC}" oninput="scheduleAutoSave('${keyTopC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyTopR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valTopR}" oninput="scheduleAutoSave('${keyTopR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+            <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+              <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+              <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+                <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+                <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">kg</span>
+                <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+                <span class="unit">reps</span>
+              </div>
+            </div>
+          `;
+        }
 
       // 4. MODO SÉRIES CONVENCIONAIS
       } else {
