@@ -110,131 +110,6 @@
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
-
-  /* ---- ESTILOS DA ABA DE CHAT IA DO ALUNO ---- */
-  .chat-container {
-    background: #140307;
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    display: flex;
-    flex-direction: column;
-    height: 520px;
-    max-width: 100%;
-    margin: 0 auto;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  }
-
-  .chat-header {
-    background: #1e050b;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .chat-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    border: 1px solid var(--gold);
-    flex-shrink: 0;
-  }
-
-  .chat-info h3 { font-size: 13.5px; color: #fff; margin: 0; font-weight: 700; }
-  .chat-status { font-size: 10px; color: var(--green); font-weight: 600; }
-
-  .chat-messages {
-    flex: 1;
-    padding: 16px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #0d0205;
-  }
-
-  .message {
-    max-width: 85%;
-    padding: 11px 13px;
-    border-radius: 14px;
-    font-size: 12.5px;
-    line-height: 1.5;
-    word-wrap: break-word;
-  }
-
-  .msg-ia {
-    background: #1c060c;
-    color: #f9efec;
-    border: 1px solid var(--border);
-    align-self: flex-start;
-    border-bottom-left-radius: 2px;
-  }
-
-  .msg-user {
-    background: linear-gradient(135deg, var(--accent), var(--accent-2));
-    color: #fff;
-    align-self: flex-end;
-    border-bottom-right-radius: 2px;
-    font-weight: 500;
-  }
-
-  .quick-prompts {
-    display: flex;
-    gap: 6px;
-    padding: 8px 12px;
-    overflow-x: auto;
-    background: #120306;
-    border-top: 1px solid var(--border);
-  }
-
-  .quick-prompts button {
-    background: rgba(220,170,58,0.1);
-    border: 1px solid var(--gold);
-    color: var(--gold);
-    font-size: 10px;
-    font-weight: 700;
-    padding: 5px 10px;
-    border-radius: 14px;
-    white-space: nowrap;
-    cursor: pointer;
-  }
-
-  .chat-input-area {
-    display: flex;
-    padding: 10px;
-    background: #190409;
-    border-top: 1px solid var(--border);
-    gap: 8px;
-  }
-
-  .chat-input-area input {
-    flex: 1;
-    background: #0d0205;
-    border: 1px solid var(--border);
-    color: #fff;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 12.5px;
-    outline: none;
-  }
-
-  .chat-input-area button {
-    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
-    color: #1a0307;
-    border: none;
-    padding: 0 14px;
-    border-radius: 10px;
-    font-weight: 800;
-    font-size: 12px;
-    cursor: pointer;
-  }
 </style>
 </head>
 <body>
@@ -406,7 +281,7 @@
     <div class="sub" id="billingInfo"></div>
   </div>
 
-  <!-- MENU DE NAVEGAÇÃO COM A NOVA ABA IA -->
+  <!-- MENU DE NAVEGAÇÃO -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
@@ -425,7 +300,7 @@
     <div id="mealsList" class="diet-container"></div>
   </div>
 
-  <!-- ABA 4: FEEDBACK -->
+  <!-- ABA 3: FEEDBACK -->
   <div id="tabFeedback" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">💬 Enviar Relatório Semanal</div>
     <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
@@ -433,7 +308,7 @@
     <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP DO PERSONAL</button>
   </div>
 
-  <!-- ABA 5: CONFIGURAÇÕES -->
+  <!-- ABA 4: CONFIGURAÇÕES -->
   <div id="tabConfig" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
     <label class="label-fdb">Nova Senha Pessoal</label>
@@ -1007,6 +882,7 @@
     }
   }
 
+  // PARSER DE REFEIÇÕES OTIMIZADO
   function parseMealBlock(text) {
     if (!text || typeof text !== 'string') return [];
     
@@ -1015,20 +891,34 @@
 
     lines.forEach(line => {
       const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith('REFEIÇÃO') || trimmed.startsWith('CAFÉ') || trimmed.startsWith('ALMOÇO') || trimmed.startsWith('JANTAR')) return;
+      if (!trimmed || trimmed.includes('---')) return;
+
+      const lower = trimmed.toLowerCase();
+      if (lower.startsWith('segunda') || lower.startsWith('terça') || lower.startsWith('quarta') ||
+          lower.startsWith('quinta') || lower.startsWith('sexta') || lower.startsWith('sábado') ||
+          lower.startsWith('domingo') || lower.startsWith('dias:')) return;
 
       const parts = trimmed.split('|').map(p => p.trim());
       if (parts.length >= 2) {
         items.push({
           nome: parts[0],
-          qtd: parts[1],
+          qtd: parts[1] || 'A gosto',
           kcal: parts[2] || '-',
           ptn: parts[3] || '-',
           carb: parts[4] || '-',
           fat: parts[5] || '-'
         });
       } else {
-        items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
+        const matchQtd = trimmed.match(/^(.*?)\s+(\d+g|\d+\s*unidades|\d+\s*fatias|\d+ml|\(.*?\))$/i);
+        if (matchQtd) {
+          items.push({
+            nome: matchQtd[1].trim(),
+            qtd: matchQtd[2].trim(),
+            kcal: '-', ptn: '-', carb: '-', fat: '-'
+          });
+        } else {
+          items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
+        }
       }
     });
 
@@ -1061,8 +951,8 @@
       }
 
       const rawText = ref.alimentos || "";
-      let daysMatch = rawText.match(/Dias:\s*([^\n]+)/i);
-      let daysText = daysMatch ? daysMatch[1].trim() : "";
+      let daysMatch = rawText.match(/(Segunda|Terça|Quarta|Quinta|Sexta|Sábado|Domingo|Dias:)[^\n]*/i);
+      let daysText = daysMatch ? daysMatch[0].trim() : "";
 
       parsedBlocks.push({
         category: currentCategory,
@@ -1103,6 +993,8 @@
     const filtered = blocks.filter(b => b.category === cat);
 
     filtered.forEach(block => {
+      if (!block.items || block.items.length === 0) return;
+
       const card = document.createElement('div');
       card.className = 'meal-table-card';
 
@@ -1111,7 +1003,7 @@
 
       let tableHtml = `
         <div class="meal-header">
-          <span>${block.mealTitle}</span>
+          <span>🍽️ ${block.mealTitle}</span>
         </div>
         <table class="diet-table">
           <thead>
@@ -1152,7 +1044,7 @@
       if (hasMacros) {
         tableHtml += `
           <tr class="total-row">
-            <td>TOTAL</td>
+            <td>TOTAL REFEIÇÃO</td>
             <td style="text-align:right;">-</td>
             <td style="text-align:right;">${Math.round(totalKcal)}</td>
             <td style="text-align:right;">${Math.round(totalPtn)}g</td>
@@ -1169,7 +1061,7 @@
   }
 
   function showTab(tab) {
-    ['treino', 'dieta', 'ia', 'feedback', 'config'].forEach(t => {
+    ['treino', 'dieta', 'feedback', 'config'].forEach(t => {
       const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
       const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
       if (el) el.classList.add('hidden');
@@ -1180,74 +1072,6 @@
     const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
     if (activeTab) activeTab.classList.remove('hidden');
     if (activeBtn) activeBtn.classList.add('active');
-  }
-
-  /* ---- FUNÇÕES DA IA DO CHAT DO ALUNO ---- */
-  async function enviarMensagemIA() {
-    const input = document.getElementById('chatInput');
-    const btn = document.getElementById('btnEnviarChat');
-    const chatMessages = document.getElementById('chatMessages');
-    const mensagem = input.value.trim();
-
-    if (!mensagem) return;
-
-    chatMessages.innerHTML += `<div class="message msg-user">${escapeHtml(mensagem)}</div>`;
-    input.value = '';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    const tempId = 'loading-' + Date.now();
-    chatMessages.innerHTML += `<div class="message msg-ia" id="${tempId}">⏳ Consultando seu protocolo...</div>`;
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-    btn.disabled = true;
-
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          codigo: loggedUserCode,
-          mensagem: mensagem,
-          contexto: currentData || {}
-        })
-      });
-
-      const data = await response.json();
-      const loadingElem = document.getElementById(tempId);
-
-      if (data.success && data.resposta) {
-        loadingElem.innerHTML = data.resposta.replace(/\n/g, '<br>');
-      } else {
-        loadingElem.innerHTML = "⚠️ Não foi possível processar a pergunta. Tente novamente em instantes.";
-      }
-    } catch (err) {
-      console.error("Erro no chat IA:", err);
-      const loadingElem = document.getElementById(tempId);
-      if (loadingElem) loadingElem.innerHTML = "❌ Erro ao comunicar com o servidor.";
-    } finally {
-      btn.disabled = false;
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-  }
-
-  function handleKeyPress(event) {
-    if (event.key === 'Enter') {
-      enviarMensagemIA();
-    }
-  }
-
-  function sendQuickPrompt(texto) {
-    document.getElementById('chatInput').value = texto;
-    enviarMensagemIA();
-  }
-
-  function escapeHtml(text) {
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
   }
 
   function sendWhatsAppFeedback() {
