@@ -362,8 +362,10 @@
     }
 
     const loggedUser = localStorage.getItem('logged_user');
+    const alunoToken = localStorage.getItem('aluno_token');
 
-    if (loggedUser) {
+    // Validação estrita do login autônomo (exige usuário + token ativo)
+    if (loggedUser && alunoToken) {
       try {
         const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
           headers: authHeaders()
@@ -378,6 +380,8 @@
       } catch (e) {
         logout();
       }
+    } else {
+      logout();
     }
   };
 
@@ -705,7 +709,7 @@
           </div>
         `;
 
-      // 2. MODO CLUSTER SET APENAS (Quando não tem Back-off)
+      // 2. MODO CLUSTER SET ISOLADO (Com exibição explícita dos blocos)
       } else if (activeMode === 'cluster' && !temBackoff) {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
