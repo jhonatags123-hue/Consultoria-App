@@ -110,6 +110,30 @@
 
   .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
+
+  /* CARD DE BLOQUEIO POR FALTA DE PAGAMENTO */
+  .pay-lock-overlay {
+    background: linear-gradient(180deg, rgba(30, 5, 11, 0.98), rgba(10, 1, 4, 0.98));
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 24px 18px;
+    text-align: center;
+    margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(184, 29, 54, 0.3);
+  }
+  .pay-lock-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: #ff6b7f;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .pay-lock-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
 </style>
 </head>
 <body>
@@ -341,6 +365,7 @@
     return headers;
   }
 
+  // INICIALIZAÇÃO SEM LOOPING INFINITO DE REDIRECIONAMENTO
   window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
@@ -380,7 +405,8 @@
         logout();
       }
     } else {
-      logout();
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('mainContent').classList.add('hidden');
     }
   };
 
@@ -539,8 +565,35 @@
 
     currentData = data;
     document.getElementById('clientName').textContent = data.clientName || 'Aluno';
-    setupWorkout(data.days || []);
-    setupDiet(data.refeicoes || []);
+
+    const isPendente = data.pagamentoPendente === true || data.statusPagamento === 'pendente' || data.ativo === false;
+
+    if (isPendente) {
+      renderLockNotice();
+    } else {
+      setupWorkout(data.days || []);
+      setupDiet(data.refeicoes || []);
+    }
+  }
+
+  function renderLockNotice() {
+    const lockHtml = `
+      <div class="pay-lock-overlay">
+        <div style="font-size:42px; margin-bottom:8px;">⛔</div>
+        <div class="pay-lock-title">ACESSO TEMPORARIAMENTE SUSPENSO</div>
+        <div class="pay-lock-desc">
+          Identificamos uma pendência na renovação do seu plano.<br>
+          Para reativar a visualização dos seus treinos e dietas, efetue o pagamento e envie o comprovante no WhatsApp.
+        </div>
+        <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20mensalidade,%20segue%20o%20comprovante:" 
+           target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+          📲 ENVIAR COMPROVANTE NO WHATSAPP
+        </a>
+      </div>
+    `;
+
+    document.getElementById('exercisesList').innerHTML = lockHtml;
+    document.getElementById('mealsList').innerHTML = lockHtml;
   }
 
   function setupWorkout(days) {
@@ -623,21 +676,16 @@
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
-      // Se no Admin você marcou como técnico OU colocou termos de técnica no nome/série, trava para o aluno
       const isTecnicaFixaAdmin = ex.isTecnico === true || temMyo || temCluster || temBackoff;
 
-      // Define qual modo o Admin prescreveu
       let defaultMode = 'convencional';
       if (temBackoff) defaultMode = 'backoff';
       else if (temCluster) defaultMode = 'cluster';
       else if (temMyo) defaultMode = 'myoreps';
 
-      // Se for técnica fixa do Admin, TRAVA no defaultMode do Admin. 
-      // Se o Admin NÃO fixou, usa a escolha salva do aluno.
       const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
       let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
-      // Regra de permissão: O aluno SÓ pode alterar o select se o Admin PERMITIR no painel E a técnica NÃO for fixa
       const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
 
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
@@ -646,7 +694,6 @@
       const div = document.createElement('div');
       div.className = 'item';
 
-      // Monta as opções do Select de acordo com o número de séries prescritas
       let optionsHtml = '';
       if (numSeriesPrescritas === 2) {
         optionsHtml = `
@@ -663,7 +710,6 @@
         `;
       }
 
-      // O Select fica ESCONDIDO (display:none) quando for técnica definida pelo Admin!
       const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
 
       let html = `
@@ -733,7 +779,7 @@
           </div>
         `;
 
-      // 3. MODO BACK-OFF (SUPORTE COMPLETO PARA CLUSTER + BACK-OFF OU TOP SET + BACK-OFF)
+      // 3. MODO BACK-OFF (CLUSTER + BACK-OFF OU TOP SET + BACK-OFF)
       } else if (activeMode === 'backoff' || temBackoff) {
         const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
         const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
@@ -741,7 +787,6 @@
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         if (temCluster) {
-          // CLUSTER + BACK-OFF: Exibe linha principal de Cluster (Peso, Blocos, Reps) + Caixa de Back-off
           const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
           const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
           const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
@@ -775,7 +820,6 @@
             </div>
           `;
         } else {
-          // TOP SET + BACK-OFF
           const keyTopC = `log_c_${dayIdx}_${exIdx}_s1`;
           const keyTopR = `log_r_${dayIdx}_${exIdx}_s1`;
           const valTopC = (currentData.logs && currentData.logs[keyTopC]) || '';
@@ -899,7 +943,7 @@
     }
   }
 
-  // PARSER DE REFEIÇÕES OTIMIZADO
+  // PARSER DE REFEIÇÕES
   function parseMealBlock(text) {
     if (!text || typeof text !== 'string') return [];
     
@@ -1122,10 +1166,18 @@
     }
   }
 
+  // FUNÇÃO LOGOUT SEM REFRESH (EVITA LOOPING INFINITO)
   function logout() {
     localStorage.removeItem('logged_user');
     localStorage.removeItem('aluno_token');
-    location.href = "index.html";
+    
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    
+    if (window.history.replaceState) {
+      window.history.replaceState(null, null, window.location.pathname);
+    }
   }
 </script>
 </body>
