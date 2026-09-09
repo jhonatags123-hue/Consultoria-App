@@ -299,7 +299,7 @@
     <div class="header-app">
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
-        <button class="btn-header" onclick="logout()">Sair</button>
+        <button class="btn-header" type="button" onclick="logout()">Sair</button>
       </div>
     </div>
     <div class="sub" id="billingInfo"></div>
@@ -365,7 +365,7 @@
     return headers;
   }
 
-  // INICIALIZAÇÃO SEM LOOPING INFINITO DE REDIRECIONAMENTO
+  // INICIALIZAÇÃO SEGURA (EVITA LOOP DE REDIRECIONAMENTO)
   window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
@@ -407,6 +407,7 @@
     } else {
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('mainContent').classList.add('hidden');
+      document.getElementById('anamneseScreen').classList.add('hidden');
     }
   };
 
@@ -460,6 +461,12 @@
       localStorage.setItem('logged_user', user);
       localStorage.setItem('aluno_token', result.token);
       loggedUserCode = user;
+
+      // Limpa os parâmetros da URL para evitar loops ao recarregar
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       loadStudentData(result.data);
     } catch (err) {
       errorDiv.textContent = "❌ Servidor iniciando. Aguarde uns instantes e tente novamente.";
@@ -671,7 +678,6 @@
       const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
-      // Identifica o que foi cadastrado pelo Admin no painel
       const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
@@ -1166,17 +1172,28 @@
     }
   }
 
-  // FUNÇÃO LOGOUT SEM REFRESH (EVITA LOOPING INFINITO)
+  // FUNÇÃO LOGOUT TOTALMENTE PROTEGIDA CONTRA LOOPINGS
   function logout() {
+    // 1. Limpa o armazenamento local
     localStorage.removeItem('logged_user');
     localStorage.removeItem('aluno_token');
     
+    // 2. Reseta o estado global
+    currentData = null;
+    loggedUserCode = "";
+
+    // 3. Esconde telas ativas e volta para o Login
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
-    
-    if (window.history.replaceState) {
-      window.history.replaceState(null, null, window.location.pathname);
+
+    // 4. Limpa erros anteriores do formulário
+    const errDiv = document.getElementById('loginError');
+    if (errDiv) errDiv.classList.add('hidden');
+
+    // 5. Limpa a URL do navegador sem acionar recarregamento de página
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, document.title, window.location.pathname);
     }
   }
 </script>
