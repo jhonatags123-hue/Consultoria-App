@@ -905,6 +905,7 @@
     }, 1500);
   }
 
+  // REGISTRA O HISTÓRICO SEMANAL SALVANDO TAMBÉM A TÉCNICA UTILIZADA
   function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     if (!currentData.weekly_logs) currentData.weekly_logs = {};
     const keyLog = `${dayIdx}_${exIdx}`;
@@ -914,23 +915,42 @@
     const exObj = currentData.days[dayIdx].exercicios[exIdx];
     const numSeries = parseInt(exObj.series) || (exObj.series.includes('+') ? 2 : 3);
 
+    const modeKey = `${dayIdx}_${exIdx}`;
+    const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
+    
+    const nomesTecnica = {
+      'convencional': 'Convencional',
+      'myoreps': 'Myo-Reps',
+      'cluster': 'Cluster Set',
+      'backoff': 'Cluster/Top + Back-Off'
+    };
+    const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
+
     let maxCarga = 0;
     let totalReps = 0;
     let seriesPreenchidas = 0;
 
-    for (let s = 1; s <= numSeries; s++) {
-      const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-      const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
+    if (savedUserMode === 'myoreps') {
+      const cAtiv = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+      if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
+    } else if (savedUserMode === 'cluster') {
+      const cCl = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
+      if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
+    } else {
+      for (let s = 1; s <= numSeries; s++) {
+        const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+        const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
-      if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
-      if (!isNaN(rVal)) {
-        totalReps += rVal;
-        seriesPreenchidas++;
+        if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
+        if (!isNaN(rVal)) {
+          totalReps += rVal;
+          seriesPreenchidas++;
+        }
       }
     }
 
     if (maxCarga > 0) {
-      const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "0";
+      const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "-";
       const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
       if (!currentData.weekly_logs[keyLog]) currentData.weekly_logs[keyLog] = [];
@@ -939,9 +959,9 @@
       
       const idxHoje = hist.findIndex(item => item.data === dataHoje);
       if (idxHoje !== -1) {
-        hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps };
+        hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada };
       } else {
-        hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps });
+        hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
       }
 
       if (hist.length > 4) hist = hist.slice(-4);
@@ -1174,24 +1194,19 @@
 
   // FUNÇÃO LOGOUT TOTALMENTE PROTEGIDA CONTRA LOOPINGS
   function logout() {
-    // 1. Limpa o armazenamento local
     localStorage.removeItem('logged_user');
     localStorage.removeItem('aluno_token');
     
-    // 2. Reseta o estado global
     currentData = null;
     loggedUserCode = "";
 
-    // 3. Esconde telas ativas e volta para o Login
     document.getElementById('mainContent').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
 
-    // 4. Limpa erros anteriores do formulário
     const errDiv = document.getElementById('loginError');
     if (errDiv) errDiv.classList.add('hidden');
 
-    // 5. Limpa a URL do navegador sem acionar recarregamento de página
     if (window.history && window.history.replaceState) {
       window.history.replaceState(null, document.title, window.location.pathname);
     }
