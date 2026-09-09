@@ -224,13 +224,13 @@
 
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição via Tabela TACO.</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição em gramas.</p>
 
         <label>Bloco de Refeições:</label>
         <textarea id="dietTextarea" rows="16" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
         
         <div style="display:flex; gap:10px; margin-top:12px;">
-          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Substituições (TACO)</button>
+          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Opções de Troca (IA)</button>
           <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
         </div>
       </div>
@@ -283,7 +283,7 @@
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;B - LOWER&#10;Agachamento 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão | 4 fatias | 276 | 8 | 52 | 3"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g) | 276 | 8 | 52 | 3"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -633,6 +633,7 @@ ${tx.value}`,
             <div>
               <b style="color:var(--gold)">Treino ${idx + 1} (${reg.data}):</b><br>
               <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${reg.repsMed}</span>
+              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${reg.tecnica}</span>` : ''}
             </div>
             <div style="font-size:15px; font-weight:800; color:#fff;">${reg.cargaMax} kg</div>
           </div>
@@ -728,7 +729,7 @@ ${tx.value}`,
     tx.value = str.trim();
   }
 
-  /* ROTA BLINDADA DE CÁLCULO DE MACROS & TABELA TACO */
+  /* ROTA DE CÁLCULO DE MACROS & OPÇÕES DE SUBSTITUIÇÃO VIA IA */
   async function calcularMacrosComIA() {
     const tx = document.getElementById('dietTextarea');
     const btn = document.getElementById('btnCalcTaco');
@@ -737,7 +738,7 @@ ${tx.value}`,
     if (!textoDieta) return alert("Digite os alimentos na caixa de texto primeiro.");
 
     const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ Calculando...";
+    btn.textContent = "⏳ Calculando e gerando substituições...";
     btn.disabled = true;
 
     try {
@@ -745,7 +746,7 @@ ${tx.value}`,
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ 
-          alimento: "Calcular Macronutrientes e Substituições TACO",
+          alimento: "Calcular Macronutrientes e Substituições",
           listaAtual: textoDieta 
         })
       });
@@ -754,18 +755,11 @@ ${tx.value}`,
       if (res.ok && data.resultado) {
         let respLimpa = data.resultado.trim();
 
-        // Encontra onde começa o plano formatado (evita textos soltos antes da primeira chave ou caractere)
-        const firstBracket = respLimpa.indexOf('[');
-        if (firstBracket !== -1) {
-          respLimpa = respLimpa.substring(firstBracket);
-        }
-
-        // VALIDAÇÃO DE SEGURANÇA BLINDADA: Só substitui o texto se a IA usou separadores "|"
         if (respLimpa.includes('|')) {
           tx.value = respLimpa;
-          alert("✅ Macros calculados e preenchidos com sucesso via Tabela TACO!");
+          alert("✅ Macros calculados e opções de troca preenchidas com sucesso!");
         } else {
-          alert("⚠️ A IA não gerou as colunas com separadores (|) corretamente. Seu texto original foi MANTIDO intacto por segurança.");
+          alert("⚠️ A IA não gerou a estrutura esperada. Seu texto original foi mantido por segurança.");
         }
       } else {
         alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
@@ -783,7 +777,6 @@ ${tx.value}`,
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return alert("A caixa de texto da dieta está vazia.");
 
-    // Divide os blocos baseando-se nas abas entre colchetes [ ]
     const rawBlocks = raw.split(/(?=\[.*?\])/g);
     const refeicoesFormatadas = [];
 
@@ -803,7 +796,6 @@ ${tx.value}`,
     });
 
     if (refeicoesFormatadas.length === 0) {
-      // Fallback para caso não haja colchetes nas linhas
       const simpleBlocks = raw.split(/\n\s*\n/);
       simpleBlocks.forEach(b => {
         const lines = b.trim().split('\n');
