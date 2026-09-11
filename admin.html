@@ -509,13 +509,14 @@
         headers: authHeaders(),
         body: JSON.stringify({
           mensagem: `Você é um assistente de personal trainer.
-Receba o texto de ficha de treino abaixo e aplique a seguinte modificação solicitada pelo treinador: "${cmd}".
-Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A, etc.) deve ficar sozinho na linha do título do dia. Não coloque exercícios junto no título.
-Retorne APENAS o novo texto da ficha pronto, sem introduções ou saudações.
+Receba o texto de ficha de treino abaixo e aplique a modificação solicitada: "${cmd}".
+Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A) deve ficar sozinho na linha do título do dia.
+Retorne APENAS o novo texto da ficha pronto, sem introduções.
 
 Ficha Atual:
 ${tx.value}`,
-          contexto: currentStudentData || {}
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
         })
       });
 
@@ -729,7 +730,6 @@ ${tx.value}`,
     tx.value = str.trim();
   }
 
-  /* ROTA DE CÁLCULO DE MACROS & OPÇÕES DE SUBSTITUIÇÃO VIA IA */
   async function calcularMacrosComIA() {
     const tx = document.getElementById('dietTextarea');
     const btn = document.getElementById('btnCalcTaco');
@@ -772,7 +772,6 @@ ${tx.value}`,
     }
   }
 
-  /* SALVAR DIETA E SEPARAR EM BLOCOS DE REFEIÇÕES */
   function salvarDieta() {
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return alert("A caixa de texto da dieta está vazia.");
@@ -1020,7 +1019,11 @@ ${tx.value}`,
       const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
         method: 'POST',
         headers: authHeaders(),
-        body: JSON.stringify({ mensagem: text, contexto: currentStudentData || {} })
+        body: JSON.stringify({ 
+          mensagem: text, 
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
+        })
       });
 
       const data = await res.json();
