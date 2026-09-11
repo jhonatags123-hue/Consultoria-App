@@ -3,1035 +3,1218 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel de Gestão Restrito — Jhonata Personal</title>
+<title>Consultoria Esportiva — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
   :root {
-    --bg: #090204;
-    --card: #150508;
-    --border: #330b13;
-    --accent: #c4324f;
-    --accent-dark: #841628;
+    --bg: #0a0104;
+    --bg-grad: radial-gradient(900px 500px at 50% -5%, #240710 0%, #0a0104 60%);
+    --card: #180409;
+    --card-2: #1e050b;
+    --border: #350c15;
+    --border-soft: rgba(212,160,42,0.15);
+    --accent: #b81d36;
+    --accent-2: #841628;
     --gold: #dcaa3a;
     --gold-soft: #eac267;
+    --text: #f9efec;
+    --muted: #c9a4ac;
     --green: #25d366;
-    --text: #f8efec;
-    --muted: #a08086;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   ::-webkit-scrollbar { width:6px; height:6px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
+  body { background:var(--bg-grad); color:var(--text); font-family:'Inter',sans-serif; padding:18px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
+  .card { background:linear-gradient(180deg, var(--card-2), var(--card)); border:1px solid var(--border); border-top:1px solid var(--border-soft); border-radius:16px; padding:22px; margin-bottom:14px; box-shadow:0 10px 26px rgba(0,0,0,0.35); }
+  h1 { font-family:'Bebas Neue',sans-serif; font-size:26px; font-weight:400; letter-spacing:0.03em; color:var(--text); text-align:center; }
+  .sub { color:var(--gold); font-size:12px; margin-top:5px; font-weight:600; text-align:center; }
 
-  #loginScreen {
-    position: fixed; inset: 0;
-    background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 10000; padding: 20px;
-  }
+  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:18px; }
+  .input-field { width:100%; background:#140307; border:1px solid var(--border); color:#fff; padding:13px; border-radius:10px; font-size:14px; transition:border-color .18s ease, box-shadow .18s ease; }
+  .input-field:focus { outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,160,42,0.15); }
+  .input-field::placeholder { color:#7a5a60; }
+  select.input-field { color:#fff; cursor:pointer; }
+  textarea.input-field { resize:none; font-family:'Inter',sans-serif; }
+  .btn-login { width:100%; background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border:none; padding:13px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; margin-top:8px; text-transform:uppercase; letter-spacing:0.04em; transition:transform .15s ease, box-shadow .15s ease; box-shadow:0 6px 18px rgba(184,29,54,0.28); }
+  .btn-login:hover { transform:translateY(-1px); }
+  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; font-weight:800; box-shadow:0 6px 18px rgba(37,211,102,0.22); }
+  .btn-gold { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#210309; font-weight:800; box-shadow:0 6px 18px rgba(212,160,42,0.22); }
+  .btn-header { background:transparent; border:1px solid var(--border); color:var(--muted); padding:5px 10px; border-radius:8px; font-size:11px; cursor:pointer; transition:all .18s ease; }
+  .btn-header:hover { border-color:var(--gold); color:#fff; }
+  .error-msg { color:#ff6b7f; font-size:12px; text-align:center; margin-top:8px; font-weight:700; }
 
-  .login-card {
-    background: linear-gradient(180deg, #1c060b, #120306);
-    border: 1px solid var(--border); border-top: 2px solid var(--gold);
-    border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center;
-  }
-  .login-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #fff; }
-  .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
-  .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
+  .progress-bar-bg { width:100%; background:#140307; border:1px solid var(--border); height:8px; border-radius:6px; margin:14px 0; overflow:hidden; }
+  .progress-bar-fill { width:14%; background:linear-gradient(90deg, var(--gold), var(--gold-soft)); height:100%; transition:width 0.3s ease; }
+  .step-counter { font-size:11px; color:var(--gold); font-weight:700; text-align:right; margin-bottom:8px; letter-spacing:0.03em; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
-  h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
-  .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
-
-  .layout { display:grid; grid-template-columns:320px 1fr; gap:22px; padding:22px; max-width:1500px; margin:0 auto; }
-  @media (max-width:960px) { .layout { grid-template-columns:1fr; } }
-
-  .panel-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
-  .panel-title { font-size:13px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
-
-  .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; }
-  .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
-  .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
+  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .header-app h1 { font-size:22px; text-align:left; }
+  .header-actions { display:flex; gap:6px; }
+  .menu { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; }
+  .menu-btn { flex:1; padding:11px 5px; background:var(--card); border:1px solid var(--border); color:var(--text); font-weight:700; font-size:11px; border-radius:10px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; }
+  .menu-btn:hover { border-color:var(--gold); }
+  .menu-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
 
   .day-accordion-header {
-    background: linear-gradient(135deg, #1f060c, #110205);
-    border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
-    margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; transition: all .2s ease;
+    background: linear-gradient(135deg, var(--card-2), var(--card));
+    border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    user-select: none; transition: all .2s ease; margin-bottom: 8px;
   }
   .day-accordion-header:hover { border-color: var(--gold); }
-  .day-accordion-header b { font-size: 15px; color: #fff; }
 
-  .day-accordion-body {
-    background: #0d0204; border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 12px; margin-top: -12px; margin-bottom: 12px;
+  .item { background:#140307; border:1px solid var(--border); border-radius:14px; padding:15px; margin-bottom:12px; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
+  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
+  .item-title { font-weight:800; font-size:15px; color:#fff; flex:1; }
+
+  .mode-select {
+    background: #210410; border: 1px solid var(--border); color: var(--gold);
+    font-size: 11px; font-weight: 700; padding: 5px 8px; border-radius: 8px; cursor: pointer;
+  }
+  .mode-select:focus { outline:none; border-color:var(--gold); }
+
+  .series-container { display:flex; flex-direction:column; gap:7px; margin-top:8px; }
+  .series-row { display:flex; align-items:center; gap:5px; background:#210410; padding:9px 11px; border-radius:10px; border:1px solid #3d0815; flex-wrap:nowrap; overflow-x:auto; }
+  .series-row.tecnica { background:rgba(196,50,79,0.12); border-color:var(--accent); }
+  .series-tag { font-size:11px; font-weight:700; color:var(--muted); width:85px; flex-shrink:0; }
+  .unit { font-size:10px; color:var(--muted); flex-shrink:0; }
+  .input-log { background:var(--bg) !important; border:1px solid var(--border) !important; color:var(--gold) !important; text-align:center; font-weight:700; padding:7px 4px !important; margin-bottom:0 !important; font-size:12px; border-radius:8px !important; }
+
+  .diet-container { display:flex; flex-direction:column; gap:16px; }
+  .diet-filter-row { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; }
+  .diet-filter-btn { flex:1; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--card); color:var(--muted); font-weight:700; font-size:12px; cursor:pointer; text-align:center; white-space:nowrap; transition:all .18s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .diet-filter-btn:hover { border-color:var(--gold); }
+  .diet-filter-btn.active { background:linear-gradient(135deg, var(--accent), var(--accent-2)); color:#fff; border-color:var(--accent); box-shadow:0 4px 14px rgba(184,29,54,0.3); }
+
+  .meal-table-card { background:#110307; border:1px solid var(--border); border-radius:14px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,0.25); }
+  .meal-header { background:linear-gradient(90deg, #200610, #170309); padding:11px 15px; font-size:13px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.03em; border-bottom:2px solid var(--accent); display:flex; justify-content:space-between; align-items:center; }
+
+  .diet-table { width:100%; border-collapse:collapse; font-size:11px; text-align:left; }
+  .diet-table th { background:#180409; color:var(--muted); padding:9px 8px; font-weight:700; border-bottom:1px solid var(--border); text-transform:uppercase; font-size:10px; letter-spacing:0.03em; }
+  .diet-table td { padding:9px 8px; border-bottom:1px solid rgba(255,255,255,0.05); color:#fff; }
+  .diet-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .diet-table td.qty { color:var(--gold); font-weight:700; }
+  .diet-table td.kcal { color:#7fd68a; font-weight:600; }
+
+  .total-row { background:#1a050a; font-weight:800; }
+  .total-row td { color:var(--gold) !important; border-bottom:none; }
+
+  .save-indicator {
+    position: fixed; top: 14px; right: 14px;
+    background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+    color: #1a0307; padding: 7px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 800; display: none; z-index: 99999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6); letter-spacing: 0.03em;
   }
 
-  .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
-  .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
-
-  .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; }
-  .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
-  .tab-btn:hover { border-color:var(--gold); color:#fff; }
-  .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
-
-  label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:10px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; text-align: left; }
-  input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:12px 14px; border-radius:10px; font-size:13px; transition:border-color .18s; }
-  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
-  textarea { resize:vertical; font-family:'Inter',sans-serif; }
-
-  .btn { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800; border:none; padding:12px 18px; border-radius:10px; font-size:12px; cursor:pointer; width:100%; text-transform:uppercase; letter-spacing:0.03em; transition:transform .15s ease; box-shadow:0 4px 12px rgba(212,160,42,0.2); }
-  .btn:hover { transform:translateY(-1px); }
-  .btn-danger { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; box-shadow:0 4px 12px rgba(196,50,79,0.3); }
-  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; box-shadow:0 4px 12px rgba(37,211,102,0.2); }
-  .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
-
+  .label-fdb { display:block; font-size:12px; color:var(--gold); font-weight:700; margin-bottom:5px; letter-spacing:0.02em; }
   .hidden { display:none !important; }
-  .status-pill { display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; }
-  .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
-  .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
 
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
-  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
-
-  .senha-row { display:flex; gap:8px; align-items:flex-end; }
-  .senha-row > div:first-child { flex:1; }
-
-  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
-  @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
-  .preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
+  .pay-lock-overlay {
+    background: linear-gradient(180deg, rgba(30, 5, 11, 0.98), rgba(10, 1, 4, 0.98));
+    border: 1px solid var(--accent);
+    border-radius: 16px;
+    padding: 24px 18px;
+    text-align: center;
+    margin-top: 10px;
+    box-shadow: 0 10px 30px rgba(184, 29, 54, 0.3);
+  }
+  .pay-lock-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 24px;
+    color: #ff6b7f;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .pay-lock-desc {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
 </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <div class="login-card">
-    <h2>PAINEL DO PERSONAL</h2>
-    <p>Digite suas credenciais administrativas</p>
-    <label>Usuário Administrador</label>
-    <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
-    <label>Senha</label>
-    <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginAdmin()">
-    <button type="button" id="btnLoginAdmin" class="btn" style="margin-top:20px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
-    <div id="loginError" class="error-msg">❌ Usuário ou senha incorretos.</div>
+<div id="saveIndicator" class="save-indicator">💾 Salvando alterações...</div>
+
+<!-- TELA DA ANAMNESE -->
+<div id="anamneseScreen" class="card hidden">
+  <h1>ANAMNESE NUTRICIONAL & TREINO</h1>
+  <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
+  
+  <div class="progress-bar-bg">
+    <div id="progressBar" class="progress-bar-fill"></div>
   </div>
+  <div id="stepCounter" class="step-counter">Etapa 1 de 7</div>
+
+  <form onsubmit="event.preventDefault();" class="login-box">
+    <!-- ETAPA 1: DADOS PESSOAIS -->
+    <div id="anamStep1">
+      <label class="label-fdb">1. Nome Completo</label>
+      <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div style="flex:1;">
+          <label class="label-fdb">Data de Nascimento</label>
+          <input type="date" id="anamNascimento" class="input-field" required>
+        </div>
+        <div style="flex:1;">
+          <label class="label-fdb">Idade</label>
+          <input type="number" id="anamIdade" class="input-field" placeholder="Ex: 25" required>
+        </div>
+      </div>
+
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
+      <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
+
+      <label class="label-fdb" style="margin-top:8px;">CPF (Para emissão da cobrança)</label>
+      <input type="text" id="anamCpf" class="input-field" placeholder="Ex: 000.000.000-00" required>
+
+      <label class="label-fdb" style="margin-top:8px;">WhatsApp / Telefone</label>
+      <input type="tel" id="anamTelefone" class="input-field" placeholder="Ex: (51) 99999-9999" required>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div style="flex:1;">
+          <label class="label-fdb">Peso (kg)</label>
+          <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75 kg" required>
+        </div>
+        <div style="flex:1;">
+          <label class="label-fdb">Altura (m)</label>
+          <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75 m" required>
+        </div>
+      </div>
+      <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
+    </div>
+
+    <!-- ETAPA 2: OBJETIVO & MOTIVAÇÃO -->
+    <div id="anamStep2" class="hidden">
+      <label class="label-fdb">2. O que te motivou a buscar ajuda?</label>
+      <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética" required>
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu objetivo principal?</label>
+      <select id="anamObjetivo" class="input-field" required>
+        <option value="Hipertrofia / Ganho de Massa">Hipertrofia / Ganho de Massa Muscular</option>
+        <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
+      </select>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 3: HÁBITOS ALIMENTARES -->
+    <div id="anamStep3" class="hidden">
+      <label class="label-fdb">3. Quantas refeições faz por dia?</label>
+      <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 4: ROTINA -->
+    <div id="anamStep4" class="hidden">
+      <label class="label-fdb">4. Horário de treino e rotina:</label>
+      <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: 18h">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 5: ALIMENTOS -->
+    <div id="anamStep5" class="hidden">
+      <label class="label-fdb">5. Alimentos preferidos / Alergias:</label>
+      <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, arroz..."></textarea>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 6: SUPLEMENTOS -->
+    <div id="anamStep6" class="hidden">
+      <label class="label-fdb">6. Medicamentos ou suplementos em uso:</label>
+      <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar ➔</button>
+      </div>
+    </div>
+
+    <!-- ETAPA 7: PLANO E FINALIZAÇÃO -->
+    <div id="anamStep7" class="hidden">
+      <label class="label-fdb">7. Rotina no final de semana:</label>
+      <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
+
+      <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
+      <select id="anamTipoConsultoria" class="input-field" required>
+        <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
+        <option value="COMPLETA_TRIMESTRAL">🏆 Completa Trimestral — 3x R$ 130,00</option>
+        <option value="COMPLETA_SEMESTRAL">🏆 Completa Semestral — 6x R$ 110,00</option>
+        <option value="COMPLETA_ANUAL">🏆 Completa Anual — 12x R$ 85,00</option>
+        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 80,00/mês</option>
+        <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 55,00/mês</option>
+      </select>
+
+      <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
+      <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
+        <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
+        <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
+      </select>
+
+      <div id="pixDiretoBox" style="background:#170307; border:1px solid var(--border); border-radius:10px; padding:12px; margin-top:10px; text-align:center;">
+        <div style="font-size:12px; color:var(--gold); font-weight:700;">📱 CHAVE PIX (E-MAIL)</div>
+        <div style="font-size:14px; font-weight:800; color:#fff; margin:6px 0; word-break:break-all;">jhonatags123@gmail.com</div>
+        <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">Titular: Jhonata (Consultoria Esportiva)</div>
+        <button type="button" class="btn-login" style="margin-top:6px; background:var(--gold); color:#000; font-size:12px;" onclick="copiarChavePix()">📋 COPIAR CHAVE PIX</button>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:#170307; border:1px solid var(--border);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 FINALIZAR E ENVIAR</button>
+      </div>
+    </div>
+  </form>
 </div>
 
-<div id="chartModal" class="modal-overlay hidden">
-  <div class="modal-chart">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div>
-        <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas</span>
-      </div>
-      <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
-    </div>
-
-    <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
-
-    <div style="position:relative; height:220px; width:100%;">
-      <canvas id="progressChart"></canvas>
-    </div>
-  </div>
+<!-- TELA DE LOGIN -->
+<div id="loginScreen" class="card">
+  <h1>JHONATA CONSULTORIA</h1>
+  <div class="sub">Acesse sua área exclusiva de aluno</div>
+  
+  <form onsubmit="handleLogin(event)" class="login-box">
+    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário (ex: lucas)" required autocomplete="username">
+    <input type="password" id="loginPass" class="input-field" placeholder="Sua senha" required autocomplete="current-password">
+    <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
+  </form>
+  <div id="loginError" class="error-msg hidden"></div>
 </div>
 
-<div id="adminApp" class="hidden">
-  <header>
-    <div>
-      <h1>JHONATA PERSONAL</h1>
-      <span style="font-size:11px; color:var(--muted);">Gestão Central de Alunos</span>
+<!-- TELA PRINCIPAL (APP DO ALUNO) -->
+<div id="mainContent" class="hidden">
+  <div class="card">
+    <div class="header-app">
+      <h1 id="clientName">Consultoria</h1>
+      <div class="header-actions">
+        <button class="btn-header" type="button" onclick="logout()">Sair</button>
+      </div>
     </div>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span class="status-badge">● CONECTADO</span>
-      <button class="btn btn-danger" style="width:auto; padding:7px 14px; font-size:11px;" onclick="logoutAdmin()">Sair</button>
-    </div>
-  </header>
+    <div class="sub" id="billingInfo"></div>
+  </div>
 
-  <div class="layout">
-    <aside>
-      <div class="panel-card">
-        <div class="panel-title">
-          <span>👥 Alunos Cadastrados</span>
-          <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
-        </div>
-        <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
-        <div id="alunosList" style="max-height:380px; overflow-y:auto;">Carregando...</div>
-      </div>
+  <!-- MENU DE NAVEGAÇÃO -->
+  <div class="menu">
+    <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
+    <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
+    <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
+    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
+  </div>
 
-      <div class="panel-card">
-        <div class="panel-title">⚡ Ferramentas</div>
-        <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
-        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
-      </div>
-    </aside>
+  <!-- ABA 1: TREINO -->
+  <div id="tabTreino">
+    <div id="exercisesList"></div>
+  </div>
 
-    <main>
-      <div class="nav-tabs">
-        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
-        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
-        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
-      </div>
+  <!-- ABA 2: DIETA -->
+  <div id="tabDieta" class="hidden">
+    <div id="dietFilterContainer" class="diet-filter-row"></div>
+    <div id="mealsList" class="diet-container"></div>
+  </div>
 
-      <div id="secResumo" class="panel-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
-          <div>
-            <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-            <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
-              <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
-            </div>
-          </div>
-          <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
-        </div>
+  <!-- ABA 3: FEEDBACK -->
+  <div id="tabFeedback" class="card hidden">
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">💬 Enviar Relatório Semanal</div>
+    <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
+    <textarea id="feedbackText" class="input-field" rows="5" placeholder="Descreva sua intensidade nos treinos, dores musculares, adesão à dieta e dificuldades..."></textarea>
+    <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP DO PERSONAL</button>
+  </div>
 
-        <div id="workoutOverview">
-          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
-        </div>
-      </div>
-
-      <div id="secTreino" class="panel-card hidden">
-        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
-        
-        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
-            <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
-          </div>
-        </div>
-
-        <div class="editor-grid">
-          <div>
-            <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;LOWER (TERÇA)&#10;Agachamento 3x 6-8&#10;Mesa Flexora 1x+cluster"></textarea>
-          </div>
-
-          <div>
-            <label>Preview da Ficha Formatada (Ao Vivo):</label>
-            <div id="liveWorkoutPreview" class="preview-card">
-              <p style="color:var(--muted); font-size:12px;">Digite o treino ao lado para visualizar a ficha montada.</p>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA ATUALIZADA NO BANCO</button>
-      </div>
-
-      <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição em gramas.</p>
-
-        <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="16" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
-        
-        <div style="display:flex; gap:10px; margin-top:12px;">
-          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Opções de Troca (IA)</button>
-          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
-        </div>
-      </div>
-
-      <div id="secCadastro" class="panel-card hidden">
-        <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
-        
-        <label>Nome Exibido</label>
-        <input type="text" id="editName">
-
-        <label>Senha do Aluno</label>
-        <div class="senha-row">
-          <div>
-            <input type="text" id="editPassword" placeholder="Deixe em branco para manter a senha atual">
-          </div>
-          <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
-        </div>
-        <p style="font-size:11px; color:var(--muted); margin-top:4px;">Por segurança a senha fica protegida e não é exibida em texto puro.</p>
-
-        <label>Status do Pagamento</label>
-        <select id="editStatus">
-          <option value="pago">🟢 Pago / Acesso Liberado</option>
-          <option value="pendente">🔴 Pendente / Suspenso</option>
-        </select>
-
-        <div style="margin-top: 16px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
-          <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
-          <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-            ⚡ Permitir que o aluno escolha/altere Técnicas de Treino (Myo-reps, Cluster, Back-off) no aplicativo
-          </label>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
-          <button class="btn btn-wpp" style="flex:1;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
-          <button class="btn btn-danger" style="width:120px;" onclick="deletarAluno()">🗑️ Excluir</button>
-        </div>
-      </div>
-
-      <div id="secNovo" class="panel-card hidden">
-        <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
-        
-        <label>Nome Completo</label>
-        <input type="text" id="newName" placeholder="Ex: Lucas Andrade">
-
-        <label>Código / Usuário de Acesso</label>
-        <input type="text" id="newCode" placeholder="Ex: lucas">
-
-        <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;B - LOWER&#10;Agachamento 3x 6-8"></textarea>
-
-        <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g) | 276 | 8 | 52 | 3"></textarea>
-
-        <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
-      </div>
-
-      <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
-
-        <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje?</div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." autocomplete="one-time-code" data-lpignore="true" data-form-type="other" autocorrect="off" autocapitalize="sentences" spellcheck="true" style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
-          <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
-        </div>
-      </div>
-    </main>
+  <!-- ABA 4: CONFIGURAÇÕES -->
+  <div id="tabConfig" class="card hidden">
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
+    <label class="label-fdb">Nova Senha Pessoal</label>
+    <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha..." autocomplete="new-password">
+    <button class="btn-login btn-gold" style="margin-top:12px;" onclick="alterarSenhaAluno()">💾 SALVAR NOVA SENHA</button>
   </div>
 </div>
 
 <script>
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  let currentStudentCode = "";
-  let currentStudentData = null;
-  let allStudentsList = [];
-  let chartInstance = null;
+
+  const ASAAS_LINKS = {
+    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u"
+  };
+
+  let currentData = null;
+  let loggedUserCode = "";
+  let activeDietTag = "";
+  let autoSaveTimer = null;
 
   function authHeaders() {
-    const token = localStorage.getItem('admin_token');
-    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    const token = localStorage.getItem('aluno_token');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
   }
 
-  window.onload = () => {
+  window.onload = async () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
-    const token = localStorage.getItem('admin_token');
-    if (token) {
+    const params = new URLSearchParams(window.location.search);
+    const paramAluno = params.get('aluno');
+    if (paramAluno && document.getElementById('loginUser')) {
+      document.getElementById('loginUser').value = paramAluno;
+    }
+
+    if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('adminApp').classList.remove('hidden');
-      fetchAlunos();
+      document.getElementById('anamneseScreen').classList.remove('hidden');
+
+      const planoParam = params.get('plano');
+      if (planoParam && document.getElementById('anamTipoConsultoria')) {
+        document.getElementById('anamTipoConsultoria').value = planoParam;
+      }
+      return;
+    }
+
+    const loggedUser = localStorage.getItem('logged_user');
+    const alunoToken = localStorage.getItem('aluno_token');
+
+    if (loggedUser && alunoToken) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
+          headers: authHeaders()
+        });
+        if (res.ok) {
+          const data = await res.json();
+          loggedUserCode = loggedUser;
+          loadStudentData(data);
+        } else {
+          logout();
+        }
+      } catch (e) {
+        logout();
+      }
+    } else {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('mainContent').classList.add('hidden');
+      document.getElementById('anamneseScreen').classList.add('hidden');
     }
   };
 
-  async function loginAdmin() {
-    const user = document.getElementById('adminUser').value.trim();
-    const pass = document.getElementById('adminPass').value.trim();
+  function nextAnamStep(step) {
+    for (let i = 1; i <= 7; i++) document.getElementById(`anamStep${i}`).classList.add('hidden');
+    document.getElementById(`anamStep${step}`).classList.remove('hidden');
+    document.getElementById('progressBar').style.width = `${(step/7)*100}%`;
+    document.getElementById('stepCounter').textContent = `Etapa ${step} de 7`;
+  }
+
+  function togglePaymentView() {
+    const option = document.getElementById('anamFormaPagamento').value;
+    const pixBox = document.getElementById('pixDiretoBox');
+    if (option === 'PIX_DIRETO') pixBox.classList.remove('hidden');
+    else pixBox.classList.add('hidden');
+  }
+
+  function copiarChavePix() {
+    navigator.clipboard.writeText("jhonatags123@gmail.com");
+    alert("✅ Chave Pix (jhonatags123@gmail.com) copiada!");
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnLoginSubmit');
+    const user = document.getElementById('loginUser').value.trim().toLowerCase();
+    const pass = document.getElementById('loginPass').value.trim();
     const errorDiv = document.getElementById('loginError');
-    const btn = document.getElementById('btnLoginAdmin');
 
-    errorDiv.style.display = 'none';
-    btn.textContent = "VALIDANDO...";
+    errorDiv.classList.add('hidden');
+    btn.textContent = "Conectando ao servidor...";
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ user, pass })
-      });
-      const data = await res.json();
-      if (res.ok && data.token) {
-        localStorage.setItem('admin_token', data.token);
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminApp').classList.remove('hidden');
-        fetchAlunos();
-      } else {
-        errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
-        errorDiv.style.display = 'block';
-      }
-    } catch(e) { 
-      errorDiv.textContent = "❌ Erro ao conectar ao servidor Render.";
-      errorDiv.style.display = 'block';
-    } finally {
-      btn.textContent = "ENTRAR NO PAINEL";
-      btn.disabled = false;
-    }
-  }
-
-  function logoutAdmin() {
-    localStorage.removeItem('admin_token');
-    location.reload();
-  }
-
-  async function fetchAlunos() {
-    const container = document.getElementById('alunosList');
-    container.innerHTML = "Carregando...";
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
-        headers: authHeaders()
-      });
-      if (!res.ok) { logoutAdmin(); return; }
-      allStudentsList = await res.json();
-      renderStudentsList(allStudentsList);
-    } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
-  }
-
-  function renderStudentsList(list) {
-    const container = document.getElementById('alunosList');
-    container.innerHTML = "";
-    if (!list || list.length === 0) {
-      container.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
-      return;
-    }
-
-    list.forEach((aluno, i) => {
-      const div = document.createElement('div');
-      div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
-      div.innerHTML = `<div><b>${aluno.nome}</b><br><small style="color:var(--muted)">@${aluno.codigo}</small></div>
-                       <span class="status-pill ${aluno.status_pagamento==='pago'?'status-pago':'status-pendente'}">${aluno.status_pagamento || 'pago'}</span>`;
-      div.onclick = () => {
-        document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
-        div.classList.add('active');
-        carregarAluno(aluno.codigo);
-      };
-      container.appendChild(div);
-    });
-
-    if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
-  }
-
-  function filterStudents() {
-    const term = document.getElementById('searchStudent').value.toLowerCase();
-    const filtered = allStudentsList.filter(a => a.nome.toLowerCase().includes(term) || a.codigo.toLowerCase().includes(term));
-    renderStudentsList(filtered);
-  }
-
-  async function carregarAluno(code) {
-    currentStudentCode = code;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`, {
-        headers: authHeaders()
-      });
-      currentStudentData = await res.json();
-
-      document.getElementById('studentName').textContent = currentStudentData.clientName || code;
-      document.getElementById('studentCodeDisplay').textContent = `@${code}`;
-      document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
-
-      const stPill = document.getElementById('studentStatusPill');
-      const stVal = currentStudentData.status_pagamento || 'pago';
-      stPill.textContent = stVal.toUpperCase();
-      stPill.className = `status-pill ${stVal==='pago'?'status-pago':'status-pendente'}`;
-
-      document.getElementById('editName').value = currentStudentData.clientName || '';
-      document.getElementById('editStatus').value = stVal;
-      document.getElementById('editPassword').value = '';
-      
-      document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
-
-      renderWorkoutView();
-      carregarTreinoNoEditorAoVivo();
-      loadDietView();
-    } catch(e) { alert("Erro ao carregar dados do aluno."); }
-  }
-
-  function carregarTreinoNoEditorAoVivo() {
-    const tx = document.getElementById('liveWorkoutText');
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      tx.value = "";
-      atualizarPreviewAoVivo();
-      return;
-    }
-
-    let text = "";
-    currentStudentData.days.forEach(day => {
-      text += `${day.title}\n`;
-      (day.exercicios || []).forEach(ex => {
-        text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
-      });
-      text += "\n";
-    });
-
-    tx.value = text.trim();
-    atualizarPreviewAoVivo();
-  }
-
-  function atualizarPreviewAoVivo() {
-    const raw = document.getElementById('liveWorkoutText').value;
-    const container = document.getElementById('liveWorkoutPreview');
-    const parsedDays = parseWorkoutText(raw);
-
-    container.innerHTML = "";
-    if (parsedDays.length === 0) {
-      container.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum treino reconhecido.</p>`;
-      return;
-    }
-
-    parsedDays.forEach(day => {
-      let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-        <b style="color:var(--gold); font-size:13px;">🏋️ ${day.title}</b><br>`;
-      
-      day.exercicios.forEach(ex => {
-        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${ex.tecnicaTipo}]</span>` : '';
-        html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-          <span>• ${ex.nome}${isTecnico}</span>
-          <span style="color:var(--muted); font-weight:700;">${ex.series} (${ex.reps})</span>
-        </div>`;
-      });
-
-      html += `</div>`;
-      container.innerHTML += html;
-    });
-  }
-
-  async function executarComandoIaTreino() {
-    const input = document.getElementById('aiWorkoutCommand');
-    const tx = document.getElementById('liveWorkoutText');
-    const btn = document.getElementById('btnAiCmd');
-    const cmd = input.value.trim();
-
-    if (!cmd) return alert("Digite o comando para a IA.");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⚡ Modificando...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
         method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          mensagem: `Você é um assistente de personal trainer.
-Receba o texto de ficha de treino abaixo e aplique a modificação solicitada: "${cmd}".
-Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A) deve ficar sozinho na linha do título do dia.
-Retorne APENAS o novo texto da ficha pronto, sem introduções.
-
-Ficha Atual:
-${tx.value}`,
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ codigo: user, senha: pass })
       });
 
-      const data = await res.json();
-      if (res.ok && data.resposta) {
-        tx.value = data.resposta.trim();
-        atualizarPreviewAoVivo();
-        input.value = "";
-        alert("✅ Ficha alterada pela IA com sucesso!");
-      } else {
-        alert("❌ " + (data.error || "Não foi possível modificar a ficha."));
-      }
-    } catch(e) {
-      alert("❌ Erro ao processar comando na IA.");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
+      const result = await res.json();
 
-  function salvarTreinoEditado() {
-    const raw = document.getElementById('liveWorkoutText').value;
-    currentStudentData.days = parseWorkoutText(raw);
-    salvarAlteracoes();
-  }
-
-  async function gerarNovaSenhaAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
-        method: 'POST',
-        headers: authHeaders()
-      });
-      const data = await res.json();
-      if (res.ok && data.senhaTemporaria) {
-        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno.`);
-      } else {
-        alert("❌ " + (data.error || "Erro ao gerar nova senha."));
-      }
-    } catch (e) {
-      alert("Erro ao conectar ao servidor.");
-    }
-  }
-
-  function renderWorkoutView() {
-    const div = document.getElementById('workoutOverview');
-    div.innerHTML = "";
-
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      div.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum treino cadastrado neste perfil.</p>";
-      return;
-    }
-
-    currentStudentData.days.forEach((day, dayIdx) => {
-      const numEx = (day.exercicios || []).length;
-      
-      let html = `
-        <div class="day-accordion-header" onclick="toggleDayAccordion(${dayIdx})">
-          <div>
-            <b>🏋️ ${day.title}</b>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
-          </div>
-          <span id="accordionArrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform .2s;">▼</span>
-        </div>
-
-        <div id="accordionBody_${dayIdx}" class="day-accordion-body hidden">
-      `;
-
-      (day.exercicios || []).forEach((ex, exIdx) => {
-        html += `
-          <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
-            <span>• <b>${ex.nome}</b></span>
-            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series} (${ex.reps}) 📈 Evolução</span>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-      div.innerHTML += html;
-    });
-  }
-
-  function toggleDayAccordion(dayIdx) {
-    const body = document.getElementById(`accordionBody_${dayIdx}`);
-    const arrow = document.getElementById(`accordionArrow_${dayIdx}`);
-    
-    if (body.classList.contains('hidden')) {
-      body.classList.remove('hidden');
-      arrow.style.transform = 'rotate(180deg)';
-    } else {
-      body.classList.add('hidden');
-      arrow.style.transform = 'rotate(0deg)';
-    }
-  }
-
-  function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
-    document.getElementById('chartExName').textContent = nomeEx;
-    document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
-
-    const weeklyLogs = currentStudentData.weekly_logs || {};
-    const key = `${dayIdx}_${exIdx}`;
-    const historicoSemanal = (weeklyLogs[key] || []).slice(-4);
-
-    let html = "<b>Progresso Semanal (Últimos 4 Treinos):</b><br>";
-    let cargasValidas = [];
-
-    if (historicoSemanal.length === 0) {
-      html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
-    } else {
-      historicoSemanal.forEach((reg, idx) => {
-        html += `
-          <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <b style="color:var(--gold)">Treino ${idx + 1} (${reg.data}):</b><br>
-              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${reg.repsMed}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${reg.tecnica}</span>` : ''}
-            </div>
-            <div style="font-size:15px; font-weight:800; color:#fff;">${reg.cargaMax} kg</div>
-          </div>
-        `;
-        if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
-      });
-    }
-
-    document.getElementById('logsDetailList').innerHTML = html;
-    document.getElementById('chartModal').classList.remove('hidden');
-
-    renderChart(cargasValidas);
-  }
-
-  function renderChart(cargas) {
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    if (chartInstance) chartInstance.destroy();
-
-    const dataPoints = cargas.length > 0 ? cargas : [0];
-    const labels = dataPoints.map((_, i) => `Semana ${i+1}`);
-
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Evolução de Carga (kg)',
-          data: dataPoints,
-          borderColor: '#dcaa3a',
-          backgroundColor: 'rgba(220,170,58,0.12)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 6,
-          pointBackgroundColor: '#c4324f'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } },
-          x: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } }
-        },
-        plugins: {
-          legend: { labels: { color: '#f8efec', font: { family: 'Inter', weight: '700' } } }
-        }
-      }
-    });
-  }
-
-  function closeChartModal() {
-    document.getElementById('chartModal').classList.add('hidden');
-  }
-
-  function switchTab(tab) {
-    document.getElementById('secResumo').classList.add('hidden');
-    document.getElementById('secTreino').classList.add('hidden');
-    document.getElementById('secDieta').classList.add('hidden');
-    document.getElementById('secCadastro').classList.add('hidden');
-    document.getElementById('secNovo').classList.add('hidden');
-    document.getElementById('secChatAdmin').classList.add('hidden');
-
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-    if (tab === 'resumo') {
-      document.getElementById('secResumo').classList.remove('hidden');
-      document.getElementById('tab1').classList.add('active');
-    } else if (tab === 'treino') {
-      document.getElementById('secTreino').classList.remove('hidden');
-      document.getElementById('tab2').classList.add('active');
-    } else if (tab === 'dieta') {
-      document.getElementById('secDieta').classList.remove('hidden');
-      document.getElementById('tab3').classList.add('active');
-    } else if (tab === 'cadastro') {
-      document.getElementById('secCadastro').classList.remove('hidden');
-      document.getElementById('tab4').classList.add('active');
-    } else if (tab === 'novo') {
-      document.getElementById('secNovo').classList.remove('hidden');
-    } else if (tab === 'chatAdmin') {
-      document.getElementById('secChatAdmin').classList.remove('hidden');
-    }
-  }
-
-  function loadDietView() {
-    const tx = document.getElementById('dietTextarea');
-    if (!currentStudentData.refeicoes) { tx.value = ""; return; }
-
-    let str = "";
-    currentStudentData.refeicoes.forEach(ref => {
-      str += `${ref.titulo}\n${ref.alimentos}\n\n`;
-    });
-    tx.value = str.trim();
-  }
-
-  async function calcularMacrosComIA() {
-    const tx = document.getElementById('dietTextarea');
-    const btn = document.getElementById('btnCalcTaco');
-    const textoDieta = tx.value.trim();
-
-    if (!textoDieta) return alert("Digite os alimentos na caixa de texto primeiro.");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ Calculando e gerando substituições...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-substituicoes-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ 
-          alimento: "Calcular Macronutrientes e Substituições",
-          listaAtual: textoDieta 
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.resultado) {
-        let respLimpa = data.resultado.trim();
-
-        if (respLimpa.includes('|')) {
-          tx.value = respLimpa;
-          alert("✅ Macros calculados e opções de troca preenchidas com sucesso!");
-        } else {
-          alert("⚠️ A IA não gerou a estrutura esperada. Seu texto original foi mantido por segurança.");
-        }
-      } else {
-        alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
-      }
-    } catch(e) {
-      alert("❌ Erro ao conectar à IA para cálculo de macros.");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
-
-  function salvarDieta() {
-    const raw = document.getElementById('dietTextarea').value.trim();
-    if (!raw) return alert("A caixa de texto da dieta está vazia.");
-
-    const rawBlocks = raw.split(/(?=\[.*?\])/g);
-    const refeicoesFormatadas = [];
-
-    rawBlocks.forEach(bloco => {
-      const cleanBloco = bloco.trim();
-      if (!cleanBloco) return;
-
-      const lines = cleanBloco.split('\n').map(l => l.trim()).filter(l => l !== '');
-      if (lines.length === 0) return;
-
-      const title = lines[0];
-      const items = lines.slice(1).join('\n');
-
-      if (title && items) {
-        refeicoesFormatadas.push({ titulo: title, alimentos: items });
-      }
-    });
-
-    if (refeicoesFormatadas.length === 0) {
-      const simpleBlocks = raw.split(/\n\s*\n/);
-      simpleBlocks.forEach(b => {
-        const lines = b.trim().split('\n');
-        if (lines.length > 0) {
-          refeicoesFormatadas.push({
-            titulo: lines[0],
-            alimentos: lines.slice(1).join('\n')
-          });
-        }
-      });
-    }
-
-    currentStudentData.refeicoes = refeicoesFormatadas;
-    salvarAlteracoes();
-  }
-
-  async function salvarConfiguracoesConta() {
-    currentStudentData.clientName = document.getElementById('editName').value.trim();
-    currentStudentData.status_pagamento = document.getElementById('editStatus').value;
-    currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
-    
-    const newPass = document.getElementById('editPassword').value.trim();
-    if (newPass) {
-      currentStudentData.senha = newPass;
-    } else {
-      delete currentStudentData.senha;
-    }
-
-    await salvarAlteracoes();
-    document.getElementById('editPassword').value = '';
-  }
-
-  async function salvarAlteracoes() {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
-      });
-      if (res.ok) {
-        alert("🎉 Dados salvos com sucesso no banco!");
-        fetchAlunos();
-        renderWorkoutView();
-        switchTab('resumo');
-      }
-    } catch(e) { alert("Erro ao salvar no servidor."); }
-  }
-
-  function parseWorkoutText(rawText) {
-    if (!rawText || !rawText.trim()) return [];
-
-    const lines = rawText.split('\n');
-    const days = [];
-    let currentDay = null;
-
-    let globalSeries = "3";
-    let globalReps = "8-10";
-
-    const exerciseKeywords = ['supino', 'remada', 'puxada', 'elevação', 'elevacao', 'pélvica', 'pelvica', 'flexora', 'extensora', 'rosca', 'tríceps', 'triceps', 'agachamento', 'leg press', 'crucifixo', 'cross', 'desenvolvimento', 'afundo', 'panturrilha', 'stiff', 'terra'];
-    const validDivisionRegex = /^(upper|lower|fullbody|push|pull|legs|treino\s+[a-g0-9]|dia\s+[a-g0-9]|[a-g]\s*[\-\:\)]|\b[a-g]\b)/i;
-
-    lines.forEach(line => {
-      const cleanLine = line.trim();
-      if (!cleanLine) return;
-
-      const lowerLine = cleanLine.toLowerCase();
-
-      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries')) {
-        const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
-        if (matchGlobal) {
-          globalSeries = matchGlobal[1];
-          globalReps = matchGlobal[2];
-        }
+      if (!res.ok) {
+        errorDiv.textContent = "❌ " + (result.error || "Erro de login.");
+        errorDiv.classList.remove('hidden');
+        btn.textContent = "ENTRAR";
+        btn.disabled = false;
         return;
       }
 
-      const isKnownExercise = exerciseKeywords.some(ex => lowerLine.includes(ex));
-      const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
+      localStorage.setItem('logged_user', user);
+      localStorage.setItem('aluno_token', result.token);
+      loggedUserCode = user;
 
-      const isDayHeader = validDivisionRegex.test(cleanLine) && !isKnownExercise && !hasWorkoutNumbers;
-
-      if (isDayHeader) {
-        currentDay = { title: cleanLine.toUpperCase(), exercicios: [] };
-        days.push(currentDay);
-      } else {
-        if (!currentDay) {
-          currentDay = { title: "TREINO A", exercicios: [] };
-          days.push(currentDay);
-        }
-
-        let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
-
-        const hasMyo = lowerLine.includes('myo');
-        const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
-        const hasCluster = lowerLine.includes('cluster');
-
-        if (hasMyo) {
-          name = name.replace(/1x\+myoreps|1x\+myo|\(myo-reps\)|\(myoreps\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "1 + Mini-blocos",
-            reps: "Ativação (4-6 reps, 40s desc) + Mini-blocos (2 reps, 15s desc)",
-            isTecnico: true,
-            tecnicaTipo: "MYO-REPS"
-          });
-        } else if (hasCluster && hasBackoff) {
-          name = name.replace(/1x\+cluster\+backoff|1x\+cluster\+back-off/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "Cluster + Back-off",
-            reps: "Blocos Cluster (20s desc) + Back-off (-20% a 30% carga)",
-            isTecnico: true,
-            tecnicaTipo: "CLUSTER + BACK-OFF"
-          });
-        } else if (hasCluster) {
-          name = name.replace(/1x\+cluster|\(cluster\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "Cluster Set",
-            reps: "Blocos de 2-3 reps (20s descanso intra-série)",
-            isTecnico: true,
-            tecnicaTipo: "CLUSTER SET"
-          });
-        } else if (hasBackoff) {
-          name = name.replace(/1x\+backoff|1x\+back-off|\(back-off\)|\(backoff\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "1 Top Set + 1 Back-off",
-            reps: "Top Set + Back-off (-20% a 30% carga)",
-            isTecnico: true,
-            tecnicaTipo: "BACK-OFF SET"
-          });
-        } else {
-          const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
-
-          if (matchX) {
-            let series = matchX[1];
-            let reps = matchX[2] || globalReps;
-            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
-
-            currentDay.exercicios.push({ nome: name, series: series, reps: reps });
-          } else {
-            currentDay.exercicios.push({ nome: name, series: globalSeries, reps: globalReps });
-          }
-        }
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
-    });
 
-    return days.filter(d => d.exercicios.length > 0);
+      loadStudentData(result.data);
+    } catch (err) {
+      errorDiv.textContent = "❌ Servidor iniciando. Aguarde uns instantes e tente novamente.";
+      errorDiv.classList.remove('hidden');
+      btn.textContent = "ENTRAR";
+      btn.disabled = false;
+    }
   }
 
-  async function salvarNovoAlunoBloco() {
-    const nome = document.getElementById('newName').value.trim();
-    const codigo = document.getElementById('newCode').value.trim().toLowerCase();
-    const rawW = document.getElementById('rawWorkout').value.trim();
-    const rawD = document.getElementById('rawDiet').value.trim();
+  async function sendAnamneseAppDirect() {
+    const nome = document.getElementById('anamNome').value.trim();
+    const nascimento = document.getElementById('anamNascimento').value;
+    const idade = document.getElementById('anamIdade').value.trim();
+    const email = document.getElementById('anamEmail').value.trim();
+    const cpf = document.getElementById('anamCpf').value.trim();
+    const telefone = document.getElementById('anamTelefone').value.trim();
+    const formaPagamento = document.getElementById('anamFormaPagamento').value;
+    const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
+    const btn = document.getElementById('btnSubmitAnam');
 
-    if (!nome || !codigo) return alert("Preencha Nome e Código.");
+    if (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
+      return alert("Preencha nome, data de nascimento, idade, e-mail, CPF e WhatsApp.");
+    }
 
-    const parsedDays = parseWorkoutText(rawW);
+    btn.textContent = "Processando...";
+    btn.disabled = true;
 
-    const payload = {
-      clientName: nome,
-      senha: codigo,
-      status_pagamento: 'pago',
-      permitirTecnicas: false,
-      days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
-      refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
+    const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+    const anamneseData = {
+      codigo: userCode,
+      nome: nome,
+      nascimento: nascimento,
+      idade: idade,
+      email: email,
+      cpf: cpf,
+      tipoConsultoria: tipoConsultoria,
+      telefone: telefone,
+      peso: document.getElementById('anamPeso').value.trim(),
+      altura: document.getElementById('anamAltura').value.trim(),
+      motivacao: document.getElementById('anamMotivacao').value.trim(),
+      objetivo: document.getElementById('anamObjetivo').value,
+      numRefeicoes: document.getElementById('anamNumRefeicoes').value.trim(),
+      rotina: document.getElementById('anamHorarioTreino').value.trim(),
+      gostos: document.getElementById('anamGostos').value.trim(),
+      medicamentos: document.getElementById('anamMedicamentos').value.trim(),
+      fimDeSemana: document.getElementById('anamFimDeSemana').value.trim(),
+      formaPagamento: formaPagamento
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ codigo: codigo, payload: payload })
+      const res = await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(anamneseData)
       });
-      if (res.ok) {
-        alert(`🎉 Aluno criado! Senha inicial: ${codigo}.`);
-        fetchAlunos();
-        switchTab('resumo');
+      await res.json();
+
+      const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        document.getElementById('anamneseScreen').innerHTML = `
+          <div style="text-align:center; padding:24px 10px;">
+            <div style="font-size:48px; margin-bottom:12px;">🏆💪</div>
+            <h2 style="font-size:22px; font-weight:800; color:#fff; font-family:'Bebas Neue', sans-serif; letter-spacing:1px;">
+              MUITO OBRIGADO PELA CONFIANÇA!
+            </h2>
+            <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
+              Sua Anamnese foi recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
+            </p>
+
+            <div style="background:#170307; border:1px solid var(--gold); border-radius:12px; padding:16px; margin-top:16px; text-align:left;">
+              <div style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">
+                ⏳ Prazo de Liberação & Treino:
+              </div>
+              <p style="font-size:12.5px; color:var(--text); line-height:1.5;">
+                O seu protocolo personalizado e o seu <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
+              </p>
+            </div>
+
+            <div style="font-size:12px; color:var(--muted); margin-top:14px;">
+              📌 Se efetuou o pagamento via Pix Direto, lembre-se de enviar o comprovante no meu WhatsApp para acelerar a liberação!
+            </div>
+
+            <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
+              📲 FALAR COM O PERSONAL NO WHATSAPP
+            </a>
+          </div>
+        `;
       }
-    } catch(e) { alert("Erro ao criar aluno."); }
+    } catch (e) {
+      alert("Erro ao conectar.");
+      btn.textContent = "🚀 FINALIZAR E ENVIAR";
+      btn.disabled = false;
+    }
   }
 
-  async function deletarAluno() {
-    if (!confirm(`Tem certeza que deseja apagar o aluno @${currentStudentCode}?`)) return;
-    await fetch(`${BACKEND_URL}/api/aluno/${currentStudentCode}`, {
-      method: 'DELETE',
-      headers: authHeaders()
+  function loadStudentData(data) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+
+    currentData = data;
+    document.getElementById('clientName').textContent = data.clientName || 'Aluno';
+
+    const isPendente = data.pagamentoPendente === true || data.statusPagamento === 'pendente' || data.ativo === false;
+
+    if (isPendente) {
+      renderLockNotice();
+    } else {
+      setupWorkout(data.days || []);
+      setupDiet(data.refeicoes || []);
+    }
+  }
+
+  function renderLockNotice() {
+    const lockHtml = `
+      <div class="pay-lock-overlay">
+        <div style="font-size:42px; margin-bottom:8px;">⛔</div>
+        <div class="pay-lock-title">ACESSO TEMPORARIAMENTE SUSPENSO</div>
+        <div class="pay-lock-desc">
+          Identificamos uma pendência na renovação do seu plano.<br>
+          Para reativar a visualização dos seus treinos e dietas, efetue o pagamento e envie o comprovante no WhatsApp.
+        </div>
+        <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20mensalidade,%20segue%20o%20comprovante:" 
+           target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+          📲 ENVIAR COMPROVANTE NO WHATSAPP
+        </a>
+      </div>
+    `;
+
+    document.getElementById('exercisesList').innerHTML = lockHtml;
+    document.getElementById('mealsList').innerHTML = lockHtml;
+  }
+
+  function setupWorkout(days) {
+    const exercisesContainer = document.getElementById('exercisesList');
+    exercisesContainer.innerHTML = '';
+
+    if (!days || days.length === 0) {
+      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
+      return;
+    }
+
+    days.forEach((day, dayIdx) => {
+      const dayWrapper = document.createElement('div');
+      dayWrapper.style.marginBottom = '12px';
+
+      const dayHeader = document.createElement('div');
+      dayHeader.className = 'day-accordion-header';
+      dayHeader.innerHTML = `
+        <div>
+          <b style="font-size:15px; color:#fff;">🏋️ ${day.title}</b>
+          <div style="font-size:11px; color:var(--gold); margin-top:2px;">${(day.exercicios || []).length} Exercícios</div>
+        </div>
+        <span id="arrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform 0.2s ease;">▼</span>
+      `;
+
+      const dayBody = document.createElement('div');
+      dayBody.id = `dayBody_${dayIdx}`;
+      dayBody.className = 'hidden';
+      dayBody.style.paddingTop = '8px';
+
+      dayHeader.onclick = () => {
+        const isHidden = dayBody.classList.contains('hidden');
+        const arrow = document.getElementById(`arrow_${dayIdx}`);
+
+        if (isHidden) {
+          dayBody.classList.remove('hidden');
+          arrow.style.transform = 'rotate(180deg)';
+          dayHeader.style.borderColor = 'var(--gold)';
+        } else {
+          dayBody.classList.add('hidden');
+          arrow.style.transform = 'rotate(0deg)';
+          dayHeader.style.borderColor = 'var(--border)';
+        }
+      };
+
+      renderExercisesForDay(day, dayIdx, dayBody);
+
+      dayWrapper.appendChild(dayHeader);
+      dayWrapper.appendChild(dayBody);
+      exercisesContainer.appendChild(dayWrapper);
     });
-    currentStudentCode = "";
-    fetchAlunos();
-    switchTab('resumo');
   }
 
-  function copiarLinkAcessoAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    const baseUrl = window.location.href.replace('admin.html', 'index.html');
-    const linkAluno = `${baseUrl}?aluno=${currentStudentCode}`;
-    navigator.clipboard.writeText(linkAluno);
-    alert(`✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
+  function createLogInputAttr(nameKey) {
+    return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
   }
 
-  function copiarLinkAnamnese() {
-    const link = window.location.href.replace('admin.html', 'index.html?modo=anamnese');
-    navigator.clipboard.writeText(link);
-    alert("Link da Anamnese copiado para a área de transferência!");
+  function changeExerciseMode(dayIdx, exIdx, selectedMode) {
+    if (!currentData.exercise_modes) currentData.exercise_modes = {};
+    currentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
+
+    const dayBody = document.getElementById(`dayBody_${dayIdx}`);
+    if (dayBody) {
+      dayBody.innerHTML = '';
+      renderExercisesForDay(currentData.days[dayIdx], dayIdx, dayBody);
+      scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
+    }
   }
 
-  async function sendAdminChatMessage() {
-    const input = document.getElementById('adminChatInput');
-    const history = document.getElementById('adminChatHistory');
-    const text = input.value.trim();
+  function renderExercisesForDay(day, dayIdx, container) {
+    (day.exercicios || []).forEach((ex, exIdx) => {
+      const modeKey = `${dayIdx}_${exIdx}`;
+      const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
 
-    if (!text) return;
+      const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
+      const seriesStr = String(ex.series || '').toLowerCase();
 
-    history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${text}</div>`;
-    input.value = '';
-    history.scrollTop = history.scrollHeight;
+      const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
+      const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
+      const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
+
+      const isTecnicaFixaAdmin = ex.isTecnico === true || temMyo || temCluster || temBackoff;
+
+      let defaultMode = 'convencional';
+      if (temBackoff && temCluster) defaultMode = 'cluster_backoff';
+      else if (temBackoff) defaultMode = 'backoff_2x';
+      else if (temCluster) defaultMode = 'cluster';
+      else if (temMyo) defaultMode = 'myoreps';
+
+      const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
+      let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+
+      const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
+
+      let numSeriesPrescritas = parseInt(seriesStr) || 3;
+
+      const div = document.createElement('div');
+      div.className = 'item';
+
+      let optionsHtml = '';
+      if (numSeriesPrescritas === 2) {
+        optionsHtml = `
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 2 Séries Convencionais</option>
+          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
+          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>📉 1 Top Set + 1 Back-off</option>
+        `;
+      } else {
+        optionsHtml = `
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 3 Séries Convencionais</option>
+          <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>🟢 Cluster + Back-off</option>
+          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>📉 2x + Back-off</option>
+          <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Myo-Reps Protocol</option>
+        `;
+      }
+
+      const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
+
+      let html = `
+        <div class="item-header">
+          <div class="item-title">${cleanName}</div>
+          <select class="mode-select" ${selectorStyle} onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+        <div class="series-container">
+      `;
+
+      if (activeMode === 'myoreps') {
+        const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
+        const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
+        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
+        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
+
+        const keyMbC = `log_c_${dayIdx}_${exIdx}_mb`;
+        const keyMbR = `log_r_${dayIdx}_${exIdx}_mb`;
+        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
+        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
+
+        html += `
+          <div class="series-row" style="background:#261304; border:1px solid var(--gold);">
+            <span class="series-tag" style="color:var(--gold); width:110px;">⚡ ATIVAÇÃO:</span>
+            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--gold); margin:3px 0 5px 4px; font-weight:700;">
+            ⏱️ Descanso de 40s pós Ativação.
+          </div>
+          <div class="series-row" style="background:#13060a; border:1px dashed var(--gold);">
+            <span class="series-tag" style="color:var(--gold); width:110px;">🔹 MINI BLOCOS:</span>
+            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+        `;
+
+      } else if (activeMode === 'cluster') {
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+
+        html += `
+          <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
+            <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--green); margin:4px 0 6px 4px; font-weight:700;">
+            ⏱️ Descanso de 15s a 20s entre blocos.
+          </div>
+        `;
+
+      } else if (activeMode === 'cluster_backoff') {
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        html += `
+          <div class="series-row" style="background:rgba(37,211,102,0.06); border:1px solid rgba(37,211,102,0.3);">
+            <span class="series-tag" style="color:var(--green); width:75px;">🟢 CLUSTER:</span>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="font-size:10px; color:var(--green); margin:2px 0 4px 4px; font-weight:700;">
+            ⏱️ Descanso de 15s a 20s entre blocos.
+          </div>
+          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+              <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          </div>
+        `;
+
+      } else if (activeMode === 'backoff_2x') {
+        const keyS1C = `log_c_${dayIdx}_${exIdx}_s1`;
+        const keyS1R = `log_r_${dayIdx}_${exIdx}_s1`;
+        const keyS2C = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyS2R = `log_r_${dayIdx}_${exIdx}_s2`;
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_bo`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_bo`;
+
+        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
+        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
+        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        html += `
+          <div class="series-row">
+            <span class="series-tag">Série 1</span>
+            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS1C}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS1R}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div class="series-row">
+            <span class="series-tag">Série 2</span>
+            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS2C}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS2R}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="background:rgba(196,50,79,0.15); border:1px solid var(--accent); border-radius:10px; padding:8px; margin-top:4px;">
+            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:5px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
+            <div class="series-row" style="background:#140307; border:1px solid var(--border);">
+              <span class="series-tag" style="color:var(--accent); width:110px;">📉 BACK-OFF:</span>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--accent) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          </div>
+        `;
+
+      } else {
+        for (let s = 1; s <= numSeriesPrescritas; s++) {
+          const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
+          const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+
+          html += `
+            <div class="series-row">
+              <span class="series-tag">Série ${s}</span>
+              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          `;
+        }
+      }
+
+      html += `</div>`;
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  }
+
+  function scheduleAutoSave(key, value, dayIdx, exIdx) {
+    if (!currentData.logs) currentData.logs = {};
+    currentData.logs[key] = value;
+
+    if (dayIdx !== undefined && exIdx !== undefined) {
+      calculateAndStoreWeeklyLog(dayIdx, exIdx);
+    }
+
+    const ind = document.getElementById('saveIndicator');
+    ind.style.display = 'block';
+
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
+    autoSaveTimer = setTimeout(async () => {
+      try {
+        await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+          method: "POST",
+          headers: authHeaders(),
+          body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+        });
+        ind.style.display = 'none';
+      } catch (e) {
+        ind.style.display = 'none';
+      }
+    }, 1500);
+  }
+
+  function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
+    if (!currentData.weekly_logs) currentData.weekly_logs = {};
+    const keyLog = `${dayIdx}_${exIdx}`;
+
+    if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
+
+    const exObj = currentData.days[dayIdx].exercicios[exIdx];
+    const numSeries = parseInt(exObj.series) || 3;
+
+    const modeKey = `${dayIdx}_${exIdx}`;
+    const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
+    
+    const nomesTecnica = {
+      'convencional': 'Convencional',
+      'myoreps': 'Myo-Reps',
+      'cluster': 'Cluster Set',
+      'cluster_backoff': 'Cluster + Back-Off',
+      'backoff_2x': '2x + Back-Off'
+    };
+    const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
+
+    let maxCarga = 0;
+    let totalReps = 0;
+    let seriesPreenchidas = 0;
+
+    if (savedUserMode === 'myoreps') {
+      const cAtiv = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+      if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
+    } else if (savedUserMode === 'cluster' || savedUserMode === 'cluster_backoff') {
+      const cCl = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
+      if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
+    } else {
+      for (let s = 1; s <= numSeries; s++) {
+        const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+        const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
+
+        if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
+        if (!isNaN(rVal)) {
+          totalReps += rVal;
+          seriesPreenchidas++;
+        }
+      }
+    }
+
+    if (maxCarga > 0) {
+      const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "-";
+      const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+      if (!currentData.weekly_logs[keyLog]) currentData.weekly_logs[keyLog] = [];
+
+      let hist = currentData.weekly_logs[keyLog];
+      
+      const idxHoje = hist.findIndex(item => item.data === dataHoje);
+      if (idxHoje !== -1) {
+        hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada };
+      } else {
+        hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
+      }
+
+      if (hist.length > 4) hist = hist.slice(-4);
+      currentData.weekly_logs[keyLog] = hist;
+    }
+  }
+
+  function parseMealBlock(text) {
+    if (!text || typeof text !== 'string') return [];
+    
+    const lines = text.split('\n');
+    const items = [];
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.includes('---')) return;
+
+      const lower = trimmed.toLowerCase();
+      if (lower.startsWith('segunda') || lower.startsWith('terça') || lower.startsWith('quarta') ||
+          lower.startsWith('quinta') || lower.startsWith('sexta') || lower.startsWith('sábado') ||
+          lower.startsWith('domingo') || lower.startsWith('dias:')) return;
+
+      const parts = trimmed.split('|').map(p => p.trim());
+      if (parts.length >= 2) {
+        items.push({
+          nome: parts[0],
+          qtd: parts[1] || 'A gosto',
+          kcal: parts[2] || '-',
+          ptn: parts[3] || '-',
+          carb: parts[4] || '-',
+          fat: parts[5] || '-'
+        });
+      } else {
+        const matchQtd = trimmed.match(/^(.*?)\s+(\d+g|\d+\s*unidades|\d+\s*fatias|\d+ml|\(.*?\))$/i);
+        if (matchQtd) {
+          items.push({
+            nome: matchQtd[1].trim(),
+            qtd: matchQtd[2].trim(),
+            kcal: '-', ptn: '-', carb: '-', fat: '-'
+          });
+        } else {
+          items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
+        }
+      }
+    });
+
+    return items;
+  }
+
+  function setupDiet(refeicoes) {
+    const filterContainer = document.getElementById('dietFilterContainer');
+    const mealsContainer = document.getElementById('mealsList');
+
+    filterContainer.innerHTML = '';
+    mealsContainer.innerHTML = '';
+
+    if (!refeicoes || refeicoes.length === 0) {
+      mealsContainer.innerHTML = '<div style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">Plano alimentar em montagem.</div>';
+      return;
+    }
+
+    let parsedBlocks = [];
+    let currentCategory = "DIETA BASE";
+
+    refeicoes.forEach(ref => {
+      let title = ref.titulo || "";
+      if (title.startsWith('[')) {
+        const tagMatch = title.match(/\[(.*?)\]/);
+        if (tagMatch) {
+          currentCategory = tagMatch[1].toUpperCase();
+          title = title.replace(/\[.*?\]/, '').trim();
+        }
+      }
+
+      const rawText = ref.alimentos || "";
+      let daysMatch = rawText.match(/(Segunda|Terça|Quarta|Quinta|Sexta|Sábado|Domingo|Dias:)[^\n]*/i);
+      let daysText = daysMatch ? daysMatch[0].trim() : "";
+
+      parsedBlocks.push({
+        category: currentCategory,
+        days: daysText,
+        mealTitle: title || "Refeição",
+        items: parseMealBlock(rawText)
+      });
+    });
+
+    const categories = [...new Set(parsedBlocks.map(b => b.category))];
+    activeDietTag = categories[0];
+
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = `diet-filter-btn ${cat === activeDietTag ? 'active' : ''}`;
+      
+      const matched = parsedBlocks.find(b => b.category === cat && b.days);
+      const subDays = matched ? matched.days : "";
+
+      btn.innerHTML = `<span>${cat}</span>${subDays ? `<small style="font-size:9px; color:var(--gold); opacity:0.8; margin-top:2px;">${subDays}</small>` : ''}`;
+      
+      btn.onclick = () => {
+        document.querySelectorAll('.diet-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeDietTag = cat;
+        renderDietCategory(parsedBlocks, cat);
+      };
+      filterContainer.appendChild(btn);
+    });
+
+    renderDietCategory(parsedBlocks, activeDietTag);
+  }
+
+  function renderDietCategory(blocks, cat) {
+    const container = document.getElementById('mealsList');
+    container.innerHTML = '';
+
+    const filtered = blocks.filter(b => b.category === cat);
+
+    filtered.forEach(block => {
+      if (!block.items || block.items.length === 0) return;
+
+      const card = document.createElement('div');
+      card.className = 'meal-table-card';
+
+      let totalKcal = 0, totalPtn = 0, totalCarb = 0, totalFat = 0;
+      let hasMacros = false;
+
+      let tableHtml = `
+        <div class="meal-header">
+          <span>🍽️ ${block.mealTitle}</span>
+        </div>
+        <table class="diet-table">
+          <thead>
+            <tr>
+              <th>Alimento</th>
+              <th style="text-align:right;">Qtd</th>
+              <th style="text-align:right;">Kcal</th>
+              <th style="text-align:right;">Ptn</th>
+              <th style="text-align:right;">Carb</th>
+              <th style="text-align:right;">Fat</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      block.items.forEach(item => {
+        const k = parseFloat(item.kcal) || 0;
+        const p = parseFloat(item.ptn) || 0;
+        const c = parseFloat(item.carb) || 0;
+        const f = parseFloat(item.fat) || 0;
+
+        if (k > 0 || p > 0 || c > 0 || f > 0) hasMacros = true;
+
+        totalKcal += k; totalPtn += p; totalCarb += c; totalFat += f;
+
+        tableHtml += `
+          <tr>
+            <td><b>${item.nome}</b></td>
+            <td class="qty" style="text-align:right;">${item.qtd}</td>
+            <td class="kcal" style="text-align:right;">${item.kcal}</td>
+            <td style="text-align:right;">${item.ptn}</td>
+            <td style="text-align:right;">${item.carb}</td>
+            <td style="text-align:right;">${item.fat}</td>
+          </tr>
+        `;
+      });
+
+      if (hasMacros) {
+        tableHtml += `
+          <tr class="total-row">
+            <td>TOTAL REFEIÇÃO</td>
+            <td style="text-align:right;">-</td>
+            <td style="text-align:right;">${Math.round(totalKcal)}</td>
+            <td style="text-align:right;">${Math.round(totalPtn)}g</td>
+            <td style="text-align:right;">${Math.round(totalCarb)}g</td>
+            <td style="text-align:right;">${Math.round(totalFat)}g</td>
+          </tr>
+        `;
+      }
+
+      tableHtml += `</tbody></table>`;
+      card.innerHTML = tableHtml;
+      container.appendChild(card);
+    });
+  }
+
+  function showTab(tab) {
+    ['treino', 'dieta', 'feedback', 'config'].forEach(t => {
+      const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      if (el) el.classList.add('hidden');
+      if (btn) btn.classList.remove('active');
+    });
+
+    const activeTab = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+    if (activeTab) activeTab.classList.remove('hidden');
+    if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  function sendWhatsAppFeedback() {
+    const text = document.getElementById('feedbackText').value.trim();
+    if (!text) return alert("Digite seu feedback antes de enviar.");
+
+    const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+    const msg = `📱 *RELATÓRIO SEMANAL DO ALUNO*%0A%0A👤 *Aluno:* ${nome}%0A💬 *Relatório:*%0A${encodeURIComponent(text)}`;
+    window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
+  }
+
+  async function alterarSenhaAluno() {
+    const novaSenha = document.getElementById('alunoNovaSenha').value.trim();
+    if (!novaSenha) return alert("Digite uma nova senha.");
+
+    currentData.senha = novaSenha;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
-        method: 'POST',
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
         headers: authHeaders(),
-        body: JSON.stringify({ 
-          mensagem: text, 
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
-        })
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
 
-      const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
-    } catch(e) {
-      history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
+      if (res.ok) {
+        alert("🎉 Senha alterada com sucesso!");
+        document.getElementById('alunoNovaSenha').value = "";
+      }
+    } catch (e) {
+      alert("Erro ao alterar senha.");
     }
-    history.scrollTop = history.scrollHeight;
+  }
+
+  function logout() {
+    localStorage.removeItem('logged_user');
+    localStorage.removeItem('aluno_token');
+    
+    currentData = null;
+    loggedUserCode = "";
+
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+
+    const errDiv = document.getElementById('loginError');
+    if (errDiv) errDiv.classList.add('hidden');
+
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+    }
   }
 </script>
 </body>
