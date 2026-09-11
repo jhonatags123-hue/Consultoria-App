@@ -308,6 +308,7 @@
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
+    <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">🤖 ASSISTENTE</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
     <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
   </div>
@@ -323,7 +324,22 @@
     <div id="mealsList" class="diet-container"></div>
   </div>
 
-  <!-- ABA 3: FEEDBACK -->
+  <!-- ABA 3: CHAT IA (ASSISTENTE DO ALUNO) -->
+  <div id="tabIaChat" class="card hidden">
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 Assistente Virtual do Personal</div>
+    <div style="font-size:11px; color:var(--muted); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
+
+    <div id="studentChatHistory" style="background:#100307; border:1px solid var(--border); border-radius:12px; height:280px; padding:12px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
+      <div style="background:#1c060d; padding:10px; border-radius:8px; font-size:12.5px; color:#fff;"><b>Assistente:</b> Olá! Como posso te ajudar com o seu treino ou dieta hoje?</div>
+    </div>
+
+    <div style="display:flex; gap:6px;">
+      <input type="text" id="studentChatInput" class="input-field" placeholder="Digite sua dúvida aqui..." style="font-size:12px;" onkeypress="if(event.key==='Enter') sendStudentChatMessage()">
+      <button class="btn-login btn-gold" style="width:80px; margin-top:0; font-size:12px;" onclick="sendStudentChatMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <!-- ABA 4: FEEDBACK -->
   <div id="tabFeedback" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">💬 Enviar Relatório Semanal</div>
     <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
@@ -331,7 +347,7 @@
     <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP DO PERSONAL</button>
   </div>
 
-  <!-- ABA 4: CONFIGURAÇÕES -->
+  <!-- ABA 5: CONFIGURAÇÕES -->
   <div id="tabConfig" class="card hidden">
     <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🔒 Alterar Senha de Acesso</div>
     <label class="label-fdb">Nova Senha Pessoal</label>
@@ -1154,7 +1170,7 @@
   }
 
   function showTab(tab) {
-    ['treino', 'dieta', 'feedback', 'config'].forEach(t => {
+    ['treino', 'dieta', 'iaChat', 'feedback', 'config'].forEach(t => {
       const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
       const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
       if (el) el.classList.add('hidden');
@@ -1165,6 +1181,36 @@
     const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
     if (activeTab) activeTab.classList.remove('hidden');
     if (activeBtn) activeBtn.classList.add('active');
+  }
+
+  async function sendStudentChatMessage() {
+    const input = document.getElementById('studentChatInput');
+    const history = document.getElementById('studentChatHistory');
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    history.innerHTML += `<div style="background:#2d0813; padding:10px; border-radius:8px; font-size:12.5px; color:#fff; align-self:flex-end;"><b>Você:</b> ${text}</div>`;
+    input.value = '';
+    history.scrollTop = history.scrollHeight;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ 
+          mensagem: text, 
+          contexto: currentData || {},
+          origem: "ALUNO"
+        })
+      });
+
+      const data = await res.json();
+      history.innerHTML += `<div style="background:#1c060d; padding:10px; border-radius:8px; font-size:12.5px; color:#fff; align-self:flex-start;"><b>Assistente:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
+    } catch(e) {
+      history.innerHTML += `<div style="color:var(--accent); font-size:11px;">Erro na comunicação com a IA. Tente novamente.</div>`;
+    }
+    history.scrollTop = history.scrollHeight;
   }
 
   function sendWhatsAppFeedback() {
