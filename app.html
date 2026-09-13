@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Consultoria Esportiva — Jhonata Personal</title>
+<title>Área do Aluno — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 
 <style>
@@ -279,7 +279,7 @@
   </form>
 </div>
 
-<!-- TELA DE LOGIN -->
+<!-- TELA DE LOGIN DO ALUNO -->
 <div id="loginScreen" class="card">
   <h1>JHONATA CONSULTORIA</h1>
   <div class="sub">Acesse sua área exclusiva de aluno</div>
@@ -290,6 +290,10 @@
     <button type="submit" id="btnLoginSubmit" class="btn-login">ENTRAR</button>
   </form>
   <div id="loginError" class="error-msg hidden"></div>
+
+  <div style="text-align:center; margin-top:16px;">
+    <a href="index.html" style="font-size:11px; color:var(--muted); text-decoration:none;">⬅️ Voltar para a Página Principal / Bio</a>
+  </div>
 </div>
 
 <!-- TELA PRINCIPAL (APP DO ALUNO) -->
@@ -389,6 +393,7 @@
       document.getElementById('loginUser').value = paramAluno;
     }
 
+    // Se acessar pela Anamnese: esconde o Login e abre a Anamnese
     if (params.get('modo') === 'anamnese') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
