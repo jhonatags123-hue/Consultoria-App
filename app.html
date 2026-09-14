@@ -292,7 +292,7 @@
   <div id="loginError" class="error-msg hidden"></div>
 
   <div style="text-align:center; margin-top:16px;">
-    <a href="index.html" style="font-size:11px; color:var(--muted); text-decoration:none;">⬅️ Voltar para a Página Principal / Bio</a>
+    <a href="/" style="font-size:11px; color:var(--muted); text-decoration:none;">⬅️ Voltar para a Página Principal / Bio</a>
   </div>
 </div>
 
@@ -1200,7 +1200,7 @@
     history.scrollTop = history.scrollHeight;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ 
@@ -1210,10 +1210,16 @@
         })
       });
 
+      if (res.status === 403) {
+        history.innerHTML += `<div style="color:var(--accent); font-size:11px; padding:6px; background:rgba(184,29,54,0.1); border-radius:6px; margin-top:4px;">❌ Erro 403: A rota '/api/aluno/chat-ia' ainda não existe ou não permitiu a sessão do aluno.</div>`;
+        history.scrollTop = history.scrollHeight;
+        return;
+      }
+
       const data = await res.json();
       history.innerHTML += `<div style="background:#1c060d; padding:10px; border-radius:8px; font-size:12.5px; color:#fff; align-self:flex-start;"><b>Assistente:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
     } catch(e) {
-      history.innerHTML += `<div style="color:var(--accent); font-size:11px;">Erro na comunicação com a IA. Tente novamente.</div>`;
+      history.innerHTML += `<div style="color:var(--accent); font-size:11px; margin-top:4px;">Erro na comunicação com a IA. Tente novamente.</div>`;
     }
     history.scrollTop = history.scrollHeight;
   }
