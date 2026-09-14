@@ -2,372 +2,173 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Área do Aluno — Jhonata Personal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Big+Shoulders+Display:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
   :root {
-    --bg-base: #060204;
-    --surface-card: rgba(18, 5, 10, 0.75);
-    --surface-card-hover: rgba(28, 8, 16, 0.85);
-    --surface-input: rgba(10, 2, 6, 0.8);
-    
-    --border-subtle: rgba(234, 194, 103, 0.08);
-    --border-glow: rgba(212, 160, 42, 0.3);
-    --border-crimson: rgba(184, 29, 54, 0.25);
-    
-    --accent-crimson: #c81e3a;
-    --accent-crimson-glow: rgba(200, 30, 58, 0.35);
-    --accent-gold: #e2b34a;
-    --accent-gold-soft: #f4d485;
-    
-    --text-primary: #fbf5f6;
-    --text-secondary: #a38f95;
-    --text-muted: #6e5c62;
-    --green-emerald: #10b981;
-    
-    --radius-xl: 20px;
-    --radius-lg: 14px;
-    --radius-md: 10px;
+    --bg: #0D0F12;
+    --panel: #15181D;
+    --panel-2: #1A1E24;
+    --line: #262B33;
+    --line-soft: #1D2128;
+    --ink: #EDEFF2;
+    --ink-dim: #878D98;
+    --signal: #C1402C;
+    --signal-ink: #FFFFFF;
+    --signal-dim: rgba(193,64,44,0.14);
+    --mark: #B4924F;
+    --mark-dim: rgba(180,146,79,0.12);
+    --good: #4F9C6E;
+    --good-dim: rgba(79,156,110,0.12);
+    --font-display: 'Big Shoulders Display', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'Space Mono', monospace;
   }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
+  body { background:var(--bg); color:var(--ink); font-family:var(--font-body); padding:18px; max-width:500px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; justify-content:center; }
 
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  
-  ::-webkit-scrollbar { width:4px; height:4px; }
-  ::-webkit-scrollbar-thumb { background: rgba(226, 179, 74, 0.2); border-radius: 10px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:14px; }
 
-  body {
-    background-color: var(--bg-base);
-    background-image: 
-      radial-gradient(circle at 50% -10%, rgba(184, 29, 54, 0.18) 0%, transparent 60%),
-      radial-gradient(circle at 80% 110%, rgba(226, 179, 74, 0.05) 0%, transparent 50%);
-    background-attachment: fixed;
-    color: var(--text-primary);
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    padding: 20px 14px;
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
+  h1 { font-family:var(--font-display); font-weight:700; font-size:30px; line-height:1; letter-spacing:0.01em; color:var(--ink); text-align:center; }
+  .sub { color:var(--ink-dim); font-size:12.5px; margin-top:6px; font-weight:500; text-align:center; }
 
-  /* Typography & Titles */
-  .brand-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #ffffff 40%, var(--accent-gold-soft));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-align: center;
-    text-transform: uppercase;
-  }
+  .login-box { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
+  .input-field { width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:12px 13px; border-radius:6px; font-size:14px; font-family:var(--font-body); transition:border-color .15s ease; }
+  .input-field:focus { outline:none; border-color:var(--mark); }
+  .input-field::placeholder { color:#565b64; }
+  select.input-field { color:var(--ink); cursor:pointer; }
+  textarea.input-field { resize:none; font-family:var(--font-body); }
 
-  .sub-title {
-    color: var(--accent-gold);
-    font-size: 11px;
-    margin-top: 4px;
-    font-weight: 600;
-    text-align: center;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    opacity: 0.9;
-  }
+  .btn-login { width:100%; background:var(--signal); color:var(--signal-ink); border:none; padding:13px; border-radius:6px; font-weight:600; font-size:14px; font-family:var(--font-body); cursor:pointer; margin-top:8px; letter-spacing:0.01em; transition:background-color .15s ease; }
+  .btn-login:hover { background:#A8351F; }
+  .btn-login:disabled { opacity:0.55; cursor:default; }
+  .btn-wpp { background:var(--good); color:#08160F; }
+  .btn-wpp:hover { background:#458A61; }
+  .btn-gold { background:var(--mark); color:#1A1408; }
+  .btn-gold:hover { background:#A0813F; }
+  .btn-header { background:transparent; border:1px solid var(--line); color:var(--ink-dim); padding:6px 12px; border-radius:6px; font-size:12px; font-family:var(--font-body); cursor:pointer; transition:all .15s ease; }
+  .btn-header:hover { border-color:var(--ink-dim); color:var(--ink); }
+  .error-msg { color:var(--signal); font-size:12.5px; text-align:center; margin-top:10px; font-weight:600; }
 
-  /* Cards (Glassmorphism Sênior) */
-  .card {
-    background: var(--surface-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-subtle);
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-xl);
-    padding: 24px 20px;
-    margin-bottom: 16px;
-    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
+  .progress-bar-bg { width:100%; background:var(--bg); border:1px solid var(--line); height:4px; border-radius:2px; margin:16px 0 6px; overflow:hidden; }
+  .progress-bar-fill { width:14%; background:var(--mark); height:100%; transition:width 0.25s ease; }
+  .step-counter { font-size:11px; color:var(--ink-dim); font-family:var(--font-mono); text-align:right; margin-bottom:10px; }
 
-  /* Input Fields */
-  .input-field {
-    width: 100%;
-    background: var(--surface-input);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-primary);
-    padding: 14px 16px;
-    border-radius: var(--radius-lg);
-    font-size: 13.5px;
-    font-weight: 500;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .header-app h1 { font-size:26px; text-align:left; }
+  .header-actions { display:flex; gap:6px; }
 
-  .input-field:focus {
-    outline: none;
-    border-color: var(--accent-gold);
-    box-shadow: 0 0 0 4px rgba(226, 179, 74, 0.12);
-    background: rgba(15, 3, 9, 0.95);
-  }
+  .menu { display:flex; gap:4px; margin-bottom:16px; overflow-x:auto; border-bottom:1px solid var(--line); }
+  .menu-btn { flex:1; padding:11px 5px; background:transparent; border:none; border-bottom:2px solid transparent; color:var(--ink-dim); font-weight:600; font-size:12.5px; font-family:var(--font-body); cursor:pointer; text-align:center; white-space:nowrap; transition:color .15s ease, border-color .15s ease; }
+  .menu-btn:hover { color:var(--ink); }
+  .menu-btn.active { color:var(--ink); border-bottom-color:var(--signal); }
 
-  .input-field::placeholder { color: var(--text-muted); }
-  select.input-field { cursor: pointer; }
-  textarea.input-field { resize: none; font-family: inherit; }
-
-  /* Buttons */
-  .btn-login {
-    width: 100%;
-    background: linear-gradient(135deg, var(--accent-crimson), #8c1024);
-    color: #ffffff;
-    border: none;
-    padding: 15px;
-    border-radius: var(--radius-lg);
-    font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    margin-top: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    transition: all 0.25s ease;
-    box-shadow: 0 8px 24px var(--accent-crimson-glow);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .btn-login:active { transform: scale(0.98); }
-  .btn-login:hover { box-shadow: 0 12px 28px rgba(200, 30, 58, 0.5); }
-
-  .btn-wpp {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #021a12;
-    font-weight: 800;
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
-  }
-
-  .btn-gold {
-    background: linear-gradient(135deg, var(--accent-gold-soft), var(--accent-gold));
-    color: #120306;
-    font-weight: 800;
-    box-shadow: 0 8px 24px rgba(226, 179, 74, 0.25);
-  }
-
-  .btn-header {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .btn-header:hover { border-color: var(--accent-gold); color: #fff; background: rgba(226, 179, 74, 0.1); }
-
-  /* App Navigation Menu */
-  .menu {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-  }
-
-  .menu-btn {
-    flex: 1;
-    padding: 12px 10px;
-    background: var(--surface-card);
-    border: 1px solid var(--border-subtle);
-    color: var(--text-secondary);
-    font-weight: 700;
-    font-size: 11px;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    text-align: center;
-    white-space: nowrap;
-    transition: all 0.25s ease;
-  }
-
-  .menu-btn.active {
-    background: linear-gradient(135deg, var(--accent-crimson), #8c1024);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 6px 20px var(--accent-crimson-glow);
-  }
-
-  /* Accordion Exercícios */
   .day-accordion-header {
-    background: rgba(22, 6, 13, 0.6);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 16px 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    margin-bottom: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 6px; padding: 14px 16px;
+    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    user-select: none; transition: border-color .15s ease; margin-bottom: 8px;
   }
-  .day-accordion-header:hover { border-color: var(--border-glow); background: var(--surface-card-hover); }
+  .day-accordion-header:hover { border-left-color: var(--mark); }
 
-  .item {
-    background: rgba(12, 3, 7, 0.85);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    padding: 18px;
-    margin-bottom: 14px;
-  }
-
-  .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; }
-  .item-title { font-weight: 700; font-size: 14.5px; color: #fff; flex: 1; letter-spacing: -0.01em; }
+  .item { background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:15px; margin-bottom:10px; }
+  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
+  .item-title { font-weight:600; font-size:15px; color:var(--ink); flex:1; }
 
   .mode-select {
-    background: #1a040b;
-    border: 1px solid var(--border-subtle);
-    color: var(--accent-gold);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 6px 10px;
-    border-radius: 8px;
+    background: var(--bg); border: 1px solid var(--line); color: var(--mark);
+    font-size: 11px; font-weight: 600; font-family:var(--font-body); padding: 5px 8px; border-radius: 5px; cursor: pointer;
   }
+  .mode-select:focus { outline:none; border-color:var(--mark); }
 
-  .series-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(24, 6, 14, 0.7);
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(255, 255, 255, 0.03);
-    margin-bottom: 6px;
-  }
+  .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .series-row { display:flex; align-items:center; gap:5px; background:var(--bg); padding:8px 10px; border-radius:6px; border:1px solid var(--line); border-left:2px solid var(--line); flex-wrap:nowrap; overflow-x:auto; }
+  .series-row.tecnica { background:var(--signal-dim); border-left-color:var(--signal); }
+  .series-tag { font-size:11px; font-weight:600; color:var(--ink-dim); width:85px; flex-shrink:0; font-family:var(--font-mono); }
+  .unit { font-size:10px; color:var(--ink-dim); flex-shrink:0; }
+  .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:12px; border-radius:5px !important; }
 
-  .series-tag { font-size: 11px; font-weight: 700; color: var(--text-secondary); width: 80px; flex-shrink: 0; }
-  .unit { font-size: 10.5px; color: var(--text-muted); flex-shrink: 0; font-weight: 600; }
-  
-  .input-log {
-    background: var(--bg-base) !important;
-    border: 1px solid var(--border-subtle) !important;
-    color: var(--accent-gold) !important;
-    text-align: center;
-    font-weight: 700;
-    padding: 8px 6px !important;
-    font-size: 12px;
-    border-radius: 8px !important;
-  }
+  .diet-container { display:flex; flex-direction:column; gap:16px; }
+  .diet-filter-row { display:flex; gap:6px; margin-bottom:14px; overflow-x:auto; }
+  .diet-filter-btn { flex:1; padding:10px 12px; border-radius:6px; border:1px solid var(--line); background:var(--panel); color:var(--ink-dim); font-weight:600; font-size:12.5px; font-family:var(--font-body); cursor:pointer; text-align:center; white-space:nowrap; transition:all .15s ease; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .diet-filter-btn:hover { border-color:var(--ink-dim); }
+  .diet-filter-btn.active { background:var(--signal-dim); color:var(--ink); border-color:var(--signal); }
 
-  /* Dieta Cards */
-  .diet-filter-btn {
-    flex: 1;
-    padding: 12px;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-subtle);
-    background: var(--surface-card);
-    color: var(--text-secondary);
-    font-weight: 700;
-    font-size: 11px;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.25s ease;
-  }
-  .diet-filter-btn.active {
-    background: linear-gradient(135deg, var(--accent-crimson), #8c1024);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 6px 20px var(--accent-crimson-glow);
-  }
+  .meal-table-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .meal-header { background:var(--panel-2); padding:11px 15px; font-size:14px; font-weight:600; color:var(--ink); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; }
 
-  .meal-table-card {
-    background: rgba(14, 3, 8, 0.9);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin-bottom: 16px;
-  }
+  .diet-table { width:100%; border-collapse:collapse; font-size:12px; text-align:left; }
+  .diet-table th { background:var(--panel); color:var(--ink-dim); padding:9px 8px; font-weight:600; font-size:10.5px; border-bottom:1px solid var(--line); }
+  .diet-table td { padding:9px 8px; border-bottom:1px solid var(--line-soft); color:var(--ink); }
+  .diet-table tr:hover td { background:rgba(255,255,255,0.02); }
+  .diet-table td.qty { color:var(--mark); font-weight:600; font-family:var(--font-mono); }
+  .diet-table td.kcal { color:var(--good); font-weight:600; font-family:var(--font-mono); }
 
-  .meal-header {
-    background: linear-gradient(90deg, rgba(40, 8, 20, 0.8), rgba(15, 3, 8, 0.8));
-    padding: 14px 18px;
-    font-size: 12.5px;
-    font-weight: 800;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 2px solid var(--accent-crimson);
-  }
+  .total-row { background:var(--panel-2); font-weight:700; }
+  .total-row td { color:var(--mark) !important; border-bottom:none; font-family:var(--font-mono); }
 
-  .diet-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  .diet-table th { background: rgba(8, 2, 5, 0.8); color: var(--text-muted); padding: 10px 12px; font-weight: 700; text-transform: uppercase; font-size: 9.5px; }
-  .diet-table td { padding: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); color: var(--text-primary); }
-  .diet-table td.qty { color: var(--accent-gold); font-weight: 700; }
-  .diet-table td.kcal { color: var(--green-emerald); font-weight: 600; }
-
-  /* Indicador de Salvamento */
   .save-indicator {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    background: rgba(226, 179, 74, 0.15);
-    border: 1px solid var(--accent-gold);
-    backdrop-filter: blur(12px);
-    color: var(--accent-gold);
-    padding: 8px 16px;
-    border-radius: 30px;
-    font-size: 11px;
-    font-weight: 800;
-    display: none;
-    z-index: 99999;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    position: fixed; top: 14px; right: 14px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink-dim); padding: 7px 14px; border-radius: 6px;
+    font-size: 11.5px; font-weight: 500; display: none; z-index: 99999;
   }
 
-  .label-fdb { display: block; font-size: 11.5px; color: var(--accent-gold); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.03em; }
-  .hidden { display: none !important; }
+  .label-fdb { display:block; font-size:12.5px; color:var(--ink-dim); font-weight:600; margin-bottom:5px; }
+  .hidden { display:none !important; }
 
-  /* Lock Screen */
   .pay-lock-overlay {
-    background: radial-gradient(circle at center, rgba(30, 5, 12, 0.95), rgba(6, 2, 4, 0.98));
-    border: 1px solid var(--accent-crimson);
-    border-radius: var(--radius-xl);
-    padding: 32px 20px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--signal);
+    border-radius: 8px;
+    padding: 26px 20px;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(184, 29, 54, 0.2);
+    margin-top: 10px;
   }
-  .pay-lock-title { font-family: 'Syne', sans-serif; font-size: 20px; color: #ff6b7f; margin-bottom: 10px; }
-  .pay-lock-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
-
-  .progress-bar-bg { width:100%; background:var(--surface-input); border:1px solid var(--border-subtle); height:6px; border-radius:10px; margin:16px 0; overflow:hidden; }
-  .progress-bar-fill { width:14%; background: linear-gradient(90deg, var(--accent-crimson), var(--accent-gold)); height:100%; transition:width 0.4s ease; }
-  .step-counter { font-size:11px; color:var(--accent-gold); font-weight:700; text-align:right; margin-bottom:10px; }
+  .pay-lock-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .pay-lock-desc {
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
 </style>
 </head>
 <body>
 
-<div id="saveIndicator" class="save-indicator">⚡ Sincronizando dados...</div>
+<div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
 <!-- TELA DA ANAMNESE -->
 <div id="anamneseScreen" class="card hidden">
-  <div class="brand-title">Anamnese de Performance</div>
-  <div class="sub-title">Configuração do seu protocolo exclusivo</div>
+  <h1>Anamnese de treino e nutrição</h1>
+  <div class="sub">Preencha com atenção para a montagem do seu protocolo</div>
   
   <div class="progress-bar-bg">
     <div id="progressBar" class="progress-bar-fill"></div>
   </div>
   <div id="stepCounter" class="step-counter">Etapa 1 de 7</div>
 
-  <form onsubmit="event.preventDefault();" style="display:flex; flex-direction:column; gap:14px;">
-    <!-- ETAPA 1 -->
+  <form onsubmit="event.preventDefault();" class="login-box">
+    <!-- ETAPA 1: DADOS PESSOAIS -->
     <div id="anamStep1">
       <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
 
-      <div style="display:flex; gap:10px; margin-top:10px;">
+      <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
-          <label class="label-fdb">Nascimento</label>
+          <label class="label-fdb">Data de Nascimento</label>
           <input type="date" id="anamNascimento" class="input-field" required>
         </div>
         <div style="flex:1;">
@@ -376,16 +177,16 @@
         </div>
       </div>
 
-      <label class="label-fdb" style="margin-top:10px;">E-mail principal</label>
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu E-mail?</label>
       <input type="email" id="anamEmail" class="input-field" placeholder="Ex: lucas@email.com" required>
 
-      <label class="label-fdb" style="margin-top:10px;">CPF (Faturamento)</label>
+      <label class="label-fdb" style="margin-top:8px;">CPF (Para emissão da cobrança)</label>
       <input type="text" id="anamCpf" class="input-field" placeholder="Ex: 000.000.000-00" required>
 
-      <label class="label-fdb" style="margin-top:10px;">WhatsApp</label>
+      <label class="label-fdb" style="margin-top:8px;">WhatsApp / Telefone</label>
       <input type="tel" id="anamTelefone" class="input-field" placeholder="Ex: (51) 99999-9999" required>
 
-      <div style="display:flex; gap:10px; margin-top:10px;">
+      <div style="display:flex; gap:8px; margin-top:8px;">
         <div style="flex:1;">
           <label class="label-fdb">Peso (kg)</label>
           <input type="text" id="anamPeso" class="input-field" placeholder="Ex: 75 kg" required>
@@ -395,95 +196,95 @@
           <input type="text" id="anamAltura" class="input-field" placeholder="Ex: 1.75 m" required>
         </div>
       </div>
-      <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar ➔</button>
+      <button type="button" class="btn-login" onclick="nextAnamStep(2)">Avançar</button>
     </div>
 
-    <!-- ETAPA 2 -->
+    <!-- ETAPA 2: OBJETIVO & MOTIVAÇÃO -->
     <div id="anamStep2" class="hidden">
-      <label class="label-fdb">2. O que te motivou a iniciar hoje?</label>
-      <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Melhorar condicionamento e estética" required>
-      <label class="label-fdb" style="margin-top:10px;">Objetivo Principal</label>
+      <label class="label-fdb">2. O que te motivou a buscar ajuda?</label>
+      <input type="text" id="anamMotivacao" class="input-field" placeholder="Ex: Quero melhorar a estética" required>
+      <label class="label-fdb" style="margin-top:8px;">Qual é o seu objetivo principal?</label>
       <select id="anamObjetivo" class="input-field" required>
         <option value="Hipertrofia / Ganho de Massa">Hipertrofia / Ganho de Massa Muscular</option>
-        <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Definição Muscular</option>
+        <option value="Emagrecimento / Perda de Gordura">Emagrecimento / Perda de Gordura</option>
       </select>
-      <div style="display:flex; gap:10px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(1)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar ➔</button>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(1)">Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar</button>
       </div>
     </div>
 
-    <!-- ETAPA 3 -->
+    <!-- ETAPA 3: HÁBITOS ALIMENTARES -->
     <div id="anamStep3" class="hidden">
-      <label class="label-fdb">3. Quantas refeições consegue fazer por dia?</label>
-      <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4 refeições">
-      <div style="display:flex; gap:10px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(2)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar ➔</button>
+      <label class="label-fdb">3. Quantas refeições faz por dia?</label>
+      <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 3 a 4">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(2)">Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar</button>
       </div>
     </div>
 
-    <!-- ETAPA 4 -->
+    <!-- ETAPA 4: ROTINA -->
     <div id="anamStep4" class="hidden">
-      <label class="label-fdb">4. Qual seu horário habitual de treino?</label>
-      <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: 18h00">
-      <div style="display:flex; gap:10px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(3)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar ➔</button>
+      <label class="label-fdb">4. Horário de treino e rotina:</label>
+      <input type="text" id="anamHorarioTreino" class="input-field" placeholder="Ex: 18h">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(3)">Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(5)">Avançar</button>
       </div>
     </div>
 
-    <!-- ETAPA 5 -->
+    <!-- ETAPA 5: ALIMENTOS -->
     <div id="anamStep5" class="hidden">
-      <label class="label-fdb">5. Restrições, alergias ou alimentos preferidos:</label>
-      <textarea id="anamGostos" class="input-field" rows="3" placeholder="Ex: Não como peixe, prefiro frango..."></textarea>
-      <div style="display:flex; gap:10px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(4)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar ➔</button>
+      <label class="label-fdb">5. Alimentos preferidos / Alergias:</label>
+      <textarea id="anamGostos" class="input-field" rows="2" placeholder="Ex: Frango, arroz..."></textarea>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(4)">Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(6)">Avançar</button>
       </div>
     </div>
 
-    <!-- ETAPA 6 -->
+    <!-- ETAPA 6: SUPLEMENTOS -->
     <div id="anamStep6" class="hidden">
-      <label class="label-fdb">6. Medicamentos ou suplementos atuais:</label>
-      <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina, Whey, Multivitamínico">
-      <div style="display:flex; gap:10px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(5)">⬅️ Voltar</button>
-        <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar ➔</button>
+      <label class="label-fdb">6. Medicamentos ou suplementos em uso:</label>
+      <input type="text" id="anamMedicamentos" class="input-field" placeholder="Ex: Creatina">
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(5)">Voltar</button>
+        <button type="button" class="btn-login" onclick="nextAnamStep(7)">Avançar</button>
       </div>
     </div>
 
-    <!-- ETAPA 7 -->
+    <!-- ETAPA 7: PLANO E FINALIZAÇÃO -->
     <div id="anamStep7" class="hidden">
-      <label class="label-fdb">7. Como é sua rotina aos finais de semana?</label>
-      <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Refeição livre no sábado à noite"></textarea>
+      <label class="label-fdb">7. Rotina no final de semana:</label>
+      <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Livre no sábado"></textarea>
 
-      <label class="label-fdb" style="margin-top:12px;">8. Plano Selecionado:</label>
+      <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
-        <option value="COMPLETA_MENSAL">🏆 Completa (Treino + Dieta) — R$ 150,00/mês</option>
-        <option value="COMPLETA_TRIMESTRAL">🏆 Completa Trimestral — 3x R$ 130,00</option>
-        <option value="COMPLETA_SEMESTRAL">🏆 Completa Semestral — 6x R$ 110,00</option>
-        <option value="COMPLETA_ANUAL">🏆 Completa Anual — 12x R$ 85,00</option>
-        <option value="TREINO_MENSAL">🏋️ Apenas Treino (Mensal) — R$ 80,00/mês</option>
-        <option value="TREINO_ANUAL">🏋️ Apenas Treino (Anual Individual) — R$ 55,00/mês</option>
+        <option value="COMPLETA_MENSAL">Completa (treino + dieta) — R$ 150,00/mês</option>
+        <option value="COMPLETA_TRIMESTRAL">Completa trimestral — 3x R$ 130,00</option>
+        <option value="COMPLETA_SEMESTRAL">Completa semestral — 6x R$ 110,00</option>
+        <option value="COMPLETA_ANUAL">Completa anual — 12x R$ 85,00</option>
+        <option value="TREINO_MENSAL">Apenas treino (mensal) — R$ 80,00/mês</option>
+        <option value="TREINO_ANUAL">Apenas treino (anual individual) — R$ 55,00/mês</option>
       </select>
 
-      <label class="label-fdb" style="margin-top:12px;">9. Método de Pagamento:</label>
+      <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
       <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
-        <option value="PIX_DIRETO">PIX Direto (Aprovação Rápida)</option>
-        <option value="ASAAS_LINK">Cartão de Crédito / Boleto</option>
+        <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
+        <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
       </select>
 
-      <div id="pixDiretoBox" style="background:rgba(10, 2, 6, 0.8); border:1px solid var(--border-glow); border-radius:var(--radius-lg); padding:16px; margin-top:12px; text-align:center;">
-        <div style="font-size:11px; color:var(--accent-gold); font-weight:700; letter-spacing:0.05em;">🔑 CHAVE PIX OFICIAL (E-MAIL)</div>
-        <div style="font-size:15px; font-weight:800; color:#fff; margin:8px 0; word-break:break-all;">jhonatags123@gmail.com</div>
-        <div style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Favorecido: Jhonata Personal Trainer</div>
-        <button type="button" class="btn-login btn-gold" style="margin-top:0; font-size:11px; padding:10px;" onclick="copiarChavePix()">📋 Copiar Chave PIX</button>
+      <div id="pixDiretoBox" style="background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px; text-align:center;">
+        <div style="font-size:11px; color:var(--ink-dim); font-weight:600; letter-spacing:0.02em;">Chave Pix (e-mail)</div>
+        <div style="font-size:14px; font-weight:700; color:var(--ink); margin:6px 0; word-break:break-all; font-family:var(--font-mono);">jhonatags123@gmail.com</div>
+        <div style="font-size:11px; color:var(--ink-dim); margin-bottom:10px;">Titular: Jhonata (Consultoria Esportiva)</div>
+        <button type="button" class="btn-login" style="margin-top:6px; background:var(--mark); color:#000; font-size:12px;" onclick="copiarChavePix()">Copiar chave Pix</button>
       </div>
 
-      <div style="display:flex; gap:10px; margin-top:16px;">
-        <button type="button" class="btn-login" style="background:rgba(255,255,255,0.05);" onclick="nextAnamStep(6)">⬅️ Voltar</button>
-        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">🚀 FINALIZAR E ATIVAR PROTOCOLO</button>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(6)">Voltar</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">Finalizar e enviar</button>
       </div>
     </div>
   </form>
@@ -491,41 +292,40 @@
 
 <!-- TELA DE LOGIN DO ALUNO -->
 <div id="loginScreen" class="card">
-  <div class="brand-title">Jhonata Personal</div>
-  <div class="sub-title">Portal Exclusivo do Aluno</div>
+  <h1>Jhonata Consultoria</h1>
+  <div class="sub">Acesse sua área exclusiva de aluno</div>
   
-  <form onsubmit="handleLogin(event)" style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
-    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário de acesso" required autocomplete="username">
+  <form onsubmit="handleLogin(event)" class="login-box">
+    <input type="text" id="loginUser" class="input-field" placeholder="Seu usuário (ex: lucas)" required autocomplete="username">
     <input type="password" id="loginPass" class="input-field" placeholder="Sua senha" required autocomplete="current-password">
-    <button type="submit" id="btnLoginSubmit" class="btn-login">ACESSAR MINHA ÁREA ➔</button>
+    <button type="submit" id="btnLoginSubmit" class="btn-login">Entrar</button>
   </form>
-  <div id="loginError" class="error-msg hidden" style="color:#ff6b7f; font-size:12px; text-align:center; margin-top:10px; font-weight:700;"></div>
+  <div id="loginError" class="error-msg hidden"></div>
 
-  <div style="text-align:center; margin-top:20px;">
-    <a href="/" style="font-size:11px; color:var(--text-muted); text-decoration:none; font-weight:600; transition:color 0.2s;" onhover="this.style.color='#fff'">⬅️ Voltar para a Página Principal</a>
+  <div style="text-align:center; margin-top:16px;">
+    <a href="/" style="font-size:11px; color:var(--ink-dim); text-decoration:none;">Voltar para a página inicial</a>
   </div>
 </div>
 
 <!-- TELA PRINCIPAL (APP DO ALUNO) -->
 <div id="mainContent" class="hidden">
-  <div class="card" style="padding:16px 20px; margin-bottom:12px;">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <div>
-        <div style="font-size:10px; color:var(--accent-gold); font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Atleta em Acompanhamento</div>
-        <h1 id="clientName" style="font-family:'Syne', sans-serif; font-size:20px; color:#fff; text-align:left; font-weight:800;">Consultoria</h1>
+  <div class="card">
+    <div class="header-app">
+      <h1 id="clientName">Consultoria</h1>
+      <div class="header-actions">
+        <button class="btn-header" type="button" onclick="logout()">Sair</button>
       </div>
-      <button class="btn-header" type="button" onclick="logout()">Encerrar Sessão</button>
     </div>
-    <div class="sub-title" id="billingInfo" style="text-align:left; font-size:10px; margin-top:2px;"></div>
+    <div class="sub" id="billingInfo"></div>
   </div>
 
   <!-- MENU DE NAVEGAÇÃO -->
   <div class="menu">
-    <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">🏋️ TREINO</button>
-    <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">🥗 DIETA</button>
-    <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">🤖 ASSISTENTE</button>
-    <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">💬 FEEDBACK</button>
-    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">🔒 SENHA</button>
+    <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">Treino</button>
+    <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">Dieta</button>
+    <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">Assistente</button>
+    <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">Feedback</button>
+    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">Senha</button>
   </div>
 
   <!-- ABA 1: TREINO -->
@@ -535,42 +335,39 @@
 
   <!-- ABA 2: DIETA -->
   <div id="tabDieta" class="hidden">
-    <div id="dietFilterContainer" class="diet-filter-row" style="display:flex; gap:8px; margin-bottom:14px; overflow-x:auto;"></div>
+    <div id="dietFilterContainer" class="diet-filter-row"></div>
     <div id="mealsList" class="diet-container"></div>
   </div>
 
-  <!-- ABA 3: CHAT IA -->
+  <!-- ABA 3: CHAT IA (ASSISTENTE DO ALUNO) -->
   <div id="tabIaChat" class="card hidden">
-    <div class="brand-title" style="font-size:18px;">Assistente Virtual</div>
-    <div class="sub-title" style="margin-bottom:14px;">Suporte inteligente 24/7 para dúvidas técnicas</div>
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Assistente virtual do personal</div>
+    <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
 
-    <div id="studentChatHistory" style="background:var(--surface-input); border:1px solid var(--border-subtle); border-radius:var(--radius-lg); height:300px; padding:14px; overflow-y:auto; margin-bottom:14px; display:flex; flex-direction:column; gap:10px;">
-      <div style="background:rgba(226, 179, 74, 0.08); border:1px solid rgba(226, 179, 74, 0.15); padding:12px; border-radius:12px; font-size:12.5px; color:var(--text-primary); line-height:1.5;">
-        <b style="color:var(--accent-gold);">Assistente:</b> Olá! Como posso te ajudar com a execução dos exercícios ou substituição de alimentos da sua dieta hoje?
-      </div>
+    <div id="studentChatHistory" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:280px; padding:12px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
+      <div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line);"><b>Assistente:</b> Olá! Como posso te ajudar com o seu treino ou dieta hoje?</div>
     </div>
 
-    <div style="display:flex; gap:8px;">
-      <input type="text" id="studentChatInput" class="input-field" placeholder="Pergunte sobre seu treino ou dieta..." style="font-size:12.5px;" onkeypress="if(event.key==='Enter') sendStudentChatMessage()">
-      <button class="btn-login btn-gold" style="width:90px; margin-top:0; font-size:12px;" onclick="sendStudentChatMessage()">Enviar</button>
+    <div style="display:flex; gap:6px;">
+      <input type="text" id="studentChatInput" class="input-field" placeholder="Digite sua dúvida aqui..." style="font-size:12px;" onkeypress="if(event.key==='Enter') sendStudentChatMessage()">
+      <button class="btn-login btn-gold" style="width:80px; margin-top:0; font-size:12px;" onclick="sendStudentChatMessage()">Enviar</button>
     </div>
   </div>
 
   <!-- ABA 4: FEEDBACK -->
   <div id="tabFeedback" class="card hidden">
-    <div class="brand-title" style="font-size:18px;">Relatório Semanal</div>
-    <div class="sub-title" style="margin-bottom:14px;">Envio direto de progresso para o Personal</div>
-    <textarea id="feedbackText" class="input-field" rows="5" placeholder="Descreva sua intensidade nos treinos, recuperação muscular, adesão à dieta e dúvidas..."></textarea>
-    <button class="btn-login btn-wpp" style="margin-top:14px;" onclick="sendWhatsAppFeedback()">📲 ENVIAR FEEDBACK NO WHATSAPP</button>
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;"> Enviar Relatório Semanal</div>
+    <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
+    <textarea id="feedbackText" class="input-field" rows="5" placeholder="Descreva sua intensidade nos treinos, dores musculares, adesão à dieta e dificuldades..."></textarea>
+    <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">Enviar feedback no WhatsApp</button>
   </div>
 
   <!-- ABA 5: CONFIGURAÇÕES -->
   <div id="tabConfig" class="card hidden">
-    <div class="brand-title" style="font-size:18px;">Segurança da Conta</div>
-    <div class="sub-title" style="margin-bottom:14px;">Atualização de Credenciais</div>
+    <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;"> Alterar Senha de Acesso</div>
     <label class="label-fdb">Nova Senha Pessoal</label>
     <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha..." autocomplete="new-password">
-    <button class="btn-login btn-gold" style="margin-top:14px;" onclick="alterarSenhaAluno()">💾 SALVAR NOVA SENHA</button>
+    <button class="btn-login btn-gold" style="margin-top:12px;" onclick="alterarSenhaAluno()">Salvar nova senha</button>
   </div>
 </div>
 
@@ -659,7 +456,7 @@
 
   function copiarChavePix() {
     navigator.clipboard.writeText("jhonatags123@gmail.com");
-    alert("✅ Chave Pix oficial (jhonatags123@gmail.com) copiada com sucesso!");
+    alert("Chave Pix copiada: jhonatags123@gmail.com");
   }
 
   async function handleLogin(e) {
@@ -670,7 +467,7 @@
     const errorDiv = document.getElementById('loginError');
 
     errorDiv.classList.add('hidden');
-    btn.textContent = "Autenticando...";
+    btn.textContent = "Conectando ao servidor...";
     btn.disabled = true;
 
     try {
@@ -683,9 +480,9 @@
       const result = await res.json();
 
       if (!res.ok) {
-        errorDiv.textContent = "❌ " + (result.error || "Erro ao efetuar login.");
+        errorDiv.textContent = result.error || "Erro de login.";
         errorDiv.classList.remove('hidden');
-        btn.textContent = "ACESSAR MINHA ÁREA ➔";
+        btn.textContent = "Entrar";
         btn.disabled = false;
         return;
       }
@@ -700,9 +497,9 @@
 
       loadStudentData(result.data);
     } catch (err) {
-      errorDiv.textContent = "❌ Servidor em sincronização. Tente novamente em alguns segundos.";
+      errorDiv.textContent = "Servidor iniciando. Aguarde uns instantes e tente novamente.";
       errorDiv.classList.remove('hidden');
-      btn.textContent = "ACESSAR MINHA ÁREA ➔";
+      btn.textContent = "Entrar";
       btn.disabled = false;
     }
   }
@@ -722,7 +519,7 @@
       return alert("Preencha nome, data de nascimento, idade, e-mail, CPF e WhatsApp.");
     }
 
-    btn.textContent = "Gerando Protocolo...";
+    btn.textContent = "Processando...";
     btn.disabled = true;
 
     const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -761,33 +558,37 @@
         window.location.href = redirectUrl;
       } else {
         document.getElementById('anamneseScreen').innerHTML = `
-          <div style="text-align:center; padding:30px 10px;">
-            <div style="font-size:42px; margin-bottom:12px;">🏆</div>
-            <h2 style="font-size:22px; font-weight:800; color:#fff; font-family:'Syne', sans-serif;">
-              SOLICITAÇÃO CONFIRMADA!
+          <div style="text-align:center; padding:24px 10px;">
+            <div style="font-size:48px; margin-bottom:12px;"></div>
+            <h2 style="font-size:26px; font-weight:700; color:var(--ink); font-family:var(--font-display);">
+              Obrigado pela confiança
             </h2>
-            <p style="font-size:13px; color:var(--text-secondary); margin-top:10px; line-height:1.6;">
-              Sua anamnese foi entregue com sucesso. Estou animado para desenvolver o seu plano de treino e nutrição.
+            <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
+              Sua Anamnese foi recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
             </p>
 
-            <div style="background:rgba(226, 179, 74, 0.08); border:1px solid var(--accent-gold); border-radius:var(--radius-lg); padding:16px; margin-top:20px; text-align:left;">
-              <div style="font-size:11px; font-weight:800; color:var(--accent-gold); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">
-                ⏳ Prazo de Liberação do Aplicativo:
+            <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
+              <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
+                ⏳Prazo de liberação e início
               </div>
-              <p style="font-size:12px; color:var(--text-primary); line-height:1.5;">
-                O seu acesso exclusivo e o protocolo personalizado serão enviados para o seu WhatsApp em até <b>24 a 48 horas úteis</b>.
+              <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
+                O seu protocolo personalizado e o seu <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
               </p>
             </div>
 
-            <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="margin-top:20px; text-decoration:none;">
-              📲 NOTIFICAR PERSONAL NO WHATSAPP
+            <div style="font-size:12px; color:var(--ink-dim); margin-top:14px;">
+               Se efetuou o pagamento via Pix Direto, lembre-se de enviar o comprovante no meu WhatsApp para acelerar a liberação!
+            </div>
+
+            <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
+               Falar com o personal no WhatsApp
             </a>
           </div>
         `;
       }
     } catch (e) {
-      alert("Erro ao conectar ao servidor.");
-      btn.textContent = "🚀 FINALIZAR E ATIVAR PROTOCOLO";
+      alert("Erro ao conectar.");
+      btn.textContent = "Finalizar e enviar";
       btn.disabled = false;
     }
   }
@@ -813,15 +614,15 @@
   function renderLockNotice() {
     const lockHtml = `
       <div class="pay-lock-overlay">
-        <div style="font-size:36px; margin-bottom:10px;">⛔</div>
-        <div class="pay-lock-title">ACESSO EM RENOVAÇÃO</div>
+        <div style="font-size:42px; margin-bottom:8px;"></div>
+        <div class="pay-lock-title">Acesso suspenso</div>
         <div class="pay-lock-desc">
-          Identificamos uma pendência no ciclo da sua assinatura.<br>
-          Para desbloquear seus treinos e plano alimentar, efetue a renovação e confirme via WhatsApp.
+          Identificamos uma pendência na renovação do seu plano.<br>
+          Para reativar a visualização dos seus treinos e dietas, efetue o pagamento e envie o comprovante no WhatsApp.
         </div>
         <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20mensalidade,%20segue%20o%20comprovante:" 
-           target="_blank" class="btn-login btn-wpp" style="text-decoration:none;">
-          📲 ENVIAR COMPROVANTE DE RENOVAÇÃO
+           target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+           Enviar comprovante no WhatsApp
         </a>
       </div>
     `;
@@ -835,28 +636,28 @@
     exercisesContainer.innerHTML = '';
 
     if (!days || days.length === 0) {
-      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:30px;">Seu protocolo de treino está sendo ajustado pelo Personal.</div>';
+      exercisesContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
       return;
     }
 
     days.forEach((day, dayIdx) => {
       const dayWrapper = document.createElement('div');
-      dayWrapper.style.marginBottom = '10px';
+      dayWrapper.style.marginBottom = '12px';
 
       const dayHeader = document.createElement('div');
       dayHeader.className = 'day-accordion-header';
       dayHeader.innerHTML = `
         <div>
-          <b style="font-size:14px; color:#fff;">🏋️ ${day.title}</b>
-          <div style="font-size:11px; color:var(--accent-gold); margin-top:2px; font-weight:600;">${(day.exercicios || []).length} Exercícios Prescritos</div>
+          <b style="font-size:15px; color:var(--ink);">${day.title}</b>
+          <div style="font-size:11px; color:var(--mark); margin-top:2px;">${(day.exercicios || []).length} Exercícios</div>
         </div>
-        <span id="arrow_${dayIdx}" style="color:var(--accent-gold); font-size:12px; transition:transform 0.25s ease;">▼</span>
+        <span id="arrow_${dayIdx}" style="color:var(--mark); font-size:14px; transition:transform 0.2s ease;">▼</span>
       `;
 
       const dayBody = document.createElement('div');
       dayBody.id = `dayBody_${dayIdx}`;
       dayBody.className = 'hidden';
-      dayBody.style.paddingTop = '6px';
+      dayBody.style.paddingTop = '8px';
 
       dayHeader.onclick = () => {
         const isHidden = dayBody.classList.contains('hidden');
@@ -865,11 +666,11 @@
         if (isHidden) {
           dayBody.classList.remove('hidden');
           arrow.style.transform = 'rotate(180deg)';
-          dayHeader.style.borderColor = 'var(--border-glow)';
+          dayHeader.style.borderColor = 'var(--mark)';
         } else {
           dayBody.classList.add('hidden');
           arrow.style.transform = 'rotate(0deg)';
-          dayHeader.style.borderColor = 'var(--border-subtle)';
+          dayHeader.style.borderColor = 'var(--line)';
         }
       };
 
@@ -922,28 +723,30 @@
 
       const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
 
-      let numSeriesPrescritas = parseInt(seriesStr) || 3;
+      let numSeriesPrescritas = parseInt(seriesStr) || 1;
 
       const div = document.createElement('div');
       div.className = 'item';
 
       let optionsHtml = '';
-      if (numSeriesPrescritas === 2) {
+      if (numSeriesPrescritas === 1) {
+        optionsHtml = `<option value="convencional" selected>📊 1 Série Convencional</option>`;
+      } else if (numSeriesPrescritas === 2) {
         optionsHtml = `
-          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 2 Séries Convencionais</option>
-          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>🟢 Cluster Set</option>
-          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>📉 Top Set + Back-off</option>
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 séries convencionais</option>
+          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster set</option>
+          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>1 top set + 1 back-off</option>
         `;
       } else {
         optionsHtml = `
-          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>📊 3 Séries Convencionais</option>
-          <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>🟢 Cluster + Back-off</option>
-          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>📉 2x + Back-off</option>
-          <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>⚡ Protocolo Myo-Reps</option>
+          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} séries convencionais</option>
+          <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + back-off</option>
+          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + back-off</option>
+          <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-reps</option>
         `;
       }
 
-      const selectorStyle = podeAlterarNesteEx ? '' : 'style="display:none;"';
+      const selectorStyle = (podeAlterarNesteEx && numSeriesPrescritas > 1) ? '' : 'style="display:none;"';
 
       let html = `
         <div class="item-header">
@@ -952,7 +755,7 @@
             ${optionsHtml}
           </select>
         </div>
-        <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="series-container">
       `;
 
       if (activeMode === 'myoreps') {
@@ -967,22 +770,25 @@
         const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
 
         html += `
-          <div class="series-row" style="border-color:var(--border-glow);">
-            <span class="series-tag" style="color:var(--accent-gold); width:110px;">⚡ ATIVAÇÃO:</span>
-            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:60px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+          <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
+            <span class="series-tag" style="color:var(--mark); width:110px;">Ativação:</span>
+            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
-          <div style="font-size:10px; color:var(--accent-gold); margin:2px 0 4px 6px; font-weight:700;">⏱️ Descanso de 40s pós Ativação.</div>
-          <div class="series-row" style="border-style:dashed;">
-            <span class="series-tag" style="color:var(--accent-gold); width:110px;">🔹 MINI BLOCOS:</span>
-            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:60px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+          <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
+            ⏱ Descanso de 40s pós Ativação.
+          </div>
+          <div class="series-row" style="background:var(--bg); border:1px dashed var(--mark);">
+            <span class="series-tag" style="color:var(--mark); width:110px;">Mini blocos:</span>
+            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
+
       } else if (activeMode === 'cluster') {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
@@ -993,17 +799,20 @@
         const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
 
         html += `
-          <div class="series-row" style="border-color:rgba(16,185,129,0.3);">
-            <span class="series-tag" style="color:var(--green-emerald); width:80px;">🟢 CLUSTER:</span>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:60px; border-color:var(--green-emerald) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
+            <span class="series-tag" style="color:var(--good); width:75px;">Cluster:</span>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green-emerald) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green-emerald) !important;" placeholder="Último" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
-          <div style="font-size:10px; color:var(--green-emerald); margin:2px 0 4px 6px; font-weight:700;">⏱️ Descanso de 15s a 20s entre blocos.</div>
+          <div style="font-size:10px; color:var(--good); margin:4px 0 6px 4px; font-weight:700;">
+            ⏱ Descanso de 15s a 20s entre blocos.
+          </div>
         `;
+
       } else if (activeMode === 'cluster_backoff') {
         const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
         const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
@@ -1018,26 +827,30 @@
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         html += `
-          <div class="series-row" style="border-color:rgba(16,185,129,0.3);">
-            <span class="series-tag" style="color:var(--green-emerald); width:80px;">🟢 CLUSTER:</span>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:60px; border-color:var(--green-emerald) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
+            <span class="series-tag" style="color:var(--good); width:75px;">Cluster:</span>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--green-emerald) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--green-emerald) !important;" placeholder="Último" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
-          <div style="background:rgba(200, 30, 58, 0.12); border:1px solid var(--border-crimson); border-radius:var(--radius-md); padding:8px; margin-top:4px;">
-            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:4px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
-            <div class="series-row">
-              <span class="series-tag" style="color:var(--accent-crimson); width:110px;">📉 BACK-OFF:</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:60px; border-color:var(--accent-crimson) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+          <div style="font-size:10px; color:var(--good); margin:2px 0 4px 4px; font-weight:700;">
+            ⏱ Descanso de 15s a 20s entre blocos.
+          </div>
+          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <span class="series-tag" style="color:var(--signal); width:110px;">Back-off:</span>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent-crimson) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
         `;
+
       } else if (activeMode === 'backoff_2x') {
         const keyS1C = `log_c_${dayIdx}_${exIdx}_s1`;
         const keyS1R = `log_r_${dayIdx}_${exIdx}_s1`;
@@ -1056,29 +869,30 @@
         html += `
           <div class="series-row">
             <span class="series-tag">Série 1</span>
-            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:60px;" placeholder="Kg" value="${valS1C}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS1C}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS1R}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div class="series-row">
             <span class="series-tag">Série 2</span>
-            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:60px;" placeholder="Kg" value="${valS2C}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS2C}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS2R}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
-          <div style="background:rgba(200, 30, 58, 0.12); border:1px solid var(--border-crimson); border-radius:var(--radius-md); padding:8px; margin-top:4px;">
-            <div style="font-size:10px; font-weight:800; color:#ff6b7f; margin-bottom:4px;">⚠️ BACK-OFF: REDUZIR 20% A 30% DA CARGA</div>
-            <div class="series-row">
-              <span class="series-tag" style="color:var(--accent-crimson); width:110px;">📉 BACK-OFF:</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:60px; border-color:var(--accent-crimson) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <span class="series-tag" style="color:var(--signal); width:110px;">Back-off:</span>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--accent-crimson) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
         `;
+
       } else {
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
@@ -1089,7 +903,7 @@
           html += `
             <div class="series-row">
               <span class="series-tag">Série ${s}</span>
-              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:60px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
@@ -1138,7 +952,7 @@
     if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
     const exObj = currentData.days[dayIdx].exercicios[exIdx];
-    const numSeries = parseInt(exObj.series) || 3;
+    const numSeries = parseInt(exObj.series) || 1;
 
     const modeKey = `${dayIdx}_${exIdx}`;
     const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
@@ -1245,7 +1059,7 @@
     mealsContainer.innerHTML = '';
 
     if (!refeicoes || refeicoes.length === 0) {
-      mealsContainer.innerHTML = '<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:30px;">Plano alimentar em elaboração pelo Nutricionista.</div>';
+      mealsContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Plano alimentar em montagem.</div>';
       return;
     }
 
@@ -1284,7 +1098,7 @@
       const matched = parsedBlocks.find(b => b.category === cat && b.days);
       const subDays = matched ? matched.days : "";
 
-      btn.innerHTML = `<span>${cat}</span>${subDays ? `<small style="font-size:9px; color:var(--accent-gold); display:block; opacity:0.8; margin-top:2px;">${subDays}</small>` : ''}`;
+      btn.innerHTML = `<span>${cat}</span>${subDays ? `<small style="font-size:9px; color:var(--mark); opacity:0.8; margin-top:2px;">${subDays}</small>` : ''}`;
       
       btn.onclick = () => {
         document.querySelectorAll('.diet-filter-btn').forEach(b => b.classList.remove('active'));
@@ -1315,7 +1129,7 @@
 
       let tableHtml = `
         <div class="meal-header">
-          <span>🍽️ ${block.mealTitle}</span>
+          <span>${block.mealTitle}</span>
         </div>
         <table class="diet-table">
           <thead>
@@ -1355,13 +1169,13 @@
 
       if (hasMacros) {
         tableHtml += `
-          <tr style="background:rgba(226, 179, 74, 0.06); font-weight:800;">
-            <td style="color:var(--accent-gold);">TOTAL REFEIÇÃO</td>
+          <tr class="total-row">
+            <td>Total da refeição</td>
             <td style="text-align:right;">-</td>
-            <td style="text-align:right; color:var(--accent-gold);">${Math.round(totalKcal)}</td>
-            <td style="text-align:right; color:var(--accent-gold);">${Math.round(totalPtn)}g</td>
-            <td style="text-align:right; color:var(--accent-gold);">${Math.round(totalCarb)}g</td>
-            <td style="text-align:right; color:var(--accent-gold);">${Math.round(totalFat)}g</td>
+            <td style="text-align:right;">${Math.round(totalKcal)}</td>
+            <td style="text-align:right;">${Math.round(totalPtn)}g</td>
+            <td style="text-align:right;">${Math.round(totalCarb)}g</td>
+            <td style="text-align:right;">${Math.round(totalFat)}g</td>
           </tr>
         `;
       }
@@ -1393,11 +1207,7 @@
 
     if (!text) return;
 
-    history.innerHTML += `
-      <div style="background:rgba(200, 30, 58, 0.2); border:1px solid var(--border-crimson); padding:10px 14px; border-radius:12px; font-size:12.5px; color:#fff; align-self:flex-end; max-width:85%;">
-        <b>Você:</b> ${text}
-      </div>
-    `;
+    history.innerHTML += `<div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal);"><b>Você:</b> ${text}</div>`;
     input.value = '';
     history.scrollTop = history.scrollHeight;
 
@@ -1413,29 +1223,25 @@
       });
 
       if (res.status === 403) {
-        history.innerHTML += `<div style="color:var(--accent-crimson); font-size:11px; padding:8px; background:rgba(200,30,58,0.1); border-radius:8px; margin-top:4px;">❌ Conexão negada. Atualize a página ou entre novamente.</div>`;
+        history.innerHTML += `<div style="color:var(--signal); font-size:11px; padding:6px; background:var(--signal-dim); border-radius:6px; margin-top:4px;">Erro 403: a rota '/api/aluno/chat-ia' ainda não existe ou não permitiu a sessão do aluno.</div>`;
         history.scrollTop = history.scrollHeight;
         return;
       }
 
       const data = await res.json();
-      history.innerHTML += `
-        <div style="background:rgba(226, 179, 74, 0.08); border:1px solid rgba(226, 179, 74, 0.15); padding:12px; border-radius:12px; font-size:12.5px; color:#fff; align-self:flex-start; max-width:90%;">
-          <b style="color:var(--accent-gold);">Assistente:</b> ${data.resposta || 'Não consegui processar sua dúvida agora.'}
-        </div>
-      `;
+      history.innerHTML += `<div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line); align-self:flex-start;"><b>Assistente:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
     } catch(e) {
-      history.innerHTML += `<div style="color:var(--accent-crimson); font-size:11px; margin-top:4px;">Instabilidade na rede. Tente novamente em instantes.</div>`;
+      history.innerHTML += `<div style="color:var(--signal); font-size:11px; margin-top:4px;">Erro na comunicação com a IA. Tente novamente.</div>`;
     }
     history.scrollTop = history.scrollHeight;
   }
 
   function sendWhatsAppFeedback() {
     const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return alert("Por favor, digite seu feedback antes de enviar.");
+    if (!text) return alert("Digite seu feedback antes de enviar.");
 
     const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-    const msg = `📱 *RELATÓRIO SEMANAL DO ATLETA*%0A%0A👤 *Aluno:* ${nome}%0A💬 *Feedback:*%0A${encodeURIComponent(text)}`;
+    const msg = ` *RELATÓRIO SEMANAL DO ALUNO*%0A%0A *Aluno:* ${nome}%0A *Relatório:*%0A${encodeURIComponent(text)}`;
     window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
   }
 
@@ -1453,11 +1259,11 @@
       });
 
       if (res.ok) {
-        alert("🎉 Senha alterada com sucesso!");
+        alert("Senha alterada com sucesso.");
         document.getElementById('alunoNovaSenha').value = "";
       }
     } catch (e) {
-      alert("Erro ao salvar a nova senha.");
+      alert("Erro ao alterar senha.");
     }
   }
 
