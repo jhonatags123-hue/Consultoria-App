@@ -94,7 +94,7 @@
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
-  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:600px; }
+  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; }
 
   .senha-row { display:flex; gap:8px; align-items:flex-end; }
   .senha-row > div:first-child { flex:1; }
@@ -102,6 +102,17 @@
   .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
   @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
   .preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
+
+  .ai-insight-box {
+    background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
@@ -124,9 +135,15 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <div>
         <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas</span>
+        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas & Repetições</span>
       </div>
       <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+    </div>
+
+    <!-- CAIXA DE ANÁLISE IA DA EVOLUÇÃO -->
+    <div id="aiProgressInsight" class="ai-insight-box hidden">
+      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
+      <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
     </div>
 
     <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
@@ -614,7 +631,7 @@ ${tx.value}`,
     }
   }
 
-  function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
+  async function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
 
@@ -622,11 +639,12 @@ ${tx.value}`,
     const key = `${dayIdx}_${exIdx}`;
     const historicoSemanal = (weeklyLogs[key] || []).slice(-4);
 
-    let html = "<b>Progresso Semanal (Últimos 4 Treinos):</b><br>";
+    let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
     let cargasValidas = [];
 
     if (historicoSemanal.length === 0) {
       html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
+      document.getElementById('aiProgressInsight').classList.add('hidden');
     } else {
       historicoSemanal.forEach((reg, idx) => {
         html += `
@@ -641,12 +659,43 @@ ${tx.value}`,
         `;
         if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
       });
+
+      // SOLICITA ANÁLISE DE PROGRESSÃO DA IA
+      gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
     }
 
     document.getElementById('logsDetailList').innerHTML = html;
     document.getElementById('chartModal').classList.remove('hidden');
 
     renderChart(cargasValidas);
+  }
+
+  async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
+    const boxIA = document.getElementById('aiProgressInsight');
+    const textIA = document.getElementById('aiInsightText');
+
+    boxIA.classList.remove('hidden');
+    textIA.innerHTML = "<i>Analisando cargas e repetições com a IA...</i>";
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/analisar-progresso-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          exercicioNome: nomeEx,
+          historicoLogs: historicoLogs
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.analise) {
+        textIA.innerHTML = data.analise.replace(/\n/g, '<br>');
+      } else {
+        textIA.textContent = "Não foi possível gerar o resumo da evolução neste momento.";
+      }
+    } catch (e) {
+      textIA.textContent = "Erro de conexão ao buscar análise da IA.";
+    }
   }
 
   function renderChart(cargas) {
