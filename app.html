@@ -477,13 +477,31 @@
       document.getElementById('loginUser').value = paramAluno;
     }
 
-    if (params.get('modo') === 'anamnese') {
+    const modo = params.get('modo');
+    if (modo === 'anamnese' || modo === 'anamnese_convidado') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
       const planoParam = params.get('plano');
       if (planoParam && document.getElementById('anamTipoConsultoria')) {
         document.getElementById('anamTipoConsultoria').value = planoParam;
+      }
+
+      // Se for o convidado da dupla, desativa a parte financeira/plano
+      if (modo === 'anamnese_convidado') {
+        const selectPlano = document.getElementById('anamTipoConsultoria');
+        const selectPagamento = document.getElementById('anamFormaPagamento');
+        const pixBox = document.getElementById('pixDiretoBox');
+
+        if (selectPlano) {
+          selectPlano.innerHTML = `<option value="TREINO_DUPLA_CONVIDADO" selected>Promocional Treino para 2 Pessoas (Já pago pelo titular)</option>`;
+          selectPlano.disabled = true;
+        }
+        if (selectPagamento) {
+          selectPagamento.innerHTML = `<option value="INCLUSO_NO_PLANO_DUPLA" selected>Incluso no Plano em Dupla (Já Pago)</option>`;
+          selectPagamento.disabled = true;
+        }
+        if (pixBox) pixBox.classList.add('hidden');
       }
       return;
     }
@@ -530,6 +548,12 @@
   function copiarChavePix() {
     navigator.clipboard.writeText("jhonatags123@gmail.com");
     alert("Chave Pix copiada: jhonatags123@gmail.com");
+  }
+
+  function copiarLinkConvidadoDupla() {
+    const linkConvidado = "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
+    navigator.clipboard.writeText(linkConvidado);
+    alert("✅ Link da Anamnese sem cobrança copiado! Envie para o seu amigo:\n\n" + linkConvidado);
   }
 
   async function handleLogin(e) {
@@ -625,11 +649,32 @@
       });
       await res.json();
 
-      const redirectUrl = formaPagamento === 'ASAAS_LINK' ? ASAAS_LINKS[tipoConsultoria] : null;
+      const redirectUrl = (formaPagamento === 'ASAAS_LINK' && tipoConsultoria !== 'TREINO_DUPLA_CONVIDADO') 
+        ? ASAAS_LINKS[tipoConsultoria] 
+        : null;
 
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
+        const isPlanoDupla = tipoConsultoria === 'TREINO_DUPLA_ANUAL';
+
+        let boxDuplaHtml = '';
+        if (isPlanoDupla) {
+          boxDuplaHtml = `
+            <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
+              <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">
+                👥 Envie a Anamnese para a sua dupla!
+              </div>
+              <p style="font-size:12px; color:var(--ink-dim); line-height:1.4; margin-bottom:10px;">
+                Copie o link abaixo e envie para a pessoa que vai treinar com você. Ela preencherá a anamnese sem cobranças adicionais.
+              </p>
+              <button type="button" class="btn-login btn-gold" style="margin-top:0; font-size:12px;" onclick="copiarLinkConvidadoDupla()">
+                📋 Copiar Link do Amigo
+              </button>
+            </div>
+          `;
+        }
+
         document.getElementById('anamneseScreen').innerHTML = `
           <div style="text-align:center; padding:24px 10px;">
             <div style="font-size:48px; margin-bottom:12px;">✅</div>
@@ -637,15 +682,17 @@
               Obrigado pela confiança
             </h2>
             <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
-              Sua Anamnese foi recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
+              Anamnese recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
             </p>
+
+            ${boxDuplaHtml}
 
             <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
               <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
                 ⏳ Prazo de liberação e início
               </div>
               <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
-                O seu protocolo personalizado e o seu <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
+                O protocolo personalizado e o <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
               </p>
             </div>
 
