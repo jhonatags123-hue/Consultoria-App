@@ -1040,16 +1040,15 @@ ${tx.value}`,
 
   function copiarLinkAcessoAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    const baseUrl = window.location.href.replace('admin.html', 'index.html');
-    const linkAluno = `${baseUrl}?aluno=${currentStudentCode}`;
+    const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
     navigator.clipboard.writeText(linkAluno);
     alert(`✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
   }
 
   function copiarLinkAnamnese() {
-    const link = window.location.href.replace('admin.html', 'index.html?modo=anamnese');
+    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
     navigator.clipboard.writeText(link);
-    alert("Link da Anamnese copiado para a área de transferência!");
+    alert("✅ Link direto da Anamnese copiado!\n\n" + link);
   }
 
   async function sendAdminChatMessage() {
