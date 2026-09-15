@@ -347,14 +347,14 @@
               🏃 Ativar Módulo de Corrida (Exibe aba de Desempenho)
             </label>
           </div>
-        </div>
+      </div>
 
-        <div style="display:flex; gap:10px; margin-top:16px;">
+      <div style="display:flex; gap:10px; margin-top:16px;">
           <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
           <button class="btn btn-wpp" style="flex:1;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
           <button class="btn btn-danger" style="width:120px;" onclick="deletarAluno()">🗑️ Excluir</button>
-        </div>
       </div>
+    </div>
 
       <div id="secNovo" class="panel-card hidden">
         <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
@@ -385,8 +385,8 @@
         <div style="display:flex; gap:8px;">
           <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
           <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
-        </div>
       </div>
+    </div>
     </main>
   </div>
 </div>
@@ -403,10 +403,7 @@
     return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
   }
 
-  // Sanitiza qualquer texto vindo do backend (nome de aluno, anamnese, nome de exercício)
-  // antes de ir para innerHTML. A anamnese é preenchida por qualquer pessoa sem login,
-  // então esses campos são a única entrada realmente "não confiável" deste painel —
-  // sem isso, um campo de texto malicioso rodaria JavaScript dentro da sessão do admin.
+  // BLINDAGEN DE SEGURANÇA: Sanitiza qualquer texto vindo do backend antes de ir para innerHTML (Previne XSS)
   function escapeHtml(value) {
     if (value === null || value === undefined) return '';
     return String(value)
@@ -549,7 +546,7 @@
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
-  // EXIBIÇÃO DA ANAMNESE DETALHADA COM OS NOVOS CAMPOS EM TEXTO LIVRE
+  // EXIBIÇÃO DA ANAMNESE DETALHADA COM TODOS OS CAMPOS PROTEGIDOS POR escapeHtml
   function renderAnamneseDetails() {
     const div = document.getElementById('anamneseDetails');
     const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
@@ -625,13 +622,13 @@
 
     parsedDays.forEach(day => {
       let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-        <b style="color:var(--gold); font-size:13px;">🏋️ ${day.title}</b><br>`;
+        <b style="color:var(--gold); font-size:13px;">🏋️ ${escapeHtml(day.title)}</b><br>`;
       
       day.exercicios.forEach(ex => {
-        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${ex.tecnicaTipo}]</span>` : '';
+        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
         html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-          <span>• ${ex.nome}${isTecnico}</span>
-          <span style="color:var(--muted); font-weight:700;">${ex.series} (${ex.reps})</span>
+          <span>• ${escapeHtml(ex.nome)}${isTecnico}</span>
+          <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
         </div>`;
       });
 
@@ -712,8 +709,6 @@ ${tx.value}`,
     }
   }
 
-  // Lista de treinos -> clicar num dia esconde a lista e mostra só aquele treino;
-  // "Voltar" fecha o detalhe e devolve a lista para escolher outro dia.
   function renderWorkoutView() {
     const div = document.getElementById('workoutOverview');
     div.innerHTML = "";
@@ -807,11 +802,11 @@ ${tx.value}`,
         html += `
           <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b style="color:var(--gold)">Treino ${idx + 1} (${reg.data}):</b><br>
-              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${reg.repsMed}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${reg.tecnica}</span>` : ''}
+              <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data)}):</b><br>
+              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${escapeHtml(reg.repsMed)}</span>
+              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${escapeHtml(reg.tecnica)}</span>` : ''}
             </div>
-            <div style="font-size:15px; font-weight:800; color:#fff;">${reg.cargaMax} kg</div>
+            <div style="font-size:15px; font-weight:800; color:#fff;">${escapeHtml(reg.cargaMax)} kg</div>
           </div>
         `;
         if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
@@ -845,7 +840,7 @@ ${tx.value}`,
 
       const data = await res.json();
       if (res.ok && data.analise) {
-        textIA.innerHTML = data.analise.replace(/\n/g, '<br>');
+        textIA.innerHTML = escapeHtml(data.analise).replace(/\n/g, '<br>');
       } else {
         textIA.textContent = "Não foi possível gerar o resumo da evolução neste momento.";
       }
@@ -895,8 +890,6 @@ ${tx.value}`,
     document.getElementById('chartModal').classList.add('hidden');
   }
 
-  // Ordem usada pelo gesto de arrastar (swipe) entre as abas principais.
-  // 'novo' e 'chatAdmin' ficam fora do ciclo porque são acessados pelos botões da lateral.
   const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'treino', 'dieta', 'corrida', 'cadastro'];
   let abaAtual = 'resumo';
 
@@ -923,14 +916,12 @@ ${tx.value}`,
       const deltaX = touchEndX - touchStartX;
       const deltaY = touchEndY - touchStartY;
 
-      // Ignora gestos verticais (rolagem normal) e arrastos muito curtos
       if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY)) return;
 
       const idxAtual = ORDEM_ABAS_PRINCIPAIS.indexOf(abaAtual);
       const base = idxAtual === -1 ? 0 : idxAtual;
       const total = ORDEM_ABAS_PRINCIPAIS.length;
 
-      // Arrastar para a esquerda avança; para a direita, volta
       const proximoIdx = deltaX < 0 ? (base + 1) % total : (base - 1 + total) % total;
       switchTab(ORDEM_ABAS_PRINCIPAIS[proximoIdx]);
     }, { passive: true });
@@ -990,7 +981,7 @@ ${tx.value}`,
       div.style.cssText = "background:#100305; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:12px;";
       div.innerHTML = `
         <div>
-          <b style="color:var(--gold);">📅 ${c.data || 'Treino'}</b> — <span>${c.km} km em ${c.minutos} minutos</span>
+          <b style="color:var(--gold);">📅 ${escapeHtml(c.data || 'Treino')}</b> — <span>${escapeHtml(c.km)} km em ${escapeHtml(c.minutos)} minutos</span>
         </div>
         <button onclick="removerCorridaAluno(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700;">✕ Excluir</button>
       `;
@@ -1039,7 +1030,6 @@ ${tx.value}`,
     atualizarPreviewDietaAoVivo();
   }
 
-  // Nomes dos dias da semana em pt-BR, na mesma ordem que Date.getDay() retorna (0 = Domingo)
   const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   function parseBlocoDietaAdmin(rawText) {
@@ -1129,7 +1119,6 @@ ${tx.value}`,
     const categories = [...new Set(blocks.map(b => b.category))];
     const hojeNome = NOMES_DIA_SEMANA[new Date().getDay()];
 
-    // Categoria de hoje = a primeira cujo campo "Dias:" cita o dia da semana atual
     let categoriaInicial = categories.find(cat =>
       blocks.some(b => b.category === cat && b.days && b.days.toLowerCase().includes(hojeNome.toLowerCase()))
     ) || categories[0];
@@ -1471,7 +1460,7 @@ ${tx.value}`,
 
     if (!text) return;
 
-    history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${text}</div>`;
+    history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${escapeHtml(text)}</div>`;
     input.value = '';
     history.scrollTop = history.scrollHeight;
 
@@ -1487,7 +1476,7 @@ ${tx.value}`,
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
+      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
     } catch(e) {
       history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
     }
