@@ -22,7 +22,11 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   ::-webkit-scrollbar { width:6px; height:6px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+  html, body { height:100%; }
   body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
+  #adminApp { min-height:100vh; display:flex; flex-direction:column; }
+  #adminApp header { position:sticky; top:0; z-index:500; }
+  #adminApp main { touch-action: pan-y; }
 
   #loginScreen {
     position: fixed; inset: 0;
@@ -45,7 +49,7 @@
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
-  .layout { display:grid; grid-template-columns:320px 1fr; gap:22px; padding:22px; max-width:1500px; margin:0 auto; }
+  .layout { display:grid; grid-template-columns:300px 1fr; gap:20px; padding:20px clamp(16px, 2.5vw, 40px); max-width:none; width:100%; margin:0; flex:1; align-items:start; }
   @media (max-width:960px) { .layout { grid-template-columns:1fr; } }
 
   .panel-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
@@ -191,6 +195,7 @@
     </aside>
 
     <main>
+      <p id="swipeHint" style="font-size:11px; color:var(--muted); margin-bottom:10px; display:none;">↔ Arraste para o lado para navegar entre as abas</p>
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
@@ -258,11 +263,18 @@
         <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição em gramas.</p>
 
         <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="16" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
+        <textarea id="dietTextarea" rows="16" oninput="atualizarPreviewDietaAoVivo()" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
         
         <div style="display:flex; gap:10px; margin-top:12px;">
           <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Opções de Troca (IA)</button>
           <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+        </div>
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+          <label style="margin-top:0;">Pré-visualização por Dia (Ao Vivo):</label>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:10px;">Abre já na categoria de hoje — clique nas outras abas para ver os demais dias/ciclos.</p>
+          <div id="dietPreviewFilters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto;"></div>
+          <div id="dietPreviewList" class="preview-card"></div>
         </div>
       </div>
 
@@ -391,6 +403,20 @@
     return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
   }
 
+  // Sanitiza qualquer texto vindo do backend (nome de aluno, anamnese, nome de exercício)
+  // antes de ir para innerHTML. A anamnese é preenchida por qualquer pessoa sem login,
+  // então esses campos são a única entrada realmente "não confiável" deste painel —
+  // sem isso, um campo de texto malicioso rodaria JavaScript dentro da sessão do admin.
+  function escapeHtml(value) {
+    if (value === null || value === undefined) return '';
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   window.onload = () => {
     fetch(`${BACKEND_URL}/ping`).catch(() => {});
 
@@ -400,6 +426,7 @@
       document.getElementById('adminApp').classList.remove('hidden');
       fetchAlunos();
     }
+    initSwipeNavigation();
   };
 
   async function loginAdmin() {
@@ -467,8 +494,8 @@
     list.forEach((aluno, i) => {
       const div = document.createElement('div');
       div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
-      div.innerHTML = `<div><b>${aluno.nome}</b><br><small style="color:var(--muted)">@${aluno.codigo}</small></div>
-                       <span class="status-pill ${aluno.status_pagamento==='pago'?'status-pago':'status-pendente'}">${aluno.status_pagamento || 'pago'}</span>`;
+      div.innerHTML = `<div><b>${escapeHtml(aluno.nome)}</b><br><small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small></div>
+                       <span class="status-pill ${aluno.status_pagamento==='pago'?'status-pago':'status-pendente'}">${escapeHtml(aluno.status_pagamento || 'pago')}</span>`;
       div.onclick = () => {
         document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
         div.classList.add('active');
@@ -534,32 +561,32 @@
 
     div.innerHTML = `
       <div class="anamnese-grid">
-        <div class="anamnese-box"><div class="anamnese-label">👤 Nome Completo</div><div class="anamnese-val">${a.nome || a.clientName || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📞 Telefone / WhatsApp</div><div class="anamnese-val">${a.telefone || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📧 E-mail</div><div class="anamnese-val">${a.email || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🆔 CPF</div><div class="anamnese-val">${a.cpf || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⚖️ Peso</div><div class="anamnese-val">${a.peso ? a.peso + ' kg' : '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📏 Altura</div><div class="anamnese-val">${a.altura ? a.altura + ' m' : '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🎂 Idade / Nascimento</div><div class="anamnese-val">${a.idade || a.nascimento || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💳 Plano Escolhido</div><div class="anamnese-val">${a.tipoConsultoria || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">👤 Nome Completo</div><div class="anamnese-val">${escapeHtml(a.nome || a.clientName) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📞 Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(a.telefone) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📧 E-mail</div><div class="anamnese-val">${escapeHtml(a.email) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🆔 CPF</div><div class="anamnese-val">${escapeHtml(a.cpf) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⚖️ Peso</div><div class="anamnese-val">${a.peso ? escapeHtml(a.peso) + ' kg' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📏 Altura</div><div class="anamnese-val">${a.altura ? escapeHtml(a.altura) + ' m' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🎂 Idade / Nascimento</div><div class="anamnese-val">${escapeHtml(a.idade || a.nascimento) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💳 Plano Escolhido</div><div class="anamnese-val">${escapeHtml(a.tipoConsultoria) || '-'}</div></div>
       </div>
 
       <div style="display:flex; flex-direction:column; gap:10px;">
-        <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${a.objetivo || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⏱️ Experiência / Tempo de Treino</div><div class="anamnese-val">${a.tempoTreino || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💉 Uso de Ergogênicos / Anabolizantes</div><div class="anamnese-val">${a.anabolizantes || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📅 Dias e Disponibilidade Semanal</div><div class="anamnese-val">${a.diasSemana || 'Não informado'} (Preferência dias: ${a.preferenciaDias || '-'})</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⏳ Tempo Disponível por Treino</div><div class="anamnese-val">${a.tempoTreinoMin || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${a.outrasAtividades || 'Nenhuma'}</div></div>
-        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${a.lesoes || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${a.doencas || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${a.alergias || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${a.rotina || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${a.horasSono || '-'} | Qualidade: ${a.qualidadeSono || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${a.alcool || '-'} | Tabagismo: ${a.tabagismo || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥩 Orçamento Alimentar & Suplementos</div><div class="anamnese-val">Orçamento: ${a.orcamento || '-'} | Suplementos: ${a.suplementos || '-'}</div></div>
-        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">🚫 Alimentos Odiados (Aversões)</div><div class="anamnese-val" style="color:#ffd1d1;">${a.alimentosOdiados || 'Nenhum'}</div></div>
-        <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">🍽️ Preferências de Alimentos</div><div class="anamnese-val">Carbos: ${a.gostaCarbos || '-'}<br>Proteínas: ${a.gostaProteinas || '-'}<br>Legumes/Frutas: ${a.gostaLegumes || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${escapeHtml(a.objetivo) || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⏱️ Experiência / Tempo de Treino</div><div class="anamnese-val">${escapeHtml(a.tempoTreino) || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💉 Uso de Ergogênicos / Anabolizantes</div><div class="anamnese-val">${escapeHtml(a.anabolizantes) || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📅 Dias e Disponibilidade Semanal</div><div class="anamnese-val">${escapeHtml(a.diasSemana) || 'Não informado'} (Preferência dias: ${escapeHtml(a.preferenciaDias) || '-'})</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⏳ Tempo Disponível por Treino</div><div class="anamnese-val">${escapeHtml(a.tempoTreinoMin) || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${escapeHtml(a.outrasAtividades) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${escapeHtml(a.lesoes) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${escapeHtml(a.doencas) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${escapeHtml(a.alergias) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${escapeHtml(a.rotina) || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${escapeHtml(a.horasSono) || '-'} | Qualidade: ${escapeHtml(a.qualidadeSono) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${escapeHtml(a.alcool) || '-'} | Tabagismo: ${escapeHtml(a.tabagismo) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥩 Orçamento Alimentar & Suplementos</div><div class="anamnese-val">Orçamento: ${escapeHtml(a.orcamento) || '-'} | Suplementos: ${escapeHtml(a.suplementos) || '-'}</div></div>
+        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">🚫 Alimentos Odiados (Aversões)</div><div class="anamnese-val" style="color:#ffd1d1;">${escapeHtml(a.alimentosOdiados) || 'Nenhum'}</div></div>
+        <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">🍽️ Preferências de Alimentos</div><div class="anamnese-val">Carbos: ${escapeHtml(a.gostaCarbos) || '-'}<br>Proteínas: ${escapeHtml(a.gostaProteinas) || '-'}<br>Legumes/Frutas: ${escapeHtml(a.gostaLegumes) || '-'}</div></div>
       </div>
     `;
   }
@@ -685,6 +712,8 @@ ${tx.value}`,
     }
   }
 
+  // Lista de treinos -> clicar num dia esconde a lista e mostra só aquele treino;
+  // "Voltar" fecha o detalhe e devolve a lista para escolher outro dia.
   function renderWorkoutView() {
     const div = document.getElementById('workoutOverview');
     div.innerHTML = "";
@@ -694,46 +723,69 @@ ${tx.value}`,
       return;
     }
 
+    div.innerHTML = `
+      <div id="daysListWrap"></div>
+      <div id="dayDetailWrap" class="hidden"></div>
+    `;
+
+    const listWrap = document.getElementById('daysListWrap');
+
     currentStudentData.days.forEach((day, dayIdx) => {
       const numEx = (day.exercicios || []).length;
-      
-      let html = `
-        <div class="day-accordion-header" onclick="toggleDayAccordion(${dayIdx})">
-          <div>
-            <b>🏋️ ${day.title}</b>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
-          </div>
-          <span id="accordionArrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform .2s;">▼</span>
+
+      const card = document.createElement('div');
+      card.className = 'day-accordion-header';
+      card.innerHTML = `
+        <div>
+          <b>🏋️ ${escapeHtml(day.title)}</b>
+          <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
         </div>
-
-        <div id="accordionBody_${dayIdx}" class="day-accordion-body hidden">
+        <span style="color:var(--gold); font-size:13px; font-weight:700;">Ver treino ›</span>
       `;
-
-      (day.exercicios || []).forEach((ex, exIdx) => {
-        html += `
-          <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
-            <span>• <b>${ex.nome}</b></span>
-            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series} (${ex.reps}) 📈 Evolução</span>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-      div.innerHTML += html;
+      card.onclick = () => abrirDetalheDia(dayIdx);
+      listWrap.appendChild(card);
     });
   }
 
-  function toggleDayAccordion(dayIdx) {
-    const body = document.getElementById(`accordionBody_${dayIdx}`);
-    const arrow = document.getElementById(`accordionArrow_${dayIdx}`);
-    
-    if (body.classList.contains('hidden')) {
-      body.classList.remove('hidden');
-      arrow.style.transform = 'rotate(180deg)';
-    } else {
-      body.classList.add('hidden');
-      arrow.style.transform = 'rotate(0deg)';
-    }
+  function abrirDetalheDia(dayIdx) {
+    const day = currentStudentData && currentStudentData.days && currentStudentData.days[dayIdx];
+    if (!day) return;
+
+    document.getElementById('daysListWrap').classList.add('hidden');
+    const detail = document.getElementById('dayDetailWrap');
+    detail.innerHTML = "";
+    detail.classList.remove('hidden');
+
+    const backBtn = document.createElement('button');
+    backBtn.type = 'button';
+    backBtn.className = 'btn btn-soft';
+    backBtn.style.marginBottom = '14px';
+    backBtn.textContent = '← Voltar para todos os treinos';
+    backBtn.onclick = fecharDetalheDia;
+    detail.appendChild(backBtn);
+
+    const title = document.createElement('div');
+    title.style.cssText = 'font-size:16px; font-weight:800; color:#fff; margin-bottom:12px;';
+    title.textContent = `🏋️ ${day.title}`;
+    detail.appendChild(title);
+
+    (day.exercicios || []).forEach((ex, exIdx) => {
+      const row = document.createElement('div');
+      row.className = 'ex-clickable';
+      row.innerHTML = `
+        <span>• <b>${escapeHtml(ex.nome)}</b></span>
+        <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) 📈 Evolução</span>
+      `;
+      row.onclick = () => verEvolucaoSemanal(dayIdx, exIdx, ex.nome, ex.series, ex.reps);
+      detail.appendChild(row);
+    });
+  }
+
+  function fecharDetalheDia() {
+    const detail = document.getElementById('dayDetailWrap');
+    detail.classList.add('hidden');
+    detail.innerHTML = "";
+    document.getElementById('daysListWrap').classList.remove('hidden');
   }
 
   async function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
@@ -843,7 +895,50 @@ ${tx.value}`,
     document.getElementById('chartModal').classList.add('hidden');
   }
 
+  // Ordem usada pelo gesto de arrastar (swipe) entre as abas principais.
+  // 'novo' e 'chatAdmin' ficam fora do ciclo porque são acessados pelos botões da lateral.
+  const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'treino', 'dieta', 'corrida', 'cadastro'];
+  let abaAtual = 'resumo';
+
+  function initSwipeNavigation() {
+    const main = document.querySelector('main');
+    if (!main) return;
+
+    if ('ontouchstart' in window) {
+      const hint = document.getElementById('swipeHint');
+      if (hint) hint.style.display = 'block';
+    }
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    main.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
+    }, { passive: true });
+
+    main.addEventListener('touchend', (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const touchEndY = e.changedTouches[0].screenY;
+      const deltaX = touchEndX - touchStartX;
+      const deltaY = touchEndY - touchStartY;
+
+      // Ignora gestos verticais (rolagem normal) e arrastos muito curtos
+      if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+
+      const idxAtual = ORDEM_ABAS_PRINCIPAIS.indexOf(abaAtual);
+      const base = idxAtual === -1 ? 0 : idxAtual;
+      const total = ORDEM_ABAS_PRINCIPAIS.length;
+
+      // Arrastar para a esquerda avança; para a direita, volta
+      const proximoIdx = deltaX < 0 ? (base + 1) % total : (base - 1 + total) % total;
+      switchTab(ORDEM_ABAS_PRINCIPAIS[proximoIdx]);
+    }, { passive: true });
+  }
+
   function switchTab(tab) {
+    if (ORDEM_ABAS_PRINCIPAIS.includes(tab)) abaAtual = tab;
+
     document.getElementById('secResumo').classList.add('hidden');
     document.getElementById('secAnamnese').classList.add('hidden');
     document.getElementById('secTreino').classList.add('hidden');
@@ -930,13 +1025,161 @@ ${tx.value}`,
 
   function loadDietView() {
     const tx = document.getElementById('dietTextarea');
-    if (!currentStudentData.refeicoes) { tx.value = ""; return; }
+    if (!currentStudentData.refeicoes) {
+      tx.value = "";
+      atualizarPreviewDietaAoVivo();
+      return;
+    }
 
     let str = "";
     currentStudentData.refeicoes.forEach(ref => {
       str += `${ref.titulo}\n${ref.alimentos}\n\n`;
     });
     tx.value = str.trim();
+    atualizarPreviewDietaAoVivo();
+  }
+
+  // Nomes dos dias da semana em pt-BR, na mesma ordem que Date.getDay() retorna (0 = Domingo)
+  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+  function parseBlocoDietaAdmin(rawText) {
+    if (!rawText || typeof rawText !== 'string') return [];
+
+    const lines = rawText.split('\n');
+    const items = [];
+
+    lines.forEach(line => {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.includes('---')) return;
+
+      const lower = trimmed.toLowerCase();
+      if (lower.startsWith('segunda') || lower.startsWith('terça') || lower.startsWith('quarta') ||
+          lower.startsWith('quinta') || lower.startsWith('sexta') || lower.startsWith('sábado') ||
+          lower.startsWith('domingo') || lower.startsWith('dias:')) return;
+
+      const parts = trimmed.split('|').map(p => p.trim());
+      if (parts.length >= 2) {
+        items.push({
+          nome: parts[0],
+          qtd: parts[1] || 'A gosto',
+          kcal: parts[2] || '-',
+          ptn: parts[3] || '-',
+          carb: parts[4] || '-',
+          fat: parts[5] || '-'
+        });
+      } else {
+        items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
+      }
+    });
+
+    return items;
+  }
+
+  function parseDietaCompletaAdmin(rawFullText) {
+    if (!rawFullText || !rawFullText.trim()) return [];
+
+    const rawBlocks = rawFullText.split(/(?=\[.*?\])/g);
+    const blocks = [];
+    let currentCategory = "DIETA BASE";
+
+    rawBlocks.forEach(bloco => {
+      const cleanBloco = bloco.trim();
+      if (!cleanBloco) return;
+
+      const lines = cleanBloco.split('\n');
+      let title = (lines[0] || '').trim();
+
+      if (title.startsWith('[')) {
+        const tagMatch = title.match(/\[(.*?)\]/);
+        if (tagMatch) {
+          currentCategory = tagMatch[1].toUpperCase();
+          title = title.replace(/\[.*?\]/, '').trim();
+        }
+      }
+
+      const rest = lines.slice(1).join('\n');
+      const daysMatch = rest.match(/(Segunda|Terça|Quarta|Quinta|Sexta|Sábado|Domingo|Dias:)[^\n]*/i);
+      const daysText = daysMatch ? daysMatch[0].trim() : "";
+
+      blocks.push({
+        category: currentCategory,
+        days: daysText,
+        mealTitle: title || "Refeição",
+        items: parseBlocoDietaAdmin(rest)
+      });
+    });
+
+    return blocks;
+  }
+
+  function atualizarPreviewDietaAoVivo() {
+    const raw = document.getElementById('dietTextarea').value;
+    const filtersEl = document.getElementById('dietPreviewFilters');
+    const listEl = document.getElementById('dietPreviewList');
+
+    const blocks = parseDietaCompletaAdmin(raw).filter(b => b.items && b.items.length > 0);
+    filtersEl.innerHTML = '';
+    listEl.innerHTML = '';
+
+    if (blocks.length === 0) {
+      listEl.innerHTML = `<p style="color:var(--muted); font-size:12px;">Digite o plano alimentar acima para pré-visualizar por dia.</p>`;
+      return;
+    }
+
+    const categories = [...new Set(blocks.map(b => b.category))];
+    const hojeNome = NOMES_DIA_SEMANA[new Date().getDay()];
+
+    // Categoria de hoje = a primeira cujo campo "Dias:" cita o dia da semana atual
+    let categoriaInicial = categories.find(cat =>
+      blocks.some(b => b.category === cat && b.days && b.days.toLowerCase().includes(hojeNome.toLowerCase()))
+    ) || categories[0];
+
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'tab-btn' + (cat === categoriaInicial ? ' active' : '');
+      btn.style.padding = '8px 14px';
+      btn.textContent = cat === categoriaInicial ? `${cat} (Hoje)` : cat;
+      btn.onclick = () => {
+        filtersEl.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderDietPreviewCategoria(blocks, cat);
+      };
+      filtersEl.appendChild(btn);
+    });
+
+    renderDietPreviewCategoria(blocks, categoriaInicial);
+  }
+
+  function renderDietPreviewCategoria(blocks, cat) {
+    const listEl = document.getElementById('dietPreviewList');
+    listEl.innerHTML = '';
+
+    const filtered = blocks.filter(b => b.category === cat);
+    if (filtered.length === 0) {
+      listEl.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhuma refeição nesta categoria ainda.</p>`;
+      return;
+    }
+
+    filtered.forEach(block => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px;';
+
+      let html = `<div style="font-weight:800; color:var(--gold); font-size:12.5px; margin-bottom:6px;">🍽️ ${escapeHtml(block.mealTitle)}</div>`;
+      if (block.days) {
+        html += `<div style="font-size:10.5px; color:var(--muted); margin-bottom:8px;">${escapeHtml(block.days)}</div>`;
+      }
+
+      block.items.forEach(item => {
+        html += `<div style="display:flex; justify-content:space-between; font-size:11.5px; color:#fff; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+          <span>${escapeHtml(item.nome)}</span>
+          <span style="color:var(--gold); font-weight:700;">${escapeHtml(item.qtd)}</span>
+        </div>`;
+      });
+
+      card.innerHTML = html;
+      listEl.appendChild(card);
+    });
   }
 
   async function calcularMacrosComIA() {
@@ -966,6 +1209,7 @@ ${tx.value}`,
 
         if (respLimpa.includes('|')) {
           tx.value = respLimpa;
+          atualizarPreviewDietaAoVivo();
           alert("✅ Macros calculados e opções de troca preenchidas com sucesso!");
         } else {
           alert("⚠️ A IA não gerou a estrutura esperada. Seu texto original foi mantido por segurança.");
