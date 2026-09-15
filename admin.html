@@ -180,7 +180,7 @@
       <div class="panel-card">
         <div class="panel-title">⚡ Ferramentas</div>
         <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese (Orgânico)</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
       </div>
@@ -660,7 +660,6 @@ ${tx.value}`,
         if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
       });
 
-      // SOLICITA ANÁLISE DE PROGRESSÃO DA IA
       gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
     }
 
