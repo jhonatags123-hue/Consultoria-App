@@ -140,7 +140,6 @@
       <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
     </div>
 
-    <!-- CAIXA DE ANÁLISE IA DA EVOLUÇÃO -->
     <div id="aiProgressInsight" class="ai-insight-box hidden">
       <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
       <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
@@ -191,6 +190,7 @@
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
+        <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
 
@@ -252,11 +252,40 @@
         </div>
       </div>
 
+      <!-- ABA NOVA: REGISTRO DE CORRIDA -->
+      <div id="secCorrida" class="panel-card hidden">
+        <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
+        
+        <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:10px; margin-bottom:16px;">
+          <label style="margin-top:0;">Lançar Novo Treino de Corrida:</label>
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <input type="text" id="runData" placeholder="Data (Ex: 15/10)" style="flex:1;">
+            <input type="number" step="0.1" id="runKm" placeholder="Distância (Km)" style="flex:1;">
+            <input type="number" id="runMinutos" placeholder="Tempo (Minutos)" style="flex:1;">
+            <button class="btn btn-wpp" style="width:130px;" onclick="adicionarCorridaAluno()">+ Adicionar</button>
+          </div>
+        </div>
+
+        <label>Histórico do Aluno:</label>
+        <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
+      </div>
+
       <div id="secCadastro" class="panel-card hidden">
         <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
         
         <label>Nome Exibido</label>
         <input type="text" id="editName">
+
+        <div style="display:flex; gap:12px; margin-top:8px;">
+          <div style="flex:1;">
+            <label>Dia do Vencimento (Mensal)</label>
+            <input type="number" id="editDiaVencimento" min="1" max="31" placeholder="Ex: 20">
+          </div>
+          <div style="flex:1;">
+            <label>Evolução de Carga / Força (%)</label>
+            <input type="number" id="editEvolucaoCarga" placeholder="Ex: 12.5">
+          </div>
+        </div>
 
         <label>Senha do Aluno</label>
         <div class="senha-row">
@@ -265,7 +294,6 @@
           </div>
           <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
         </div>
-        <p style="font-size:11px; color:var(--muted); margin-top:4px;">Por segurança a senha fica protegida e não é exibida em texto puro.</p>
 
         <label>Status do Pagamento</label>
         <select id="editStatus">
@@ -273,11 +301,27 @@
           <option value="pendente">🔴 Suspenso / Pendente</option>
         </select>
 
-        <div style="margin-top: 16px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
-          <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
-          <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-            ⚡ Permitir que o aluno escolha/altere Técnicas de Treino (Myo-reps, Cluster, Back-off) no aplicativo
-          </label>
+        <div style="margin-top: 14px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
+            <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
+              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino
+            </label>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" id="editApenasTreino" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
+            <label for="editApenasTreino" style="color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
+              🥗 Perfil "Apenas Treino" (Oculta Dieta no aplicativo do Aluno)
+            </label>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="checkbox" id="editCorredor" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;">
+            <label for="editCorredor" style="color: #3b82f6; font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
+              🏃 Ativar Módulo de Corrida (Exibe aba de Desempenho)
+            </label>
+          </div>
         </div>
 
         <div style="display:flex; gap:10px; margin-top:16px;">
@@ -314,7 +358,7 @@
         </div>
 
         <div style="display:flex; gap:8px;">
-          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." autocomplete="one-time-code" data-lpignore="true" data-form-type="other" autocorrect="off" autocapitalize="sentences" spellcheck="true" style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
+          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
           <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
         </div>
       </div>
@@ -450,12 +494,17 @@
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = stVal;
       document.getElementById('editPassword').value = '';
-      
+      document.getElementById('editDiaVencimento').value = currentStudentData.dia_vencimento || 20;
+      document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
+
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
+      document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
+      document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
 
       renderWorkoutView();
       carregarTreinoNoEditorAoVivo();
       loadDietView();
+      renderCorridaAdmin();
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
@@ -742,6 +791,7 @@ ${tx.value}`,
     document.getElementById('secResumo').classList.add('hidden');
     document.getElementById('secTreino').classList.add('hidden');
     document.getElementById('secDieta').classList.add('hidden');
+    document.getElementById('secCorrida').classList.add('hidden');
     document.getElementById('secCadastro').classList.add('hidden');
     document.getElementById('secNovo').classList.add('hidden');
     document.getElementById('secChatAdmin').classList.add('hidden');
@@ -757,6 +807,9 @@ ${tx.value}`,
     } else if (tab === 'dieta') {
       document.getElementById('secDieta').classList.remove('hidden');
       document.getElementById('tab3').classList.add('active');
+    } else if (tab === 'corrida') {
+      document.getElementById('secCorrida').classList.remove('hidden');
+      document.getElementById('tab5').classList.add('active');
     } else if (tab === 'cadastro') {
       document.getElementById('secCadastro').classList.remove('hidden');
       document.getElementById('tab4').classList.add('active');
@@ -765,6 +818,54 @@ ${tx.value}`,
     } else if (tab === 'chatAdmin') {
       document.getElementById('secChatAdmin').classList.remove('hidden');
     }
+  }
+
+  function renderCorridaAdmin() {
+    const list = document.getElementById('adminRunHistoryList');
+    list.innerHTML = '';
+
+    const corridas = (currentStudentData && currentStudentData.corridas) || [];
+    if (corridas.length === 0) {
+      list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhuma corrida lançada para este aluno.</p>`;
+      return;
+    }
+
+    corridas.forEach((c, idx) => {
+      const div = document.createElement('div');
+      div.style.cssText = "background:#100305; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:12px;";
+      div.innerHTML = `
+        <div>
+          <b style="color:var(--gold);">📅 ${c.data || 'Treino'}</b> — <span>${c.km} km em ${c.minutos} minutos</span>
+        </div>
+        <button onclick="removerCorridaAluno(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700;">✕ Excluir</button>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function adicionarCorridaAluno() {
+    const dataTxt = document.getElementById('runData').value.trim();
+    const kmTxt = document.getElementById('runKm').value;
+    const minTxt = document.getElementById('runMinutos').value;
+
+    if (!dataTxt || !kmTxt || !minTxt) return alert("Preencha data, distância e tempo.");
+
+    if (!currentStudentData.corridas) currentStudentData.corridas = [];
+    currentStudentData.corridas.push({ data: dataTxt, km: parseFloat(kmTxt), minutos: parseFloat(minTxt) });
+
+    document.getElementById('runData').value = '';
+    document.getElementById('runKm').value = '';
+    document.getElementById('runMinutos').value = '';
+
+    renderCorridaAdmin();
+    salvarAlteracoes();
+  }
+
+  function removerCorridaAluno(idx) {
+    if (!confirm("Remover este treino de corrida?")) return;
+    currentStudentData.corridas.splice(idx, 1);
+    renderCorridaAdmin();
+    salvarAlteracoes();
   }
 
   function loadDietView() {
@@ -862,7 +963,12 @@ ${tx.value}`,
   async function salvarConfiguracoesConta() {
     currentStudentData.clientName = document.getElementById('editName').value.trim();
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
+    currentStudentData.dia_vencimento = parseInt(document.getElementById('editDiaVencimento').value) || 20;
+    currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
+
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
+    currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
+    currentStudentData.corredor = document.getElementById('editCorredor').checked;
     
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
@@ -1008,7 +1114,10 @@ ${tx.value}`,
       clientName: nome,
       senha: codigo,
       status_pagamento: 'pago',
+      dia_vencimento: 20,
       permitirTecnicas: false,
+      apenasTreino: false,
+      corredor: false,
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
