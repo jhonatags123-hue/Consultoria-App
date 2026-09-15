@@ -309,12 +309,12 @@
 
       <label class="label-fdb" style="margin-top:10px;">8. Plano Desejado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
-        <option value="COMPLETA_MENSAL">Completa (treino + dieta) — R$ 150,00/mês</option>
-        <option value="COMPLETA_TRIMESTRAL">Completa trimestral — 3x R$ 130,00</option>
-        <option value="COMPLETA_SEMESTRAL">Completa semestral — 6x R$ 110,00</option>
-        <option value="COMPLETA_ANUAL">Completa anual — 12x R$ 85,00</option>
-        <option value="TREINO_MENSAL">Apenas treino (mensal) — R$ 80,00/mês</option>
-        <option value="TREINO_ANUAL">Apenas treino (anual individual) — R$ 55,00/mês</option>
+        <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00</option>
+        <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00</option>
+        <option value="COMPLETA_TRIMESTRAL">3 Meses Consultoria Completa — 3x R$ 130,00</option>
+        <option value="COMPLETA_MENSAL">Consultoria Completa (Mensal) — R$ 150,00/mês</option>
+        <option value="TREINO_ANUAL">Consultoria de Treino Anual — R$ 55,00/mês</option>
+        <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00</option>
       </select>
 
       <label class="label-fdb" style="margin-top:10px;">9. Forma de Pagamento:</label>
@@ -448,12 +448,12 @@
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 
   const ASAAS_LINKS = {
-    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'TREINO_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u"
+    'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/oky8it88u28d4vat",
+    'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/lvfk6qle0ufq0t57",
+    'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
+    'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
   };
 
   let currentData = null;
@@ -632,7 +632,7 @@
       } else {
         document.getElementById('anamneseScreen').innerHTML = `
           <div style="text-align:center; padding:24px 10px;">
-            <div style="font-size:48px; margin-bottom:12px;"></div>
+            <div style="font-size:48px; margin-bottom:12px;">✅</div>
             <h2 style="font-size:26px; font-weight:700; color:var(--ink); font-family:var(--font-display);">
               Obrigado pela confiança
             </h2>
@@ -642,7 +642,7 @@
 
             <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
               <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
-                ⏳Prazo de liberação e início
+                ⏳ Prazo de liberação e início
               </div>
               <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
                 O seu protocolo personalizado e o seu <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
@@ -690,7 +690,7 @@
   function renderLockNotice() {
     const lockHtml = `
       <div class="pay-lock-overlay">
-        <div style="font-size:42px; margin-bottom:8px;"></div>
+        <div style="font-size:42px; margin-bottom:8px;">🔒</div>
         <div class="pay-lock-title">Acesso suspenso</div>
         <div class="pay-lock-desc">
           Identificamos uma pendência na renovação do seu plano.<br>
@@ -769,7 +769,6 @@
 
     document.getElementById('treinoDetailTitle').textContent = day.title;
 
-    // Chips para trocar de treino rapidamente sem voltar para a lista inteira
     const quickSwitch = document.getElementById('treinoQuickSwitch');
     quickSwitch.innerHTML = '';
     days.forEach((d, idx) => {
@@ -1232,7 +1231,6 @@
   function renderDietDetail() {
     document.getElementById('dietDetailTitle').textContent = activeDietTag;
 
-    // Chips para ver rapidamente outro dia/tipo de dieta sem voltar à lista inteira
     const quickSwitch = document.getElementById('dietQuickSwitch');
     quickSwitch.innerHTML = '';
     dietCategories.forEach(cat => {
@@ -1365,7 +1363,6 @@
       const deltaX = endX - startX;
       const deltaY = endY - startY;
 
-      // Só troca de aba se o gesto for predominantemente horizontal
       if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
 
       const activeIdx = TAB_ORDER.findIndex(t => {
@@ -1375,8 +1372,8 @@
       if (activeIdx === -1) return;
 
       let nextIdx = activeIdx;
-      if (deltaX < 0 && activeIdx < TAB_ORDER.length - 1) nextIdx = activeIdx + 1; // arrastou para a esquerda -> próxima aba
-      if (deltaX > 0 && activeIdx > 0) nextIdx = activeIdx - 1; // arrastou para a direita -> aba anterior
+      if (deltaX < 0 && activeIdx < TAB_ORDER.length - 1) nextIdx = activeIdx + 1;
+      if (deltaX > 0 && activeIdx > 0) nextIdx = activeIdx - 1;
 
       if (nextIdx !== activeIdx) showTab(TAB_ORDER[nextIdx]);
     }, { passive: true });
