@@ -113,6 +113,11 @@
     line-height: 1.5;
     color: var(--text);
   }
+
+  .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; }
 </style>
 </head>
 <body>
@@ -188,6 +193,7 @@
     <main>
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
+        <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
@@ -208,6 +214,14 @@
 
         <div id="workoutOverview">
           <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
+        </div>
+      </div>
+
+      <!-- ABA DA ANAMNESE PREENCHIDA -->
+      <div id="secAnamnese" class="panel-card hidden">
+        <div class="panel-title">📋 Respostas da Anamnese</div>
+        <div id="anamneseDetails">
+          <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
         </div>
       </div>
 
@@ -252,7 +266,6 @@
         </div>
       </div>
 
-      <!-- ABA NOVA: REGISTRO DE CORRIDA -->
       <div id="secCorrida" class="panel-card hidden">
         <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
         
@@ -502,10 +515,42 @@
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
 
       renderWorkoutView();
+      renderAnamneseDetails();
       carregarTreinoNoEditorAoVivo();
       loadDietView();
       renderCorridaAdmin();
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
+  }
+
+  function renderAnamneseDetails() {
+    const div = document.getElementById('anamneseDetails');
+    const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
+
+    if (!a.nome && !a.clientName && !a.objetivo) {
+      div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Nenhuma resposta de anamnese detalhada encontrada para este perfil.</p>`;
+      return;
+    }
+
+    div.innerHTML = `
+      <div class="anamnese-grid">
+        <div class="anamnese-box"><div class="anamnese-label">👤 Nome Completo</div><div class="anamnese-val">${a.nome || a.clientName || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📞 Telefone / WhatsApp</div><div class="anamnese-val">${a.telefone || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📧 E-mail</div><div class="anamnese-val">${a.email || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🆔 CPF</div><div class="anamnese-val">${a.cpf || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⚖️ Peso</div><div class="anamnese-val">${a.peso ? a.peso + ' kg' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📏 Altura</div><div class="anamnese-val">${a.altura ? a.altura + ' m' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🎂 Idade / Nascimento</div><div class="anamnese-val">${a.idade || a.nascimento || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💳 Plano Escolhido</div><div class="anamnese-val">${a.tipoConsultoria || '-'}</div></div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${a.objetivo || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📅 Rotina Semanal de Treinos/Trabalho</div><div class="anamnese-val">${a.rotina || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥗 Gostos / Alergias Alimentares</div><div class="anamnese-val">${a.gostos || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💊 Medicamentos / Suplementos / Restrições</div><div class="anamnese-val">${a.medicamentos || 'Nenhum informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🍻 Atividades / Hábitos no Fim de Semana</div><div class="anamnese-val">${a.fimDeSemana || 'Não informado'}</div></div>
+      </div>
+    `;
   }
 
   function carregarTreinoNoEditorAoVivo() {
@@ -789,6 +834,7 @@ ${tx.value}`,
 
   function switchTab(tab) {
     document.getElementById('secResumo').classList.add('hidden');
+    document.getElementById('secAnamnese').classList.add('hidden');
     document.getElementById('secTreino').classList.add('hidden');
     document.getElementById('secDieta').classList.add('hidden');
     document.getElementById('secCorrida').classList.add('hidden');
@@ -801,6 +847,9 @@ ${tx.value}`,
     if (tab === 'resumo') {
       document.getElementById('secResumo').classList.remove('hidden');
       document.getElementById('tab1').classList.add('active');
+    } else if (tab === 'anamnese') {
+      document.getElementById('secAnamnese').classList.remove('hidden');
+      document.getElementById('tabAnamnese').classList.add('active');
     } else if (tab === 'treino') {
       document.getElementById('secTreino').classList.remove('hidden');
       document.getElementById('tab2').classList.add('active');
