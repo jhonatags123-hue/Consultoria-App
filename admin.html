@@ -117,7 +117,7 @@
   .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
   .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
-  .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; }
+  .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -217,9 +217,9 @@
         </div>
       </div>
 
-      <!-- ABA DA ANAMNESE PREENCHIDA -->
+      <!-- ABA DA ANAMNESE DETALHADA COM TODOS OS CAMPOS DE TEXTO LIVRE -->
       <div id="secAnamnese" class="panel-card hidden">
-        <div class="panel-title">📋 Respostas da Anamnese</div>
+        <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
         <div id="anamneseDetails">
           <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
         </div>
@@ -522,6 +522,7 @@
     } catch(e) { alert("Erro ao carregar dados do aluno."); }
   }
 
+  // EXIBIÇÃO DA ANAMNESE DETALHADA COM OS NOVOS CAMPOS EM TEXTO LIVRE
   function renderAnamneseDetails() {
     const div = document.getElementById('anamneseDetails');
     const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
@@ -545,10 +546,20 @@
 
       <div style="display:flex; flex-direction:column; gap:10px;">
         <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${a.objetivo || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📅 Rotina Semanal de Treinos/Trabalho</div><div class="anamnese-val">${a.rotina || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥗 Gostos / Alergias Alimentares</div><div class="anamnese-val">${a.gostos || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💊 Medicamentos / Suplementos / Restrições</div><div class="anamnese-val">${a.medicamentos || 'Nenhum informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🍻 Atividades / Hábitos no Fim de Semana</div><div class="anamnese-val">${a.fimDeSemana || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⏱️ Experiência / Tempo de Treino</div><div class="anamnese-val">${a.tempoTreino || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💉 Uso de Ergogênicos / Anabolizantes</div><div class="anamnese-val">${a.anabolizantes || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">📅 Dias e Disponibilidade Semanal</div><div class="anamnese-val">${a.diasSemana || 'Não informado'} (Preferência dias: ${a.preferenciaDias || '-'})</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">⏳ Tempo Disponível por Treino</div><div class="anamnese-val">${a.tempoTreinoMin || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${a.outrasAtividades || 'Nenhuma'}</div></div>
+        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${a.lesoes || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${a.doencas || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${a.alergias || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${a.rotina || 'Não informado'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${a.horasSono || '-'} | Qualidade: ${a.qualidadeSono || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${a.alcool || '-'} | Tabagismo: ${a.tabagismo || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥩 Orçamento Alimentar & Suplementos</div><div class="anamnese-val">Orçamento: ${a.orcamento || '-'} | Suplementos: ${a.suplementos || '-'}</div></div>
+        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">🚫 Alimentos Odiados (Aversões)</div><div class="anamnese-val" style="color:#ffd1d1;">${a.alimentosOdiados || 'Nenhum'}</div></div>
+        <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">🍽️ Preferências de Alimentos</div><div class="anamnese-val">Carbos: ${a.gostaCarbos || '-'}<br>Proteínas: ${a.gostaProteinas || '-'}<br>Legumes/Frutas: ${a.gostaLegumes || '-'}</div></div>
       </div>
     `;
   }
