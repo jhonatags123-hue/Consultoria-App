@@ -77,14 +77,6 @@
   .menu-btn:hover { color:var(--ink); }
   .menu-btn.active { color:var(--ink); border-bottom-color:var(--signal); }
 
-  .day-accordion-header {
-    background: var(--panel);
-    border: 1px solid var(--line); border-left: 3px solid var(--line); border-radius: 6px; padding: 14px 16px;
-    display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-    user-select: none; transition: border-color .15s ease; margin-bottom: 8px;
-  }
-  .day-accordion-header:hover { border-left-color: var(--mark); }
-
   .swipe-viewport { overflow:hidden; touch-action: pan-y; }
   .swipe-hint { text-align:center; font-size:10.5px; color:var(--ink-dim); margin:-6px 0 12px; letter-spacing:0.02em; }
 
@@ -130,7 +122,6 @@
 
   .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
   .series-row { display:flex; align-items:center; gap:5px; background:var(--bg); padding:8px 10px; border-radius:6px; border:1px solid var(--line); border-left:2px solid var(--line); flex-wrap:nowrap; overflow-x:auto; }
-  .series-row.tecnica { background:var(--signal-dim); border-left-color:var(--signal); }
   .series-tag { font-size:11px; font-weight:600; color:var(--ink-dim); width:85px; flex-shrink:0; font-family:var(--font-mono); }
   .unit { font-size:10px; color:var(--ink-dim); flex-shrink:0; }
   .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:12px; border-radius:5px !important; }
@@ -509,7 +500,7 @@
     </div>
 
     <div id="tabIaChat" class="card hidden">
-      <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Assistente virtual do personal</div>
+      <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Assistente Virtual do Personal</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
 
       <div id="studentChatHistory" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:280px; padding:12px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
@@ -522,11 +513,22 @@
       </div>
     </div>
 
+    <!-- 💬 NOVO CHAT DE FEEDBACK EM TEMPO REAL COM O PERSONAL (10 DIAS EXCLUSÃO) -->
     <div id="tabFeedback" class="card hidden">
-      <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;"> Enviar Relatório Semanal</div>
-      <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
-      <textarea id="feedbackText" class="input-field" rows="5" placeholder="Descreva sua intensidade nos treinos, dores musculares, adesão à dieta e dificuldades..."></textarea>
-      <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">Enviar feedback no WhatsApp</button>
+      <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:6px;">💬 Central de Feedback & Suporte</div>
+      <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Converse diretamente com o Personal Jhonata. Mensagens arquivadas por 10 dias.</div>
+
+      <div id="alunoFeedbackHistory" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:260px; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
+      </div>
+
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="alunoFeedbackInput" class="input-field" placeholder="Escreva como foi sua semana..." style="font-size:12px;" onkeypress="if(event.key==='Enter') enviarFeedbackAlunoApp()">
+        <button class="btn-login btn-gold" style="width:80px; margin-top:0; font-size:12px;" onclick="enviarFeedbackAlunoApp()">Enviar</button>
+      </div>
+
+      <button class="btn-login btn-wpp" style="margin-top:12px;" onclick="sendWhatsAppFeedback()">
+        📱 Chamar no WhatsApp
+      </button>
     </div>
 
     <div id="tabConfig" class="card hidden">
@@ -835,11 +837,10 @@
 
     const hoje = new Date();
     const diaHoje = hoje.getDate();
-    const diaVenc = parseInt(data.dia_vencimento) || 7; // Padrão dia 7
+    const diaVenc = parseInt(data.dia_vencimento) || 7;
 
     let estaVencido = data.status_pagamento === 'pendente' || data.ativo === false;
     
-    // Verificação baseada na data de expiração exata do backend
     if (data.data_expiracao) {
       const dataExp = new Date(data.data_expiracao);
       if (hoje > dataExp) {
@@ -880,6 +881,7 @@
 
     verificarCardEvolucao(data);
     setupWorkout(data.days || []);
+    renderFeedbackHistory(); // Carrega o chat de feedbacks
     setupSwipeNavigation();
   }
 
@@ -1044,6 +1046,21 @@
     const exercisesContainer = document.getElementById('exercisesList');
     exercisesContainer.innerHTML = '';
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+
+    // 📝 NOVO: CAMPO DE OBSERVAÇÃO DO TREINO DO DIA (Permanente no histórico)
+    const keyObs = `obs_day_${currentTreinoDayIdx}`;
+    const savedObs = (currentData.logs && currentData.logs[keyObs]) || '';
+
+    const obsDiv = document.createElement('div');
+    obsDiv.style.cssText = "margin-top:16px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px;";
+    obsDiv.innerHTML = `
+      <label class="label-fdb" style="color:var(--mark); font-size:12px;">📝 Observações / Como foi a sessão hoje?</label>
+      <textarea class="input-field" rows="2" style="font-size:12px; margin-top:4px;" 
+        placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
+        oninput="scheduleAutoSave('${keyObs}', this.value)">${savedObs}</textarea>
+      <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Esta anotação fica salva junto com o histórico de cargas deste treino.</div>
+    `;
+    exercisesContainer.appendChild(obsDiv);
   }
 
   function createLogInputAttr(nameKey) {
@@ -1607,12 +1624,63 @@
     history.scrollTop = history.scrollHeight;
   }
 
+  // 💬 CHAT DE FEEDBACK DO ALUNO NO PRÓPRIO APP (10 DIAS DE HISTÓRICO)
+  function renderFeedbackHistory() {
+    const container = document.getElementById('alunoFeedbackHistory');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const feedbacks = (currentData && currentData.feedbacks) || [];
+
+    if (feedbacks.length === 0) {
+      container.innerHTML = '<div style="font-size:11.5px; color:var(--ink-dim); text-align:center; padding:12px;">Envie seu primeiro feedback semanal ou dúvida ao Personal abaixo!</div>';
+      return;
+    }
+
+    feedbacks.forEach(f => {
+      const isAluno = f.autor === "ALUNO";
+      container.innerHTML += `
+        <div style="background:${isAluno ? 'var(--signal-dim)' : 'var(--panel-2)'}; padding:8px 12px; border-radius:8px; font-size:12.5px; color:var(--ink); align-self:${isAluno ? 'flex-end' : 'flex-start'}; border:1px solid ${isAluno ? 'var(--signal)' : 'var(--line)'}; max-width:85%;">
+          <b>${isAluno ? 'Você' : 'Personal Jhonata'}:</b> ${f.mensagem}
+        </div>
+      `;
+    });
+    container.scrollTop = container.scrollHeight;
+  }
+
+  async function enviarFeedbackAlunoApp() {
+    const input = document.getElementById('alunoFeedbackInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ codigo: loggedUserCode, autor: "ALUNO", mensagem: msg })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.feedbacks) {
+        currentData.feedbacks = data.feedbacks;
+      } else {
+        if (!currentData.feedbacks) currentData.feedbacks = [];
+        currentData.feedbacks.push({ autor: "ALUNO", mensagem: msg, data: new Date().toISOString() });
+      }
+
+      input.value = '';
+      renderFeedbackHistory();
+    } catch (e) {
+      alert("Erro ao enviar feedback.");
+    }
+  }
+
   function sendWhatsAppFeedback() {
-    const text = document.getElementById('feedbackText').value.trim();
-    if (!text) return alert("Digite seu feedback antes de enviar.");
+    const input = document.getElementById('alunoFeedbackInput');
+    const text = input ? input.value.trim() : "";
 
     const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-    const msg = `*RELATÓRIO SEMANAL DO ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text)}`;
+    const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
     window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
   }
 
