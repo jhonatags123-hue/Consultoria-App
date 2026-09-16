@@ -32,7 +32,6 @@
   ::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
   body { background:var(--bg); color:var(--ink); font-family:var(--font-body); padding:18px; max-width:500px; margin:0 auto; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; justify-content:center; }
 
-  /* Modo aplicativo: ocupa a tela inteira assim que o aluno entra */
   body.app-mode {
     max-width: 720px;
     justify-content: flex-start;
@@ -197,7 +196,6 @@
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
-<!-- TELA DA ANAMNESE DETALHADA COM AS 10 ETAPAS COMPLETAS -->
 <div id="anamneseScreen" class="card hidden">
   <h1>Anamnese de treino e nutrição</h1>
   <div class="sub">Preencha com atenção para a montagem do seu protocolo personalizado</div>
@@ -209,7 +207,6 @@
 
   <form onsubmit="event.preventDefault();" class="login-box">
     
-    <!-- ETAPA 1: DADOS PESSOAIS -->
     <div id="anamStep1">
       <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
@@ -247,7 +244,6 @@
       <button type="button" class="btn-login" onclick="nextAnamStep(2)" style="margin-top:14px;">Avançar</button>
     </div>
 
-    <!-- ETAPA 2: OBJETIVO & EXPERIÊNCIA -->
     <div id="anamStep2" class="hidden">
       <label class="label-fdb">2. Qual é o seu objetivo principal?</label>
       <select id="anamObjetivo" class="input-field" required>
@@ -267,7 +263,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 3: ROTINA DE TREINOS -->
     <div id="anamStep3" class="hidden">
       <label class="label-fdb">5. Quantos dias por semana você tem disponibilidade para treinar?</label>
       <input type="text" id="anamDiasSemana" class="input-field" placeholder="Ex: 5 dias por semana">
@@ -284,7 +279,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 4: SAÚDE, LESÕES & OUTRAS ATIVIDADES -->
     <div id="anamStep4" class="hidden">
       <label class="label-fdb">8. Pratica alguma outra atividade física além da musculação?</label>
       <input type="text" id="anamOutrasAtividades" class="input-field" placeholder="Ex: Corrida 2x na semana, Nenhuma...">
@@ -301,7 +295,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 5: ROTINA DIÁRIA & SONO -->
     <div id="anamStep5" class="hidden">
       <label class="label-fdb">11. Como é a sua rotina diária (trabalho, estudos, nível de esforço)?</label>
       <textarea id="anamRotina" class="input-field" rows="2" placeholder="Ex: Trabalho sentado o dia todo / Trabalho em pé movimentando peso..."></textarea>
@@ -323,7 +316,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 6: HÁBITOS (ÁLCOOL E TABACO) -->
     <div id="anamStep6" class="hidden">
       <label class="label-fdb">12. Consome bebida alcoólica com que frequência?</label>
       <input type="text" id="anamAlcool" class="input-field" placeholder="Ex: Socialmente no fim de semana / Não consumo">
@@ -337,7 +329,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 7: HÁBITOS ALIMENTARES & REFEIÇÕES -->
     <div id="anamStep7" class="hidden">
       <label class="label-fdb">14. Quantas refeições você consegue fazer por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 4 refeições">
@@ -354,7 +345,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 8: PREFERÊNCIAS NUTRICIONAIS -->
     <div id="anamStep8" class="hidden">
       <label class="label-fdb">17. Quais fontes de carboidratos você mais gosta?</label>
       <input type="text" id="anamGostaCarbos" class="input-field" placeholder="Ex: Arroz, batata doce, aveia, macarrão">
@@ -371,7 +361,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 9: ORÇAMENTO & SUPLEMENTOS -->
     <div id="anamStep9" class="hidden">
       <label class="label-fdb">20. Como é o seu orçamento para a dieta?</label>
       <input type="text" id="anamOrcamento" class="input-field" placeholder="Ex: Flexível / Preciso de opções econômicas">
@@ -388,7 +377,6 @@
       </div>
     </div>
 
-    <!-- ETAPA 10: PLANO E FINALIZAÇÃO -->
     <div id="anamStep10" class="hidden">
       <label class="label-fdb">23. Escolha o seu Plano de Consultoria:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
@@ -421,7 +409,6 @@
   </form>
 </div>
 
-<!-- TELA DE LOGIN DO ALUNO -->
 <div id="loginScreen" class="card">
   <h1>Jhonata Consultoria</h1>
   <div class="sub">Acesse sua área exclusiva de aluno</div>
@@ -438,7 +425,6 @@
   </div>
 </div>
 
-<!-- TELA PRINCIPAL (APP DO ALUNO) -->
 <div id="mainContent" class="hidden">
   <div class="card" style="padding-bottom:16px;">
     <div class="header-app">
@@ -450,14 +436,12 @@
     <div class="sub" id="billingInfo" style="text-align:left; margin-top:4px;"></div>
   </div>
 
-  <!-- CARD DE PARABÉNS DA EVOLUÇÃO DE CARGA -->
   <div id="congratsBox" class="congrats-card hidden">
     <button class="btn-close-congrats" onclick="fecharCardEvolucao()">✕</button>
     <div class="congrats-title">🚀 Parabéns pelo seu Progresso!</div>
     <div id="congratsText" class="congrats-desc">Você teve uma evolução fantástica nas suas cargas de treino neste ciclo. Continue focado!</div>
   </div>
 
-  <!-- MENU DE NAVEGAÇÃO -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">Treino</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">Dieta</button>
@@ -470,7 +454,6 @@
 
   <div id="swipeViewport" class="swipe-viewport">
 
-    <!-- ABA 1: TREINO -->
     <div id="tabTreino">
       <div id="treinoListView">
         <div id="treinoDayList" class="select-list"></div>
@@ -485,7 +468,6 @@
       </div>
     </div>
 
-    <!-- ABA 2: DIETA -->
     <div id="tabDieta" class="hidden">
       <div id="noDietBanner" class="card hidden" style="text-align:center; border-color:var(--mark);">
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
@@ -511,7 +493,6 @@
       </div>
     </div>
 
-    <!-- ABA CORRIDA -->
     <div id="tabCorrida" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px;">🏃 Desempenho & Evolução de Corrida</div>
       
@@ -527,7 +508,6 @@
       <div id="corridaHistoryList">Nenhuma corrida registrada neste ciclo.</div>
     </div>
 
-    <!-- ABA 3: CHAT IA -->
     <div id="tabIaChat" class="card hidden">
       <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Assistente virtual do personal</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
@@ -542,7 +522,6 @@
       </div>
     </div>
 
-    <!-- ABA 4: FEEDBACK -->
     <div id="tabFeedback" class="card hidden">
       <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;"> Enviar Relatório Semanal</div>
       <label class="label-fdb">Como foi sua semana de treinos e alimentação?</label>
@@ -550,7 +529,6 @@
       <button class="btn-login btn-wpp" onclick="sendWhatsAppFeedback()">Enviar feedback no WhatsApp</button>
     </div>
 
-    <!-- ABA 5: CONFIGURAÇÕES -->
     <div id="tabConfig" class="card hidden">
       <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;"> Alterar Senha de Acesso</div>
       <label class="label-fdb">Nova Senha Pessoal</label>
@@ -717,7 +695,6 @@
     }
   }
 
-  // ENVIO COMPLETO DA ANAMNESE DETALHADA
   async function sendAnamneseAppDirect() {
     const nome = document.getElementById('anamNome').value.trim();
     const nascimento = document.getElementById('anamNascimento').value;
@@ -858,10 +835,17 @@
 
     const hoje = new Date();
     const diaHoje = hoje.getDate();
-    const diaVenc = parseInt(data.dia_vencimento) || 20;
+    const diaVenc = parseInt(data.dia_vencimento) || 7; // Padrão dia 7
 
     let estaVencido = data.status_pagamento === 'pendente' || data.ativo === false;
-    if (data.status_pagamento === 'pago' && diaHoje > diaVenc) {
+    
+    // Verificação baseada na data de expiração exata do backend
+    if (data.data_expiracao) {
+      const dataExp = new Date(data.data_expiracao);
+      if (hoje > dataExp) {
+        estaVencido = true;
+      }
+    } else if (data.status_pagamento === 'pago' && diaHoje > diaVenc) {
       estaVencido = true;
     }
 
@@ -877,7 +861,6 @@
 
     document.getElementById('billingInfo').innerHTML = `<span style="display:inline-block; padding:3px 8px; border-radius:4px; background:rgba(0,0,0,0.4); color:${corBadge}; font-weight:700; font-size:11px;">📅 Vencimento dia ${diaVenc} (Faltam ${diasRestantes} dias)</span>`;
 
-    // CONTROLE DO PERFIL APENAS TREINO
     if (data.apenasTreino === true) {
       document.getElementById('btnDieta').style.display = 'none';
       document.getElementById('noDietBanner').classList.remove('hidden');
@@ -888,7 +871,6 @@
       setupDiet(data.refeicoes || []);
     }
 
-    // CONTROLE DO MÓDULO DE CORRIDA
     if (data.corredor === true) {
       document.getElementById('btnCorrida').classList.remove('hidden');
       setupCorrida(data.corridas || []);
@@ -907,7 +889,7 @@
         <div style="font-size:42px; margin-bottom:8px;">🔒</div>
         <div class="pay-lock-title">Acesso suspenso</div>
         <div class="pay-lock-desc">
-          Identificamos que o seu plano mensal venceu.<br>
+          Identificamos que o seu plano mensal venceu (dia 7).<br>
           Assim que efetuar a renovação, envie o comprovante no WhatsApp para reativar seu acesso na hora!
         </div>
         <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o,%20segue%20o%20comprovante:" 
