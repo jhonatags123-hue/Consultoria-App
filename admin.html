@@ -285,6 +285,12 @@
         <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Exibido no Topo do App do Aluno):</label>
+          <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga."></textarea>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Deixe em branco para o app exibir as orientações técnicas padrão.</div>
+        </div>
+
+        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
             <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
@@ -306,7 +312,7 @@
           </div>
         </div>
 
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA ATUALIZADA NO BANCO</button>
+        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
       <div id="secDieta" class="panel-card hidden">
@@ -724,6 +730,8 @@
       document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
 
+      document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
+
       renderWorkoutView();
       renderAnamneseDetails();
       renderAdminFeedbackHistory();
@@ -976,6 +984,7 @@ ${tx.value}`,
   function salvarTreinoEditado() {
     const raw = document.getElementById('liveWorkoutText').value;
     currentStudentData.days = parseWorkoutText(raw);
+    currentStudentData.trainer_guidelines = document.getElementById('editTrainerGuidelines').value.trim();
     salvarAlteracoes('workout');
   }
 
@@ -1741,6 +1750,7 @@ ${tx.value}`,
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
+      trainer_guidelines: "",
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
