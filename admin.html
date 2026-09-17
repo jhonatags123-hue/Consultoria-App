@@ -344,7 +344,7 @@
               <option value="pago">🟢 Pago / Acesso Liberado</option>
               <option value="pendente">🔴 Suspenso / Pendente</option>
             </select>
-            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês</button>
+            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês (+30 Dias)</button>
           </div>
         </div>
 
@@ -688,13 +688,28 @@
     }
   }
 
+  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS CORRIGIDA
   async function renovarUmMesAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    if (!confirm(`Confirmar pagamento e renovar +1 mês de acesso para @${currentStudentCode}?`)) return;
+    if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
 
     try {
       currentStudentData.status_pagamento = "pago";
-      
+
+      const hoje = new Date();
+      let dataBase = hoje;
+
+      if (currentStudentData.data_expiracao) {
+        const expAtual = new Date(String(currentStudentData.data_expiracao).replace(/-/g, '/'));
+        if (expAtual > hoje) {
+          dataBase = expAtual;
+        }
+      }
+
+      // Adiciona +30 dias exatos na data final
+      dataBase.setDate(dataBase.getDate() + 30);
+      currentStudentData.data_expiracao = dataBase.toISOString();
+
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
         headers: authHeaders(),
@@ -703,7 +718,7 @@
       });
 
       if (res.ok) {
-        alert(`✅ Pagamento confirmado! Acesso do aluno renovado por +1 mês.`);
+        alert(`✅ Pagamento confirmado! Acesso estendido por +30 dias (Novo Vencimento: ${dataBase.toLocaleDateString('pt-BR')}).`);
         fetchAlunos();
         carregarAluno(currentStudentCode);
       }
@@ -1572,11 +1587,15 @@ ${tx.value}`,
 
     const parsedDays = parseWorkoutText(rawW);
 
+    const hoje = new Date();
+    hoje.setDate(hoje.getDate() + 30);
+
     const payload = {
       clientName: nome,
       senha: codigo,
       status_pagamento: 'pago',
       dia_vencimento: 7,
+      data_expiracao: hoje.toISOString(),
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
