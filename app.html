@@ -1008,16 +1008,17 @@
     }
 
     if (!dataExp) {
-      const diaVenc = parseInt(data.dia_vencimento) || 20;
+      const diaVenc = parseInt(data.dia_vencimento) || 7;
       let ano = hoje.getFullYear();
       let mes = hoje.getMonth();
       if (hoje.getDate() > diaVenc) {
         mes += 1;
       }
-      dataExp = new Date(ano, mes, diaVenc, 23, 59, 59);
+      dataExp = new Date(ano, mes, diaVenc, 23, 59, 59, 999);
+    } else {
+      dataExp.setHours(23, 59, 59, 999);
     }
 
-    dataExp.setHours(23, 59, 59, 999);
     const diffTempo = dataExp.getTime() - hoje.getTime();
     diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
 
@@ -1028,10 +1029,8 @@
     const diaFmt = String(dataExp.getDate()).padStart(2, '0');
     const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
 
-    if (diasRestantes < 0) {
+    if (diasRestantes <= 0) {
       textoVencimento = `📅 Vencido em ${diaFmt}/${mesFmt} (Acesso Suspenso)`;
-    } else if (diasRestantes === 0) {
-      textoVencimento = `📅 Vence hoje (${diaFmt}/${mesFmt})`;
     } else {
       textoVencimento = `📅 Vencimento em ${diaFmt}/${mesFmt} (${diasRestantes} dias restantes)`;
     }
@@ -1308,6 +1307,8 @@
   }
 
   function renderExercisesForDay(day, dayIdx, container) {
+    const podeAlterarTecnicas = currentData && currentData.permitirTecnicas === true;
+
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
       const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
@@ -1335,20 +1336,35 @@
       const div = document.createElement('div');
       div.className = 'item';
 
-      let optionsHtml = `
-        <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>Convencional</option>
-        <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
-        <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-        <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-        <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-      `;
+      let selectHtml = '';
+      if (podeAlterarTecnicas) {
+        selectHtml = `
+          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>Convencional</option>
+            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
+            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+          </select>
+        `;
+      } else {
+        const nomesExibicao = {
+          'convencional': '',
+          'backoff_2x': '⚙️ 2x + Back-Off',
+          'cluster': '⚙️ Cluster Set',
+          'cluster_backoff': '⚙️ Cluster + Back-Off',
+          'myoreps': '⚙️ Myo-Reps'
+        };
+        const lblTecnica = nomesExibicao[activeMode] || '';
+        if (lblTecnica) {
+          selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${lblTecnica}</span>`;
+        }
+      }
 
       let html = `
         <div class="item-header">
           <div class="item-title">${escapeHtml(cleanName)}</div>
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            ${optionsHtml}
-          </select>
+          ${selectHtml}
         </div>
         <div class="series-container">
       `;
