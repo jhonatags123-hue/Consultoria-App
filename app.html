@@ -857,18 +857,37 @@
     document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
     const hoje = new Date();
-    const diaHoje = hoje.getDate();
-    const diaVenc = parseInt(data.dia_vencimento) || 7;
+    hoje.setHours(0, 0, 0, 0);
 
     let estaVencido = data.status_pagamento === 'pendente' || data.ativo === false;
-    
+    let diasRestantes = 0;
+    let textoVencimento = "";
+
+    // Dá prioridade total à data_expiracao do banco e evita falhas no iOS
     if (data.data_expiracao) {
-      const dataExp = new Date(data.data_expiracao);
-      if (hoje > dataExp) {
+      const expDataStr = String(data.data_expiracao).replace(/-/g, '/');
+      const dataExp = new Date(expDataStr);
+      dataExp.setHours(23, 59, 59, 999);
+
+      const diffTempo = dataExp.getTime() - hoje.getTime();
+      diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+      if (diasRestantes <= 0) {
         estaVencido = true;
       }
-    } else if (data.status_pagamento === 'pago' && diaHoje > diaVenc) {
-      estaVencido = true;
+
+      const diaFmt = String(dataExp.getDate()).padStart(2, '0');
+      const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
+      textoVencimento = `📅 Vencimento em ${diaFmt}/${mesFmt} (${diasRestantes} dias restantes)`;
+    } else {
+      const diaVenc = parseInt(data.dia_vencimento) || 7;
+      const diaHoje = hoje.getDate();
+      diasRestantes = diaVenc >= diaHoje ? (diaVenc - diaHoje) : (30 - (diaHoje - diaVenc));
+      
+      if (data.status_pagamento === 'pago' && diaHoje > diaVenc) {
+        estaVencido = true;
+      }
+      textoVencimento = `📅 Vencimento dia ${diaVenc} (Faltam ${diasRestantes} dias)`;
     }
 
     if (estaVencido) {
@@ -876,12 +895,11 @@
       return;
     }
 
-    const diasRestantes = diaVenc >= diaHoje ? (diaVenc - diaHoje) : (30 - (diaHoje - diaVenc));
     let corBadge = '#4F9C6E';
     if (diasRestantes <= 5) corBadge = '#C1402C';
-    else if (diasRestantes <= 19) corBadge = '#B4924F';
+    else if (diasRestantes <= 15) corBadge = '#B4924F';
 
-    document.getElementById('billingInfo').innerHTML = `<span style="display:inline-block; padding:3px 8px; border-radius:4px; background:rgba(0,0,0,0.4); color:${corBadge}; font-weight:700; font-size:11px;">📅 Vencimento dia ${diaVenc} (Faltam ${diasRestantes} dias)</span>`;
+    document.getElementById('billingInfo').innerHTML = `<span style="display:inline-block; padding:3px 8px; border-radius:4px; background:rgba(0,0,0,0.4); color:${corBadge}; font-weight:700; font-size:11px;">${textoVencimento}</span>`;
 
     if (data.apenasTreino === true) {
       document.getElementById('btnDieta').style.display = 'none';
@@ -912,7 +930,7 @@
         <div style="font-size:42px; margin-bottom:8px;">🔒</div>
         <div class="pay-lock-title">Acesso suspenso</div>
         <div class="pay-lock-desc">
-          Identificamos que o seu plano mensal venceu (dia 7).<br>
+          Identificamos que o seu plano mensal venceu.<br>
           Assim que efetuar a renovação, envie o comprovante no WhatsApp para reativar seu acesso na hora!
         </div>
         <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o,%20segue%20o%20comprovante:" 
