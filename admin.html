@@ -123,6 +123,22 @@
   .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
   .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
 
+  /* 🍞 TOAST NOTIFICATION STYLES */
+  #toastContainer {
+    position: fixed; top: 20px; right: 20px; z-index: 100000;
+    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  }
+  .toast {
+    pointer-events: auto; background: var(--card); border: 1px solid var(--gold);
+    color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 13px;
+    font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+    display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;
+    animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .toast.error { border-color: var(--accent); background: #20050c; }
+  .toast.success { border-color: var(--green); background: #051a0e; }
+  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
   @media (max-width: 820px) {
     header { padding: 12px 16px; }
     h1 { font-size: 22px; }
@@ -135,10 +151,13 @@
     .senha-row { flex-direction: column; align-items: stretch; }
     .senha-row > button { width: 100% !important; margin-top: 8px; }
     .anamnese-grid { grid-template-columns: 1fr; }
+    #toastContainer { left: 20px; right: 20px; top: 15px; }
   }
 </style>
 </head>
 <body>
+
+<div id="toastContainer"></div>
 
 <div id="loginScreen">
   <div class="login-card">
@@ -434,6 +453,28 @@
   let allStudentsList = [];
   let chartInstance = null;
 
+  // 🍞 SISTEMA DE NOTIFICAÇÕES (TOASTS)
+  function showToast(mensagem, tipo = 'info') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    
+    let icone = 'ℹ️';
+    if (tipo === 'success') icone = '✅';
+    if (tipo === 'error') icone = '❌';
+
+    toast.innerHTML = `<span>${icone}</span> <div>${escapeHtml(mensagem)}</div>`;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
   function authHeaders() {
     const token = localStorage.getItem('admin_token');
     return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
@@ -449,7 +490,24 @@
       .replace(/'/g, '&#39;');
   }
 
-  // 🧮 MÓDULO CORRIGIDO: CÁLCULO DE DIAS BASEADO NO VENCIMENTO
+  // 🧹 LIMPEZA AUTOMÁTICA DE RASCUNHOS NO LOCALSTORAGE
+  function limparRascunhosAntigos() {
+    try {
+      const chaves = Object.keys(localStorage);
+      const codigosValidos = allStudentsList.map(a => a.codigo);
+
+      chaves.forEach(chave => {
+        if (chave.startsWith('draft_workout_') || chave.startsWith('draft_diet_')) {
+          const cod = chave.replace('draft_workout_', '').replace('draft_diet_', '');
+          if (codigosValidos.length > 0 && !codigosValidos.includes(cod)) {
+            localStorage.removeItem(chave);
+          }
+        }
+      });
+    } catch(e) {}
+  }
+
+  // 🧮 MÓDULO DE CÁLCULO DE DIAS BASEADO NO VENCIMENTO
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -532,6 +590,7 @@
         localStorage.setItem('admin_token', data.token);
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminApp').classList.remove('hidden');
+        showToast("Login realizado com sucesso!", "success");
         fetchAlunos();
       } else {
         errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
@@ -562,8 +621,12 @@
       });
       if (!res.ok) { logoutAdmin(); return; }
       allStudentsList = await res.json();
+      limparRascunhosAntigos();
       renderStudentsList(allStudentsList);
-    } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
+    } catch(e) { 
+      container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
+      showToast("Erro de comunicação com o servidor.", "error");
+    }
   }
 
   function renderStudentsList(list) {
@@ -628,7 +691,6 @@
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
       document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
-      // Atualiza Prazos e Status
       const infoCalculada = calcularDiasRestantes(currentStudentData.data_expiracao, currentStudentData.dia_vencimento);
       document.getElementById('studentVencimentoDisplay').textContent = `📅 Vencimento: ${infoCalculada.dataFormatada}`;
 
@@ -668,7 +730,9 @@
       carregarTreinoNoEditorAoVivo();
       loadDietView();
       renderCorridaAdmin();
-    } catch(e) { alert("Erro ao carregar dados do aluno."); }
+    } catch(e) { 
+      showToast("Erro ao carregar dados do aluno.", "error"); 
+    }
   }
 
   function renderAnamneseDetails() {
@@ -758,14 +822,15 @@
 
       input.value = '';
       renderAdminFeedbackHistory();
+      showToast("Resposta enviada!", "success");
     } catch (e) {
-      alert("Erro ao enviar resposta ao aluno.");
+      showToast("Erro ao enviar resposta ao aluno.", "error");
     }
   }
 
-  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS CORRIGIDA (EM MILISSEGUNDOS EXATOS)
+  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS
   async function renovarUmMesAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
 
     try {
@@ -774,7 +839,6 @@
       const hojeMs = new Date().getTime();
       let baseMs = hojeMs;
 
-      // Se já houver uma data de expiração válida no futuro, estende a partir dela
       if (currentStudentData.data_expiracao) {
         const expAtualMs = new Date(currentStudentData.data_expiracao).getTime();
         if (!isNaN(expAtualMs) && expAtualMs > hojeMs) {
@@ -782,11 +846,8 @@
         }
       }
 
-      // Soma exatos 30 dias em milissegundos (30 dias * 24h * 60m * 60s * 1000ms)
       const novaExp = new Date(baseMs + (30 * 24 * 60 * 60 * 1000));
       currentStudentData.data_expiracao = novaExp.toISOString();
-
-      // Atualiza o dia de vencimento para coincidir com a nova data
       currentStudentData.dia_vencimento = novaExp.getDate();
 
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
@@ -797,14 +858,14 @@
       });
 
       if (res.ok) {
-        alert(`✅ Pagamento confirmado!\n\nAcesso estendido por +30 dias.\nNovo Vencimento: ${novaExp.toLocaleDateString('pt-BR')}`);
+        showToast(`✅ Renovado por +30 dias! Vencimento: ${novaExp.toLocaleDateString('pt-BR')}`, "success");
         fetchAlunos();
         carregarAluno(currentStudentCode);
       } else {
-        alert("❌ Erro ao salvar renovação no banco de dados.");
+        showToast("Erro ao salvar renovação no servidor.", "error");
       }
     } catch (e) {
-      alert("Erro de conexão ao renovar pagamento do aluno.");
+      showToast("Erro de conexão ao renovar pagamento.", "error");
     }
   }
 
@@ -844,7 +905,7 @@
 
     container.innerHTML = "";
     if (parsedDays.length === 0) {
-      container.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum treino reconhecido.</p>`;
+      container.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhum treino reconhecido. Digite divisões claras (Ex: UPPER, LOWER ou TREINO A).</div>`;
       return;
     }
 
@@ -871,7 +932,7 @@
     const btn = document.getElementById('btnAiCmd');
     const cmd = input.value.trim();
 
-    if (!cmd) return alert("Digite o comando para a IA.");
+    if (!cmd) return showToast("Digite o comando para a IA.", "error");
 
     const txtOriginal = btn.textContent;
     btn.textContent = "⚡ Modificando...";
@@ -900,12 +961,12 @@ ${tx.value}`,
         tx.value = data.resposta.trim();
         lidarEdicaoTreino();
         input.value = "";
-        alert("✅ Ficha alterada pela IA com sucesso!");
+        showToast("Ficha alterada pela IA!", "success");
       } else {
-        alert("❌ " + (data.error || "Não foi possível modificar a ficha."));
+        showToast(data.error || "Erro ao alterar ficha.", "error");
       }
     } catch(e) {
-      alert("❌ Erro ao processar comando na IA.");
+      showToast("Erro ao processar comando na IA.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
@@ -919,7 +980,7 @@ ${tx.value}`,
   }
 
   async function gerarNovaSenhaAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
 
     try {
@@ -930,12 +991,12 @@ ${tx.value}`,
       });
       const data = await res.json();
       if (res.ok && data.senhaTemporaria) {
-        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno.`);
+        showToast(`Nova Senha: ${data.senhaTemporaria}`, "success");
       } else {
-        alert("❌ " + (data.error || "Erro ao gerar nova senha."));
+        showToast(data.error || "Erro ao gerar senha.", "error");
       }
     } catch (e) {
-      alert("Erro ao conectar ao servidor.");
+      showToast("Erro ao conectar ao servidor.", "error");
     }
   }
 
@@ -1242,7 +1303,7 @@ ${tx.value}`,
     const kmTxt = document.getElementById('runKm').value;
     const minTxt = document.getElementById('runMinutos').value;
 
-    if (!dataTxt || !kmTxt || !minTxt) return alert("Preencha data, distância e tempo.");
+    if (!dataTxt || !kmTxt || !minTxt) return showToast("Preencha data, distância e tempo.", "error");
 
     if (!currentStudentData.corridas) currentStudentData.corridas = [];
     currentStudentData.corridas.push({ data: dataTxt, km: parseFloat(kmTxt), minutos: parseFloat(minTxt) });
@@ -1368,7 +1429,7 @@ ${tx.value}`,
     listEl.innerHTML = '';
 
     if (blocks.length === 0) {
-      listEl.innerHTML = `<p style="color:var(--muted); font-size:12px;">Digite o plano alimentar acima para pré-visualizar por dia.</p>`;
+      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite blocos no formato [Tag] Nome da Refeição.</div>`;
       return;
     }
 
@@ -1432,7 +1493,7 @@ ${tx.value}`,
     const btn = document.getElementById('btnCalcTaco');
     const textoDieta = tx.value.trim();
 
-    if (!textoDieta) return alert("Digite os alimentos na caixa de texto primeiro.");
+    if (!textoDieta) return showToast("Digite os alimentos na caixa de texto primeiro.", "error");
 
     const txtOriginal = btn.textContent;
     btn.textContent = "⏳ Calculando e gerando substituições...";
@@ -1456,15 +1517,15 @@ ${tx.value}`,
         if (respLimpa.includes('|')) {
           tx.value = respLimpa;
           lidarEdicaoDieta();
-          alert("✅ Macros calculados e opções de troca preenchidas com sucesso!");
+          showToast("Macros calculados com sucesso!", "success");
         } else {
-          alert("⚠️ A IA não gerou a estrutura esperada. Seu texto original foi mantido por segurança.");
+          showToast("A IA não gerou a estrutura esperada.", "error");
         }
       } else {
-        alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
+        showToast(data.error || "Não foi possível calcular os macros.", "error");
       }
     } catch(e) {
-      alert("❌ Erro ao conectar à IA para cálculo de macros.");
+      showToast("Erro ao conectar à IA para cálculo de macros.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
@@ -1473,7 +1534,7 @@ ${tx.value}`,
 
   function salvarDieta() {
     const raw = document.getElementById('dietTextarea').value.trim();
-    if (!raw) return alert("A caixa de texto da dieta está vazia.");
+    if (!raw) return showToast("A caixa de texto da dieta está vazia.", "error");
 
     const rawBlocks = raw.split(/(?=\[.*?\])/g);
     const refeicoesFormatadas = [];
@@ -1545,14 +1606,14 @@ ${tx.value}`,
         } else if (tipoLimpezaRascunho === 'diet') {
           localStorage.removeItem(`draft_diet_${currentStudentCode}`);
         }
-        alert("🎉 Dados salvos com sucesso no banco!");
+        showToast("Dados salvos com sucesso!", "success");
         fetchAlunos();
         carregarAluno(currentStudentCode);
         switchTab('resumo');
       } else {
-        alert("❌ Erro ao salvar dados no servidor.");
+        showToast("Erro ao salvar dados no servidor.", "error");
       }
-    } catch(e) { alert("Erro de conexão ao salvar no servidor."); }
+    } catch(e) { showToast("Erro de conexão ao salvar no servidor.", "error"); }
   }
 
   function parseWorkoutText(rawText) {
@@ -1664,7 +1725,7 @@ ${tx.value}`,
     const rawW = document.getElementById('rawWorkout').value.trim();
     const rawD = document.getElementById('rawDiet').value.trim();
 
-    if (!nome || !codigo) return alert("Preencha Nome e Código.");
+    if (!nome || !codigo) return showToast("Preencha Nome e Código.", "error");
 
     const parsedDays = parseWorkoutText(rawW);
 
@@ -1692,11 +1753,11 @@ ${tx.value}`,
         body: JSON.stringify({ codigo: codigo, payload: payload })
       });
       if (res.ok) {
-        alert(`🎉 Aluno criado! Senha inicial: ${codigo}.`);
+        showToast(`Aluno criado! Senha: ${codigo}`, "success");
         fetchAlunos();
         switchTab('resumo');
       }
-    } catch(e) { alert("Erro ao criar aluno."); }
+    } catch(e) { showToast("Erro ao criar aluno.", "error"); }
   }
 
   async function deletarAluno() {
@@ -1707,21 +1768,22 @@ ${tx.value}`,
       cache: 'no-cache'
     });
     currentStudentCode = "";
+    showToast("Aluno excluído com sucesso.", "success");
     fetchAlunos();
     switchTab('resumo');
   }
 
   function copiarLinkAcessoAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
     const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
     navigator.clipboard.writeText(linkAluno);
-    alert(`✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
+    showToast("Link de acesso copiado!", "success");
   }
 
   function copiarLinkAnamnese() {
     const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
     navigator.clipboard.writeText(link);
-    alert("✅ Link direto da Anamnese copiado!\n\n" + link);
+    showToast("Link da Anamnese copiado!", "success");
   }
 
   async function sendAdminChatMessage() {
@@ -1748,7 +1810,7 @@ ${tx.value}`,
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
+      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
     } catch(e) {
       history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
     }
