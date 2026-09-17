@@ -16,6 +16,7 @@
     --gold: #dcaa3a;
     --gold-soft: #eac267;
     --green: #25d366;
+    --orange: #f39c12;
     --text: #f8efec;
     --muted: #a08086;
   }
@@ -92,8 +93,9 @@
   .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
 
   .hidden { display:none !important; }
-  .status-pill { display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; }
+  .status-pill { display:inline-block; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; text-align:center; }
   .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
+  .status-alerta { background:rgba(243,156,18,0.15); color:var(--orange); border:1px solid var(--orange); }
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
@@ -222,12 +224,16 @@
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
             <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-            <div style="display:flex; gap:10px; margin-top:4px; align-items:center;">
+            <div style="display:flex; gap:10px; margin-top:4px; align-items:center; flex-wrap:wrap;">
               <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
               <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
+              <span id="studentVencimentoDisplay" style="font-size:12px; color:var(--muted); font-weight:600;">📅 Vencimento: --</span>
             </div>
           </div>
-          <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
+            <span id="studentDaysPill" class="status-pill status-pago" style="font-size:9px;">-- DIAS</span>
+          </div>
         </div>
 
         <div id="workoutOverview">
@@ -443,7 +449,39 @@
       .replace(/'/g, '&#39;');
   }
 
-  // Persistência e Recuperação de Rascunhos no Safari / LocalStorage
+  // 🧮 NOVO MÓDULO: CÁLCULO DE DIAS BASEADO NO VENCIMENTO
+  function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    let targetDate = null;
+
+    if (dataExpiracaoStr) {
+      targetDate = new Date(String(dataExpiracaoStr).replace(/-/g, '/'));
+    }
+
+    if (!targetDate || isNaN(targetDate.getTime())) {
+      const mesAtual = hoje.getMonth();
+      const anoAtual = hoje.getFullYear();
+      let dia = parseInt(diaVencimentoFallback) || 7;
+      targetDate = new Date(anoAtual, mesAtual, dia);
+
+      if (targetDate < hoje) {
+        targetDate = new Date(anoAtual, mesAtual + 1, dia);
+      }
+    } else {
+      targetDate.setHours(0, 0, 0, 0);
+    }
+
+    const diffTempo = targetDate.getTime() - hoje.getTime();
+    const diffDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
+
+    return {
+      dias: diffDias,
+      dataFormatada: targetDate.toLocaleDateString('pt-BR')
+    };
+  }
+
   function lidarEdicaoTreino() {
     atualizarPreviewAoVivo();
     if (currentStudentCode) {
@@ -537,10 +575,28 @@
     }
 
     list.forEach((aluno, i) => {
+      const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento);
+      let statusClass = "status-pago";
+      let statusText = aluno.status_pagamento || "pago";
+
+      if (statusText === 'pendente' || infoCalculada.dias < 0) {
+        statusClass = "status-pendente";
+      } else if (infoCalculada.dias <= 5) {
+        statusClass = "status-alerta";
+      }
+
       const div = document.createElement('div');
       div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
-      div.innerHTML = `<div><b>${escapeHtml(aluno.nome)}</b><br><small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small></div>
-                       <span class="status-pill ${aluno.status_pagamento==='pago'?'status-pago':'status-pendente'}">${escapeHtml(aluno.status_pagamento || 'pago')}</span>`;
+      div.innerHTML = `
+        <div>
+          <b>${escapeHtml(aluno.nome)}</b><br>
+          <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
+        </div>
+        <div style="text-align:right;">
+          <span class="status-pill ${statusClass}">${escapeHtml(statusText)}</span>
+          <div style="font-size:10px; color:var(--muted); margin-top:3px;">${infoCalculada.dias < 0 ? 'Vencido' : infoCalculada.dias + 'd restantes'}</div>
+        </div>
+      `;
       div.onclick = () => {
         document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
         div.classList.add('active');
@@ -572,10 +628,29 @@
       document.getElementById('studentCodeDisplay').textContent = `@${code}`;
       document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
+      // Atualiza Prazos e Status
+      const infoCalculada = calcularDiasRestantes(currentStudentData.data_expiracao, currentStudentData.dia_vencimento);
+      document.getElementById('studentVencimentoDisplay').textContent = `📅 Vencimento: ${infoCalculada.dataFormatada}`;
+
       const stPill = document.getElementById('studentStatusPill');
+      const daysPill = document.getElementById('studentDaysPill');
       const stVal = currentStudentData.status_pagamento || 'pago';
+
       stPill.textContent = stVal.toUpperCase();
-      stPill.className = `status-pill ${stVal==='pago'?'status-pago':'status-pendente'}`;
+
+      if (stVal === 'pendente' || infoCalculada.dias < 0) {
+        stPill.className = "status-pill status-pendente";
+        daysPill.className = "status-pill status-pendente";
+        daysPill.textContent = infoCalculada.dias < 0 ? `VENCIDO HÁ ${Math.abs(infoCalculada.dias)}D` : `PENDENTE`;
+      } else if (infoCalculada.dias <= 5) {
+        stPill.className = "status-pill status-alerta";
+        daysPill.className = "status-pill status-alerta";
+        daysPill.textContent = `${infoCalculada.dias} DIAS RESTANTES`;
+      } else {
+        stPill.className = "status-pill status-pago";
+        daysPill.className = "status-pill status-pago";
+        daysPill.textContent = `${infoCalculada.dias} DIAS RESTANTES`;
+      }
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = stVal;
@@ -688,7 +763,7 @@
     }
   }
 
-  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS CORRIGIDA
+  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS COM CÁLCULO ATUALIZADO
   async function renovarUmMesAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
@@ -706,7 +781,6 @@
         }
       }
 
-      // Adiciona +30 dias exatos na data final
       dataBase.setDate(dataBase.getDate() + 30);
       currentStudentData.data_expiracao = dataBase.toISOString();
 
@@ -1466,7 +1540,7 @@ ${tx.value}`,
         }
         alert("🎉 Dados salvos com sucesso no banco!");
         fetchAlunos();
-        renderWorkoutView();
+        carregarAluno(currentStudentCode);
         switchTab('resumo');
       } else {
         alert("❌ Erro ao salvar dados no servidor.");
