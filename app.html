@@ -132,7 +132,6 @@
   .unit { font-size:10px; color:var(--ink-dim); flex-shrink:0; }
   .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:14px; border-radius:5px !important; }
 
-  /* BOTÃO DE CHECKLIST DE SÉRIES */
   .btn-check-serie {
     background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
     padding: 6px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer;
@@ -142,7 +141,6 @@
     background: var(--good-dim); border-color: var(--good); color: var(--good);
   }
 
-  /* CARD DE DIRETRIZES E METAS DO TREINADOR */
   .trainer-goals-card {
     background: linear-gradient(135deg, rgba(180,146,79,0.15), rgba(21,24,29,0.95));
     border: 1px solid var(--mark); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
@@ -155,7 +153,6 @@
   }
   .trainer-goals-body ul { margin-left: 16px; margin-top: 4px; }
 
-  /* CRONÔMETRO FLUTUANTE DE DESCANSO (ANDROID & SAFARI iOS) */
   .rest-timer-widget {
     position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px;
     background: var(--panel); border: 2px solid var(--mark); border-radius: 30px;
@@ -239,7 +236,6 @@
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
-<!-- CRONÔMETRO FLUTUANTE COMPATÍVEL COM SAFARI (iOS) E ANDROID -->
 <div id="restTimerWidget" class="rest-timer-widget">
   <div id="timerDisplay" class="rest-timer-display">00:00</div>
   <button type="button" class="rest-timer-btn" onclick="startRestTimer(90)">⏱ 90s</button>
@@ -510,11 +506,10 @@
       </div>
       <div id="treinoDetailView">
         <div class="detail-topbar">
-          <button type="button" class="btn-back" onclick="openTreinoSelectionMenu()">📂 Alternar Treino</button>
+          <button type="button" class="btn-back" onclick="openTreinoSelectionMenu()">Alternar Treino</button>
           <div class="detail-title" id="treinoDetailTitle">Treino do Dia</div>
         </div>
         
-        <!-- CARD DE METAS & INSTRUÇÕES DO TREINADOR -->
         <div class="trainer-goals-card">
           <div class="trainer-goals-title">🎯 Diretrizes do Treinador</div>
           <div class="trainer-goals-body">
@@ -525,7 +520,7 @@
           </div>
         </div>
 
-        <div id="treinoQuickSwitch" class="quick-switch-row"></div>
+        <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
         <div id="exercisesList"></div>
 
         <button type="button" class="btn-login btn-gold" style="margin-top:18px; margin-bottom:24px;" onclick="concluirTreinoDoDia()">
@@ -632,13 +627,11 @@
   let activeDietTag = "";
   let autoSaveTimer = null;
 
-  // SANITIZAÇÃO XSS SEGURA PARA EXIBIÇÃO NO SAFARI E CHROME
   function escapeHtml(str) {
     if (!str || typeof str !== 'string') return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
-  // GERENCIADOR DE CRONÔMETRO COM SUPORTE DUAL (WEB AUDIO API - SAFARI iOS)
   let restTimerInterval = null;
   let restSecondsLeft = 0;
   let audioCtx = null;
@@ -662,7 +655,7 @@
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Tom suave D5
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
       gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
@@ -672,7 +665,7 @@
   }
 
   function startRestTimer(seconds) {
-    initAudioContext(); // Desbloqueia o canal de áudio no toque humano no Safari
+    initAudioContext();
 
     if (restTimerInterval) clearInterval(restTimerInterval);
     restSecondsLeft = seconds;
@@ -1171,7 +1164,6 @@
     currentData.days = days;
     renderTreinoDayList();
 
-    // FLUXO SEQUENCIAL INTELIGENTE: Abre no próximo treino não concluído
     const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx + 1) % days.length : 0;
     selectTreinoDay(proximoIdx);
   }
@@ -1229,7 +1221,6 @@
 
     currentData.ultimo_treino_idx = currentTreinoDayIdx;
     
-    // Limpa checklists das séries do dia para a próxima semana
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + btn.dataset.num;
@@ -1304,7 +1295,9 @@
       const modeKey = `${dayIdx}_${exIdx}`;
       const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
 
-      const metaText = ((ex.reps || '') + ' ' + (ex.nome || '')).toLowerCase();
+      const exName = ex.nome || '';
+      const exMeta = ex.reps || '';
+      const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
       const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
@@ -1319,39 +1312,26 @@
       else if (temCluster) defaultMode = 'cluster';
       else if (temMyo) defaultMode = 'myoreps';
 
-      const activeMode = isTecnicaFixaAdmin ? defaultMode : (savedUserMode || defaultMode);
-      let cleanName = (ex.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+      const activeMode = savedUserMode || defaultMode;
+      let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
-      const podeAlterarNesteEx = (currentData.permitirTecnicas === true) && (!isTecnicaFixaAdmin);
-      let numSeriesPrescritas = parseInt(seriesStr) || 1;
+      let numSeriesPrescritas = parseInt(seriesStr) || 3;
 
       const div = document.createElement('div');
       div.className = 'item';
 
-      let optionsHtml = '';
-      if (numSeriesPrescritas === 1) {
-        optionsHtml = `<option value="convencional" selected>📊 1 Série Convencional</option>`;
-      } else if (numSeriesPrescritas === 2) {
-        optionsHtml = `
-          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 séries convencionais</option>
-          <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster set</option>
-          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>1 top set + 1 back-off</option>
-        `;
-      } else {
-        optionsHtml = `
-          <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} séries convencionais</option>
-          <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + back-off</option>
-          <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + back-off</option>
-          <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-reps</option>
-        `;
-      }
-
-      const selectorStyle = (podeAlterarNesteEx && numSeriesPrescritas > 1) ? '' : 'style="display:none;"';
+      let optionsHtml = `
+        <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>Convencional</option>
+        <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
+        <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+        <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+        <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+      `;
 
       let html = `
         <div class="item-header">
           <div class="item-title">${escapeHtml(cleanName)}</div>
-          <select class="mode-select" ${selectorStyle} onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             ${optionsHtml}
           </select>
         </div>
@@ -1386,6 +1366,101 @@
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valMbR)}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
+          </div>
+        `;
+      } else if (activeMode === 'cluster') {
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+
+        html += `
+          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+        `;
+      } else if (activeMode === 'cluster_backoff') {
+        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
+        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
+        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        html += `
+          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit" style="font-size:9px;">blocos</span>
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          </div>
+        `;
+      } else if (activeMode === 'backoff_2x') {
+        const keyS1C = `log_c_${dayIdx}_${exIdx}_s1`;
+        const keyS1R = `log_r_${dayIdx}_${exIdx}_s1`;
+        const keyS2C = `log_c_${dayIdx}_${exIdx}_s2`;
+        const keyS2R = `log_r_${dayIdx}_${exIdx}_s2`;
+        const keyBoC = `log_c_${dayIdx}_${exIdx}_bo`;
+        const keyBoR = `log_r_${dayIdx}_${exIdx}_bo`;
+
+        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
+        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
+        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        html += `
+          <div class="series-row">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
+            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div class="series-row">
+            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
+            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
+              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
           </div>
         `;
       } else {
