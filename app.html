@@ -54,7 +54,6 @@
   .sub { color:var(--ink-dim); font-size:12.5px; margin-top:6px; font-weight:500; text-align:center; }
 
   .login-box { display:flex; flex-direction:column; gap:12px; margin-top:20px; }
-  /* Fonte 16px previne zoom automatico indesejado no iOS Safari */
   .input-field { width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:12px 13px; border-radius:6px; font-size:16px; font-family:var(--font-body); transition:border-color .15s ease; }
   .input-field:focus { outline:none; border-color:var(--mark); }
   .input-field::placeholder { color:#565b64; }
@@ -572,7 +571,6 @@
     return headers;
   }
 
-  // Compatibilidade com eventos do Safari e iOS
   document.addEventListener("DOMContentLoaded", async () => {
     fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
 
@@ -837,6 +835,7 @@
     }
   }
 
+  // ⚡ CARREGAMENTO CORRIGIDO DOS DADOS DO ALUNO E FORMATO DE DATA (iOS SAFARI COMPATÍVEL)
   function loadStudentData(data) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.add('hidden');
@@ -845,7 +844,6 @@
 
     currentData = data;
 
-    // Restaura rascunhos salvos no localStorage para o Safari
     const localLogs = localStorage.getItem(`draft_student_logs_${loggedUserCode}`);
     if (localLogs) {
       try {
@@ -862,32 +860,46 @@
     let estaVencido = data.status_pagamento === 'pendente' || data.ativo === false;
     let diasRestantes = 0;
     let textoVencimento = "";
+    let dataExp = null;
 
-    // Dá prioridade total à data_expiracao do banco e evita falhas no iOS
+    // 1. Tratamento seguro de data de expiração enviada pelo backend
     if (data.data_expiracao) {
       const expDataStr = String(data.data_expiracao).replace(/-/g, '/');
-      const dataExp = new Date(expDataStr);
-      dataExp.setHours(23, 59, 59, 999);
-
-      const diffTempo = dataExp.getTime() - hoje.getTime();
-      diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-
-      if (diasRestantes <= 0) {
-        estaVencido = true;
+      const dtParsed = new Date(expDataStr);
+      if (!isNaN(dtParsed.getTime())) {
+        dataExp = dtParsed;
       }
+    }
 
-      const diaFmt = String(dataExp.getDate()).padStart(2, '0');
-      const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
-      textoVencimento = `📅 Vencimento em ${diaFmt}/${mesFmt} (${diasRestantes} dias restantes)`;
+    // 2. Fallback caso não tenha data_expiracao ou a string seja inválida
+    if (!dataExp) {
+      const diaVenc = parseInt(data.dia_vencimento) || 20;
+      let ano = hoje.getFullYear();
+      let mes = hoje.getMonth();
+      if (hoje.getDate() > diaVenc) {
+        mes += 1;
+      }
+      dataExp = new Date(ano, mes, diaVenc, 23, 59, 59);
+    }
+
+    // 3. Cálculo de dias restantes até o vencimento
+    dataExp.setHours(23, 59, 59, 999);
+    const diffTempo = dataExp.getTime() - hoje.getTime();
+    diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
+
+    if (diasRestantes <= 0) {
+      estaVencido = true;
+    }
+
+    const diaFmt = String(dataExp.getDate()).padStart(2, '0');
+    const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
+
+    if (diasRestantes < 0) {
+      textoVencimento = `📅 Vencido em ${diaFmt}/${mesFmt} (Acesso Suspenso)`;
+    } else if (diasRestantes === 0) {
+      textoVencimento = `📅 Vence hoje (${diaFmt}/${mesFmt})`;
     } else {
-      const diaVenc = parseInt(data.dia_vencimento) || 7;
-      const diaHoje = hoje.getDate();
-      diasRestantes = diaVenc >= diaHoje ? (diaVenc - diaHoje) : (30 - (diaHoje - diaVenc));
-      
-      if (data.status_pagamento === 'pago' && diaHoje > diaVenc) {
-        estaVencido = true;
-      }
-      textoVencimento = `📅 Vencimento dia ${diaVenc} (Faltam ${diasRestantes} dias)`;
+      textoVencimento = `📅 Vencimento em ${diaFmt}/${mesFmt} (${diasRestantes} dias restantes)`;
     }
 
     if (estaVencido) {
@@ -1332,7 +1344,6 @@
     });
   }
 
-  // Auto-Save de Cargas com proteção local extra no Safari (iOS)
   function scheduleAutoSave(key, value, dayIdx, exIdx) {
     if (!currentData.logs) currentData.logs = {};
     currentData.logs[key] = value;
