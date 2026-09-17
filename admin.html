@@ -199,6 +199,7 @@
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
+        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks</button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
@@ -227,6 +228,21 @@
         <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
         <div id="anamneseDetails">
           <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
+        </div>
+      </div>
+
+      <!-- 💬 CHAT DE FEEDBACK DO PERSONAL COM O ALUNO -->
+      <div id="secFeedbackAdmin" class="panel-card hidden">
+        <div class="panel-title">💬 Chat de Feedback com o Aluno</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Histórico de relatórios e mensagens trocadas. Mensagens armazenadas por 10 dias.</p>
+
+        <div id="adminFeedbackHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+          <div style="color:var(--muted); font-size:12px; text-align:center;">Selecione um aluno para ver os feedbacks.</div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="adminFeedbackInput" placeholder="Responder aluno..." style="font-size:13px;" onkeypress="if(event.key==='Enter') responderFeedbackAdmin()">
+          <button class="btn" style="width:120px;" onclick="responderFeedbackAdmin()">Enviar</button>
         </div>
       </div>
 
@@ -312,19 +328,26 @@
           </div>
         </div>
 
-        <label>Senha do Aluno</label>
+        <!-- 🔄 GESTÃO INTELIGENTE DE PAGAMENTO & RENOVAÇÃO -->
+        <div style="margin-top:14px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:14px;">
+          <label style="color:var(--gold); margin-top:0;">💳 Gestão de Pagamento & Renovação</label>
+          <div style="display:flex; gap:10px; margin-top:8px; align-items:center;">
+            <select id="editStatus" style="flex:1;">
+              <option value="pago">🟢 Pago / Acesso Liberado</option>
+              <option value="pendente">🔴 Suspenso / Pendente</option>
+            </select>
+            <button type="button" class="btn btn-wpp" style="width:180px; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês</button>
+          </div>
+          <div style="font-size:10.5px; color:var(--muted); margin-top:6px;">Ao renovar +1 mês, o sistema automaticamente estende o período de expiração a partir da validade atual.</div>
+        </div>
+
+        <label style="margin-top:14px;">Senha do Aluno</label>
         <div class="senha-row">
           <div>
             <input type="text" id="editPassword" placeholder="Deixe em branco para manter a senha atual">
           </div>
           <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
         </div>
-
-        <label>Status do Pagamento</label>
-        <select id="editStatus">
-          <option value="pago">🟢 Pago / Acesso Liberado</option>
-          <option value="pendente">🔴 Suspenso / Pendente</option>
-        </select>
 
         <div style="margin-top: 14px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; flex-direction:column; gap:8px;">
           <div style="display:flex; align-items:center; gap:10px;">
@@ -539,6 +562,7 @@
 
       renderWorkoutView();
       renderAnamneseDetails();
+      renderAdminFeedbackHistory();
       carregarTreinoNoEditorAoVivo();
       loadDietView();
       renderCorridaAdmin();
@@ -584,6 +608,79 @@
         <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">🍽️ Preferências de Alimentos</div><div class="anamnese-val">Carbos: ${escapeHtml(a.gostaCarbos) || '-'}<br>Proteínas: ${escapeHtml(a.gostaProteinas) || '-'}<br>Legumes/Frutas: ${escapeHtml(a.gostaLegumes) || '-'}</div></div>
       </div>
     `;
+  }
+
+  function renderAdminFeedbackHistory() {
+    const history = document.getElementById('adminFeedbackHistory');
+    if (!history) return;
+    history.innerHTML = '';
+
+    const feedbacks = (currentStudentData && currentStudentData.feedbacks) || [];
+
+    if (feedbacks.length === 0) {
+      history.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center;">Nenhum feedback enviado por este aluno ainda.</div>';
+      return;
+    }
+
+    feedbacks.forEach(f => {
+      const isAluno = f.autor === "ALUNO";
+      history.innerHTML += `
+        <div style="background:${isAluno ? '#1a050b' : '#100305'}; padding:10px 12px; border-radius:8px; font-size:12.5px; color:#fff; align-self:${isAluno ? 'flex-start' : 'flex-end'}; border:1px solid ${isAluno ? 'var(--accent)' : 'var(--gold)'}; max-width:85%;">
+          <b style="color:${isAluno ? 'var(--accent)' : 'var(--gold)'}">${isAluno ? 'Aluno' : 'Você (Personal)'}:</b> ${escapeHtml(f.mensagem)}
+        </div>
+      `;
+    });
+    history.scrollTop = history.scrollHeight;
+  }
+
+  async function responderFeedbackAdmin() {
+    const input = document.getElementById('adminFeedbackInput');
+    const msg = input.value.trim();
+    if (!msg || !currentStudentCode) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ codigo: currentStudentCode, autor: "PERSONAL", mensagem: msg })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.feedbacks) {
+        currentStudentData.feedbacks = data.feedbacks;
+      } else {
+        if (!currentStudentData.feedbacks) currentStudentData.feedbacks = [];
+        currentStudentData.feedbacks.push({ autor: "PERSONAL", mensagem: msg, data: new Date().toISOString() });
+      }
+
+      input.value = '';
+      renderAdminFeedbackHistory();
+    } catch (e) {
+      alert("Erro ao enviar resposta ao aluno.");
+    }
+  }
+
+  async function renovarUmMesAluno() {
+    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
+    if (!confirm(`Confirmar pagamento e renovar +1 mês de acesso para @${currentStudentCode}?`)) return;
+
+    try {
+      currentStudentData.status_pagamento = "pago";
+      
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
+      });
+
+      if (res.ok) {
+        alert(`✅ Pagamento confirmado! Acesso do aluno renovado por +1 mês.`);
+        fetchAlunos();
+        carregarAluno(currentStudentCode);
+      }
+    } catch (e) {
+      alert("Erro ao renovar pagamento do aluno.");
+    }
   }
 
   function carregarTreinoNoEditorAoVivo() {
@@ -762,6 +859,19 @@ ${tx.value}`,
     title.textContent = `🏋️ ${day.title}`;
     detail.appendChild(title);
 
+    const keyObs = `obs_day_${dayIdx}`;
+    const obsAluno = (currentStudentData.logs && currentStudentData.logs[keyObs]) || '';
+
+    if (obsAluno) {
+      const obsCard = document.createElement('div');
+      obsCard.style.cssText = "background:#1c060b; border:1px solid var(--gold); border-radius:8px; padding:12px; margin-bottom:14px; font-size:12px;";
+      obsCard.innerHTML = `
+        <div style="font-weight:700; color:var(--gold); margin-bottom:4px;">📝 Relato do Aluno para este treino:</div>
+        <div style="color:#fff;">"${escapeHtml(obsAluno)}"</div>
+      `;
+      detail.appendChild(obsCard);
+    }
+
     (day.exercicios || []).forEach((ex, exIdx) => {
       const row = document.createElement('div');
       row.className = 'ex-clickable';
@@ -888,7 +998,7 @@ ${tx.value}`,
     document.getElementById('chartModal').classList.add('hidden');
   }
 
-  const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'treino', 'dieta', 'corrida', 'cadastro'];
+  const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'feedbackAdmin', 'treino', 'dieta', 'corrida', 'cadastro'];
   let abaAtual = 'resumo';
 
   function initSwipeNavigation() {
@@ -930,6 +1040,7 @@ ${tx.value}`,
 
     document.getElementById('secResumo').classList.add('hidden');
     document.getElementById('secAnamnese').classList.add('hidden');
+    document.getElementById('secFeedbackAdmin').classList.add('hidden');
     document.getElementById('secTreino').classList.add('hidden');
     document.getElementById('secDieta').classList.add('hidden');
     document.getElementById('secCorrida').classList.add('hidden');
@@ -945,6 +1056,9 @@ ${tx.value}`,
     } else if (tab === 'anamnese') {
       document.getElementById('secAnamnese').classList.remove('hidden');
       document.getElementById('tabAnamnese').classList.add('active');
+    } else if (tab === 'feedbackAdmin') {
+      document.getElementById('secFeedbackAdmin').classList.remove('hidden');
+      document.getElementById('tabFeedbackAdmin').classList.add('active');
     } else if (tab === 'treino') {
       document.getElementById('secTreino').classList.remove('hidden');
       document.getElementById('tab2').classList.add('active');
