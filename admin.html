@@ -983,8 +983,12 @@ ${tx.value}`,
 
   function salvarTreinoEditado() {
     const raw = document.getElementById('liveWorkoutText').value;
+    const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
+
     currentStudentData.days = parseWorkoutText(raw);
-    currentStudentData.trainer_guidelines = document.getElementById('editTrainerGuidelines').value.trim();
+    currentStudentData.trainer_guidelines = guidelinesText;
+    currentStudentData.diretrizes_treinador = guidelinesText;
+
     salvarAlteracoes('workout');
   }
 
@@ -1583,7 +1587,18 @@ ${tx.value}`,
   async function salvarConfiguracoesConta() {
     currentStudentData.clientName = document.getElementById('editName').value.trim();
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
-    currentStudentData.dia_vencimento = parseInt(document.getElementById('editDiaVencimento').value) || 7;
+    
+    const novoDia = parseInt(document.getElementById('editDiaVencimento').value) || 7;
+    currentStudentData.dia_vencimento = novoDia;
+
+    // Recalcula a data_expiracao com base no dia do vencimento selecionado
+    const hoje = new Date();
+    let novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth(), novoDia);
+    if (novaDataExp < hoje) {
+      novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth() + 1, novoDia);
+    }
+    currentStudentData.data_expiracao = novaDataExp.toISOString();
+
     currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
 
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
