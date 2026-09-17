@@ -449,7 +449,7 @@
       .replace(/'/g, '&#39;');
   }
 
-  // 🧮 NOVO MÓDULO: CÁLCULO DE DIAS BASEADO NO VENCIMENTO
+  // 🧮 MÓDULO CORRIGIDO: CÁLCULO DE DIAS BASEADO NO VENCIMENTO
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -457,7 +457,7 @@
     let targetDate = null;
 
     if (dataExpiracaoStr) {
-      targetDate = new Date(String(dataExpiracaoStr).replace(/-/g, '/'));
+      targetDate = new Date(dataExpiracaoStr);
     }
 
     if (!targetDate || isNaN(targetDate.getTime())) {
@@ -763,7 +763,7 @@
     }
   }
 
-  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS COM CÁLCULO ATUALIZADO
+  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS CORRIGIDA (EM MILISSEGUNDOS EXATOS)
   async function renovarUmMesAluno() {
     if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
@@ -771,18 +771,23 @@
     try {
       currentStudentData.status_pagamento = "pago";
 
-      const hoje = new Date();
-      let dataBase = hoje;
+      const hojeMs = new Date().getTime();
+      let baseMs = hojeMs;
 
+      // Se já houver uma data de expiração válida no futuro, estende a partir dela
       if (currentStudentData.data_expiracao) {
-        const expAtual = new Date(String(currentStudentData.data_expiracao).replace(/-/g, '/'));
-        if (expAtual > hoje) {
-          dataBase = expAtual;
+        const expAtualMs = new Date(currentStudentData.data_expiracao).getTime();
+        if (!isNaN(expAtualMs) && expAtualMs > hojeMs) {
+          baseMs = expAtualMs;
         }
       }
 
-      dataBase.setDate(dataBase.getDate() + 30);
-      currentStudentData.data_expiracao = dataBase.toISOString();
+      // Soma exatos 30 dias em milissegundos (30 dias * 24h * 60m * 60s * 1000ms)
+      const novaExp = new Date(baseMs + (30 * 24 * 60 * 60 * 1000));
+      currentStudentData.data_expiracao = novaExp.toISOString();
+
+      // Atualiza o dia de vencimento para coincidir com a nova data
+      currentStudentData.dia_vencimento = novaExp.getDate();
 
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
@@ -792,12 +797,14 @@
       });
 
       if (res.ok) {
-        alert(`✅ Pagamento confirmado! Acesso estendido por +30 dias (Novo Vencimento: ${dataBase.toLocaleDateString('pt-BR')}).`);
+        alert(`✅ Pagamento confirmado!\n\nAcesso estendido por +30 dias.\nNovo Vencimento: ${novaExp.toLocaleDateString('pt-BR')}`);
         fetchAlunos();
         carregarAluno(currentStudentCode);
+      } else {
+        alert("❌ Erro ao salvar renovação no banco de dados.");
       }
     } catch (e) {
-      alert("Erro ao renovar pagamento do aluno.");
+      alert("Erro de conexão ao renovar pagamento do aluno.");
     }
   }
 
