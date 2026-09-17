@@ -252,7 +252,6 @@
   <div id="stepCounter" class="step-counter">Etapa 1 de 10</div>
 
   <form onsubmit="event.preventDefault();" class="login-box">
-    
     <div id="anamStep1">
       <label class="label-fdb">1. Nome Completo</label>
       <input type="text" id="anamNome" class="input-field" placeholder="Ex: Lucas Andrade" required>
@@ -512,12 +511,7 @@
         
         <div class="trainer-goals-card">
           <div class="trainer-goals-title">🎯 Diretrizes do Treinador</div>
-          <div class="trainer-goals-body">
-            <ul>
-              <li><b>Faixa de Carga & Repetições:</b> Mantenha as séries entre <b>8 a 10 reps</b> (ou 10-12 na 2ª fase). Evite fazer menos de 8 reps por falta de carga ou ultrapassar 12 reps sem intensidade.</li>
-              <li><b>Back-Off Set:</b> Na última série de cada exercício principal, reduza a carga em 20% a 30% e busque falha na faixa de 10 a 12 repetições.</li>
-            </ul>
-          </div>
+          <div class="trainer-goals-body" id="trainerGoalsBody"></div>
         </div>
 
         <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
@@ -698,6 +692,14 @@
     const m = Math.floor(restSecondsLeft / 60);
     const s = restSecondsLeft % 60;
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
+    const el = document.getElementById(`input_${keyInput}`);
+    if (el) {
+      el.value = valorCarga;
+    }
+    scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
   }
 
   function authHeaders() {
@@ -1244,6 +1246,21 @@
 
     document.getElementById('treinoDetailTitle').textContent = day.title;
 
+    const goalsContainer = document.getElementById('trainerGoalsBody');
+    if (goalsContainer) {
+      const customGuidelines = (currentData && (currentData.trainer_guidelines || currentData.diretrizes_treinador)) || '';
+      if (customGuidelines.trim()) {
+        goalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
+      } else {
+        goalsContainer.innerHTML = `
+          <ul>
+            <li><b>Faixa de Carga & Repetições:</b> Mantenha as séries entre <b>8 a 10 reps</b> (ou 10-12 na 2ª fase). Evite fazer menos de 8 reps por falta de carga ou ultrapassar 12 reps sem intensidade.</li>
+            <li><b>Back-Off Set:</b> Na última série de cada exercício principal, reduza a carga em 20% a 30% e busque falha na faixa de 10 a 12 repetições.</li>
+          </ul>
+        `;
+      }
+    }
+
     const quickSwitch = document.getElementById('treinoQuickSwitch');
     quickSwitch.innerHTML = '';
     days.forEach((d, idx) => {
@@ -1303,8 +1320,6 @@
       const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
-
-      const isTecnicaFixaAdmin = ex.isTecnico === true || temMyo || temCluster || temBackoff;
 
       let defaultMode = 'convencional';
       if (temBackoff && temCluster) defaultMode = 'cluster_backoff';
@@ -1401,6 +1416,10 @@
         const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
+        const nCl = parseFloat(valClC) || 0;
+        let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
+        let carga30Cl = nCl > 0 ? Math.round(nCl * 0.70) : 0;
+
         html += `
           <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
@@ -1412,10 +1431,24 @@
             <span class="unit">reps</span>
           </div>
           <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:11px; font-weight:600; color:var(--signal);">Back-off Set:</span>
+              ${nCl > 0 ? `
+                <div style="display:flex; gap:4px;">
+                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${carga20Cl}, ${dayIdx},${exIdx})">
+                    -20% (${carga20Cl}kg)
+                  </button>
+                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--signal); color:var(--signal);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${carga30Cl}, ${dayIdx},${exIdx})">
+                    -30% (${carga30Cl}kg)
+                  </button>
+                </div>
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite o peso para calcular</span>`}
+            </div>
             <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
               <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
@@ -1437,6 +1470,13 @@
         const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
+        const nS1 = parseFloat(valS1C) || 0;
+        const nS2 = parseFloat(valS2C) || 0;
+        const maiorCarga = Math.max(nS1, nS2);
+
+        let carga20 = maiorCarga > 0 ? Math.round(maiorCarga * 0.80) : 0;
+        let carga30 = maiorCarga > 0 ? Math.round(maiorCarga * 0.70) : 0;
+
         html += `
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
@@ -1452,11 +1492,27 @@
             <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
+
           <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:11px; font-weight:600; color:var(--signal);">Back-off Set (Escolha a redução):</span>
+              ${maiorCarga > 0 ? `
+                <div style="display:flex; gap:4px;">
+                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${carga20}, ${dayIdx},${exIdx})">
+                    -20% (${carga20}kg)
+                  </button>
+                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--signal); color:var(--signal);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${carga30}, ${dayIdx},${exIdx})">
+                    -30% (${carga30}kg)
+                  </button>
+                </div>
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga acima para calcular</span>`}
+            </div>
+
             <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
               <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
