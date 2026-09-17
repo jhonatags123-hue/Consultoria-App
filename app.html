@@ -6,7 +6,6 @@
 <title>Área do Aluno — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Big+Shoulders+Display:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-<!-- Suporte a Web App / PWA no iOS (Safari) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Jhonata Personal">
@@ -42,10 +41,10 @@
   body.app-mode {
     max-width: 720px;
     justify-content: flex-start;
-    padding: 14px 16px calc(20px + env(safe-area-inset-bottom));
+    padding: 14px 16px calc(80px + env(safe-area-inset-bottom));
   }
   @media (max-width: 640px) {
-    body.app-mode { max-width: 100%; padding: 12px 12px calc(18px + env(safe-area-inset-bottom)); }
+    body.app-mode { max-width: 100%; padding: 12px 12px calc(80px + env(safe-area-inset-bottom)); }
   }
 
   .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:14px; }
@@ -133,6 +132,52 @@
   .unit { font-size:10px; color:var(--ink-dim); flex-shrink:0; }
   .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:14px; border-radius:5px !important; }
 
+  /* BOTÃO DE CHECKLIST DE SÉRIES */
+  .btn-check-serie {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
+    padding: 6px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s ease; margin-left: 4px; flex-shrink: 0;
+  }
+  .btn-check-serie.done {
+    background: var(--good-dim); border-color: var(--good); color: var(--good);
+  }
+
+  /* CARD DE DIRETRIZES E METAS DO TREINADOR */
+  .trainer-goals-card {
+    background: linear-gradient(135deg, rgba(180,146,79,0.15), rgba(21,24,29,0.95));
+    border: 1px solid var(--mark); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+  }
+  .trainer-goals-title {
+    font-size: 12px; font-weight: 800; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .trainer-goals-body {
+    font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500;
+  }
+  .trainer-goals-body ul { margin-left: 16px; margin-top: 4px; }
+
+  /* CRONÔMETRO FLUTUANTE DE DESCANSO (ANDROID & SAFARI iOS) */
+  .rest-timer-widget {
+    position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px;
+    background: var(--panel); border: 2px solid var(--mark); border-radius: 30px;
+    padding: 8px 16px; display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 9999; transition: transform 0.2s ease, border-color 0.3s ease;
+  }
+  .rest-timer-display {
+    font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center;
+  }
+  .rest-timer-btn {
+    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
+    padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 0.15s ease;
+  }
+  .rest-timer-btn:active { background: var(--mark); color: #000; }
+  .timer-finished-glow {
+    animation: glowPulse 0.8s infinite alternate; border-color: #ffd700 !important;
+  }
+  @keyframes glowPulse {
+    0% { box-shadow: 0 0 5px #ffd700; }
+    100% { box-shadow: 0 0 22px #ffd700; }
+  }
+
   .diet-container { display:flex; flex-direction:column; gap:16px; }
 
   .meal-table-card { background:var(--panel); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
@@ -193,6 +238,13 @@
 <body>
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
+
+<!-- CRONÔMETRO FLUTUANTE COMPATÍVEL COM SAFARI (iOS) E ANDROID -->
+<div id="restTimerWidget" class="rest-timer-widget">
+  <div id="timerDisplay" class="rest-timer-display">00:00</div>
+  <button type="button" class="rest-timer-btn" onclick="startRestTimer(90)">⏱ 90s</button>
+  <button type="button" class="rest-timer-btn" onclick="startRestTimer(120)">⏱ 120s</button>
+</div>
 
 <div id="anamneseScreen" class="card hidden">
   <h1>Anamnese de treino e nutrição</h1>
@@ -453,16 +505,32 @@
   <div id="swipeViewport" class="swipe-viewport">
 
     <div id="tabTreino">
-      <div id="treinoListView">
+      <div id="treinoListView" class="hidden">
         <div id="treinoDayList" class="select-list"></div>
       </div>
-      <div id="treinoDetailView" class="hidden">
+      <div id="treinoDetailView">
         <div class="detail-topbar">
-          <button type="button" class="btn-back" onclick="backToTreinoList()">← Voltar</button>
-          <div class="detail-title" id="treinoDetailTitle"></div>
+          <button type="button" class="btn-back" onclick="openTreinoSelectionMenu()">📂 Alternar Treino</button>
+          <div class="detail-title" id="treinoDetailTitle">Treino do Dia</div>
         </div>
+        
+        <!-- CARD DE METAS & INSTRUÇÕES DO TREINADOR -->
+        <div class="trainer-goals-card">
+          <div class="trainer-goals-title">🎯 Diretrizes do Treinador</div>
+          <div class="trainer-goals-body">
+            <ul>
+              <li><b>Faixa de Carga & Repetições:</b> Mantenha as séries entre <b>8 a 10 reps</b> (ou 10-12 na 2ª fase). Evite fazer menos de 8 reps por falta de carga ou ultrapassar 12 reps sem intensidade.</li>
+              <li><b>Back-Off Set:</b> Na última série de cada exercício principal, reduza a carga em 20% a 30% e busque falha na faixa de 10 a 12 repetições.</li>
+            </ul>
+          </div>
+        </div>
+
         <div id="treinoQuickSwitch" class="quick-switch-row"></div>
         <div id="exercisesList"></div>
+
+        <button type="button" class="btn-login btn-gold" style="margin-top:18px; margin-bottom:24px;" onclick="concluirTreinoDoDia()">
+          ✅ FINALIZAR E REGISTRAR TREINO DO DIA
+        </button>
       </div>
     </div>
 
@@ -563,6 +631,81 @@
   let loggedUserCode = "";
   let activeDietTag = "";
   let autoSaveTimer = null;
+
+  // SANITIZAÇÃO XSS SEGURA PARA EXIBIÇÃO NO SAFARI E CHROME
+  function escapeHtml(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  // GERENCIADOR DE CRONÔMETRO COM SUPORTE DUAL (WEB AUDIO API - SAFARI iOS)
+  let restTimerInterval = null;
+  let restSecondsLeft = 0;
+  let audioCtx = null;
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playBipSound() {
+    try {
+      initAudioContext();
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // Tom suave D5
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.4);
+    } catch(e){}
+  }
+
+  function startRestTimer(seconds) {
+    initAudioContext(); // Desbloqueia o canal de áudio no toque humano no Safari
+
+    if (restTimerInterval) clearInterval(restTimerInterval);
+    restSecondsLeft = seconds;
+
+    const widget = document.getElementById('restTimerWidget');
+    widget.classList.remove('timer-finished-glow');
+
+    updateTimerDisplay();
+
+    restTimerInterval = setInterval(() => {
+      restSecondsLeft--;
+      updateTimerDisplay();
+
+      if (restSecondsLeft <= 0) {
+        clearInterval(restTimerInterval);
+        widget.classList.add('timer-finished-glow');
+        
+        playBipSound();
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+        setTimeout(() => {
+          widget.classList.remove('timer-finished-glow');
+        }, 5000);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const display = document.getElementById('timerDisplay');
+    const m = Math.floor(restSecondsLeft / 60);
+    const s = restSecondsLeft % 60;
+    display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
 
   function authHeaders() {
     const token = localStorage.getItem('aluno_token');
@@ -835,7 +978,6 @@
     }
   }
 
-  // ⚡ CARREGAMENTO CORRIGIDO DOS DADOS DO ALUNO E FORMATO DE DATA (iOS SAFARI COMPATÍVEL)
   function loadStudentData(data) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.add('hidden');
@@ -862,7 +1004,6 @@
     let textoVencimento = "";
     let dataExp = null;
 
-    // 1. Tratamento seguro de data de expiração enviada pelo backend
     if (data.data_expiracao) {
       const expDataStr = String(data.data_expiracao).replace(/-/g, '/');
       const dtParsed = new Date(expDataStr);
@@ -871,7 +1012,6 @@
       }
     }
 
-    // 2. Fallback caso não tenha data_expiracao ou a string seja inválida
     if (!dataExp) {
       const diaVenc = parseInt(data.dia_vencimento) || 20;
       let ano = hoje.getFullYear();
@@ -882,7 +1022,6 @@
       dataExp = new Date(ano, mes, diaVenc, 23, 59, 59);
     }
 
-    // 3. Cálculo de dias restantes até o vencimento
     dataExp.setHours(23, 59, 59, 999);
     const diffTempo = dataExp.getTime() - hoje.getTime();
     diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
@@ -1009,7 +1148,7 @@
       div.className = 'run-item';
       div.innerHTML = `
         <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
-          <span>📅 ${c.data || 'Treino'}</span>
+          <span>📅 ${escapeHtml(c.data || 'Treino')}</span>
           <span style="color:#3b82f6;">Pace: ${paceStr} /km</span>
         </div>
         <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
@@ -1026,14 +1165,15 @@
     document.getElementById('runPaceMedio').textContent = `${pMinG}'${pSecG < 10 ? '0' : ''}${pSecG}"`;
   }
 
-  let currentTreinoDayIdx = null;
+  let currentTreinoDayIdx = 0;
 
   function setupWorkout(days) {
     currentData.days = days;
-    currentTreinoDayIdx = null;
-    document.getElementById('treinoListView').classList.remove('hidden');
-    document.getElementById('treinoDetailView').classList.add('hidden');
     renderTreinoDayList();
+
+    // FLUXO SEQUENCIAL INTELIGENTE: Abre no próximo treino não concluído
+    const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx + 1) % days.length : 0;
+    selectTreinoDay(proximoIdx);
   }
 
   function renderTreinoDayList() {
@@ -1053,7 +1193,7 @@
       card.className = 'select-card';
       card.innerHTML = `
         <div>
-          <div class="select-card-title">${day.title}</div>
+          <div class="select-card-title">${escapeHtml(day.title)}</div>
           <div class="select-card-sub">${(day.exercicios || []).length} Exercícios</div>
         </div>
         <span class="select-card-arrow">›</span>
@@ -1070,16 +1210,46 @@
     renderTreinoDetail();
   }
 
-  function backToTreinoList() {
-    currentTreinoDayIdx = null;
+  function openTreinoSelectionMenu() {
     document.getElementById('treinoDetailView').classList.add('hidden');
     document.getElementById('treinoListView').classList.remove('hidden');
+  }
+
+  function toggleCheckSerie(btn) {
+    btn.classList.toggle('done');
+    if (btn.classList.contains('done')) {
+      btn.textContent = "✓ Feito";
+    } else {
+      btn.textContent = "Série " + btn.dataset.num;
+    }
+  }
+
+  function concluirTreinoDoDia() {
+    if (!currentData) return;
+
+    currentData.ultimo_treino_idx = currentTreinoDayIdx;
+    
+    // Limpa checklists das séries do dia para a próxima semana
+    document.querySelectorAll('.btn-check-serie').forEach(btn => {
+      btn.classList.remove('done');
+      btn.textContent = "Série " + btn.dataset.num;
+    });
+
+    scheduleAutoSave('ultimo_treino_idx', currentTreinoDayIdx);
+
+    alert("🎉 Treino registrado com sucesso! Excelente trabalho hoje.");
+
+    const totalDays = (currentData.days || []).length;
+    if (totalDays > 0) {
+      const nextIdx = (currentTreinoDayIdx + 1) % totalDays;
+      selectTreinoDay(nextIdx);
+    }
   }
 
   function renderTreinoDetail() {
     const days = (currentData && currentData.days) || [];
     const day = days[currentTreinoDayIdx];
-    if (!day) return backToTreinoList();
+    if (!day) return openTreinoSelectionMenu();
 
     document.getElementById('treinoDetailTitle').textContent = day.title;
 
@@ -1107,7 +1277,7 @@
       <label class="label-fdb" style="color:var(--mark); font-size:12px;">📝 Observações / Como foi a sessão hoje?</label>
       <textarea class="input-field" rows="2" style="font-size:14px; margin-top:4px;" 
         placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
-        oninput="scheduleAutoSave('${keyObs}', this.value)">${savedObs}</textarea>
+        oninput="scheduleAutoSave('${keyObs}', this.value)">${escapeHtml(savedObs)}</textarea>
       <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Esta anotação fica salva junto com o histórico de cargas deste treino.</div>
     `;
     exercisesContainer.appendChild(obsDiv);
@@ -1180,7 +1350,7 @@
 
       let html = `
         <div class="item-header">
-          <div class="item-title">${cleanName}</div>
+          <div class="item-title">${escapeHtml(cleanName)}</div>
           <select class="mode-select" ${selectorStyle} onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             ${optionsHtml}
           </select>
@@ -1201,122 +1371,21 @@
 
         html += `
           <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
-            <span class="series-tag" style="color:var(--mark); width:110px;">Ativação:</span>
-            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valAtivC}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
+            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${valAtivR}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
             ⏱ Descanso de 40s pós Ativação.
           </div>
           <div class="series-row" style="background:var(--bg); border:1px dashed var(--mark);">
-            <span class="series-tag" style="color:var(--mark); width:110px;">Mini blocos:</span>
-            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valMbC}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
+            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
+            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valMbC)}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valMbR}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valMbR)}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
-          </div>
-        `;
-      } else if (activeMode === 'cluster') {
-        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
-        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
-        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
-
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-
-        html += `
-          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
-            <span class="series-tag" style="color:var(--good); width:75px;">Cluster:</span>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit" style="font-size:9px;">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-          <div style="font-size:10px; color:var(--good); margin:4px 0 6px 4px; font-weight:700;">
-            ⏱ Descanso de 15s a 20s entre blocos.
-          </div>
-        `;
-      } else if (activeMode === 'cluster_backoff') {
-        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
-        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
-        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
-        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
-
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-        html += `
-          <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
-            <span class="series-tag" style="color:var(--good); width:75px;">Cluster:</span>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${valClC}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${valClB}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit" style="font-size:9px;">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${valClR}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-          <div style="font-size:10px; color:var(--good); margin:2px 0 4px 4px; font-weight:700;">
-            ⏱ Descanso de 15s a 20s entre blocos.
-          </div>
-          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
-            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-              <span class="series-tag" style="color:var(--signal); width:110px;">Back-off:</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">reps</span>
-            </div>
-          </div>
-        `;
-      } else if (activeMode === 'backoff_2x') {
-        const keyS1C = `log_c_${dayIdx}_${exIdx}_s1`;
-        const keyS1R = `log_r_${dayIdx}_${exIdx}_s1`;
-        const keyS2C = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyS2R = `log_r_${dayIdx}_${exIdx}_s2`;
-        const keyBoC = `log_c_${dayIdx}_${exIdx}_bo`;
-        const keyBoR = `log_r_${dayIdx}_${exIdx}_bo`;
-
-        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
-        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
-        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
-        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-        html += `
-          <div class="series-row">
-            <span class="series-tag">Série 1</span>
-            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS1C}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS1R}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-          <div class="series-row">
-            <span class="series-tag">Série 2</span>
-            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${valS2C}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${valS2R}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-          <div style="background:var(--signal-dim); border:1px solid var(--signal); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="font-size:11px; font-weight:600; color:var(--signal); margin-bottom:5px;">Back-off — reduzir 20 a 30% da carga</div>
-            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-              <span class="series-tag" style="color:var(--signal); width:110px;">Back-off:</span>
-              <input ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal) !important;" placeholder="-20-30%" value="${valBoC}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal) !important;" placeholder="10-12" value="${valBoR}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-              <span class="unit">reps</span>
-            </div>
           </div>
         `;
       } else {
@@ -1328,10 +1397,10 @@
 
           html += `
             <div class="series-row">
-              <span class="series-tag">Série ${s}</span>
-              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${savedLoad}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
+              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${savedReps}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           `;
@@ -1401,22 +1470,14 @@
     let totalReps = 0;
     let seriesPreenchidas = 0;
 
-    if (savedUserMode === 'myoreps') {
-      const cAtiv = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
-      if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
-    } else if (savedUserMode === 'cluster' || savedUserMode === 'cluster_backoff') {
-      const cCl = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
-      if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
-    } else {
-      for (let s = 1; s <= numSeries; s++) {
-        const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-        const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
+    for (let s = 1; s <= numSeries; s++) {
+      const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+      const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
-        if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
-        if (!isNaN(rVal)) {
-          totalReps += rVal;
-          seriesPreenchidas++;
-        }
+      if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
+      if (!isNaN(rVal)) {
+        totalReps += rVal;
+        seriesPreenchidas++;
       }
     }
 
@@ -1509,7 +1570,7 @@
       card.className = 'select-card';
       card.innerHTML = `
         <div>
-          <div class="select-card-title">${cat}</div>
+          <div class="select-card-title">${escapeHtml(cat)}</div>
         </div>
         <span class="select-card-arrow">›</span>
       `;
@@ -1562,7 +1623,7 @@
 
       let tableHtml = `
         <div class="meal-header">
-          <span>${block.mealTitle}</span>
+          <span>${escapeHtml(block.mealTitle)}</span>
         </div>
         <table class="diet-table">
           <thead>
@@ -1577,8 +1638,8 @@
       block.items.forEach(item => {
         tableHtml += `
           <tr>
-            <td><b>${item.nome}</b></td>
-            <td class="qty" style="text-align:right;">${item.qtd}</td>
+            <td><b>${escapeHtml(item.nome)}</b></td>
+            <td class="qty" style="text-align:right;">${escapeHtml(item.qtd)}</td>
           </tr>
         `;
       });
@@ -1656,7 +1717,7 @@
 
     if (!text) return;
 
-    history.innerHTML += `<div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal);"><b>Você:</b> ${text}</div>`;
+    history.innerHTML += `<div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal);"><b>Você:</b> ${escapeHtml(text)}</div>`;
     input.value = '';
     history.scrollTop = history.scrollHeight;
 
@@ -1673,7 +1734,7 @@
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line); align-self:flex-start;"><b>Assistente:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
+      history.innerHTML += `<div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line); align-self:flex-start;"><b>Assistente:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
     } catch(e) {
       history.innerHTML += `<div style="color:var(--signal); font-size:11px; margin-top:4px;">Erro na comunicação com a IA. Tente novamente.</div>`;
     }
@@ -1696,7 +1757,7 @@
       const isAluno = f.autor === "ALUNO";
       container.innerHTML += `
         <div style="background:${isAluno ? 'var(--signal-dim)' : 'var(--panel-2)'}; padding:8px 12px; border-radius:8px; font-size:12.5px; color:var(--ink); align-self:${isAluno ? 'flex-end' : 'flex-start'}; border:1px solid ${isAluno ? 'var(--signal)' : 'var(--line)'}; max-width:85%;">
-          <b>${isAluno ? 'Você' : 'Personal Jhonata'}:</b> ${f.mensagem}
+          <b>${isAluno ? 'Você' : 'Personal Jhonata'}:</b> ${escapeHtml(f.mensagem)}
         </div>
       `;
     });
@@ -1769,7 +1830,7 @@
     
     currentData = null;
     loggedUserCode = "";
-    currentTreinoDayIdx = null;
+    currentTreinoDayIdx = 0;
     activeDietTag = "";
 
     document.body.classList.remove('app-mode');
