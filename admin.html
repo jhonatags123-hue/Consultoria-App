@@ -17,6 +17,7 @@
     --gold-soft: #eac267;
     --green: #25d366;
     --orange: #f39c12;
+    --blue: #3b82f6;
     --text: #f8efec;
     --muted: #a08086;
   }
@@ -68,11 +69,6 @@
   .day-accordion-header:hover { border-color: var(--gold); }
   .day-accordion-header b { font-size: 15px; color: #fff; }
 
-  .day-accordion-body {
-    background: #0d0204; border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 12px; margin-top: -12px; margin-bottom: 12px;
-  }
-
   .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
@@ -122,6 +118,10 @@
   .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
   .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
   .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
+
+  .run-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .run-day-card { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .run-day-card b { color: var(--blue); font-size: 12px; text-transform: uppercase; }
 
   /* TOAST NOTIFICATIONS */
   #toastContainer {
@@ -334,21 +334,27 @@
         </div>
       </div>
 
+      <!-- PRESCRIÇÃO SEMANAL DE CORRIDA + VISUALIZAÇÃO DO HISTÓRICO DE 4 SEMANAS -->
       <div id="secCorrida" class="panel-card hidden">
-        <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
+        <div class="panel-title">🏃 Prescrição & Histórico de Corrida (Últimas 4 Semanas)</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Defina as instruções por dia da semana. O sistema retém automaticamente apenas as últimas 4 semanas de registros do aluno.</p>
         
-        <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:10px; margin-bottom:16px;">
-          <label style="margin-top:0;">Lançar Novo Treino de Corrida:</label>
-          <div style="display:flex; gap:8px; margin-top:8px; flex-direction:column;">
-            <input type="text" id="runData" placeholder="Data (Ex: 15/10)">
-            <input type="number" step="0.1" id="runKm" placeholder="Distância (Km)">
-            <input type="number" id="runMinutos" placeholder="Tempo (Minutos)">
-            <button class="btn btn-wpp" onclick="adicionarCorridaAluno()">+ Adicionar</button>
-          </div>
+        <div class="run-week-grid">
+          <div class="run-day-card"><b>Segunda-Feira</b><input type="text" id="run_seg" placeholder="Ex: 5km = 1km Forte, 3km Médio, 1km Tiro"></div>
+          <div class="run-day-card"><b>Terça-Feira</b><input type="text" id="run_ter" placeholder="Ex: Intensidade Baixa / 4km Regenerativo"></div>
+          <div class="run-day-card"><b>Quarta-Feira</b><input type="text" id="run_qua" placeholder="Ex: Descanso"></div>
+          <div class="run-day-card"><b>Quinta-Feira</b><input type="text" id="run_qui" placeholder="Ex: 6km Moderado"></div>
+          <div class="run-day-card"><b>Sexta-Feira</b><input type="text" id="run_sex" placeholder="Ex: Descanso Ativo"></div>
+          <div class="run-day-card"><b>Sábado</b><input type="text" id="run_sab" placeholder="Ex: Longão 10km"></div>
+          <div class="run-day-card"><b>Domingo</b><input type="text" id="run_dom" placeholder="Ex: Descanso Total"></div>
         </div>
 
-        <label>Histórico do Aluno:</label>
-        <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
+        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaAdmin()">💾 SALVAR PRESCRIÇÃO DE CORRIDA</button>
+
+        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
+          <label style="margin-top:0;">📋 Registros do Aluno (Últimas 4 Semanas):</label>
+          <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
+        </div>
       </div>
 
       <div id="secCadastro" class="panel-card hidden">
@@ -733,6 +739,16 @@
 
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
 
+      // Carregar Prescrição Semanal
+      const pres = currentStudentData.prescricao_corrida || {};
+      document.getElementById('run_seg').value = pres.seg || '';
+      document.getElementById('run_ter').value = pres.ter || '';
+      document.getElementById('run_qua').value = pres.qua || '';
+      document.getElementById('run_qui').value = pres.qui || '';
+      document.getElementById('run_sex').value = pres.sex || '';
+      document.getElementById('run_sab').value = pres.sab || '';
+      document.getElementById('run_dom').value = pres.dom || '';
+
       renderWorkoutView();
       renderAnamneseDetails();
       renderAdminFeedbackHistory();
@@ -741,6 +757,73 @@
       renderCorridaAdmin();
     } catch(e) { 
       showToast("Erro ao carregar dados do aluno.", "error"); 
+    }
+  }
+
+  function salvarPrescricaoCorridaAdmin() {
+    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+
+    currentStudentData.prescricao_corrida = {
+      seg: document.getElementById('run_seg').value.trim(),
+      ter: document.getElementById('run_ter').value.trim(),
+      qua: document.getElementById('run_qua').value.trim(),
+      qui: document.getElementById('run_qui').value.trim(),
+      sex: document.getElementById('run_sex').value.trim(),
+      sab: document.getElementById('run_sab').value.trim(),
+      dom: document.getElementById('run_dom').value.trim()
+    };
+
+    salvarAlteracoes();
+    showToast("Prescrição de corrida salva!", "success");
+  }
+
+  // EXIBIR HISTÓRICO DE CORRIDA RETENDO APENAS AS ÚLTIMAS 4 SEMANAS
+  function renderCorridaAdmin() {
+    const list = document.getElementById('adminRunHistoryList');
+    list.innerHTML = '';
+
+    const registros = (currentStudentData && currentStudentData.registros_corrida) || {};
+    const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    const nomesDias = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+
+    let encontrouTreino = false;
+
+    keysDias.forEach(key => {
+      let historicoDia = registros[key];
+      if (!historicoDia) return;
+
+      if (!Array.isArray(historicoDia)) {
+        historicoDia = [historicoDia];
+      }
+
+      // Garante que só guarde e mostre até 4 semanas no máximo
+      if (historicoDia.length > 4) {
+        historicoDia = historicoDia.slice(-4);
+      }
+
+      if (historicoDia.length > 0) {
+        encontrouTreino = true;
+        const box = document.createElement('div');
+        box.style.cssText = "background:#100305; border:1px solid var(--border); border-left:3px solid var(--blue); padding:10px; border-radius:8px; margin-bottom:8px; font-size:12px;";
+
+        let html = `<b style="color:var(--blue); font-size:12px;">🏃 ${nomesDias[key]} (Últimos ${historicoDia.length} registros):</b><br>`;
+
+        historicoDia.forEach((reg, i) => {
+          if (reg.splits) {
+            const numKms = Object.keys(reg.splits).length;
+            html += `<div style="margin-top:4px; color:#fff;">• <b>Semana ${i+1} (${reg.data || 'Recente'}):</b> ${numKms} Kms fracionados inseridos</div>`;
+          } else if (reg.km && reg.min) {
+            html += `<div style="margin-top:4px; color:#fff;">• <b>Semana ${i+1} (${reg.data || 'Recente'}):</b> ${reg.km} km em ${reg.min} min</div>`;
+          }
+        });
+
+        box.innerHTML = html;
+        list.appendChild(box);
+      }
+    });
+
+    if (!encontrouTreino) {
+      list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum registro de corrida encontrado para este aluno.</p>`;
     }
   }
 
@@ -1288,54 +1371,6 @@ ${tx.value}`,
     } else if (tab === 'chatAdmin') {
       document.getElementById('secChatAdmin').classList.remove('hidden');
     }
-  }
-
-  function renderCorridaAdmin() {
-    const list = document.getElementById('adminRunHistoryList');
-    list.innerHTML = '';
-
-    const corridas = (currentStudentData && currentStudentData.corridas) || [];
-    if (corridas.length === 0) {
-      list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhuma corrida lançada para este aluno.</p>`;
-      return;
-    }
-
-    corridas.forEach((c, idx) => {
-      const div = document.createElement('div');
-      div.style.cssText = "background:#100305; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:12px;";
-      div.innerHTML = `
-        <div>
-          <b style="color:var(--gold);">📅 ${escapeHtml(c.data || 'Treino')}</b> — <span>${escapeHtml(c.km)} km em ${escapeHtml(c.minutos)} minutos</span>
-        </div>
-        <button onclick="removerCorridaAluno(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700;">✕ Excluir</button>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  function adicionarCorridaAluno() {
-    const dataTxt = document.getElementById('runData').value.trim();
-    const kmTxt = document.getElementById('runKm').value;
-    const minTxt = document.getElementById('runMinutos').value;
-
-    if (!dataTxt || !kmTxt || !minTxt) return showToast("Preencha data, distância e tempo.", "error");
-
-    if (!currentStudentData.corridas) currentStudentData.corridas = [];
-    currentStudentData.corridas.push({ data: dataTxt, km: parseFloat(kmTxt), minutos: parseFloat(minTxt) });
-
-    document.getElementById('runData').value = '';
-    document.getElementById('runKm').value = '';
-    document.getElementById('runMinutos').value = '';
-
-    renderCorridaAdmin();
-    salvarAlteracoes();
-  }
-
-  function removerCorridaAluno(idx) {
-    if (!confirm("Remover este treino de corrida?")) return;
-    currentStudentData.corridas.splice(idx, 1);
-    renderCorridaAdmin();
-    salvarAlteracoes();
   }
 
   function loadDietView() {
