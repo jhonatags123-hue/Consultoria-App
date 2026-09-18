@@ -292,10 +292,17 @@
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA):</label>
-            <button class="btn btn-soft" id="btnGerarProtocoloIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarProtocoloCompletoIA()">🤖 Gerar Treino + Diretrizes (IA)</button>
+            <button class="btn btn-soft" id="btnGerarProtocoloIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarProtocoloCompletoIA()">🤖 Gerar Treino + Cardio (IA)</button>
           </div>
           <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga."></textarea>
           <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA pode preencher essas diretrizes automaticamente baseada na anamnese.</div>
+        </div>
+
+        <!-- CAMPO DE PRESCRIÇÃO DE CARDIO E INTENSIDADE -->
+        <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (IA / Manual):</label>
+          <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira Inclina em dias OFF (Intensidade Leve / Zona 2)."></textarea>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Preenchido automaticamente pela IA com base na anamnese ou editável manualmente.</div>
         </div>
 
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
@@ -320,7 +327,7 @@
           </div>
         </div>
 
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
+        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA, CARDIO E DIRETRIZES NO BANCO</button>
       </div>
 
       <div id="secDieta" class="panel-card hidden">
@@ -749,6 +756,7 @@
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
 
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
+      document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
 
       const pres = currentStudentData.prescricao_corrida || {};
       document.getElementById('run_seg').value = pres.seg || '';
@@ -771,7 +779,7 @@
   }
 
   // ==========================================
-  // GERAÇÃO DE PROTOCOLO + DIRETRIZES VIA IA
+  // GERAÇÃO DE PROTOCOLO + CARDIO VIA IA
   // ==========================================
 
   async function gerarProtocoloCompletoIA() {
@@ -784,7 +792,7 @@
 
     const btn = document.getElementById('btnGerarProtocoloIA');
     const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ IA Gerando...";
+    btn.textContent = "⏳ IA Gerando Protocolo...";
     btn.disabled = true;
 
     try {
@@ -804,7 +812,12 @@
           document.getElementById('editTrainerGuidelines').value = prot.trainer_guidelines;
         }
 
-        // 2. Preenche Treinos no Editor
+        // 2. Preenche Cardio
+        if (prot.cardio_guidelines) {
+          document.getElementById('editCardioGuidelines').value = prot.cardio_guidelines;
+        }
+
+        // 3. Preenche Treinos no Editor
         if (prot.days && prot.days.length > 0) {
           let textoTreino = "";
           prot.days.forEach(day => {
@@ -818,7 +831,7 @@
           lidarEdicaoTreino();
         }
 
-        // 3. Preenche Dieta no Editor (se aplicável)
+        // 4. Preenche Dieta no Editor
         if (prot.refeicoes && prot.refeicoes.length > 0) {
           let textoDieta = "";
           prot.refeicoes.forEach(ref => {
@@ -828,7 +841,7 @@
           lidarEdicaoDieta();
         }
 
-        showToast("Protocolo e diretrizes gerados com sucesso!", "success");
+        showToast("Protocolo, Cardio e Diretrizes gerados pela IA!", "success");
       } else {
         showToast(data.error || "Não foi possível gerar o protocolo.", "error");
       }
@@ -841,7 +854,7 @@
   }
 
   // ==========================================
-  // ENVIO DE CREDENCIAIS E WHATSAPP
+  // ENVIO DE CREDENCIAIS E WHATSAPP COM VÍDEO
   // ==========================================
 
   function enviarCredenciaisWhatsApp() {
@@ -850,13 +863,18 @@
     const nome = currentStudentData.clientName || currentStudentCode;
     const codigo = currentStudentCode;
     const senha = lastGeneratedPassword || "Sua senha de cadastro";
-    const link = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+    const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+    
+    // Substitua pelo seu link de vídeo quando os seus vídeos estiverem prontos
+    const linkVideoBoasVindas = "https://youtube.com/shorts/SEU_VIDEO_AQUI";
 
     const mensagem = `Olá, ${nome}! 👋🏼%0A%0A` +
                      `Seu acesso à Consultoria Jhonata Personal está liberado!%0A%0A` +
-                     `🔗 *Link de Acesso:* ${link}%0A` +
+                     `🔗 *Link de Acesso:* ${linkApp}%0A` +
                      `👤 *Usuário:* ${codigo}%0A` +
                      `🔑 *Senha:* ${senha}%0A%0A` +
+                     `🎥 *Assista ao vídeo de boas-vindas e como utilizar o aplicativo:*%0A` +
+                     `${linkVideoBoasVindas}%0A%0A` +
                      `Qualquer dúvida, estou à disposição! Bons treinos! 💪🏼`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
@@ -1210,10 +1228,11 @@ ${tx.value}`,
   function salvarTreinoEditado() {
     const raw = document.getElementById('liveWorkoutText').value;
     const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
+    const cardioText = document.getElementById('editCardioGuidelines').value.trim();
 
     currentStudentData.days = parseWorkoutText(raw);
     currentStudentData.trainer_guidelines = guidelinesText;
-    currentStudentData.diretrizes_treinador = guidelinesText;
+    currentStudentData.cardio_guidelines = cardioText;
 
     salvarAlteracoes('workout');
   }
@@ -1906,6 +1925,7 @@ ${tx.value}`,
       apenasTreino: false,
       corredor: false,
       trainer_guidelines: "",
+      cardio_guidelines: "",
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
