@@ -7,10 +7,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- PWA ADMIN INDEPENDENTE -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+<link rel="manifest" href="manifest-admin.json">
 
 <style>
   :root {
@@ -188,7 +190,7 @@
     </div>
 
     <div id="aiProgressInsight" class="ai-insight-box hidden">
-      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
+      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA (3.6-Flash):</div>
       <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
     </div>
 
@@ -385,7 +387,7 @@
               <option value="pago">🟢 Pago / Acesso Liberado</option>
               <option value="pendente">🔴 Suspenso / Pendente</option>
             </select>
-            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês (+30 Dias)</button>
+            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês (+30 Dias Acumulativos)</button>
           </div>
         </div>
 
@@ -446,7 +448,7 @@
       </div>
 
       <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador</div>
+        <div class="panel-title">🤖 Assistente IA do Treinador (Gemini 3.6-Flash)</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
 
         <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
