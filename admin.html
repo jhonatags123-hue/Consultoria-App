@@ -7,11 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- PWA ADMIN INDEPENDENTE -->
+<!-- PWA ADMIN INDEPENDENTE (ÍCONE DE MOTO CORRIGIDO PARA HALTERE) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3063/3063822.png">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2548/2548537.png">
 <link rel="manifest" href="manifest-admin.json">
 
 <style>
@@ -1679,7 +1679,6 @@ ${tx.value}`,
     let globalSeries = "3";
     let globalReps = "8-10";
 
-    // Lista ampliada de divisões aceitas como Título de Dia de Treino
     const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'treino', 'dia'];
 
     lines.forEach(line => {
@@ -1688,7 +1687,6 @@ ${tx.value}`,
 
       const lowerLine = cleanLine.toLowerCase();
 
-      // Configuração global opcional (ex: 3x8-10)
       if (lowerLine.includes('global') || lowerLine.startsWith('series') || lowerLine.startsWith('séries')) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
@@ -1698,7 +1696,6 @@ ${tx.value}`,
         return;
       }
 
-      // Verifica se a linha é um Título de Dia de Treino
       let isDayHeader = false;
       const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
 
