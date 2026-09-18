@@ -29,6 +29,8 @@
     --mark-dim: rgba(220,170,58,0.12);
     --good: #4F9C6E;
     --good-dim: rgba(79,156,110,0.12);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.15);
     --font-display: 'Big Shoulders Display', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'Space Mono', monospace;
@@ -67,6 +69,8 @@
   .btn-wpp:hover { background:#458A61; }
   .btn-gold { background:var(--mark); color:#1A1408; }
   .btn-gold:hover { background:#A0813F; }
+  .btn-blue { background:var(--blue); color:#FFFFFF; }
+  .btn-blue:hover { background:#2563eb; }
   .btn-header { background:transparent; border:1px solid var(--line); color:var(--ink-dim); padding:6px 12px; border-radius:6px; font-size:12px; font-family:var(--font-body); cursor:pointer; transition:all .15s ease; }
   .btn-header:hover { border-color:var(--ink-dim); color:var(--ink); }
   .error-msg { color:var(--signal-light); font-size:12.5px; text-align:center; margin-top:10px; font-weight:600; }
@@ -75,7 +79,7 @@
   .progress-bar-fill { width:10%; background:var(--signal-light); height:100%; transition:width 0.25s ease; }
   .step-counter { font-size:11px; color:var(--ink-dim); font-family:var(--font-mono); text-align:right; margin-bottom:10px; }
 
-  .header-app { display:flex; justify-space-between; align-items:center; margin-bottom:6px; }
+  .header-app { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
   .header-app h1 { font-size:26px; text-align:left; }
   .header-actions { display:flex; gap:6px; }
 
@@ -230,7 +234,9 @@
   .congrats-desc { font-size: 12.5px; color: var(--ink); line-height: 1.4; }
   .btn-close-congrats { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--ink-dim); font-size: 16px; cursor: pointer; }
 
-  .run-item { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--signal-light); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+  .run-item { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .run-day-title { font-weight:800; color:var(--blue); font-size:13px; text-transform:uppercase; margin-bottom:4px; }
+  .run-day-desc { font-size:12px; color:var(--ink); margin-bottom:8px; line-height:1.4; }
 </style>
 </head>
 <body>
@@ -549,19 +555,22 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE CORRIDA ATUALIZADO (ÚLTIMAS 4 SEMANAS) -->
+    <!-- MÓDULO DE CORRIDA COMPLETO COM PRESCRIÇÃO E REGISTROS DE PACE -->
     <div id="tabCorrida" class="card hidden">
-      <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px;">🏃 Desempenho & Evolução de Corrida (Últimas 4 Semanas)</div>
+      <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
       
       <div id="corridaResumoMes" style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:14px; text-align:center;">
         <div style="font-size:11px; color:var(--ink-dim); font-weight:700;">ACUMULADO RECENTE (4 SEMANAS)</div>
         <div style="display:flex; justify-content:space-around; margin-top:8px;">
           <div><div style="font-size:18px; font-weight:800; color:var(--mark);" id="runTotalKm">0.0 km</div><div style="font-size:10px; color:var(--ink-dim);">Distância</div></div>
-          <div><div style="font-size:18px; font-weight:800; color:var(--signal-light);" id="runPaceMedio">0'00"</div><div style="font-size:10px; color:var(--ink-dim);">Pace Médio</div></div>
+          <div><div style="font-size:18px; font-weight:800; color:var(--blue);" id="runPaceMedio">0'00"</div><div style="font-size:10px; color:var(--ink-dim);">Pace Médio</div></div>
         </div>
       </div>
 
-      <div class="label-fdb">Histórico Semanal de Corridas:</div>
+      <div class="label-fdb">Prescrição da Semana pelo Treinador:</div>
+      <div id="corridaPrescricaoList" style="margin-bottom:16px;"></div>
+
+      <div class="label-fdb" style="margin-top:14px;">Histórico de Treinos Registrados (Últimas 4 Semanas):</div>
       <div id="corridaHistoryList">Nenhuma corrida registrada nas últimas 4 semanas.</div>
     </div>
 
@@ -622,6 +631,9 @@
   let loggedUserCode = "";
   let activeDietTag = "";
   let autoSaveTimer = null;
+  let currentTreinoDayIdx = 0;
+  let parsedDietBlocks = [];
+  let dietCategories = [];
 
   function escapeHtml(str) {
     if (!str || typeof str !== 'string') return '';
@@ -635,13 +647,9 @@
   function initAudioContext() {
     if (!audioCtx) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      if (AudioContextClass) {
-        audioCtx = new AudioContextClass();
-      }
+      if (AudioContextClass) audioCtx = new AudioContextClass();
     }
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   }
 
   function playBipSound() {
@@ -662,7 +670,6 @@
 
   function startRestTimer(seconds) {
     initAudioContext();
-
     if (restTimerInterval) clearInterval(restTimerInterval);
     restSecondsLeft = seconds;
 
@@ -678,7 +685,6 @@
       if (restSecondsLeft <= 0) {
         clearInterval(restTimerInterval);
         widget.classList.add('timer-finished-glow');
-        
         playBipSound();
         if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
@@ -698,9 +704,7 @@
 
   function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
     const el = document.getElementById(`input_${keyInput}`);
-    if (el) {
-      el.value = valorCarga;
-    }
+    if (el) el.value = valorCarga;
     scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
   }
 
@@ -1060,7 +1064,7 @@
 
     if (data.corredor === true) {
       document.getElementById('btnCorrida').classList.remove('hidden');
-      setupCorrida(data.registros_corrida || data.corridas || {});
+      setupCorrida(data);
     } else {
       document.getElementById('btnCorrida').classList.add('hidden');
     }
@@ -1117,25 +1121,65 @@
     localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
   }
 
-  // EXIBIÇÃO DO HISTÓRICO DE CORRIDA LIMITADO A 4 SEMANAS
-  function setupCorrida(registrosOuLista) {
-    const list = document.getElementById('corridaHistoryList');
-    list.innerHTML = '';
+  // MÓDULO DE CORRIDA: PRESCRIÇÃO E REGISTRO DE PACE
+  function setupCorrida(data) {
+    const presContainer = document.getElementById('corridaPrescricaoList');
+    const histContainer = document.getElementById('corridaHistoryList');
+
+    if (!presContainer || !histContainer) return;
+
+    presContainer.innerHTML = '';
+    histContainer.innerHTML = '';
+
+    const prescricao = data.prescricao_corrida || {};
+    const registros = data.registros_corrida || data.corridas || {};
+
+    const dias = [
+      { key: 'seg', nome: 'Segunda-Feira' },
+      { key: 'ter', nome: 'Terça-Feira' },
+      { key: 'qua', nome: 'Quarta-Feira' },
+      { key: 'qui', nome: 'Quinta-Feira' },
+      { key: 'sex', nome: 'Sexta-Feira' },
+      { key: 'sab', nome: 'Sábado' },
+      { key: 'dom', nome: 'Domingo' }
+    ];
 
     let totalKm = 0;
-    let totalMinutos = 0;
-    let registrosEncontrados = 0;
+    let totalMin = 0;
+    let totalRegistros = 0;
 
-    const nomesDias = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+    dias.forEach(d => {
+      const treinoInstrucao = prescricao[d.key] || 'Descanso ou treino livre';
+      const regDia = registros[d.key] || [];
+      const ultimoReg = Array.isArray(regDia) ? regDia[regDia.length - 1] : regDia;
+
+      const kmVal = ultimoReg?.km || '';
+      const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
+
+      const card = document.createElement('div');
+      card.className = 'run-item';
+      card.innerHTML = `
+        <div class="run-day-title">${d.nome}</div>
+        <div class="run-day-desc">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
+        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+          <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
+          <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min (Ex: 25)" value="${escapeHtml(minVal)}">
+          <button type="button" class="btn-login btn-blue" style="width:80px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
+        </div>
+      `;
+      presContainer.appendChild(card);
+    });
+
+    const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
     const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
 
-    if (Array.isArray(registrosOuLista)) {
-      registrosOuLista.slice(-4).forEach(c => {
+    if (Array.isArray(registros)) {
+      registros.slice(-4).forEach(c => {
         const km = parseFloat(c.km) || 0;
         const min = parseFloat(c.minutos || c.min) || 0;
         totalKm += km;
-        totalMinutos += min;
-        registrosEncontrados++;
+        totalMin += min;
+        totalRegistros++;
 
         const paceFloat = km > 0 ? (min / km) : 0;
         const paceMin = Math.floor(paceFloat);
@@ -1147,59 +1191,96 @@
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
             <span>📅 ${escapeHtml(c.data || 'Treino')}</span>
-            <span style="color:var(--signal-light);">Pace: ${paceStr} /km</span>
+            <span style="color:var(--blue);">Pace: ${paceStr} /km</span>
           </div>
           <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-            Distância: <b>${km} km</b> | Tempo: <b>${min} min</b>
+            Distância: <b>${km} km</b> | Duração: <b>${min} min</b>
           </div>
         `;
-        list.appendChild(div);
+        histContainer.appendChild(div);
       });
-    } else if (typeof registrosOuLista === 'object') {
+    } else if (typeof registros === 'object') {
       keysDias.forEach(key => {
-        let hDia = registrosOuLista[key];
+        let hDia = registros[key];
         if (!hDia) return;
         if (!Array.isArray(hDia)) hDia = [hDia];
 
-        // Trava no máximo em 4 semanas por dia
         if (hDia.length > 4) hDia = hDia.slice(-4);
 
         hDia.forEach((c, idx) => {
           const km = parseFloat(c.km) || 0;
-          const min = parseFloat(c.min) || 0;
+          const min = parseFloat(c.min || c.minutos) || 0;
           totalKm += km;
-          totalMinutos += min;
-          registrosEncontrados++;
+          totalMin += min;
+          totalRegistros++;
+
+          const paceFloat = km > 0 ? (min / km) : 0;
+          const paceMin = Math.floor(paceFloat);
+          const paceSec = Math.round((paceFloat - paceMin) * 60);
+          const paceStr = `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
 
           const div = document.createElement('div');
           div.className = 'run-item';
           div.innerHTML = `
             <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
-              <span>🏃 ${nomesDias[key]} (Semana ${idx + 1})</span>
-              <span style="color:var(--signal-light); font-size:11px;">${escapeHtml(c.data || 'Recente')}</span>
+              <span>🏃 ${nomesDiasMap[key]} (${escapeHtml(c.data || 'Recente')})</span>
+              <span style="color:var(--blue); font-size:12px;">Pace: ${paceStr} /km</span>
             </div>
             <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-              ${km > 0 ? `Distância: <b>${km} km</b> \vert{} Tempo: <b>${min} min</b>` : 'Treino registrado com sucesso'}
+              ${km > 0 ? `Distância: <b>${km} km</b> \vert{} Tempo: <b>${min} min</b>` : 'Treino registrado'}
             </div>
           `;
-          list.appendChild(div);
+          histContainer.appendChild(div);
         });
       });
     }
 
-    if (registrosEncontrados === 0) {
-      list.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhum treino de corrida registrado nas últimas 4 semanas.</div>`;
-      return;
+    if (totalRegistros === 0) {
+      histContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida realizada nas últimas 4 semanas.</div>`;
     }
 
     document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
-    const paceMedioGlobal = totalKm > 0 ? (totalMinutos / totalKm) : 0;
+    const paceMedioGlobal = totalKm > 0 ? (totalMin / totalKm) : 0;
     const pMinG = Math.floor(paceMedioGlobal);
     const pSecG = Math.round((paceMedioGlobal - pMinG) * 60);
     document.getElementById('runPaceMedio').textContent = `${pMinG}'${pSecG < 10 ? '0' : ''}${pSecG}"`;
   }
 
-  let currentTreinoDayIdx = 0;
+  async function salvarRunDia(keyDia) {
+    const km = document.getElementById(`run_km_${keyDia}`).value.trim();
+    const min = document.getElementById(`run_min_${keyDia}`).value.trim();
+
+    if (!km || !min) return alert("Informe a distância em Km e o tempo em minutos.");
+
+    if (!currentData.registros_corrida) currentData.registros_corrida = {};
+    if (!Array.isArray(currentData.registros_corrida[keyDia])) {
+      currentData.registros_corrida[keyDia] = [];
+    }
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR');
+    currentData.registros_corrida[keyDia].push({
+      km: km,
+      min: min,
+      data: dataHoje
+    });
+
+    if (currentData.registros_corrida[keyDia].length > 4) {
+      currentData.registros_corrida[keyDia] = currentData.registros_corrida[keyDia].slice(-4);
+    }
+
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+      alert("✅ Treino de corrida salvo com sucesso!");
+      setupCorrida(currentData);
+    } catch (e) {
+      alert("Erro ao salvar o treino de corrida.");
+    }
+  }
 
   function setupWorkout(days) {
     currentData.days = days;
@@ -1713,9 +1794,6 @@
 
     return items;
   }
-
-  let parsedDietBlocks = [];
-  let dietCategories = [];
 
   function setupDiet(refeicoes) {
     const listContainer = document.getElementById('dietCategoryList');
