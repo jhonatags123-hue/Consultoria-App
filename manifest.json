@@ -1,16 +1,15 @@
 {
-  "short_name": "Jhonata Personal",
-  "name": "Consultoria — Jhonata Personal",
+  "name": "Jhonata Personal",
+  "short_name": "Personal",
+  "start_url": "app.html",
+  "display": "standalone",
+  "background_color": "#0d0406",
+  "theme_color": "#841628",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/2964/2964514.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ],
-  "start_url": "/app.html",
-  "background_color": "#090204",
-  "theme_color": "#090204",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }
