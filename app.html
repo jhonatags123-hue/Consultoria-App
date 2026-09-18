@@ -998,6 +998,7 @@
 
     document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
+    // Normaliza 'hoje' para 00:00:00 horário local
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -1007,10 +1008,14 @@
     let dataExp = null;
 
     if (data.data_expiracao) {
-      const expDataStr = String(data.data_expiracao).replace(/-/g, '/');
-      const dtParsed = new Date(expDataStr);
-      if (!isNaN(dtParsed.getTime())) {
-        dataExp = dtParsed;
+      // Se a data vier em formato YYYY-MM-DD, divide explicitamente sem usar parsing UTC
+      const expStr = String(data.data_expiracao).split('T')[0];
+      const parts = expStr.split('-');
+      if (parts.length === 3) {
+        dataExp = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999);
+      } else {
+        const dtParsed = new Date(expStr.replace(/-/g, '/'));
+        if (!isNaN(dtParsed.getTime())) dataExp = dtParsed;
       }
     }
 
