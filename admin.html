@@ -123,7 +123,7 @@
   .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
   .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
 
-  /* 🍞 TOAST NOTIFICATION STYLES */
+  /* TOAST NOTIFICATIONS */
   #toastContainer {
     position: fixed; top: 20px; right: 20px; z-index: 100000;
     display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -459,7 +459,6 @@
   let allStudentsList = [];
   let chartInstance = null;
 
-  // 🍞 SISTEMA DE NOTIFICAÇÕES (TOASTS)
   function showToast(mensagem, tipo = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -496,7 +495,6 @@
       .replace(/'/g, '&#39;');
   }
 
-  // 🧹 LIMPEZA AUTOMÁTICA DE RASCUNHOS NO LOCALSTORAGE
   function limparRascunhosAntigos() {
     try {
       const chaves = Object.keys(localStorage);
@@ -513,7 +511,6 @@
     } catch(e) {}
   }
 
-  // 🧮 MÓDULO DE CÁLCULO DE DIAS BASEADO NO VENCIMENTO
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -521,20 +518,24 @@
     let targetDate = null;
 
     if (dataExpiracaoStr) {
-      targetDate = new Date(dataExpiracaoStr);
+      const expDataStr = String(dataExpiracaoStr).replace(/-/g, '/');
+      const dtParsed = new Date(expDataStr);
+      if (!isNaN(dtParsed.getTime())) {
+        targetDate = dtParsed;
+      }
     }
 
     if (!targetDate || isNaN(targetDate.getTime())) {
       const mesAtual = hoje.getMonth();
       const anoAtual = hoje.getFullYear();
       let dia = parseInt(diaVencimentoFallback) || 7;
-      targetDate = new Date(anoAtual, mesAtual, dia);
+      targetDate = new Date(anoAtual, mesAtual, dia, 23, 59, 59, 999);
 
       if (targetDate < hoje) {
-        targetDate = new Date(anoAtual, mesAtual + 1, dia);
+        targetDate = new Date(anoAtual, mesAtual + 1, dia, 23, 59, 59, 999);
       }
     } else {
-      targetDate.setHours(0, 0, 0, 0);
+      targetDate.setHours(23, 59, 59, 999);
     }
 
     const diffTempo = targetDate.getTime() - hoje.getTime();
@@ -603,7 +604,7 @@
         errorDiv.style.display = 'block';
       }
     } catch(e) { 
-      errorDiv.textContent = "❌ Erro ao conectar ao servidor Render.";
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor.";
       errorDiv.style.display = 'block';
     } finally {
       btn.textContent = "ENTRAR NO PAINEL";
@@ -648,7 +649,7 @@
       let statusClass = "status-pago";
       let statusText = aluno.status_pagamento || "pago";
 
-      if (statusText === 'pendente' || infoCalculada.dias < 0) {
+      if (statusText === 'pendente' || infoCalculada.dias <= 0) {
         statusClass = "status-pendente";
       } else if (infoCalculada.dias <= 5) {
         statusClass = "status-alerta";
@@ -663,7 +664,7 @@
         </div>
         <div style="text-align:right;">
           <span class="status-pill ${statusClass}">${escapeHtml(statusText)}</span>
-          <div style="font-size:10px; color:var(--muted); margin-top:3px;">${infoCalculada.dias < 0 ? 'Vencido' : infoCalculada.dias + 'd restantes'}</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:3px;">${infoCalculada.dias <= 0 ? 'Vencido' : infoCalculada.dias + 'd restantes'}</div>
         </div>
       `;
       div.onclick = () => {
@@ -706,10 +707,10 @@
 
       stPill.textContent = stVal.toUpperCase();
 
-      if (stVal === 'pendente' || infoCalculada.dias < 0) {
+      if (stVal === 'pendente' || infoCalculada.dias <= 0) {
         stPill.className = "status-pill status-pendente";
         daysPill.className = "status-pill status-pendente";
-        daysPill.textContent = infoCalculada.dias < 0 ? `VENCIDO HÁ ${Math.abs(infoCalculada.dias)}D` : `PENDENTE`;
+        daysPill.textContent = infoCalculada.dias <= 0 ? `VENCIDO` : `PENDENTE`;
       } else if (infoCalculada.dias <= 5) {
         stPill.className = "status-pill status-alerta";
         daysPill.className = "status-pill status-alerta";
@@ -836,7 +837,6 @@
     }
   }
 
-  // 🛠️ RENOVAÇÃO +30 DIAS ACUMULATIVOS
   async function renovarUmMesAluno() {
     if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
@@ -855,6 +855,8 @@
       }
 
       const novaExp = new Date(baseMs + (30 * 24 * 60 * 60 * 1000));
+      novaExp.setHours(23, 59, 59, 999);
+      
       currentStudentData.data_expiracao = novaExp.toISOString();
       currentStudentData.dia_vencimento = novaExp.getDate();
 
@@ -1360,7 +1362,7 @@ ${tx.value}`,
     atualizarPreviewDietaAoVivo();
   }
 
-  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sábado', 'Sábado'];
 
   function parseBlocoDietaAdmin(rawText) {
     if (!rawText || typeof rawText !== 'string') return [];
@@ -1591,11 +1593,10 @@ ${tx.value}`,
     const novoDia = parseInt(document.getElementById('editDiaVencimento').value) || 7;
     currentStudentData.dia_vencimento = novoDia;
 
-    // Recalcula a data_expiracao com base no dia do vencimento selecionado
     const hoje = new Date();
-    let novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth(), novoDia);
+    let novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth(), novoDia, 23, 59, 59, 999);
     if (novaDataExp < hoje) {
-      novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth() + 1, novoDia);
+      novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth() + 1, novoDia, 23, 59, 59, 999);
     }
     currentStudentData.data_expiracao = novaDataExp.toISOString();
 
@@ -1755,6 +1756,7 @@ ${tx.value}`,
 
     const hoje = new Date();
     hoje.setDate(hoje.getDate() + 30);
+    hoje.setHours(23, 59, 59, 999);
 
     const payload = {
       clientName: nome,
