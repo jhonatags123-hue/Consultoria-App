@@ -523,7 +523,6 @@
     } catch(e) {}
   }
 
-  // ===== FUNÇÃO CORRIGIDA DE CÁLCULO DE DIAS (SEM BUG DE FUSO HORÁRIO UTC) =====
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -927,7 +926,6 @@
     }
   }
 
-  // ===== RENOVAÇÃO CORRIGIDA DE +30 DIAS ACUMULATIVOS =====
   async function renovarUmMesAluno() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
@@ -954,7 +952,6 @@
         }
       }
 
-      // Adiciona 30 dias exatos
       dataBase.setDate(dataBase.getDate() + 30);
 
       const anoFmt = dataBase.getFullYear();
@@ -1608,7 +1605,6 @@ ${tx.value}`,
     salvarAlteracoes('diet');
   }
 
-  // ===== ATUALIZAÇÃO CORRIGIDA DE CONFIGURAÇÕES DE DATA =====
   async function salvarConfiguracoesConta() {
     currentStudentData.clientName = document.getElementById('editName').value.trim();
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
@@ -1683,8 +1679,8 @@ ${tx.value}`,
     let globalSeries = "3";
     let globalReps = "8-10";
 
-    const exerciseKeywords = ['supino', 'remada', 'puxada', 'elevação', 'elevacao', 'pélvica', 'pelvica', 'flexora', 'extensora', 'rosca', 'tríceps', 'triceps', 'agachamento', 'leg press', 'crucifixo', 'cross', 'desenvolvimento', 'afundo', 'panturrilha', 'stiff', 'terra'];
-    const validDivisionRegex = /^(upper|lower|fullbody|push|pull|legs|treino\s+[a-g0-9]|dia\s+[a-g0-9]|[a-g]\s*[\-\:\)]|\b[a-g]\b)/i;
+    // Lista ampliada de divisões aceitas como Título de Dia de Treino
+    const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'treino', 'dia'];
 
     lines.forEach(line => {
       const cleanLine = line.trim();
@@ -1692,7 +1688,8 @@ ${tx.value}`,
 
       const lowerLine = cleanLine.toLowerCase();
 
-      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries')) {
+      // Configuração global opcional (ex: 3x8-10)
+      if (lowerLine.includes('global') || lowerLine.startsWith('series') || lowerLine.startsWith('séries')) {
         const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
         if (matchGlobal) {
           globalSeries = matchGlobal[1];
@@ -1701,13 +1698,19 @@ ${tx.value}`,
         return;
       }
 
-      const isKnownExercise = exerciseKeywords.some(ex => lowerLine.includes(ex));
-      const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
+      // Verifica se a linha é um Título de Dia de Treino
+      let isDayHeader = false;
+      const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
 
-      const isDayHeader = validDivisionRegex.test(cleanLine) && !isKnownExercise && !hasWorkoutNumbers;
+      const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
+      const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
+
+      if (hasDivKeyword || isShortHeader) {
+        isDayHeader = true;
+      }
 
       if (isDayHeader) {
-        currentDay = { title: cleanLine.toUpperCase(), exercicios: [] };
+        currentDay = { title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), exercicios: [] };
         days.push(currentDay);
       } else {
         if (!currentDay) {
@@ -1715,7 +1718,7 @@ ${tx.value}`,
           days.push(currentDay);
         }
 
-        let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
+        let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
 
         const hasMyo = lowerLine.includes('myo');
         const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
