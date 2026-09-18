@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- PWA ADMIN INDEPENDENTE (ÍCONE DE MOTO CORRIGIDO PARA HALTERE) -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
@@ -130,7 +129,6 @@
   .run-day-card { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
   .run-day-card b { color: var(--blue); font-size: 12px; text-transform: uppercase; }
 
-  /* TOAST NOTIFICATIONS */
   #toastContainer {
     position: fixed; top: 20px; right: 20px; z-index: 100000;
     display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -227,7 +225,8 @@
 
       <div class="panel-card">
         <div class="panel-title">⚡ Ferramentas</div>
-        <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
+        <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso via WhatsApp</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
@@ -291,16 +290,19 @@
         <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Exibido no Topo do App do Aluno):</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA):</label>
+            <button class="btn btn-soft" id="btnGerarProtocoloIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarProtocoloCompletoIA()">🤖 Gerar Treino + Diretrizes (IA)</button>
+          </div>
           <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Deixe em branco para o app exibir as orientações técnicas padrão.</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA pode preencher essas diretrizes automaticamente baseada na anamnese.</div>
         </div>
 
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha Atual:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
             <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
-            <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
+            <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste via IA</button>
           </div>
         </div>
 
@@ -340,7 +342,6 @@
         </div>
       </div>
 
-      <!-- PRESCRIÇÃO SEMANAL DE CORRIDA + VISUALIZAÇÃO DO HISTÓRICO DE 4 SEMANAS -->
       <div id="secCorrida" class="panel-card hidden">
         <div class="panel-title">🏃 Prescrição & Histórico de Corrida (Últimas 4 Semanas)</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Defina as instruções por dia da semana. O sistema retém automaticamente apenas as últimas 4 semanas de registros do aluno.</p>
@@ -424,8 +425,8 @@
 
       <div style="display:flex; gap:10px; margin-top:16px; flex-direction:column;">
           <button class="btn" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
-          <button class="btn btn-wpp" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
-          <button class="btn btn-danger" onclick="deletarAluno()">🗑️ Excluir</button>
+          <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Credenciais no WhatsApp</button>
+          <button class="btn btn-danger" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
       </div>
     </div>
 
@@ -468,6 +469,7 @@
   const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
   let currentStudentCode = "";
   let currentStudentData = null;
+  let lastGeneratedPassword = "";
   let allStudentsList = [];
   let chartInstance = null;
 
@@ -765,6 +767,127 @@
       renderCorridaAdmin();
     } catch(e) { 
       showToast("Erro ao carregar dados do aluno.", "error"); 
+    }
+  }
+
+  // ==========================================
+  // GERAÇÃO DE PROTOCOLO + DIRETRIZES VIA IA
+  // ==========================================
+
+  async function gerarProtocoloCompletoIA() {
+    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+    
+    const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
+    if (!anamnese || (!anamnese.objetivo && !anamnese.nome)) {
+      return showToast("Aluno sem dados de anamnese cadastrados.", "error");
+    }
+
+    const btn = document.getElementById('btnGerarProtocoloIA');
+    const txtOriginal = btn.textContent;
+    btn.textContent = "⏳ IA Gerando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-protocolo-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ anamneseData: anamnese })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.protocolo) {
+        const prot = data.protocolo;
+
+        // 1. Preenche Diretrizes
+        if (prot.trainer_guidelines) {
+          document.getElementById('editTrainerGuidelines').value = prot.trainer_guidelines;
+        }
+
+        // 2. Preenche Treinos no Editor
+        if (prot.days && prot.days.length > 0) {
+          let textoTreino = "";
+          prot.days.forEach(day => {
+            textoTreino += `${day.title}\n`;
+            (day.exercicios || []).forEach(ex => {
+              textoTreino += `${ex.nome} ${ex.series}x (${ex.reps})\n`;
+            });
+            textoTreino += "\n";
+          });
+          document.getElementById('liveWorkoutText').value = textoTreino.trim();
+          lidarEdicaoTreino();
+        }
+
+        // 3. Preenche Dieta no Editor (se aplicável)
+        if (prot.refeicoes && prot.refeicoes.length > 0) {
+          let textoDieta = "";
+          prot.refeicoes.forEach(ref => {
+            textoDieta += `[Plano] ${ref.titulo}\n${ref.alimentos}\n\n`;
+          });
+          document.getElementById('dietTextarea').value = textoDieta.trim();
+          lidarEdicaoDieta();
+        }
+
+        showToast("Protocolo e diretrizes gerados com sucesso!", "success");
+      } else {
+        showToast(data.error || "Não foi possível gerar o protocolo.", "error");
+      }
+    } catch(e) {
+      showToast("Erro ao conectar à IA para protocolo.", "error");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
+  // ==========================================
+  // ENVIO DE CREDENCIAIS E WHATSAPP
+  // ==========================================
+
+  function enviarCredenciaisWhatsApp() {
+    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+
+    const nome = currentStudentData.clientName || currentStudentCode;
+    const codigo = currentStudentCode;
+    const senha = lastGeneratedPassword || "Sua senha de cadastro";
+    const link = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+
+    const mensagem = `Olá, ${nome}! 👋🏼%0A%0A` +
+                     `Seu acesso à Consultoria Jhonata Personal está liberado!%0A%0A` +
+                     `🔗 *Link de Acesso:* ${link}%0A` +
+                     `👤 *Usuário:* ${codigo}%0A` +
+                     `🔑 *Senha:* ${senha}%0A%0A` +
+                     `Qualquer dúvida, estou à disposição! Bons treinos! 💪🏼`;
+
+    const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
+    const urlWpp = fone ? `https://wa.me/55${fone}?text=${mensagem}` : `https://wa.me/?text=${mensagem}`;
+
+    window.open(urlWpp, '_blank');
+  }
+
+  async function gerarNovaSenhaAluno() {
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
+    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
+        method: 'POST',
+        headers: authHeaders(),
+        cache: 'no-cache'
+      });
+      const data = await res.json();
+      if (res.ok && data.senhaTemporaria) {
+        lastGeneratedPassword = data.senhaTemporaria;
+        document.getElementById('editPassword').value = data.senhaTemporaria;
+        showToast(`Nova Senha: ${data.senhaTemporaria}`, "success");
+        if (confirm("Deseja enviar as novas credenciais via WhatsApp agora?")) {
+          enviarCredenciaisWhatsApp();
+        }
+      } else {
+        showToast(data.error || "Erro ao gerar senha.", "error");
+      }
+    } catch (e) {
+      showToast("Erro ao conectar ao servidor.", "error");
     }
   }
 
@@ -1093,27 +1216,6 @@ ${tx.value}`,
     currentStudentData.diretrizes_treinador = guidelinesText;
 
     salvarAlteracoes('workout');
-  }
-
-  async function gerarNovaSenhaAluno() {
-    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
-    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
-        method: 'POST',
-        headers: authHeaders(),
-        cache: 'no-cache'
-      });
-      const data = await res.json();
-      if (res.ok && data.senhaTemporaria) {
-        showToast(`Nova Senha: ${data.senhaTemporaria}`, "success");
-      } else {
-        showToast(data.error || "Erro ao gerar senha.", "error");
-      }
-    } catch (e) {
-      showToast("Erro ao conectar ao servidor.", "error");
-    }
   }
 
   function renderWorkoutView() {
@@ -1637,6 +1739,7 @@ ${tx.value}`,
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
       currentStudentData.senha = newPass;
+      lastGeneratedPassword = newPass;
     } else {
       delete currentStudentData.senha;
     }
@@ -1815,6 +1918,7 @@ ${tx.value}`,
         body: JSON.stringify({ codigo: codigo, payload: payload })
       });
       if (res.ok) {
+        lastGeneratedPassword = codigo;
         showToast(`Aluno criado! Senha: ${codigo}`, "success");
         fetchAlunos();
         switchTab('resumo');
