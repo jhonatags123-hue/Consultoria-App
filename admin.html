@@ -6,6 +6,12 @@
 <title>Painel de Gestão Restrito — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Admin Jhonata">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
+
 <style>
   :root {
     --bg: #090204;
@@ -28,7 +34,6 @@
   body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
   #adminApp { min-height:100vh; display:flex; flex-direction:column; }
   #adminApp header { position:sticky; top:0; z-index:500; }
-  #adminApp main { touch-action: pan-y; }
 
   #loginScreen {
     position: fixed; inset: 0;
@@ -228,7 +233,6 @@
     </aside>
 
     <main>
-      <p id="swipeHint" style="font-size:11px; color:var(--muted); margin-bottom:10px; display:none;">↔ Arraste para o lado para navegar entre as abas</p>
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
@@ -578,7 +582,6 @@
       document.getElementById('adminApp').classList.remove('hidden');
       fetchAlunos();
     }
-    initSwipeNavigation();
   });
 
   async function loginAdmin() {
@@ -739,7 +742,6 @@
 
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
 
-      // Carregar Prescrição Semanal
       const pres = currentStudentData.prescricao_corrida || {};
       document.getElementById('run_seg').value = pres.seg || '';
       document.getElementById('run_ter').value = pres.ter || '';
@@ -777,7 +779,6 @@
     showToast("Prescrição de corrida salva!", "success");
   }
 
-  // EXIBIR HISTÓRICO DE CORRIDA RETENDO APENAS AS ÚLTIMAS 4 SEMANAS
   function renderCorridaAdmin() {
     const list = document.getElementById('adminRunHistoryList');
     list.innerHTML = '';
@@ -796,7 +797,6 @@
         historicoDia = [historicoDia];
       }
 
-      // Garante que só guarde e mostre até 4 semanas no máximo
       if (historicoDia.length > 4) {
         historicoDia = historicoDia.slice(-4);
       }
@@ -921,18 +921,20 @@
   }
 
   async function renovarUmMesAluno() {
-    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
+    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
 
     try {
       currentStudentData.status_pagamento = "pago";
 
-      const hojeMs = new Date().getTime();
-      let baseMs = hojeMs;
+      const hoje = new Date();
+      hoje.setHours(23, 59, 59, 999);
+
+      let baseMs = hoje.getTime();
 
       if (currentStudentData.data_expiracao) {
         const expAtualMs = new Date(currentStudentData.data_expiracao).getTime();
-        if (!isNaN(expAtualMs) && expAtualMs > hojeMs) {
+        if (!isNaN(expAtualMs) && expAtualMs > hoje.getTime()) {
           baseMs = expAtualMs;
         }
       }
@@ -952,8 +954,8 @@
 
       if (res.ok) {
         showToast(`✅ Renovado por +30 dias! Vencimento: ${novaExp.toLocaleDateString('pt-BR')}`, "success");
-        fetchAlunos();
-        carregarAluno(currentStudentCode);
+        await fetchAlunos();
+        await carregarAluno(currentStudentCode);
       } else {
         showToast("Erro ao salvar renovação no servidor.", "error");
       }
@@ -1296,40 +1298,6 @@ ${tx.value}`,
   const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'feedbackAdmin', 'treino', 'dieta', 'corrida', 'cadastro'];
   let abaAtual = 'resumo';
 
-  function initSwipeNavigation() {
-    const main = document.querySelector('main');
-    if (!main) return;
-
-    if ('ontouchstart' in window) {
-      const hint = document.getElementById('swipeHint');
-      if (hint) hint.style.display = 'block';
-    }
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-
-    main.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
-      touchStartY = e.changedTouches[0].screenY;
-    }, { passive: true });
-
-    main.addEventListener('touchend', (e) => {
-      const touchEndX = e.changedTouches[0].screenX;
-      const touchEndY = e.changedTouches[0].screenY;
-      const deltaX = touchEndX - touchStartX;
-      const deltaY = touchEndY - touchStartY;
-
-      if (Math.abs(deltaX) < 70 || Math.abs(deltaX) < Math.abs(deltaY)) return;
-
-      const idxAtual = ORDEM_ABAS_PRINCIPAIS.indexOf(abaAtual);
-      const base = idxAtual === -1 ? 0 : idxAtual;
-      const total = ORDEM_ABAS_PRINCIPAIS.length;
-
-      const proximoIdx = deltaX < 0 ? (base + 1) % total : (base - 1 + total) % total;
-      switchTab(ORDEM_ABAS_PRINCIPAIS[proximoIdx]);
-    }, { passive: true });
-  }
-
   function switchTab(tab) {
     if (ORDEM_ABAS_PRINCIPAIS.includes(tab)) abaAtual = tab;
 
@@ -1667,8 +1635,8 @@ ${tx.value}`,
           localStorage.removeItem(`draft_diet_${currentStudentCode}`);
         }
         showToast("Dados salvos com sucesso!", "success");
-        fetchAlunos();
-        carregarAluno(currentStudentCode);
+        await fetchAlunos();
+        await carregarAluno(currentStudentCode);
         switchTab('resumo');
       } else {
         showToast("Erro ao salvar dados no servidor.", "error");
