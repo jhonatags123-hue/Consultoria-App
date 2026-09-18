@@ -1992,6 +1992,8 @@
     input.value = '';
     history.scrollTop = history.scrollHeight;
 
+    const systemPrompt = "Você é o assistente virtual do Personal Jhonata. Responda à dúvida do aluno de forma clara, direta e resumida (máximo de 1000 tokens / respostas curtas para celular). Ao final de TODA resposta, adicione exatamente este texto em uma nova linha: 'Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.'";
+
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
         method: 'POST',
@@ -2000,12 +2002,22 @@
         body: JSON.stringify({ 
           mensagem: text, 
           contexto: currentData || {},
-          origem: "ALUNO"
+          origem: "ALUNO",
+          systemPrompt: systemPrompt,
+          max_tokens: 1000
         })
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line); align-self:flex-start;"><b>Assistente:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
+      
+      let respostaTexto = data.resposta || 'Resposta indisponível.';
+      const mensagemPadraoFinal = "Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.";
+      
+      if (!respostaTexto.includes("chamar o Jhonata Personal")) {
+        respostaTexto += `\n\n${mensagemPadraoFinal}`;
+      }
+
+      history.innerHTML += `<div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line); align-self:flex-start;"><b>Assistente:</b> ${escapeHtml(respostaTexto).replace(/\n/g, '<br>')}</div>`;
     } catch(e) {
       history.innerHTML += `<div style="color:var(--signal-light); font-size:11px; margin-top:4px;">Erro na comunicação com a IA. Tente novamente.</div>`;
     }
