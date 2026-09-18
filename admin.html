@@ -190,7 +190,7 @@
     </div>
 
     <div id="aiProgressInsight" class="ai-insight-box hidden">
-      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA (3.6-Flash):</div>
+      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
       <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
     </div>
 
@@ -448,7 +448,7 @@
       </div>
 
       <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador (Gemini 3.6-Flash)</div>
+        <div class="panel-title">🤖 Assistente IA do Treinador</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
 
         <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
@@ -523,6 +523,7 @@
     } catch(e) {}
   }
 
+  // ===== FUNÇÃO CORRIGIDA DE CÁLCULO DE DIAS (SEM BUG DE FUSO HORÁRIO UTC) =====
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
@@ -530,10 +531,12 @@
     let targetDate = null;
 
     if (dataExpiracaoStr) {
-      const expDataStr = String(dataExpiracaoStr).replace(/-/g, '/');
-      const dtParsed = new Date(expDataStr);
-      if (!isNaN(dtParsed.getTime())) {
-        targetDate = dtParsed;
+      const partes = String(dataExpiracaoStr).split('T')[0].split('-');
+      if (partes.length === 3) {
+        const ano = parseInt(partes[0], 10);
+        const mes = parseInt(partes[1], 10) - 1;
+        const dia = parseInt(partes[2], 10);
+        targetDate = new Date(ano, mes, dia, 23, 59, 59);
       }
     }
 
@@ -541,21 +544,23 @@
       const mesAtual = hoje.getMonth();
       const anoAtual = hoje.getFullYear();
       let dia = parseInt(diaVencimentoFallback) || 7;
-      targetDate = new Date(anoAtual, mesAtual, dia, 23, 59, 59, 999);
+      targetDate = new Date(anoAtual, mesAtual, dia, 23, 59, 59);
 
       if (targetDate < hoje) {
-        targetDate = new Date(anoAtual, mesAtual + 1, dia, 23, 59, 59, 999);
+        targetDate = new Date(anoAtual, mesAtual + 1, dia, 23, 59, 59);
       }
-    } else {
-      targetDate.setHours(23, 59, 59, 999);
     }
 
     const diffTempo = targetDate.getTime() - hoje.getTime();
     const diffDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
 
+    const diaFmt = String(targetDate.getDate()).padStart(2, '0');
+    const mesFmt = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const anoFmt = targetDate.getFullYear();
+
     return {
       dias: diffDias,
-      dataFormatada: targetDate.toLocaleDateString('pt-BR')
+      dataFormatada: `${diaFmt}/${mesFmt}/${anoFmt}`
     };
   }
 
@@ -922,6 +927,7 @@
     }
   }
 
+  // ===== RENOVAÇÃO CORRIGIDA DE +30 DIAS ACUMULATIVOS =====
   async function renovarUmMesAluno() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
     if (!confirm(`Confirmar pagamento e renovar +30 DIAS de acesso para @${currentStudentCode}?`)) return;
@@ -930,22 +936,33 @@
       currentStudentData.status_pagamento = "pago";
 
       const hoje = new Date();
-      hoje.setHours(23, 59, 59, 999);
+      hoje.setHours(0, 0, 0, 0);
 
-      let baseMs = hoje.getTime();
+      let dataBase = new Date(hoje.getTime());
 
       if (currentStudentData.data_expiracao) {
-        const expAtualMs = new Date(currentStudentData.data_expiracao).getTime();
-        if (!isNaN(expAtualMs) && expAtualMs > hoje.getTime()) {
-          baseMs = expAtualMs;
+        const partes = String(currentStudentData.data_expiracao).split('T')[0].split('-');
+        if (partes.length === 3) {
+          const ano = parseInt(partes[0], 10);
+          const mes = parseInt(partes[1], 10) - 1;
+          const dia = parseInt(partes[2], 10);
+          
+          const expExistente = new Date(ano, mes, dia, 23, 59, 59);
+          if (expExistente > hoje) {
+            dataBase = expExistente;
+          }
         }
       }
 
-      const novaExp = new Date(baseMs + (30 * 24 * 60 * 60 * 1000));
-      novaExp.setHours(23, 59, 59, 999);
-      
-      currentStudentData.data_expiracao = novaExp.toISOString();
-      currentStudentData.dia_vencimento = novaExp.getDate();
+      // Adiciona 30 dias exatos
+      dataBase.setDate(dataBase.getDate() + 30);
+
+      const anoFmt = dataBase.getFullYear();
+      const mesFmt = String(dataBase.getMonth() + 1).padStart(2, '0');
+      const diaFmt = String(dataBase.getDate()).padStart(2, '0');
+
+      currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
+      currentStudentData.dia_vencimento = dataBase.getDate();
 
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
@@ -955,7 +972,7 @@
       });
 
       if (res.ok) {
-        showToast(`✅ Renovado por +30 dias! Vencimento: ${novaExp.toLocaleDateString('pt-BR')}`, "success");
+        showToast(`✅ Renovado por +30 dias! Vencimento: ${diaFmt}/${mesFmt}/${anoFmt}`, "success");
         await fetchAlunos();
         await carregarAluno(currentStudentCode);
       } else {
@@ -1367,7 +1384,7 @@ ${tx.value}`,
     atualizarPreviewDietaAoVivo();
   }
 
-  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sábado', 'Sábado'];
+  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   function parseBlocoDietaAdmin(rawText) {
     if (!rawText || typeof rawText !== 'string') return [];
@@ -1591,6 +1608,7 @@ ${tx.value}`,
     salvarAlteracoes('diet');
   }
 
+  // ===== ATUALIZAÇÃO CORRIGIDA DE CONFIGURAÇÕES DE DATA =====
   async function salvarConfiguracoesConta() {
     currentStudentData.clientName = document.getElementById('editName').value.trim();
     currentStudentData.status_pagamento = document.getElementById('editStatus').value;
@@ -1599,12 +1617,21 @@ ${tx.value}`,
     currentStudentData.dia_vencimento = novoDia;
 
     const hoje = new Date();
-    let novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth(), novoDia, 23, 59, 59, 999);
-    if (novaDataExp < hoje) {
-      novaDataExp = new Date(hoje.getFullYear(), hoje.getMonth() + 1, novoDia, 23, 59, 59, 999);
-    }
-    currentStudentData.data_expiracao = novaDataExp.toISOString();
+    hoje.setHours(0, 0, 0, 0);
 
+    let ano = hoje.getFullYear();
+    let mes = hoje.getMonth();
+    
+    let novaDataExp = new Date(ano, mes, novoDia, 23, 59, 59);
+    if (novaDataExp < hoje) {
+      novaDataExp = new Date(ano, mes + 1, novoDia, 23, 59, 59);
+    }
+
+    const anoFmt = novaDataExp.getFullYear();
+    const mesFmt = String(novaDataExp.getMonth() + 1).padStart(2, '0');
+    const diaFmt = String(novaDataExp.getDate()).padStart(2, '0');
+
+    currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
     currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
 
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
@@ -1761,14 +1788,17 @@ ${tx.value}`,
 
     const hoje = new Date();
     hoje.setDate(hoje.getDate() + 30);
-    hoje.setHours(23, 59, 59, 999);
+    
+    const anoFmt = hoje.getFullYear();
+    const mesFmt = String(hoje.getMonth() + 1).padStart(2, '0');
+    const diaFmt = String(hoje.getDate()).padStart(2, '0');
 
     const payload = {
       clientName: nome,
       senha: codigo,
       status_pagamento: 'pago',
-      dia_vencimento: 7,
-      data_expiracao: hoje.toISOString(),
+      dia_vencimento: hoje.getDate(),
+      data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
