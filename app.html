@@ -147,17 +147,30 @@
     background: var(--good-dim); border-color: var(--good); color: var(--good);
   }
 
+  /* DIRETRIZES DO TREINADOR SANFONA */
   .trainer-goals-card {
     background: linear-gradient(135deg, rgba(132,22,40,0.25), rgba(21,24,29,0.95));
-    border: 1px solid var(--signal-light); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px;
+    border: 1px solid var(--signal-light); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
+    cursor: pointer; transition: all 0.2s ease;
   }
   .trainer-goals-title {
-    font-size: 12px; font-weight: 800; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 800; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
   }
   .trainer-goals-body {
-    font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500;
+    font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500; margin-top: 8px;
+    border-top: 1px solid rgba(220,170,58,0.2); padding-top: 8px;
+    transition: all 0.3s ease;
   }
-  .trainer-goals-body ul { margin-left: 16px; margin-top: 4px; }
+  .trainer-goals-body.collapsed { display: none; }
+
+  /* CARD DE NOTIFICAÇÃO DE FEEDBACK */
+  .feedback-notify-card {
+    background: linear-gradient(135deg, rgba(220,170,58,0.2), rgba(21,24,29,0.95));
+    border: 1px solid var(--mark); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+    position: relative; animation: slideDown 0.3s ease;
+  }
+  @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
   .rest-timer-widget {
     position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px;
@@ -489,6 +502,16 @@
     <div class="sub" id="billingInfo" style="text-align:left; margin-top:4px;"></div>
   </div>
 
+  <!-- NOTIFICAÇÃO DE MENSAGEM DO PERSONAL -->
+  <div id="feedbackNotifyBox" class="feedback-notify-card hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+      <span style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase;">💬 Nova Mensagem do Treinador</span>
+      <button onclick="dismissFeedbackNotify()" style="background:none; border:none; color:var(--ink-dim); font-size:16px; cursor:pointer;">✕</button>
+    </div>
+    <div id="feedbackNotifyText" style="font-size:13px; color:var(--ink); line-height:1.4; margin-bottom:10px;"></div>
+    <button class="btn-login btn-gold" style="margin-top:0; min-height:36px; padding:6px 12px; font-size:12px;" onclick="irParaFeedbackChat()">Responder no Chat</button>
+  </div>
+
   <div id="congratsBox" class="congrats-card hidden">
     <button class="btn-close-congrats" onclick="fecharCardEvolucao()">✕</button>
     <div class="congrats-title">🚀 Parabéns pelo seu Progresso!</div>
@@ -517,9 +540,13 @@
           <div class="detail-title" id="treinoDetailTitle">Treino do Dia</div>
         </div>
         
-        <div class="trainer-goals-card">
-          <div class="trainer-goals-title">🎯 Diretrizes do Treinador</div>
-          <div class="trainer-goals-body" id="trainerGoalsBody"></div>
+        <!-- DIRETRIZES DO TREINADOR SANFONA -->
+        <div class="trainer-goals-card" onclick="toggleTrainerGoals()">
+          <div class="trainer-goals-title">
+            <span>🎯 Diretrizes do Treinador</span>
+            <span id="arrowGoals">▼</span>
+          </div>
+          <div class="trainer-goals-body collapsed" id="trainerGoalsBody"></div>
         </div>
 
         <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
@@ -998,7 +1025,6 @@
 
     document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
-    // Normaliza 'hoje' para 00:00:00 horário local
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
@@ -1008,7 +1034,6 @@
     let dataExp = null;
 
     if (data.data_expiracao) {
-      // Se a data vier em formato YYYY-MM-DD, divide explicitamente sem usar parsing UTC
       const expStr = String(data.data_expiracao).split('T')[0];
       const parts = expStr.split('-');
       if (parts.length === 3) {
@@ -1076,9 +1101,49 @@
     }
 
     verificarCardEvolucao(data);
+    verificarNotificacaoFeedback(data);
     setupWorkout(data.days || []);
     renderFeedbackHistory();
     setupSwipeNavigation();
+  }
+
+  // NOTIFICAÇÃO DE NOVO FEEDBACK
+  function verificarNotificacaoFeedback(alunoData) {
+    const feedbacks = alunoData.feedbacks || [];
+    const notifyBox = document.getElementById('feedbackNotifyBox');
+    const notifyText = document.getElementById('feedbackNotifyText');
+    if (!notifyBox || feedbacks.length === 0) return;
+
+    const ultimasMensagens = feedbacks.filter(f => f.autor === "PERSONAL");
+    if (ultimasMensagens.length === 0) return;
+
+    const ultima = ultimasMensagens[ultimasMensagens.length - 1];
+    const keyVisto = `fb_last_seen_${loggedUserCode}`;
+    const vistoId = localStorage.getItem(keyVisto);
+
+    const msgId = ultima.data || ultima.mensagem;
+
+    if (vistoId !== msgId) {
+      notifyText.textContent = `"${ultima.mensagem}"`;
+      notifyBox.classList.remove('hidden');
+    }
+  }
+
+  function dismissFeedbackNotify() {
+    const notifyBox = document.getElementById('feedbackNotifyBox');
+    if (notifyBox) notifyBox.classList.add('hidden');
+
+    const feedbacks = (currentData && currentData.feedbacks) || [];
+    const ultimas = feedbacks.filter(f => f.autor === "PERSONAL");
+    if (ultimas.length > 0) {
+      const ultima = ultimas[ultimas.length - 1];
+      localStorage.setItem(`fb_last_seen_${loggedUserCode}`, ultima.data || ultima.mensagem);
+    }
+  }
+
+  function irParaFeedbackChat() {
+    dismissFeedbackNotify();
+    showTab('feedback');
   }
 
   function renderLockNotice() {
@@ -1365,6 +1430,16 @@
     }
   }
 
+  // CONTROLE DO EXPANDIR / RECOLHER DAS DIRETRIZES
+  function toggleTrainerGoals() {
+    const body = document.getElementById('trainerGoalsBody');
+    const arrow = document.getElementById('arrowGoals');
+    if (!body || !arrow) return;
+
+    body.classList.toggle('collapsed');
+    arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+  }
+
   function renderTreinoDetail() {
     const days = (currentData && currentData.days) || [];
     const day = days[currentTreinoDayIdx];
@@ -1378,12 +1453,7 @@
       if (customGuidelines.trim()) {
         goalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
       } else {
-        goalsContainer.innerHTML = `
-          <ul>
-            <li><b>Faixa de Carga & Repetições:</b> Mantenha as séries entre <b>8 a 10 reps</b> (ou 10-12 na 2ª fase). Evite fazer menos de 8 reps por falta de carga ou ultrapassar 12 reps sem intensidade.</li>
-            <li><b>Back-Off Set:</b> Na última série de cada exercício principal, reduza a carga em 20% a 30% e busque falha na faixa de 10 a 12 repetições.</li>
-          </ul>
-        `;
+        goalsContainer.innerHTML = `Siga o plano de execução, respeite os tempos de descanso e registre suas cargas.`;
       }
     }
 
