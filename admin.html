@@ -62,7 +62,7 @@
   .panel-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
   .panel-title { font-size:13px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
 
-  .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; }
+  .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; position:relative; }
   .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
   .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
 
@@ -79,7 +79,7 @@
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
   .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling: touch; }
-  .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
+  .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; position:relative; }
   .tab-btn:hover { border-color:var(--gold); color:#fff; }
   .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
 
@@ -100,6 +100,22 @@
   .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
   .status-alerta { background:rgba(243,156,18,0.15); color:var(--orange); border:1px solid var(--orange); }
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
+
+  .feedback-badge {
+    background: #dcaa3a;
+    color: #000;
+    font-size: 9px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulseBadge 1.5s infinite alternate;
+  }
+  @keyframes pulseBadge {
+    from { opacity: 0.7; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1.05); }
+  }
 
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
   .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; }
@@ -183,7 +199,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <div>
         <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas & Repetições</span>
+        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal Dupla: Cargas & Repetições</span>
       </div>
       <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
     </div>
@@ -195,7 +211,7 @@
 
     <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
 
-    <div style="position:relative; height:220px; width:100%;">
+    <div style="position:relative; height:280px; width:100%;">
       <canvas id="progressChart"></canvas>
     </div>
   </div>
@@ -238,7 +254,7 @@
       <div class="nav-tabs">
         <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
-        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks</button>
+        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks <span id="tabFeedbackBadge" class="feedback-badge hidden">NOVO</span></button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editor de Dieta IA</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
@@ -287,7 +303,6 @@
         </div>
       </div>
 
-      <!-- EDITOR DE TREINO E DIRETRIZES FOCADO APENAS EM MUSCULAÇÃO -->
       <div id="secTreino" class="panel-card hidden">
         <div class="panel-title">🏋️ Editor de Treino em Tempo Real + IA do Treinador</div>
         
@@ -325,7 +340,6 @@
         <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
-      <!-- EDITOR DE DIETA COM IA NO TOPO PARA AJUSTES DIRETOS -->
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Editor de Dieta + IA do Treinador</div>
         
@@ -352,7 +366,6 @@
         </div>
       </div>
 
-      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL + PRESCRIÇÃO DE CARDIO -->
       <div id="secCorrida" class="panel-card hidden">
         <div class="panel-title">🏃 Prescrição Semanal de Cardio & Corrida (IA + Manual)</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
@@ -745,6 +758,13 @@
     }
   }
 
+  function alunoTemFeedbackPendente(aluno) {
+    const feedbacks = aluno.feedbacks || [];
+    if (feedbacks.length === 0) return false;
+    const ultimaMsg = feedbacks[feedbacks.length - 1];
+    return ultimaMsg && ultimaMsg.autor === "ALUNO";
+  }
+
   function renderStudentsList(list) {
     const container = document.getElementById('alunosList');
     container.innerHTML = "";
@@ -764,11 +784,14 @@
         statusClass = "status-alerta";
       }
 
+      const temPendente = alunoTemFeedbackPendente(aluno);
+      const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
+
       const div = document.createElement('div');
       div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
       div.innerHTML = `
         <div>
-          <b>${escapeHtml(aluno.nome)}</b><br>
+          <b>${escapeHtml(aluno.nome)}</b> ${badgePendenteHtml}<br>
           <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
         </div>
         <div style="text-align:right;">
@@ -828,6 +851,14 @@
         stPill.className = "status-pill status-pago";
         daysPill.className = "status-pill status-pago";
         daysPill.textContent = `${infoCalculada.dias} DIAS RESTANTES`;
+      }
+
+      const temFeedback = alunoTemFeedbackPendente(currentStudentData);
+      const tabBadge = document.getElementById('tabFeedbackBadge');
+      if (temFeedback) {
+        tabBadge.classList.remove('hidden');
+      } else {
+        tabBadge.classList.add('hidden');
       }
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
@@ -1083,7 +1114,6 @@ ${guidelinesTx.value}`,
     }
   }
 
-  /* IA DE AJUSTE DIRETO NA DIETA (IGUAL AO TREINO) */
   async function executarComandoIaDieta() {
     const input = document.getElementById('aiDietCommand');
     const tx = document.getElementById('dietTextarea');
@@ -1275,7 +1305,7 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
         <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${escapeHtml(a.outrasAtividades) || 'Nenhuma'}</div></div>
         <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${escapeHtml(a.lesoes) || 'Nenhuma'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${escapeHtml(a.doencas) || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">nutri-box">🥜 Alergias Alimentares</div><div class="anamnese-val">${escapeHtml(a.alergias) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${escapeHtml(a.alergias) || 'Nenhuma'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${escapeHtml(a.rotina) || 'Não informado'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${escapeHtml(a.horasSono) || '-'} | Qualidade: ${escapeHtml(a.qualidadeSono) || '-'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${escapeHtml(a.alcool) || '-'} | Tabagismo: ${escapeHtml(a.tabagismo) || '-'}</div></div>
@@ -1332,6 +1362,10 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
 
       input.value = '';
       renderAdminFeedbackHistory();
+      
+      document.getElementById('tabFeedbackBadge').classList.add('hidden');
+      fetchAlunos();
+
       showToast("Resposta enviada!", "success");
     } catch (e) {
       showToast("Erro ao enviar resposta ao aluno.", "error");
@@ -1546,6 +1580,7 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
 
     let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
     let cargasValidas = [];
+    let repsValidas = [];
 
     if (historicoSemanal.length === 0) {
       html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
@@ -1556,13 +1591,14 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
           <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
             <div>
               <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data)}):</b><br>
-              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${escapeHtml(reg.repsMed)}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${escapeHtml(reg.tecnica)}</span>` : ''}
+              <span style="color:#60a5fa; font-size:11px; font-weight:700;">Reps Médias: ${escapeHtml(reg.repsMed)}</span>
+              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica: ${escapeHtml(reg.tecnica)}</span>` : ''}
             </div>
-            <div style="font-size:15px; font-weight:800; color:#fff;">${escapeHtml(reg.cargaMax)} kg</div>
+            <div style="font-size:15px; font-weight:800; color:var(--gold);">${escapeHtml(reg.cargaMax)} kg</div>
           </div>
         `;
         if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
+        if (!isNaN(parseFloat(reg.repsMed))) repsValidas.push(parseFloat(reg.repsMed));
       });
 
       gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
@@ -1571,7 +1607,7 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
     document.getElementById('logsDetailList').innerHTML = html;
     document.getElementById('chartModal').classList.remove('hidden');
 
-    renderChart(cargasValidas);
+    renderChartDuplo(cargasValidas, repsValidas);
   }
 
   async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
@@ -1603,34 +1639,67 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
     }
   }
 
-  function renderChart(cargas) {
+  function renderChartDuplo(cargas, reps) {
     const ctx = document.getElementById('progressChart').getContext('2d');
     if (chartInstance) chartInstance.destroy();
 
-    const dataPoints = cargas.length > 0 ? cargas : [0];
-    const labels = dataPoints.map((_, i) => `Semana ${i+1}`);
+    const dataCargas = cargas.length > 0 ? cargas : [0];
+    const dataReps = reps.length > 0 ? reps : [0];
+    const maxLen = Math.max(dataCargas.length, dataReps.length);
+    const labels = Array.from({length: maxLen}, (_, i) => `Treino ${i+1}`);
 
     chartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: labels,
-        datasets: [{
-          label: 'Evolução de Carga (kg)',
-          data: dataPoints,
-          borderColor: '#dcaa3a',
-          backgroundColor: 'rgba(220,170,58,0.12)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 6,
-          pointBackgroundColor: '#c4324f'
-        }]
+        datasets: [
+          {
+            label: 'Carga (kg) - Amarelo',
+            data: dataCargas,
+            borderColor: '#dcaa3a',
+            backgroundColor: 'rgba(220,170,58,0.15)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 6,
+            pointBackgroundColor: '#dcaa3a',
+            yAxisID: 'y'
+          },
+          {
+            label: 'Repetições - Azul',
+            data: dataReps,
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59,130,246,0.15)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.35,
+            pointRadius: 6,
+            pointBackgroundColor: '#3b82f6',
+            yAxisID: 'y1'
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
         scales: {
-          y: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } },
+          y: {
+            type: 'linear',
+            display: true,
+            position: 'left',
+            title: { display: true, text: 'Carga (kg)', color: '#dcaa3a' },
+            grid: { color: '#25080e' },
+            ticks: { color: '#dcaa3a' }
+          },
+          y1: {
+            type: 'linear',
+            display: true,
+            position: 'right',
+            title: { display: true, text: 'Reps Médias', color: '#3b82f6' },
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#3b82f6' }
+          },
           x: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } }
         },
         plugins: {
