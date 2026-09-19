@@ -92,6 +92,7 @@
   .btn:hover { transform:translateY(-1px); }
   .btn-danger { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; box-shadow:0 4px 12px rgba(196,50,79,0.3); }
   .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; box-shadow:0 4px 12px rgba(37,211,102,0.2); }
+  .btn-blue { background:linear-gradient(135deg, #60a5fa, #3b82f6); color:#04142d; box-shadow:0 4px 12px rgba(59,130,246,0.2); }
   .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
 
   .hidden { display:none !important; }
@@ -126,7 +127,7 @@
   .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
 
   .run-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .run-day-card { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .run-day-card { background: #0d0204; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 10px; padding: 12px; }
   .run-day-card b { color: var(--blue); font-size: 12px; text-transform: uppercase; }
 
   #toastContainer {
@@ -298,7 +299,6 @@
           <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA pode preencher essas diretrizes automaticamente baseada na anamnese.</div>
         </div>
 
-        <!-- CAMPO DE PRESCRIÇÃO DE CARDIO E INTENSIDADE -->
         <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (IA / Manual):</label>
           <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira Inclina em dias OFF (Intensidade Leve / Zona 2)."></textarea>
@@ -349,21 +349,97 @@
         </div>
       </div>
 
+      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL COM GERADOR IA -->
       <div id="secCorrida" class="panel-card hidden">
-        <div class="panel-title">🏃 Prescrição & Histórico de Corrida (Últimas 4 Semanas)</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Defina as instruções por dia da semana. O sistema retém automaticamente apenas as últimas 4 semanas de registros do aluno.</p>
-        
-        <div class="run-week-grid">
-          <div class="run-day-card"><b>Segunda-Feira</b><input type="text" id="run_seg" placeholder="Ex: 5km = 1km Forte, 3km Médio, 1km Tiro"></div>
-          <div class="run-day-card"><b>Terça-Feira</b><input type="text" id="run_ter" placeholder="Ex: Intensidade Baixa / 4km Regenerativo"></div>
-          <div class="run-day-card"><b>Quarta-Feira</b><input type="text" id="run_qua" placeholder="Ex: Descanso"></div>
-          <div class="run-day-card"><b>Quinta-Feira</b><input type="text" id="run_qui" placeholder="Ex: 6km Moderado"></div>
-          <div class="run-day-card"><b>Sexta-Feira</b><input type="text" id="run_sex" placeholder="Ex: Descanso Ativo"></div>
-          <div class="run-day-card"><b>Sábado</b><input type="text" id="run_sab" placeholder="Ex: Longão 10km"></div>
-          <div class="run-day-card"><b>Domingo</b><input type="text" id="run_dom" placeholder="Ex: Descanso Total"></div>
+        <div class="panel-title">🏃 Prescrição Semanal de Cardio & Corrida (IA + Manual)</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
+          Defina distância (Km), tempo (Min), intensidade e instruções específicas para cada dia da semana.
+        </p>
+
+        <div style="background:#100305; border:1px solid var(--blue); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <div style="font-size:12px; font-weight:800; color:var(--blue); margin-bottom:4px;">🤖 Gerar Semana Completa de Cardio via IA</div>
+          <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">
+            Descreva o objetivo (Ex: "Aluno focado em 5k emagrecimento com 2 dias de tiro, 2 moderados e descansos").
+          </div>
+          <div style="display:flex; gap:8px;">
+            <input type="text" id="aiCardioPromptAdmin" placeholder="Ex: Treino para meia maratona com foco em ritmo" style="font-size:13px;">
+            <button class="btn btn-blue" id="btnGerarCardioIA" style="width:160px; flex-shrink:0;" onclick="gerarSemanaCardioIA()">⚡ Gerar Semana (IA)</button>
+          </div>
         </div>
 
-        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaAdmin()">💾 SALVAR PRESCRIÇÃO DE CORRIDA</button>
+        <div class="run-week-grid">
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Segunda-Feira</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_seg" placeholder="Km (Ex: 5.0)" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_seg" placeholder="Tempo (Ex: 30min)" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_seg" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_seg" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Terça-Feira</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_ter" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_ter" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_ter" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_ter" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Quarta-Feira</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_qua" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_qua" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_qua" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_qua" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Quinta-Feira</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_qui" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_qui" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_qui" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_qui" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Sexta-Feira</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_sex" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_sex" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_sex" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_sex" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Sábado (Longão)</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_sab" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_sab" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_sab" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_sab" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+
+          <div class="run-day-card">
+            <b style="color:var(--blue)">Domingo</b>
+            <div style="display:flex; gap:6px; margin:6px 0;">
+              <input type="text" id="run_km_dom" placeholder="Km" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_min_dom" placeholder="Tempo" style="font-size:12px; padding:6px;">
+              <input type="text" id="run_int_dom" placeholder="Intensidade" style="font-size:12px; padding:6px;">
+            </div>
+            <textarea id="run_desc_dom" rows="2" placeholder="Instrução específica ou descanso" style="font-size:12px; padding:6px;"></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PLANO SEMANAL DE CARDIO</button>
 
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
           <label style="margin-top:0;">📋 Registros do Aluno (Últimas 4 Semanas):</label>
@@ -758,14 +834,7 @@
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
       document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
 
-      const pres = currentStudentData.prescricao_corrida || {};
-      document.getElementById('run_seg').value = pres.seg || '';
-      document.getElementById('run_ter').value = pres.ter || '';
-      document.getElementById('run_qua').value = pres.qua || '';
-      document.getElementById('run_qui').value = pres.qui || '';
-      document.getElementById('run_sex').value = pres.sex || '';
-      document.getElementById('run_sab').value = pres.sab || '';
-      document.getElementById('run_dom').value = pres.dom || '';
+      carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
 
       renderWorkoutView();
       renderAnamneseDetails();
@@ -778,9 +847,99 @@
     }
   }
 
-  // ==========================================
-  // GERAÇÃO DE PROTOCOLO + CARDIO VIA IA
-  // ==========================================
+  function carregarCamposCorridaAdmin(prescricao) {
+    const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    dias.forEach(d => {
+      const item = prescricao[d] || {};
+      if (typeof item === 'object') {
+        if (document.getElementById(`run_km_${d}`)) document.getElementById(`run_km_${d}`).value = item.km || '';
+        if (document.getElementById(`run_min_${d}`)) document.getElementById(`run_min_${d}`).value = item.min || '';
+        if (document.getElementById(`run_int_${d}`)) document.getElementById(`run_int_${d}`).value = item.intensidade || '';
+        if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = item.desc || '';
+      } else {
+        if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = item;
+      }
+    });
+  }
+
+  async function gerarSemanaCardioIA() {
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
+
+    const prompt = document.getElementById('aiCardioPromptAdmin').value.trim();
+    const btn = document.getElementById('btnGerarCardioIA');
+    const txtOriginal = btn.textContent;
+
+    btn.textContent = "⏳ IA Montando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          mensagem: `Monte uma semana de cardio e corrida dividida exatamente por dia da semana (seg, ter, qua, qui, sex, sab, dom).
+          Objetivo: "${prompt || 'Equilibrado com dias de tiros, moderado e descansos'}".
+          Retorne ESTRITAMENTE um JSON puro no formato:
+          {
+            "seg": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km moderado + 1km regenerativo"},
+            "ter": {"km": "0", "min": "20", "intensidade": "Leve", "desc": "Bike regenerativa"},
+            "qua": {"km": "6.0", "min": "35", "intensidade": "Tiros de 400m", "desc": "10x400m forte com 1min pausa"},
+            "qui": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso Total"},
+            "sex": {"km": "4.0", "min": "25", "intensidade": "Ritmo", "desc": "Pace constante"},
+            "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Frequência cardíaca controlada"},
+            "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
+          }`,
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.resposta) {
+        let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
+        const semana = JSON.parse(jsonClean);
+
+        const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+        dias.forEach(d => {
+          if (semana[d]) {
+            if (document.getElementById(`run_km_${d}`)) document.getElementById(`run_km_${d}`).value = semana[d].km || '';
+            if (document.getElementById(`run_min_${d}`)) document.getElementById(`run_min_${d}`).value = semana[d].min || '';
+            if (document.getElementById(`run_int_${d}`)) document.getElementById(`run_int_${d}`).value = semana[d].intensidade || '';
+            if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = semana[d].desc || '';
+          }
+        });
+
+        showToast("Semana de cardio gerada pela IA com sucesso!", "success");
+      } else {
+        showToast("Erro ao processar resposta da IA.", "error");
+      }
+    } catch (e) {
+      showToast("Erro ao conectar com a IA.", "error");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
+  function salvarPrescricaoCorridaSemanalAdmin() {
+    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno.", "error");
+
+    const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    const prescricaoCompleta = {};
+
+    dias.forEach(d => {
+      prescricaoCompleta[d] = {
+        km: document.getElementById(`run_km_${d}`).value.trim(),
+        min: document.getElementById(`run_min_${d}`).value.trim(),
+        intensidade: document.getElementById(`run_int_${d}`).value.trim(),
+        desc: document.getElementById(`run_desc_${d}`).value.trim()
+      };
+    });
+
+    currentStudentData.prescricao_corrida = prescricaoCompleta;
+    salvarAlteracoes();
+    showToast("Plano semanal de cardio salvo com sucesso!", "success");
+  }
 
   async function gerarProtocoloCompletoIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
@@ -807,17 +966,14 @@
       if (res.ok && data.protocolo) {
         const prot = data.protocolo;
 
-        // 1. Preenche Diretrizes
         if (prot.trainer_guidelines) {
           document.getElementById('editTrainerGuidelines').value = prot.trainer_guidelines;
         }
 
-        // 2. Preenche Cardio
         if (prot.cardio_guidelines) {
           document.getElementById('editCardioGuidelines').value = prot.cardio_guidelines;
         }
 
-        // 3. Preenche Treinos no Editor
         if (prot.days && prot.days.length > 0) {
           let textoTreino = "";
           prot.days.forEach(day => {
@@ -831,7 +987,6 @@
           lidarEdicaoTreino();
         }
 
-        // 4. Preenche Dieta no Editor
         if (prot.refeicoes && prot.refeicoes.length > 0) {
           let textoDieta = "";
           prot.refeicoes.forEach(ref => {
@@ -853,10 +1008,6 @@
     }
   }
 
-  // ==========================================
-  // ENVIO DE CREDENCIAIS E WHATSAPP COM VÍDEO
-  // ==========================================
-
   function enviarCredenciaisWhatsApp() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -865,7 +1016,6 @@
     const senha = lastGeneratedPassword || "Sua senha de cadastro";
     const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
     
-    // Substitua pelo seu link de vídeo quando os seus vídeos estiverem prontos
     const linkVideoBoasVindas = "https://youtube.com/shorts/SEU_VIDEO_AQUI";
 
     const mensagem = `Olá, ${nome}! 👋🏼%0A%0A` +
@@ -907,23 +1057,6 @@
     } catch (e) {
       showToast("Erro ao conectar ao servidor.", "error");
     }
-  }
-
-  function salvarPrescricaoCorridaAdmin() {
-    if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
-
-    currentStudentData.prescricao_corrida = {
-      seg: document.getElementById('run_seg').value.trim(),
-      ter: document.getElementById('run_ter').value.trim(),
-      qua: document.getElementById('run_qua').value.trim(),
-      qui: document.getElementById('run_qui').value.trim(),
-      sex: document.getElementById('run_sex').value.trim(),
-      sab: document.getElementById('run_sab').value.trim(),
-      dom: document.getElementById('run_dom').value.trim()
-    };
-
-    salvarAlteracoes();
-    showToast("Prescrição de corrida salva!", "success");
   }
 
   function renderCorridaAdmin() {
