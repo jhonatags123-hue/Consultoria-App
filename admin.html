@@ -273,7 +273,6 @@
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
 
-      <!-- SEÇÃO RESUMO DO ALUNO (SISTEMA VISUAL COMPLETO: TREINOS, DIETA E CARDIO) -->
       <div id="secResumo" class="panel-card">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
@@ -499,6 +498,17 @@
           </div>
         </div>
 
+        <!-- CICLO / ROTAÇÃO DE TREINO DE 5 SEMANAS -->
+        <div style="margin-top:12px;">
+          <label>Ciclo de Rotação de Treino (Semanas)</label>
+          <select id="editSemanasRotacao">
+            <option value="4">4 Semanas (Padrão)</option>
+            <option value="5" selected>5 Semanas (Regra de Rotação)</option>
+            <option value="6">6 Semanas</option>
+            <option value="8">8 Semanas (Longas)</option>
+          </select>
+        </div>
+
         <div style="margin-top:14px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:14px;">
           <label style="color:var(--gold); margin-top:0;">💳 Gestão de Pagamento & Renovação</label>
           <div style="display:flex; gap:10px; margin-top:8px; align-items:center; flex-direction:column;">
@@ -539,14 +549,14 @@
               🏃 Ativar Módulo de Corrida (Exibe aba de Desempenho)
             </label>
           </div>
-      </div>
+        </div>
 
-      <div style="display:flex; gap:10px; margin-top:16px; flex-direction:column;">
+        <div style="display:flex; gap:10px; margin-top:16px; flex-direction:column;">
           <button class="btn" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
           <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Credenciais no WhatsApp</button>
           <button class="btn btn-danger" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
+        </div>
       </div>
-    </div>
 
       <div id="secNovo" class="panel-card hidden">
         <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
@@ -577,8 +587,8 @@
         <div style="display:flex; gap:8px;">
           <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
           <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
+        </div>
       </div>
-    </div>
     </main>
   </div>
 </div>
@@ -882,6 +892,7 @@
       document.getElementById('editPassword').value = '';
       document.getElementById('editDiaVencimento').value = currentStudentData.dia_vencimento || 7;
       document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
+      document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
 
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
       document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
@@ -903,7 +914,6 @@
     }
   }
 
-  /* RENDERIZAÇÃO COMPLETA DO RESUMO DO ALUNO (TREINOS, DIETAS E CARDIO) */
   function renderResumoVisaoGeral() {
     const container = document.getElementById('summaryOverviewContainer');
     container.innerHTML = "";
@@ -913,7 +923,6 @@
       return;
     }
 
-    // 1. SEÇÃO DE TREINOS DE MUSCULAÇÃO
     let htmlContent = `<div class="section-subtitle">🏋️ TREINOS CADASTRADOS</div>`;
     const days = currentStudentData.days || [];
 
@@ -946,7 +955,6 @@
       });
     }
 
-    // 2. SEÇÃO DE PLANO ALIMENTAR (DIETA)
     htmlContent += `<div class="section-subtitle">🥗 PLANO ALIMENTAR / DIETA</div>`;
     const refeicoes = currentStudentData.refeicoes || [];
 
@@ -968,7 +976,6 @@
       });
     }
 
-    // 3. SEÇÃO DE CARDIO E CORRIDA
     htmlContent += `<div class="section-subtitle">🏃 AERÓBICO & CORRIDA</div>`;
     const cardioGuidelines = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
     const prescricao = currentStudentData.prescricao_corrida || {};
@@ -1193,7 +1200,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
 Receba o texto atual da ficha de treino e das diretrizes gerais do treinador, e aplique a alteração solicitada: "${cmd}".
 
 REGRAS DE DIRETRIZES GERAIS:
-1. Se a alteração solicitada for APENAS um ajuste simples de exercícios/séries/repetições (ex: "mudar para 3x10", "trocar supino por halter", "tirar 1 exercício"), MANTENHA as diretrizes gerais exatamente IGUAIS ao texto original.
+1. Se a alteração solicitada for APENAS um ajuste simples de exercícios/séries/repetições, MANTENHA as diretrizes gerais exatamente IGUAIS ao texto original.
 2. Se a alteração envolver mudanças conceituais, de objetivo, de método ou de estratégia geral do treino, ATUALIZE as diretrizes para ficarem alinhadas com o novo treino.
 
 Retorne ESTRITAMENTE um JSON no formato:
@@ -1258,7 +1265,7 @@ ${guidelinesTx.value}`,
         body: JSON.stringify({
           mensagem: `Você é um nutricionista esportivo.
 Sua missão é receber o texto atual da dieta e aplicar a seguinte alteração/criação solicitada pelo treinador: "${cmd}".
-Formate o plano sempre utilizando tags de categoria entre colchetes e alimentos divididos por barra vertical, exatamente como no padrão:
+Formate o plano sempre utilizando tags de categoria entre colchetes e alimentos divididos por barra vertical:
 
 [Tag/Categoria] Refeição Nome
 Alimento | Quantidade
@@ -1266,7 +1273,7 @@ Alimento | Quantidade
 Texto da Dieta Atual:
 ${tx.value}
 
-Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicionais antes ou depois.`,
+Retorne ESTRITAMENTE o texto final da dieta formatada.`,
           contexto: currentStudentData || {},
           origem: "ADMIN"
         })
@@ -2032,6 +2039,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
     currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
     currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
+    currentStudentData.semanas_rotacao = parseInt(document.getElementById('editSemanasRotacao').value) || 5;
 
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
     currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
@@ -2203,6 +2211,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       status_pagamento: 'pago',
       dia_vencimento: hoje.getDate(),
       data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
+      semanas_rotacao: 5,
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
