@@ -147,7 +147,6 @@
     background: var(--good-dim); border-color: var(--good); color: var(--good);
   }
 
-  /* CRONÔMETRO DE DURAÇÃO DO TREINO */
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
@@ -157,13 +156,11 @@
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
   }
 
-  /* MODAL DE RESUMO DE FINALIZAÇÃO */
   .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:20px; }
   .modal-card-finish { background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--good); border-radius:12px; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,0.8); }
 
   .progression-item { background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:10px; margin-bottom:8px; font-size:12px; }
 
-  /* DIRETRIZES DO TREINADOR SANFONA */
   .trainer-goals-card {
     background: linear-gradient(135deg, rgba(132,22,40,0.25), rgba(21,24,29,0.95));
     border: 1px solid var(--signal-light); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;
@@ -180,7 +177,6 @@
   }
   .trainer-goals-body.collapsed { display: none; }
 
-  /* CARD DE PRESCRIÇÃO DE CARDIO */
   .cardio-goals-card {
     background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(21,24,29,0.95));
     border: 1px solid var(--blue); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
@@ -197,7 +193,6 @@
   }
   .cardio-goals-body.collapsed { display: none; }
 
-  /* CARD DE NOTIFICAÇÃO DE FEEDBACK */
   .feedback-notify-card {
     background: linear-gradient(135deg, rgba(220,170,58,0.2), rgba(21,24,29,0.95));
     border: 1px solid var(--mark); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
@@ -810,7 +805,6 @@
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  /* CRONÔMETRO DE DURAÇÃO DE TREINO */
   function toggleWorkoutTimer() {
     const btn = document.getElementById('btnWorkoutTimer');
     if (!workoutTimerRunning) {
@@ -1298,7 +1292,6 @@
     localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
   }
 
-  /* PRESCRIÇÃO E HISTÓRICO COMPLETO DE CORRIDA POR DIA DA SEMANA */
   function setupCorrida(data) {
     const presContainer = document.getElementById('corridaPrescricaoList');
     const histContainer = document.getElementById('corridaHistoryList');
@@ -1539,7 +1532,6 @@
     }
   }
 
-  /* FINALIZAÇÃO DO TREINO COM ANÁLISE DE TEMPO E EVOLUÇÃO */
   async function concluirTreinoDoDia() {
     if (!currentData) return;
 
@@ -1566,7 +1558,6 @@
         const historico = currentData.weekly_logs?.[keyLog] || [];
         const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
 
-        // Tenta obter as cargas digitadas na sessão atual
         let cMax = 0;
         let rTotal = 0;
         let seriesCount = 0;
@@ -1649,7 +1640,6 @@
   function fecharModalConclusao() {
     document.getElementById('modalTreinoConcluido').classList.add('hidden');
     
-    // Reset do cronômetro de treino
     workoutTimerSeconds = 0;
     updateWorkoutTimerDisplay();
     document.getElementById('btnWorkoutTimer').textContent = "▶️ INICIAR TREINO";
@@ -2029,7 +2019,6 @@
     }, 1500);
   }
 
-  /* REGISTRO SEMANAL DE DESEMPENHO E FRACIONAMENTO DE CARGA/REPETIÇÃO */
   function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     if (!currentData.weekly_logs) currentData.weekly_logs = {};
     const keyLog = `${dayIdx}_${exIdx}`;
