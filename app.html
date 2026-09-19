@@ -147,6 +147,22 @@
     background: var(--good-dim); border-color: var(--good); color: var(--good);
   }
 
+  /* CRONÔMETRO DE DURAÇÃO DO TREINO */
+  .workout-timer-card {
+    background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .workout-timer-clock {
+    font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
+  }
+
+  /* MODAL DE RESUMO DE FINALIZAÇÃO */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:20px; }
+  .modal-card-finish { background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--good); border-radius:12px; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,0.8); }
+
+  .progression-item { background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:10px; margin-bottom:8px; font-size:12px; }
+
   /* DIRETRIZES DO TREINADOR SANFONA */
   .trainer-goals-card {
     background: linear-gradient(135deg, rgba(132,22,40,0.25), rgba(21,24,29,0.95));
@@ -164,7 +180,7 @@
   }
   .trainer-goals-body.collapsed { display: none; }
 
-  /* CARD DE PRESCRIÇÃO DE CARDIO (MOVIDO PARA A ABA CORRIDA) */
+  /* CARD DE PRESCRIÇÃO DE CARDIO */
   .cardio-goals-card {
     background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(21,24,29,0.95));
     border: 1px solid var(--blue); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
@@ -273,6 +289,29 @@
 <body>
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
+
+<!-- MODAL RESUMO DO TREINO CONCLUÍDO -->
+<div id="modalTreinoConcluido" class="modal-overlay hidden">
+  <div class="modal-card-finish">
+    <div style="text-align:center; margin-bottom:16px;">
+      <span style="font-size:36px;">🔥</span>
+      <h2 style="font-family:var(--font-display); font-size:26px; color:var(--mark); margin-top:4px;">TREINO CONCLUÍDO!</h2>
+      <p style="font-size:12px; color:var(--ink-dim);">Confira seu tempo de treino e evolução:</p>
+    </div>
+
+    <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; text-align:center; margin-bottom:14px;">
+      <div style="font-size:10.5px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">⏱️ Tempo Total de Treino</div>
+      <div id="summaryTimeDisplay" style="font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--ink); margin-top:2px;">-- min</div>
+    </div>
+
+    <div style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase; margin-bottom:8px;">📈 Progresso nos Exercícios:</div>
+    <div id="summaryProgressionList">
+      <div style="color:var(--ink-dim); font-size:12px; text-align:center;">Processando métricas...</div>
+    </div>
+
+    <button class="btn-login btn-wpp" style="margin-top:16px;" onclick="fecharModalConclusao()">CONTINUAR</button>
+  </div>
+</div>
 
 <div id="restTimerWidget" class="rest-timer-widget">
   <div id="timerDisplay" class="rest-timer-display">00:00</div>
@@ -556,6 +595,17 @@
           <button type="button" class="btn-back" onclick="openTreinoSelectionMenu()">Alternar Treino</button>
           <div class="detail-title" id="treinoDetailTitle">Treino do Dia</div>
         </div>
+
+        <!-- CRONÔMETRO DE TREINO EM TEMPO REAL -->
+        <div class="workout-timer-card">
+          <div>
+            <div style="font-size:10px; font-weight:800; color:var(--ink-dim); text-transform:uppercase;">⏱️ Duração do Treino</div>
+            <div id="workoutTimerClock" class="workout-timer-clock">00:00:00</div>
+          </div>
+          <button id="btnWorkoutTimer" type="button" class="btn-login btn-wpp" style="width:auto; margin-top:0; min-height:36px; padding:6px 14px; font-size:11.5px;" onclick="toggleWorkoutTimer()">
+            ▶️ INICIAR TREINO
+          </button>
+        </div>
         
         <!-- DIRETRIZES DO TREINADOR SANFONA -->
         <div class="trainer-goals-card" onclick="toggleTrainerGoals()">
@@ -604,7 +654,6 @@
     <div id="tabCorrida" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
       
-      <!-- PRESCRIÇÃO DE AERÓBICO E CARDIO MOVIDA PARA A ABA CORRIDA -->
       <div class="cardio-goals-card" onclick="toggleCardioGoals()">
         <div class="cardio-goals-title">
           <span>🏃 Prescrição de Aeróbico & Cardio</span>
@@ -689,6 +738,11 @@
   let parsedDietBlocks = [];
   let dietCategories = [];
 
+  // VARIÁVEIS CRONÔMETRO TREINO
+  let workoutTimerInterval = null;
+  let workoutTimerSeconds = 0;
+  let workoutTimerRunning = false;
+
   function escapeHtml(str) {
     if (!str || typeof str !== 'string') return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
@@ -754,6 +808,33 @@
     const m = Math.floor(restSecondsLeft / 60);
     const s = restSecondsLeft % 60;
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  }
+
+  /* CRONÔMETRO DE DURAÇÃO DE TREINO */
+  function toggleWorkoutTimer() {
+    const btn = document.getElementById('btnWorkoutTimer');
+    if (!workoutTimerRunning) {
+      workoutTimerRunning = true;
+      btn.textContent = "⏹️ PAUSAR";
+      btn.style.background = "var(--signal-light)";
+      workoutTimerInterval = setInterval(() => {
+        workoutTimerSeconds++;
+        updateWorkoutTimerDisplay();
+      }, 1000);
+    } else {
+      workoutTimerRunning = false;
+      clearInterval(workoutTimerInterval);
+      btn.textContent = "▶️ CONTINUAR";
+      btn.style.background = "var(--good)";
+    }
+  }
+
+  function updateWorkoutTimerDisplay() {
+    const h = Math.floor(workoutTimerSeconds / 3600);
+    const m = Math.floor((workoutTimerSeconds % 3600) / 60);
+    const s = workoutTimerSeconds % 60;
+    const fmt = n => String(n).padStart(2, '0');
+    document.getElementById('workoutTimerClock').textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
   }
 
   function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
@@ -1227,7 +1308,6 @@
     presContainer.innerHTML = '';
     histContainer.innerHTML = '';
 
-    // RENDERIZA PRESCRIÇÃO DE CARDIO DENTRO DA ABA CORRIDA
     const cardioContainer = document.getElementById('cardioGoalsBody');
     if (cardioContainer) {
       const customCardio = (data && (data.cardio_guidelines || data.prescricao_cardio)) || '';
@@ -1459,11 +1539,103 @@
     }
   }
 
-  function concluirTreinoDoDia() {
+  /* FINALIZAÇÃO DO TREINO COM ANÁLISE DE TEMPO E EVOLUÇÃO */
+  async function concluirTreinoDoDia() {
     if (!currentData) return;
 
+    if (workoutTimerRunning) {
+      clearInterval(workoutTimerInterval);
+      workoutTimerRunning = false;
+    }
+
+    const m = Math.floor(workoutTimerSeconds / 60);
+    const s = workoutTimerSeconds % 60;
+    const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} segundos`;
+
+    document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
+
+    const summaryList = document.getElementById('summaryProgressionList');
+    summaryList.innerHTML = "";
+
+    const day = currentData.days?.[currentTreinoDayIdx];
+    let evolucoes = [];
+
+    if (day && day.exercicios) {
+      day.exercicios.forEach((ex, exIdx) => {
+        const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
+        const historico = currentData.weekly_logs?.[keyLog] || [];
+        const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
+
+        // Tenta obter as cargas digitadas na sessão atual
+        let cMax = 0;
+        let rTotal = 0;
+        let seriesCount = 0;
+
+        for (let s = 1; s <= 5; s++) {
+          const cVal = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+          const rVal = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+
+          if (!isNaN(cVal) && cVal > cMax) cMax = cVal;
+          if (!isNaN(rVal)) { rTotal += rVal; seriesCount++; }
+        }
+
+        const cAtiv = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+        const rAtiv = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+        if (!isNaN(cAtiv) && cAtiv > cMax) cMax = cAtiv;
+        if (!isNaN(rAtiv)) { rTotal += rAtiv; seriesCount++; }
+
+        const cCl = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
+        const rCl = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
+        if (!isNaN(cCl) && cCl > cMax) cMax = cCl;
+        if (!isNaN(rCl)) { rTotal += rCl; seriesCount++; }
+
+        const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
+
+        if (cMax > 0 || rMed > 0) {
+          let statusText = "✨ Treino registrado";
+          let statusColor = "var(--mark)";
+
+          if (ultimoReg) {
+            const cargaAnt = parseFloat(ultimoReg.cargaMax) || 0;
+            const repsAnt = parseFloat(ultimoReg.repsMed) || 0;
+
+            if (cMax > cargaAnt) {
+              const diff = (cMax - cargaAnt).toFixed(1);
+              statusText = `🚀 Aumentou +${diff}kg de carga!`;
+              statusColor = "var(--good)";
+            } else if (cMax === cargaAnt && rMed > repsAnt) {
+              statusText = `📈 Fez +${rMed - repsAnt} reps com a mesma carga!`;
+              statusColor = "var(--blue)";
+            }
+          }
+
+          evolucoes.push({
+            nome: ex.nome,
+            carga: cMax,
+            reps: rMed,
+            status: statusText,
+            color: statusColor
+          });
+        }
+      });
+    }
+
+    if (evolucoes.length === 0) {
+      summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
+    } else {
+      evolucoes.forEach(item => {
+        summaryList.innerHTML += `
+          <div class="progression-item">
+            <b style="color:var(--ink);">${escapeHtml(item.nome)}</b><br>
+            <span style="color:${item.color}; font-weight:700;">${item.status}</span> 
+            <span style="color:var(--ink-dim);">(${item.carga}kg | ${item.reps} reps méd.)</span>
+          </div>
+        `;
+      });
+    }
+
     currentData.ultimo_treino_idx = currentTreinoDayIdx;
-    
+
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + btn.dataset.num;
@@ -1471,7 +1643,17 @@
 
     scheduleAutoSave('ultimo_treino_idx', currentTreinoDayIdx);
 
-    alert("🎉 Treino registrado com sucesso! Excelente trabalho hoje.");
+    document.getElementById('modalTreinoConcluido').classList.remove('hidden');
+  }
+
+  function fecharModalConclusao() {
+    document.getElementById('modalTreinoConcluido').classList.add('hidden');
+    
+    // Reset do cronômetro de treino
+    workoutTimerSeconds = 0;
+    updateWorkoutTimerDisplay();
+    document.getElementById('btnWorkoutTimer').textContent = "▶️ INICIAR TREINO";
+    document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
 
     const totalDays = (currentData.days || []).length;
     if (totalDays > 0) {
@@ -1505,7 +1687,6 @@
 
     document.getElementById('treinoDetailTitle').textContent = day.title;
 
-    // Renderiza Diretrizes Gerais do Treinador
     const goalsContainer = document.getElementById('trainerGoalsBody');
     if (goalsContainer) {
       const customGuidelines = (currentData && (currentData.trainer_guidelines || currentData.diretrizes_treinador)) || '';
