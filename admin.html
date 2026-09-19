@@ -287,29 +287,24 @@
         </div>
       </div>
 
+      <!-- EDITOR DE TREINO E DIRETRIZES FOCADO APENAS EM MUSCULAÇÃO -->
       <div id="secTreino" class="panel-card hidden">
-        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
+        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + IA do Treinador</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA):</label>
-            <button class="btn btn-soft" id="btnGerarProtocoloIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarProtocoloCompletoIA()">🤖 Gerar Treino + Cardio (IA)</button>
+            <button class="btn btn-soft" id="btnGerarTreinoIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarTreinoComIA()">🤖 Gerar Treino + Diretrizes (IA)</button>
           </div>
           <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA pode preencher essas diretrizes automaticamente baseada na anamnese.</div>
-        </div>
-
-        <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (IA / Manual):</label>
-          <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira Inclina em dias OFF (Intensidade Leve / Zona 2)."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Preenchido automaticamente pela IA com base na anamnese ou editável manualmente.</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA preenche as diretrizes e a ficha de treino simultaneamente.</div>
         </div>
 
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha Atual:</label>
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha e Diretrizes:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
-            <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste via IA</button>
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e atualize as diretrizes para iniciante">
+            <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
           </div>
         </div>
 
@@ -327,7 +322,7 @@
           </div>
         </div>
 
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA, CARDIO E DIRETRIZES NO BANCO</button>
+        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
       <div id="secDieta" class="panel-card hidden">
@@ -349,21 +344,28 @@
         </div>
       </div>
 
-      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL COM GERADOR IA -->
+      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL + PRESCRIÇÃO DE CARDIO (IA ISOLADA) -->
       <div id="secCorrida" class="panel-card hidden">
         <div class="panel-title">🏃 Prescrição Semanal de Cardio & Corrida (IA + Manual)</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
-          Defina distância (Km), tempo (Min), intensidade e instruções específicas para cada dia da semana.
+          Defina diretrizes de cardio, distância (Km), tempo (Min) e instruções específicas por dia.
         </p>
 
+        <!-- PRESCRIÇÃO E DIRETRIZES DE CARDIO MANTIDAS NO MÓDULO CORRIDA -->
+        <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (Texto Exibido no App):</label>
+          <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira em dias OFF."></textarea>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Exibido na aba Corrida do aplicativo do aluno.</div>
+        </div>
+
         <div style="background:#100305; border:1px solid var(--blue); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <div style="font-size:12px; font-weight:800; color:var(--blue); margin-bottom:4px;">🤖 Gerar Semana Completa de Cardio via IA</div>
+          <div style="font-size:12px; font-weight:800; color:var(--blue); margin-bottom:4px;">🤖 Gerar Semana Completa de Cardio + Diretrizes via IA</div>
           <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">
-            Descreva o objetivo (Ex: "Aluno focado em 5k emagrecimento com 2 dias de tiro, 2 moderados e descansos").
+            Descreva o objetivo (Ex: "Aluno focado em 5k emagrecimento com 2 dias de tiro e descansos").
           </div>
           <div style="display:flex; gap:8px;">
             <input type="text" id="aiCardioPromptAdmin" placeholder="Ex: Treino para meia maratona com foco em ritmo" style="font-size:13px;">
-            <button class="btn btn-blue" id="btnGerarCardioIA" style="width:160px; flex-shrink:0;" onclick="gerarSemanaCardioIA()">⚡ Gerar Semana (IA)</button>
+            <button class="btn btn-blue" id="btnGerarCardioIA" style="width:160px; flex-shrink:0;" onclick="gerarSemanaCardioIA()">⚡ Gerar Cardio (IA)</button>
           </div>
         </div>
 
@@ -439,7 +441,7 @@
           </div>
         </div>
 
-        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PLANO SEMANAL DE CARDIO</button>
+        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PLANO SEMANAL E PRESCRIÇÃO DE CARDIO</button>
 
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
           <label style="margin-top:0;">📋 Registros do Aluno (Últimas 4 Semanas):</label>
@@ -862,6 +864,7 @@
     });
   }
 
+  /* IA DE CARDIO ISOLADA NO MÓDULO CORRIDA (NÃO MEXE NA MUSCULAÇÃO) */
   async function gerarSemanaCardioIA() {
     if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -877,18 +880,22 @@
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
-          mensagem: `Monte uma semana de cardio e corrida dividida exatamente por dia da semana (seg, ter, qua, qui, sex, sab, dom).
-          Objetivo: "${prompt || 'Equilibrado com dias de tiros, moderado e descansos'}".
-          Retorne ESTRITAMENTE um JSON puro no formato:
-          {
-            "seg": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km moderado + 1km regenerativo"},
-            "ter": {"km": "0", "min": "20", "intensidade": "Leve", "desc": "Bike regenerativa"},
-            "qua": {"km": "6.0", "min": "35", "intensidade": "Tiros de 400m", "desc": "10x400m forte com 1min pausa"},
-            "qui": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso Total"},
-            "sex": {"km": "4.0", "min": "25", "intensidade": "Ritmo", "desc": "Pace constante"},
-            "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Frequência cardíaca controlada"},
-            "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
-          }`,
+          mensagem: `Você é um preparador físico especializado em cardio/corrida.
+Monte uma semana de cardio dividida por dias (seg, ter, qua, qui, sex, sab, dom) e adicione uma orientação geral de prescrição de cardio.
+Prompt do treinador: "${prompt || 'Cardio equilibrado focado no objetivo do aluno'}".
+Retorne ESTRITAMENTE um JSON puro no formato:
+{
+  "cardio_guidelines": "Orientação geral de cardio (ex: Mantenha a frequência cardíaca Z2 em corridas longas e hidratar bem)",
+  "semana": {
+    "seg": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km moderado + 1km leve"},
+    "ter": {"km": "0", "min": "20", "intensidade": "Leve", "desc": "Bike regenerativa"},
+    "qua": {"km": "6.0", "min": "35", "intensidade": "Tiros", "desc": "10x400m forte com 1min pausa"},
+    "qui": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso Total"},
+    "sex": {"km": "4.0", "min": "25", "intensidade": "Ritmo", "desc": "Pace constante"},
+    "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Manter ritmo confortável"},
+    "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
+  }
+}`,
           contexto: currentStudentData || {},
           origem: "ADMIN"
         })
@@ -897,8 +904,13 @@
       const data = await res.json();
       if (res.ok && data.resposta) {
         let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
-        const semana = JSON.parse(jsonClean);
+        const resCardio = JSON.parse(jsonClean);
 
+        if (resCardio.cardio_guidelines) {
+          document.getElementById('editCardioGuidelines').value = resCardio.cardio_guidelines;
+        }
+
+        const semana = resCardio.semana || resCardio;
         const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
         dias.forEach(d => {
           if (semana[d]) {
@@ -909,12 +921,12 @@
           }
         });
 
-        showToast("Semana de cardio gerada pela IA com sucesso!", "success");
+        showToast("Cardio e Prescrição gerados pela IA!", "success");
       } else {
         showToast("Erro ao processar resposta da IA.", "error");
       }
     } catch (e) {
-      showToast("Erro ao conectar com a IA.", "error");
+      showToast("Erro ao conectar com a IA de Cardio.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
@@ -937,11 +949,14 @@
     });
 
     currentStudentData.prescricao_corrida = prescricaoCompleta;
+    currentStudentData.cardio_guidelines = document.getElementById('editCardioGuidelines').value.trim();
+
     salvarAlteracoes();
-    showToast("Plano semanal de cardio salvo com sucesso!", "success");
+    showToast("Plano de cardio e prescrição salvos!", "success");
   }
 
-  async function gerarProtocoloCompletoIA() {
+  /* IA DE TREINO E DIRETRIZES GERAIS (ISOLADA DA FICHA DE MUSCULAÇÃO) */
+  async function gerarTreinoComIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
     
     const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
@@ -949,9 +964,9 @@
       return showToast("Aluno sem dados de anamnese cadastrados.", "error");
     }
 
-    const btn = document.getElementById('btnGerarProtocoloIA');
+    const btn = document.getElementById('btnGerarTreinoIA');
     const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ IA Gerando Protocolo...";
+    btn.textContent = "⏳ IA Gerando Treino...";
     btn.disabled = true;
 
     try {
@@ -970,10 +985,6 @@
           document.getElementById('editTrainerGuidelines').value = prot.trainer_guidelines;
         }
 
-        if (prot.cardio_guidelines) {
-          document.getElementById('editCardioGuidelines').value = prot.cardio_guidelines;
-        }
-
         if (prot.days && prot.days.length > 0) {
           let textoTreino = "";
           prot.days.forEach(day => {
@@ -987,25 +998,89 @@
           lidarEdicaoTreino();
         }
 
-        if (prot.refeicoes && prot.refeicoes.length > 0) {
-          let textoDieta = "";
-          prot.refeicoes.forEach(ref => {
-            textoDieta += `[Plano] ${ref.titulo}\n${ref.alimentos}\n\n`;
-          });
-          document.getElementById('dietTextarea').value = textoDieta.trim();
-          lidarEdicaoDieta();
-        }
-
-        showToast("Protocolo, Cardio e Diretrizes gerados pela IA!", "success");
+        showToast("Ficha de Treino + Diretrizes salvas no editor!", "success");
       } else {
-        showToast(data.error || "Não foi possível gerar o protocolo.", "error");
+        showToast(data.error || "Não foi possível gerar a ficha.", "error");
       }
     } catch(e) {
-      showToast("Erro ao conectar à IA para protocolo.", "error");
+      showToast("Erro ao conectar à IA de Treino.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
     }
+  }
+
+  async function executarComandoIaTreino() {
+    const input = document.getElementById('aiWorkoutCommand');
+    const tx = document.getElementById('liveWorkoutText');
+    const guidelinesTx = document.getElementById('editTrainerGuidelines');
+    const btn = document.getElementById('btnAiCmd');
+    const cmd = input.value.trim();
+
+    if (!cmd) return showToast("Digite o comando para a IA de Treino.", "error");
+
+    const txtOriginal = btn.textContent;
+    btn.textContent = "⚡ Modificando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({
+          mensagem: `Você é um assistente de personal trainer focado em musculação.
+Receba o texto atual da ficha de treino e das diretrizes gerais, e aplique a seguinte alteração solicitada: "${cmd}".
+Retorne ESTRITAMENTE um JSON no formato:
+{
+  "trainer_guidelines": "Diretrizes gerais atualizadas",
+  "workout_text": "Texto completo da nova ficha de treino"
+}
+
+Ficha Atual:
+${tx.value}
+
+Diretrizes Atuais:
+${guidelinesTx.value}`,
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.resposta) {
+        let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsedRes = JSON.parse(jsonClean);
+
+        if (parsedRes.workout_text) {
+          tx.value = parsedRes.workout_text.trim();
+          lidarEdicaoTreino();
+        }
+        if (parsedRes.trainer_guidelines) {
+          guidelinesTx.value = parsedRes.trainer_guidelines.trim();
+        }
+
+        input.value = "";
+        showToast("Ficha e Diretrizes atualizadas pela IA!", "success");
+      } else {
+        showToast(data.error || "Erro ao alterar ficha.", "error");
+      }
+    } catch(e) {
+      showToast("Erro ao processar comando na IA.", "error");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
+  function salvarTreinoEditado() {
+    const raw = document.getElementById('liveWorkoutText').value;
+    const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
+
+    currentStudentData.days = parseWorkoutText(raw);
+    currentStudentData.trainer_guidelines = guidelinesText;
+
+    salvarAlteracoes('workout');
   }
 
   function enviarCredenciaisWhatsApp() {
@@ -1309,65 +1384,6 @@
       html += `</div>`;
       container.innerHTML += html;
     });
-  }
-
-  async function executarComandoIaTreino() {
-    const input = document.getElementById('aiWorkoutCommand');
-    const tx = document.getElementById('liveWorkoutText');
-    const btn = document.getElementById('btnAiCmd');
-    const cmd = input.value.trim();
-
-    if (!cmd) return showToast("Digite o comando para a IA.", "error");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⚡ Modificando...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        cache: 'no-cache',
-        body: JSON.stringify({
-          mensagem: `Você é um assistente de personal trainer.
-Receba o texto de ficha de treino abaixo e aplique a modificação solicitada: "${cmd}".
-Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A) deve ficar sozinho na linha do título do dia.
-Retorne APENAS o novo texto da ficha pronto, sem introduções.
-
-Ficha Atual:
-${tx.value}`,
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.resposta) {
-        tx.value = data.resposta.trim();
-        lidarEdicaoTreino();
-        input.value = "";
-        showToast("Ficha alterada pela IA!", "success");
-      } else {
-        showToast(data.error || "Erro ao alterar ficha.", "error");
-      }
-    } catch(e) {
-      showToast("Erro ao processar comando na IA.", "error");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
-
-  function salvarTreinoEditado() {
-    const raw = document.getElementById('liveWorkoutText').value;
-    const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
-    const cardioText = document.getElementById('editCardioGuidelines').value.trim();
-
-    currentStudentData.days = parseWorkoutText(raw);
-    currentStudentData.trainer_guidelines = guidelinesText;
-    currentStudentData.cardio_guidelines = cardioText;
-
-    salvarAlteracoes('workout');
   }
 
   function renderWorkoutView() {
