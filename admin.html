@@ -146,6 +146,10 @@
   .run-day-card { background: #0d0204; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 10px; padding: 12px; }
   .run-day-card b { color: var(--blue); font-size: 12px; text-transform: uppercase; }
 
+  .tutorial-box { background: #100305; border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 10px; border-radius: 8px; font-size: 11px; margin-top: 12px; }
+  .tutorial-box a { color: var(--gold); text-decoration: none; font-weight: 700; }
+  .tutorial-box a:hover { text-decoration: underline; }
+
   #toastContainer {
     position: fixed; top: 20px; right: 20px; z-index: 100000;
     display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -247,6 +251,12 @@
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
+
+        <div class="tutorial-box">
+          <b style="color:#fff;">📹 Tutoriais de Instalação do App:</b><br>
+          🍏 iOS: <a href="https://youtube.com/shorts/AC3qVx1mglc" target="_blank">Assistir Vídeo</a><br>
+          🤖 Android: <a href="https://youtube.com/shorts/Px4gUAlgR7w" target="_blank">Assistir Vídeo</a>
+        </div>
       </div>
     </aside>
 
@@ -577,6 +587,9 @@
   let lastGeneratedPassword = "";
   let allStudentsList = [];
   let chartInstance = null;
+
+  const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
+  const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 
   function showToast(mensagem, tipo = 'info') {
     const container = document.getElementById('toastContainer');
@@ -1176,27 +1189,36 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
     salvarAlteracoes('workout');
   }
 
+  /* ENVIO DE MENSAGEM VIA WHATSAPP COM OS TUTORIAIS DE INSTALAÇÃO DO APP */
   function enviarCredenciaisWhatsApp() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
     const nome = currentStudentData.clientName || currentStudentCode;
     const codigo = currentStudentCode;
-    const senha = lastGeneratedPassword || "Sua senha de cadastro";
+    const senha = lastGeneratedPassword || "123456";
     const linkApp = `[https://jhonataconsultoria.com.br/app.html?aluno=$](https://jhonataconsultoria.com.br/app.html?aluno=$){codigo}`;
-    
-    const linkVideoBoasVindas = "[https://youtube.com/shorts/SEU_VIDEO_AQUI](https://youtube.com/shorts/SEU_VIDEO_AQUI)";
 
-    const mensagem = `Olá, ${nome}! 👋🏼%0A%0A` +
-                     `Seu acesso à Consultoria Jhonata Personal está liberado!%0A%0A` +
-                     `🔗 *Link de Acesso:* ${linkApp}%0A` +
-                     `👤 *Usuário:* ${codigo}%0A` +
-                     `🔑 *Senha:* ${senha}%0A%0A` +
-                     `🎥 *Assista ao vídeo de boas-vindas e como utilizar o aplicativo:*%0A` +
-                     `${linkVideoBoasVindas}%0A%0A` +
-                     `Qualquer dúvida, estou à disposição! Bons treinos! 💪🏼`;
+    const mensagem = 
+`🏋️ *ACESSO AO APLICATIVO — JHONATA PERSONAL*
+
+Olá, *${nome}*! Seu protocolo e acesso exclusivo ao aplicativo já estão liberados.
+
+🌐 *Link de Acesso:* ${linkApp}
+👤 *Usuário:* ${codigo}
+🔑 *Senha:* ${senha}
+
+📲 *COMO BAIXAR E INSTALAR O APP NO SEU CELULAR:*
+
+🍏 *Se o seu celular for iPhone (iOS/Safari):*
+${TUTORIAL_IOS}
+
+🤖 *Se o seu celular for Android (Chrome):*
+${TUTORIAL_ANDROID}
+
+Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à sua tela inicial. Bons treinos! 💪🏼`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
-    const urlWpp = fone ? `[https://wa.me/55$](https://wa.me/55$){fone}?text=${mensagem}` : `[https://wa.me/?text=$](https://wa.me/?text=$){mensagem}`;
+    const urlWpp = fone ? `[https://wa.me/55$](https://wa.me/55$){fone}?text=${encodeURIComponent(mensagem)}` : `[https://wa.me/?text=$](https://wa.me/?text=$){encodeURIComponent(mensagem)}`;
 
     window.open(urlWpp, '_blank');
   }
