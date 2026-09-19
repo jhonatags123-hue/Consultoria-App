@@ -150,6 +150,8 @@
   .tutorial-box a { color: var(--gold); text-decoration: none; font-weight: 700; }
   .tutorial-box a:hover { text-decoration: underline; }
 
+  .section-subtitle { font-size:12px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin: 20px 0 10px 0; border-bottom:1px solid var(--border); padding-bottom:6px; }
+
   #toastContainer {
     position: fixed; top: 20px; right: 20px; z-index: 100000;
     display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -271,6 +273,7 @@
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
 
+      <!-- SEÇÃO RESUMO DO ALUNO (SISTEMA VISUAL COMPLETO: TREINOS, DIETA E CARDIO) -->
       <div id="secResumo" class="panel-card">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
@@ -287,7 +290,7 @@
           </div>
         </div>
 
-        <div id="workoutOverview">
+        <div id="summaryOverviewContainer">
           <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
         </div>
       </div>
@@ -889,7 +892,7 @@
 
       carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
 
-      renderWorkoutView();
+      renderResumoVisaoGeral();
       renderAnamneseDetails();
       renderAdminFeedbackHistory();
       carregarTreinoNoEditorAoVivo();
@@ -898,6 +901,114 @@
     } catch(e) { 
       showToast("Erro ao carregar dados do aluno.", "error"); 
     }
+  }
+
+  /* RENDERIZAÇÃO COMPLETA DO RESUMO DO ALUNO (TREINOS, DIETAS E CARDIO) */
+  function renderResumoVisaoGeral() {
+    const container = document.getElementById('summaryOverviewContainer');
+    container.innerHTML = "";
+
+    if (!currentStudentData) {
+      container.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum aluno selecionado.</p>";
+      return;
+    }
+
+    // 1. SEÇÃO DE TREINOS DE MUSCULAÇÃO
+    let htmlContent = `<div class="section-subtitle">🏋️ TREINOS CADASTRADOS</div>`;
+    const days = currentStudentData.days || [];
+
+    if (days.length === 0) {
+      htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhum treino cadastrado.</p>`;
+    } else {
+      days.forEach((day, dayIdx) => {
+        const numEx = (day.exercicios || []).length;
+        htmlContent += `
+          <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_day_${dayIdx}')">
+            <div>
+              <b>🏋️ ${escapeHtml(day.title)}</b>
+              <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
+            </div>
+            <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Detalhes ▾</span>
+          </div>
+          <div id="resumo_day_${dayIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
+        `;
+
+        (day.exercicios || []).forEach((ex, exIdx) => {
+          htmlContent += `
+            <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
+              <span>• <b>${escapeHtml(ex.nome)}</b></span>
+              <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) 📈 Cargas</span>
+            </div>
+          `;
+        });
+
+        htmlContent += `</div>`;
+      });
+    }
+
+    // 2. SEÇÃO DE PLANO ALIMENTAR (DIETA)
+    htmlContent += `<div class="section-subtitle">🥗 PLANO ALIMENTAR / DIETA</div>`;
+    const refeicoes = currentStudentData.refeicoes || [];
+
+    if (refeicoes.length === 0 || currentStudentData.apenasTreino) {
+      htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">${currentStudentData.apenasTreino ? 'Perfil configurado como "Apenas Treino".' : 'Nenhuma dieta cadastrada.'}</p>`;
+    } else {
+      refeicoes.forEach((ref, refIdx) => {
+        htmlContent += `
+          <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_ref_${refIdx}')">
+            <div>
+              <b style="color:var(--gold)">🍽️ ${escapeHtml(ref.titulo || 'Refeição')}</b>
+            </div>
+            <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos ▾</span>
+          </div>
+          <div id="resumo_ref_${refIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff; white-space:pre-line;">
+            ${escapeHtml(ref.alimentos || 'Nenhum alimento cadastrado.')}
+          </div>
+        `;
+      });
+    }
+
+    // 3. SEÇÃO DE CARDIO E CORRIDA
+    htmlContent += `<div class="section-subtitle">🏃 AERÓBICO & CORRIDA</div>`;
+    const cardioGuidelines = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
+    const prescricao = currentStudentData.prescricao_corrida || {};
+
+    htmlContent += `
+      <div style="background:#0d0204; border:1px solid var(--border); border-left:3px solid var(--blue); padding:12px; border-radius:10px; margin-bottom:12px;">
+        <b style="color:var(--blue); font-size:12px;">📌 Orientação Geral de Cardio:</b>
+        <p style="font-size:12px; color:#fff; margin-top:4px;">${escapeHtml(cardioGuidelines || 'Sem orientação cadastrada.')}</p>
+      </div>
+    `;
+
+    const diasNomes = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+    let temSemana = false;
+
+    let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">`;
+    Object.keys(diasNomes).forEach(d => {
+      const p = prescricao[d];
+      if (p && (p.km || p.min || p.desc)) {
+        temSemana = true;
+        semanaHtml += `
+          <div style="background:#100305; border:1px solid var(--border); padding:8px; border-radius:8px; font-size:11px;">
+            <b style="color:var(--blue);">${diasNomes[d]}:</b> 
+            ${p.km ? p.km + 'km' : ''} ${p.min ? '| ' + p.min : ''} ${p.intensidade ? '(' + p.intensidade + ')' : ''}<br>
+            <span style="color:var(--muted);">${escapeHtml(p.desc || '')}</span>
+          </div>
+        `;
+      }
+    });
+    semanaHtml += `</div>`;
+
+    if (temSemana) {
+      htmlContent += semanaHtml;
+    }
+
+    container.innerHTML = htmlContent;
+  }
+
+  function toggleResumoAccordion(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) el.classList.toggle('hidden');
   }
 
   function carregarCamposCorridaAdmin(prescricao) {
@@ -1189,7 +1300,6 @@ Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicion
     salvarAlteracoes('workout');
   }
 
-  /* ENVIO DE MENSAGEM VIA WHATSAPP COM OS TUTORIAIS DE INSTALAÇÃO DO APP */
   function enviarCredenciaisWhatsApp() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1503,93 +1613,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       html += `</div>`;
       container.innerHTML += html;
     });
-  }
-
-  function renderWorkoutView() {
-    const div = document.getElementById('workoutOverview');
-    div.innerHTML = "";
-
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      div.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum treino cadastrado neste perfil.</p>";
-      return;
-    }
-
-    div.innerHTML = `
-      <div id="daysListWrap"></div>
-      <div id="dayDetailWrap" class="hidden"></div>
-    `;
-
-    const listWrap = document.getElementById('daysListWrap');
-
-    currentStudentData.days.forEach((day, dayIdx) => {
-      const numEx = (day.exercicios || []).length;
-
-      const card = document.createElement('div');
-      card.className = 'day-accordion-header';
-      card.innerHTML = `
-        <div>
-          <b>🏋️ ${escapeHtml(day.title)}</b>
-          <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
-        </div>
-        <span style="color:var(--gold); font-size:13px; font-weight:700;">Ver treino ›</span>
-      `;
-      card.onclick = () => abrirDetalheDia(dayIdx);
-      listWrap.appendChild(card);
-    });
-  }
-
-  function abrirDetalheDia(dayIdx) {
-    const day = currentStudentData && currentStudentData.days && currentStudentData.days[dayIdx];
-    if (!day) return;
-
-    document.getElementById('daysListWrap').classList.add('hidden');
-    const detail = document.getElementById('dayDetailWrap');
-    detail.innerHTML = "";
-    detail.classList.remove('hidden');
-
-    const backBtn = document.createElement('button');
-    backBtn.type = 'button';
-    backBtn.className = 'btn btn-soft';
-    backBtn.style.marginBottom = '14px';
-    backBtn.textContent = '← Voltar para todos os treinos';
-    backBtn.onclick = fecharDetalheDia;
-    detail.appendChild(backBtn);
-
-    const title = document.createElement('div');
-    title.style.cssText = 'font-size:16px; font-weight:800; color:#fff; margin-bottom:12px;';
-    title.textContent = `🏋️ ${day.title}`;
-    detail.appendChild(title);
-
-    const keyObs = `obs_day_${dayIdx}`;
-    const obsAluno = (currentStudentData.logs && currentStudentData.logs[keyObs]) || '';
-
-    if (obsAluno) {
-      const obsCard = document.createElement('div');
-      obsCard.style.cssText = "background:#1c060b; border:1px solid var(--gold); border-radius:8px; padding:12px; margin-bottom:14px; font-size:12px;";
-      obsCard.innerHTML = `
-        <div style="font-weight:700; color:var(--gold); margin-bottom:4px;">📝 Relato do Aluno para este treino:</div>
-        <div style="color:#fff;">"${escapeHtml(obsAluno)}"</div>
-      `;
-      detail.appendChild(obsCard);
-    }
-
-    (day.exercicios || []).forEach((ex, exIdx) => {
-      const row = document.createElement('div');
-      row.className = 'ex-clickable';
-      row.innerHTML = `
-        <span>• <b>${escapeHtml(ex.nome)}</b></span>
-        <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) 📈 Evolução</span>
-      `;
-      row.onclick = () => verEvolucaoSemanal(dayIdx, exIdx, ex.nome, ex.series, ex.reps);
-      detail.appendChild(row);
-    });
-  }
-
-  function fecharDetalheDia() {
-    const detail = document.getElementById('dayDetailWrap');
-    detail.classList.add('hidden');
-    detail.innerHTML = "";
-    document.getElementById('daysListWrap').classList.remove('hidden');
   }
 
   async function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
