@@ -164,7 +164,7 @@
   }
   .trainer-goals-body.collapsed { display: none; }
 
-  /* CARD DE PRESCRIÇÃO DE CARDIO */
+  /* CARD DE PRESCRIÇÃO DE CARDIO (MOVIDO PARA A ABA CORRIDA) */
   .cardio-goals-card {
     background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(21,24,29,0.95));
     border: 1px solid var(--blue); border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
@@ -566,15 +566,6 @@
           <div class="trainer-goals-body collapsed" id="trainerGoalsBody"></div>
         </div>
 
-        <!-- PRESCRIÇÃO DE AERÓBICO E CARDIO -->
-        <div class="cardio-goals-card" onclick="toggleCardioGoals()">
-          <div class="cardio-goals-title">
-            <span>🏃 Prescrição de Aeróbico & Cardio</span>
-            <span id="arrowCardio">▼</span>
-          </div>
-          <div class="cardio-goals-body collapsed" id="cardioGoalsBody"></div>
-        </div>
-
         <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
         <div id="exercisesList"></div>
 
@@ -609,10 +600,19 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE CORRIDA COMPLETO COM PRESCRIÇÃO E REGISTROS DE PACE -->
+    <!-- MÓDULO DE CORRIDA COM PRESCRIÇÃO DE CARDIO INTEGRADA -->
     <div id="tabCorrida" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
       
+      <!-- PRESCRIÇÃO DE AERÓBICO E CARDIO MOVIDA PARA A ABA CORRIDA -->
+      <div class="cardio-goals-card" onclick="toggleCardioGoals()">
+        <div class="cardio-goals-title">
+          <span>🏃 Prescrição de Aeróbico & Cardio</span>
+          <span id="arrowCardio">▼</span>
+        </div>
+        <div class="cardio-goals-body collapsed" id="cardioGoalsBody"></div>
+      </div>
+
       <div id="corridaResumoMes" style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; margin-bottom:14px; text-align:center;">
         <div style="font-size:11px; color:var(--ink-dim); font-weight:700;">ACUMULADO RECENTE (4 SEMANAS)</div>
         <div style="display:flex; justify-content:space-around; margin-top:8px;">
@@ -1227,6 +1227,17 @@
     presContainer.innerHTML = '';
     histContainer.innerHTML = '';
 
+    // RENDERIZA PRESCRIÇÃO DE CARDIO DENTRO DA ABA CORRIDA
+    const cardioContainer = document.getElementById('cardioGoalsBody');
+    if (cardioContainer) {
+      const customCardio = (data && (data.cardio_guidelines || data.prescricao_cardio)) || '';
+      if (customCardio.trim()) {
+        cardioContainer.innerHTML = escapeHtml(customCardio).replace(/\n/g, '<br>');
+      } else {
+        cardioContainer.innerHTML = `Aguardando prescrição de cardio pelo treinador.`;
+      }
+    }
+
     const prescricao = data.prescricao_corrida || {};
     const registros = data.registros_corrida || data.corridas || {};
 
@@ -1502,17 +1513,6 @@
         goalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
       } else {
         goalsContainer.innerHTML = `Siga o plano de execução, respeite os tempos de descanso e registre suas cargas.`;
-      }
-    }
-
-    // Renderiza Prescrição de Aeróbico & Cardio
-    const cardioContainer = document.getElementById('cardioGoalsBody');
-    if (cardioContainer) {
-      const customCardio = (currentData && (currentData.cardio_guidelines || currentData.prescricao_cardio)) || '';
-      if (customCardio.trim()) {
-        cardioContainer.innerHTML = escapeHtml(customCardio).replace(/\n/g, '<br>');
-      } else {
-        cardioContainer.innerHTML = `Aguardando prescrição de cardio pelo treinador.`;
       }
     }
 
