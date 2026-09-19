@@ -1217,6 +1217,7 @@
     localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
   }
 
+  /* PRESCRIÇÃO E HISTÓRICO COMPLETO DE CORRIDA POR DIA DA SEMANA */
   function setupCorrida(data) {
     const presContainer = document.getElementById('corridaPrescricaoList');
     const histContainer = document.getElementById('corridaHistoryList');
@@ -1244,7 +1245,21 @@
     let totalRegistros = 0;
 
     dias.forEach(d => {
-      const treinoInstrucao = prescricao[d.key] || 'Descanso ou treino livre';
+      const pData = prescricao[d.key] || {};
+      let treinoInstrucao = "Descanso ou treino livre";
+      
+      if (typeof pData === 'object' && pData !== null) {
+        if (pData.desc || pData.km || pData.min) {
+          const infoKm = pData.km ? `${pData.km} km` : '';
+          const infoMin = pData.min ? `${pData.min} min` : '';
+          const infoInt = pData.intensidade ? `[${pData.intensidade}]` : '';
+          const detalhe = pData.desc || '';
+          treinoInstrucao = `${infoKm} ${infoMin} ${infoInt} - ${detalhe}`.trim();
+        }
+      } else if (typeof pData === 'string' && pData.trim() !== '') {
+        treinoInstrucao = pData;
+      }
+
       const regDia = registros[d.key] || [];
       const ultimoReg = Array.isArray(regDia) ? regDia[regDia.length - 1] : regDia;
 
@@ -1833,6 +1848,7 @@
     }, 1500);
   }
 
+  /* REGISTRO SEMANAL DE DESEMPENHO E FRACIONAMENTO DE CARGA/REPETIÇÃO */
   function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     if (!currentData.weekly_logs) currentData.weekly_logs = {};
     const keyLog = `${dayIdx}_${exIdx}`;
@@ -1840,7 +1856,7 @@
     if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
     const exObj = currentData.days[dayIdx].exercicios[exIdx];
-    const numSeries = parseInt(exObj.series) || 1;
+    const numSeries = parseInt(exObj.series) || 3;
 
     const modeKey = `${dayIdx}_${exIdx}`;
     const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
@@ -1858,7 +1874,7 @@
     let totalReps = 0;
     let seriesPreenchidas = 0;
 
-    for (let s = 1; s <= numSeries; s++) {
+    for (let s = 1; s <= numSeries + 2; s++) {
       const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
       const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
@@ -1868,6 +1884,16 @@
         seriesPreenchidas++;
       }
     }
+
+    const cAtiv = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+    const rAtiv = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
+    if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
+    if (!isNaN(rAtiv)) { totalReps += rAtiv; seriesPreenchidas++; }
+
+    const cCl = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
+    const rCl = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
+    if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
+    if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
 
     if (maxCarga > 0) {
       const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "-";
@@ -1909,6 +1935,8 @@
           carb: parts[4] || '-',
           fat: parts[5] || '-'
         });
+      } else {
+        items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
       }
     });
 
