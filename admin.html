@@ -240,7 +240,7 @@
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
         <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks</button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
-        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
+        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editor de Dieta IA</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
@@ -301,9 +301,9 @@
         </div>
 
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha e Diretrizes:</label>
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha (Com ajuste inteligente de Diretrizes):</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e atualize as diretrizes para iniciante">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque o foco para Hipertrofia com novas diretrizes">
             <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
           </div>
         </div>
@@ -325,33 +325,40 @@
         <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
+      <!-- EDITOR DE DIETA COM IA NO TOPO PARA AJUSTES DIRETOS -->
       <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição em gramas.</p>
-
-        <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="14" oninput="lidarEdicaoDieta()" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Pão de Forma | 4 fatias (120g)"></textarea>
+        <div class="panel-title">🥗 Editor de Dieta + IA do Treinador</div>
         
-        <div style="display:flex; gap:10px; margin-top:12px; flex-direction:column;">
-          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Opções de Troca (IA)</button>
+        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Montar ou Ajustar a Dieta:</label>
+          <div style="display:flex; gap:8px; flex-direction:column;">
+            <input type="text" id="aiDietCommand" placeholder="Ex: Crie um plano de 2200kcal para hipertrofia OU Aumente o carbo do almoço e troque o pão por aveia">
+            <button class="btn btn-soft" id="btnAiDietCmd" style="border-color:var(--gold); color:var(--gold);" onclick="executarComandoIaDieta()">⚡ Aplicar Ajuste de Dieta via IA</button>
+          </div>
+          <div style="font-size:10px; color:var(--muted); margin-top:4px;">A IA criará ou ajustará o texto do plano alimentando de forma totalmente automatizada.</div>
+        </div>
+
+        <label>Bloco de Refeições (Edite Direto Aqui):</label>
+        <textarea id="dietTextarea" rows="14" oninput="lidarEdicaoDieta()" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 3 unidades"></textarea>
+        
+        <div style="margin-top:12px;">
           <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
         </div>
 
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
-          <label style="margin-top:0;">Pré-visualização por Dia (Ao Vivo):</label>
+          <label style="margin-top:0;">Pré-visualização do Plano (Ao Vivo):</label>
           <div id="dietPreviewFilters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto;"></div>
           <div id="dietPreviewList" class="preview-card"></div>
         </div>
       </div>
 
-      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL + PRESCRIÇÃO DE CARDIO (IA ISOLADA) -->
+      <!-- MÓDULO DE CORRIDA E CARDIO SEMANAL + PRESCRIÇÃO DE CARDIO -->
       <div id="secCorrida" class="panel-card hidden">
         <div class="panel-title">🏃 Prescrição Semanal de Cardio & Corrida (IA + Manual)</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
           Defina diretrizes de cardio, distância (Km), tempo (Min) e instruções específicas por dia.
         </p>
 
-        <!-- PRESCRIÇÃO E DIRETRIZES DE CARDIO MANTIDAS NO MÓDULO CORRIDA -->
         <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (Texto Exibido no App):</label>
           <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira em dias OFF."></textarea>
@@ -864,7 +871,6 @@
     });
   }
 
-  /* IA DE CARDIO ISOLADA NO MÓDULO CORRIDA (NÃO MEXE NA MUSCULAÇÃO) */
   async function gerarSemanaCardioIA() {
     if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -955,7 +961,6 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     showToast("Plano de cardio e prescrição salvos!", "success");
   }
 
-  /* IA DE TREINO E DIRETRIZES GERAIS (ISOLADA DA FICHA DE MUSCULAÇÃO) */
   async function gerarTreinoComIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
     
@@ -1030,11 +1035,16 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         cache: 'no-cache',
         body: JSON.stringify({
           mensagem: `Você é um assistente de personal trainer focado em musculação.
-Receba o texto atual da ficha de treino e das diretrizes gerais, e aplique a seguinte alteração solicitada: "${cmd}".
+Receba o texto atual da ficha de treino e das diretrizes gerais do treinador, e aplique a alteração solicitada: "${cmd}".
+
+REGRAS DE DIRETRIZES GERAIS:
+1. Se a alteração solicitada for APENAS um ajuste simples de exercícios/séries/repetições (ex: "mudar para 3x10", "trocar supino por halter", "tirar 1 exercício"), MANTENHA as diretrizes gerais exatamente IGUAIS ao texto original.
+2. Se a alteração envolver mudanças conceituais, de objetivo, de método ou de estratégia geral do treino, ATUALIZE as diretrizes para ficarem alinhadas com o novo treino.
+
 Retorne ESTRITAMENTE um JSON no formato:
 {
-  "trainer_guidelines": "Diretrizes gerais atualizadas",
-  "workout_text": "Texto completo da nova ficha de treino"
+  "trainer_guidelines": "Diretrizes mantidas ou atualizadas conforme a regra acima",
+  "workout_text": "Texto completo da ficha de treino ajustada"
 }
 
 Ficha Atual:
@@ -1061,12 +1071,65 @@ ${guidelinesTx.value}`,
         }
 
         input.value = "";
-        showToast("Ficha e Diretrizes atualizadas pela IA!", "success");
+        showToast("Ficha atualizada pela IA!", "success");
       } else {
         showToast(data.error || "Erro ao alterar ficha.", "error");
       }
     } catch(e) {
       showToast("Erro ao processar comando na IA.", "error");
+    } finally {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
+  }
+
+  /* IA DE AJUSTE DIRETO NA DIETA (IGUAL AO TREINO) */
+  async function executarComandoIaDieta() {
+    const input = document.getElementById('aiDietCommand');
+    const tx = document.getElementById('dietTextarea');
+    const btn = document.getElementById('btnAiDietCmd');
+    const cmd = input.value.trim();
+
+    if (!cmd) return showToast("Digite o comando para a IA de Dieta.", "error");
+
+    const txtOriginal = btn.textContent;
+    btn.textContent = "⚡ Modificando...";
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({
+          mensagem: `Você é um nutricionista esportivo.
+Sua missão é receber o texto atual da dieta e aplicar a seguinte alteração/criação solicitada pelo treinador: "${cmd}".
+Formate o plano sempre utilizando tags de categoria entre colchetes e alimentos divididos por barra vertical, exatamente como no padrão:
+
+[Tag/Categoria] Refeição Nome
+Alimento | Quantidade
+
+Texto da Dieta Atual:
+${tx.value}
+
+Retorne ESTRITAMENTE o texto final da dieta formatada, sem explicações adicionais antes ou depois.`,
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.resposta) {
+        let respLimpa = data.resposta.replace(/```/g, '').trim();
+        tx.value = respLimpa;
+        lidarEdicaoDieta();
+        input.value = "";
+        showToast("Plano alimentar atualizado pela IA!", "success");
+      } else {
+        showToast("Erro ao processar comando na IA de Dieta.", "error");
+      }
+    } catch(e) {
+      showToast("Erro de conexão com a IA de Dieta.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
@@ -1089,9 +1152,9 @@ ${guidelinesTx.value}`,
     const nome = currentStudentData.clientName || currentStudentCode;
     const codigo = currentStudentCode;
     const senha = lastGeneratedPassword || "Sua senha de cadastro";
-    const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+    const linkApp = `[https://jhonataconsultoria.com.br/app.html?aluno=$](https://jhonataconsultoria.com.br/app.html?aluno=$){codigo}`;
     
-    const linkVideoBoasVindas = "https://youtube.com/shorts/SEU_VIDEO_AQUI";
+    const linkVideoBoasVindas = "[https://youtube.com/shorts/SEU_VIDEO_AQUI](https://youtube.com/shorts/SEU_VIDEO_AQUI)";
 
     const mensagem = `Olá, ${nome}! 👋🏼%0A%0A` +
                      `Seu acesso à Consultoria Jhonata Personal está liberado!%0A%0A` +
@@ -1103,7 +1166,7 @@ ${guidelinesTx.value}`,
                      `Qualquer dúvida, estou à disposição! Bons treinos! 💪🏼`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
-    const urlWpp = fone ? `https://wa.me/55${fone}?text=${mensagem}` : `https://wa.me/?text=${mensagem}`;
+    const urlWpp = fone ? `[https://wa.me/55$](https://wa.me/55$){fone}?text=${mensagem}` : `[https://wa.me/?text=$](https://wa.me/?text=$){mensagem}`;
 
     window.open(urlWpp, '_blank');
   }
@@ -1212,7 +1275,7 @@ ${guidelinesTx.value}`,
         <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${escapeHtml(a.outrasAtividades) || 'Nenhuma'}</div></div>
         <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${escapeHtml(a.lesoes) || 'Nenhuma'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${escapeHtml(a.doencas) || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${escapeHtml(a.alergias) || 'Nenhuma'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">nutri-box">🥜 Alergias Alimentares</div><div class="anamnese-val">${escapeHtml(a.alergias) || 'Nenhuma'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${escapeHtml(a.rotina) || 'Não informado'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${escapeHtml(a.horasSono) || '-'} | Qualidade: ${escapeHtml(a.qualidadeSono) || '-'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${escapeHtml(a.alcool) || '-'} | Tabagismo: ${escapeHtml(a.tabagismo) || '-'}</div></div>
@@ -1792,50 +1855,6 @@ ${guidelinesTx.value}`,
     });
   }
 
-  async function calcularMacrosComIA() {
-    const tx = document.getElementById('dietTextarea');
-    const btn = document.getElementById('btnCalcTaco');
-    const textoDieta = tx.value.trim();
-
-    if (!textoDieta) return showToast("Digite os alimentos na caixa de texto primeiro.", "error");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ Calculando e gerando substituições...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-substituicoes-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        cache: 'no-cache',
-        body: JSON.stringify({ 
-          alimento: "Calcular Macronutrientes e Substituições",
-          listaAtual: textoDieta 
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.resultado) {
-        let respLimpa = data.resultado.trim();
-
-        if (respLimpa.includes('|')) {
-          tx.value = respLimpa;
-          lidarEdicaoDieta();
-          showToast("Macros calculados com sucesso!", "success");
-        } else {
-          showToast("A IA não gerou a estrutura esperada.", "error");
-        }
-      } else {
-        showToast(data.error || "Não foi possível calcular os macros.", "error");
-      }
-    } catch(e) {
-      showToast("Erro ao conectar à IA para cálculo de macros.", "error");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
-
   function salvarDieta() {
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return showToast("A caixa de texto da dieta está vazia.", "error");
@@ -2110,13 +2129,13 @@ ${guidelinesTx.value}`,
 
   function copiarLinkAcessoAluno() {
     if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
-    const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
+    const linkAluno = `[https://jhonataconsultoria.com.br/app.html?aluno=$](https://jhonataconsultoria.com.br/app.html?aluno=$){currentStudentCode}`;
     navigator.clipboard.writeText(linkAluno);
     showToast("Link de acesso copiado!", "success");
   }
 
   function copiarLinkAnamnese() {
-    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
+    const link = "[https://jhonataconsultoria.com.br/app.html?modo=anamnese](https://jhonataconsultoria.com.br/app.html?modo=anamnese)";
     navigator.clipboard.writeText(link);
     showToast("Link da Anamnese copiado!", "success");
   }
