@@ -78,7 +78,6 @@
   .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
-  /* ESTILOS DE REFEIÇÃO E TROCAS DA DIETA */
   .diet-aba-btn { background:#100305; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
   .diet-aba-btn.active { background:var(--gold); color:#100305; border-color:var(--gold); }
 
@@ -1248,7 +1247,6 @@ ${guidelinesTx.value}`,
     }
   }
 
-  /* GERADOR DE DIETA INTEGRADO COM ABAS E SUBSTITUIÇÕES */
   async function gerarDietaCompletaPorAnamnese() {
     if (!currentStudentCode || !currentStudentData) {
       return showToast("Selecione um aluno primeiro.", "error");
@@ -1848,7 +1846,6 @@ Bons treinos! 💪🏼`;
     atualizarPreviewDietaAoVivo();
   }
 
-  /* PARSER DA DIETA ATUALIZADO SUPORTANDO ABAS DE CARBO E REFEIÇÕES ORDINÁRIAS */
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -1943,7 +1940,6 @@ Bons treinos! 💪🏼`;
     return abas;
   }
 
-  /* RENDERIZAÇÃO EM CARDS / SANFONA COM NAVEGAÇÃO POR ABAS */
   function atualizarPreviewDietaAoVivo() {
     const raw = document.getElementById('dietTextarea').value;
     const filtersEl = document.getElementById('dietPreviewFilters');
@@ -1960,7 +1956,6 @@ Bons treinos! 💪🏼`;
 
     if (activeDietAbaIndex >= abas.length) activeDietAbaIndex = 0;
 
-    // Renderiza botões de Abas Principais (Ciclismo de Carbo)
     abas.forEach((aba, idx) => {
       const btn = document.createElement('button');
       btn.className = `diet-aba-btn ${idx === activeDietAbaIndex ? 'active' : ''}`;
@@ -1972,7 +1967,6 @@ Bons treinos! 💪🏼`;
       filtersEl.appendChild(btn);
     });
 
-    // Renderiza as refeições da Aba selecionada
     const currentAba = abas[activeDietAbaIndex];
     (currentAba.meals || []).forEach((block, idx) => {
       const card = document.createElement('div');
@@ -1989,7 +1983,6 @@ Bons treinos! 💪🏼`;
         <div id="preview_ref_${idx}" class="hidden" style="background:#0d0204; padding:12px; font-size:12px;">
       `;
 
-      // Alimentos Principais Base
       block.baseItems.forEach(item => {
         html += `
           <div class="meal-item-base">
@@ -1998,7 +1991,6 @@ Bons treinos! 💪🏼`;
         `;
       });
 
-      // Caixas de Substituição por Categoria
       if (block.trocasCarbo.length > 0) {
         html += `<div style="font-size:11px; color:#60a5fa; font-weight:800; margin-top:8px;">🌾 OPÇÕES DE TROCA DE CARBOIDRATOS:</div>`;
         block.trocasCarbo.forEach(subC => {
