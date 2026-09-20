@@ -742,6 +742,11 @@
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   }
 
+  function obterDiaSemanaNormalizado() {
+    const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+    return dias[new Date().getDay()];
+  }
+
   let restTimerInterval = null;
   let restSecondsLeft = 0;
   let audioCtx = null;
@@ -2177,6 +2182,7 @@
     return abas;
   }
 
+  /* RENDERIZAÇÃO DA DIETA EXIBINDO EXCLUSIVAMENTE OS CICLOS DOS DIAS E FOCADA NO DIA ATUAL */
   function renderDietaAluno(refeicoesData) {
     const filtersContainer = document.getElementById('dietFiltersContainer');
     const categoryList = document.getElementById('dietCategoryList');
@@ -2196,23 +2202,51 @@
       rawText = refeicoesData;
     }
 
-    const abas = parseDietaAluno(rawText);
+    let abas = parseDietaAluno(rawText);
     if (filtersContainer) filtersContainer.innerHTML = "";
     categoryList.innerHTML = "";
 
-    if (abas.length === 0) {
-      categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum plano alimentar disponível no momento.</div>`;
+    // Filtra descartando abas genéricas com o título "PLANO ALIMENTAR" ou "PLANO PRINCIPAL"
+    abas = abas.filter(aba => {
+      const nomeUpper = aba.abaNome.trim().toUpperCase();
+      return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
+    });
+
+    if (!abas || abas.length === 0) {
+      categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
       return;
     }
 
-    if (activeAlunoDietAbaIndex >= abas.length) activeAlunoDietAbaIndex = 0;
+    // Identifica o ciclo correspondente ao DIA DE HOJE
+    const diaHoje = obterDiaSemanaNormalizado();
+    let abaIndexHoje = 0;
 
-    if (abas.length > 1 && filtersContainer) {
+    abas.forEach((aba, idx) => {
+      const nomeAbaClean = aba.abaNome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const temDiaHoje = aba.meals.some(m => {
+        const diasTexto = (m.days || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return diasTexto.includes(diaHoje);
+      });
+
+      if (nomeAbaClean.includes(diaHoje) || temDiaHoje) {
+        abaIndexHoje = idx;
+      }
+    });
+
+    if (typeof activeAlunoDietAbaIndex === 'undefined' || activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex >= abas.length) {
+      activeAlunoDietAbaIndex = abaIndexHoje;
+    }
+
+    // Renderiza os botões das Abas de Ciclos no topo
+    if (filtersContainer) {
       abas.forEach((aba, idx) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `diet-aba-btn ${idx === activeAlunoDietAbaIndex ? 'active' : ''}`;
-        btn.textContent = aba.abaNome;
+        
+        const ehHoje = (idx === abaIndexHoje);
+        btn.innerHTML = `${escapeHtml(aba.abaNome)} ${ehHoje ? '📌 <small style="font-size:9px;">(Hoje)</small>' : ''}`;
+        
         btn.onclick = () => {
           activeAlunoDietAbaIndex = idx;
           renderDietaAluno(refeicoesData);
@@ -2221,56 +2255,61 @@
       });
     }
 
+    // Renderiza as refeições da aba ativa
     const currentAba = abas[activeAlunoDietAbaIndex];
-    (currentAba.meals || []).forEach((meal, idx) => {
-      const card = document.createElement('div');
-      card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
+    if (currentAba && currentAba.meals) {
+      currentAba.meals.forEach((meal, idx) => {
+        if (meal.mealTitle.trim().toUpperCase() === 'PLANO ALIMENTAR') return;
 
-      let html = `
-        <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
-          <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽️ ${escapeHtml(meal.mealTitle)}</h3>
-          ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
-        </div>
-        
-        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-      `;
+        const card = document.createElement('div');
+        card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
 
-      meal.baseItems.forEach(item => {
-        html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
-      });
-
-      html += `</div>`;
-
-      if (meal.trocasCarbo.length > 0 || meal.trocasProt.length > 0) {
-        html += `
-          <div style="border-top:1px dashed var(--line); padding-top:8px;">
-            <button type="button" onclick="document.getElementById('trocas_aluno_${idx}').classList.toggle('hidden')" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:8px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer;">
-              🔄 VER OPÇÕES DE TROCA / SUBSTITUIÇÃO ▾
-            </button>
-            
-            <div id="trocas_aluno_${idx}" class="hidden" style="margin-top:8px; background:var(--bg); padding:10px; border-radius:8px;">
+        let html = `
+          <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
+            <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽️ ${escapeHtml(meal.mealTitle)}</h3>
+            ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
+          </div>
+          
+          <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
         `;
 
-        if (meal.trocasCarbo.length > 0) {
-          html += `<div style="font-size:11px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
-          meal.trocasCarbo.forEach(subC => {
-            html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
-          });
+        meal.baseItems.forEach(item => {
+          html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
+        });
+
+        html += `</div>`;
+
+        if (meal.trocasCarbo.length > 0 || meal.trocasProt.length > 0) {
+          html += `
+            <div style="border-top:1px dashed var(--line); padding-top:8px;">
+              <button type="button" onclick="document.getElementById('trocas_aluno_${idx}').classList.toggle('hidden')" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:8px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer;">
+                🔄 VER OPÇÕES DE TROCA / SUBSTITUIÇÃO ▾
+              </button>
+              
+              <div id="trocas_aluno_${idx}" class="hidden" style="margin-top:8px; background:var(--bg); padding:10px; border-radius:8px;">
+          `;
+
+          if (meal.trocasCarbo.length > 0) {
+            html += `<div style="font-size:11px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
+            meal.trocasCarbo.forEach(subC => {
+              html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
+            });
+          }
+
+          if (meal.trocasProt.length > 0) {
+            html += `<div style="font-size:11px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
+            meal.trocasProt.forEach(subP => {
+              html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
+            });
+          }
+
+          html += `</div></div>`;
         }
 
-        if (meal.trocasProt.length > 0) {
-          html += `<div style="font-size:11px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
-          meal.trocasProt.forEach(subP => {
-            html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
-          });
-        }
-
-        html += `</div></div>`;
-      }
-
-      card.innerHTML = html;
-      categoryList.appendChild(card);
-    });
+        card.innerHTML = html;
+        categoryList.appendChild(card);
+      });
+    }
   }
 
   const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'config'];
