@@ -358,7 +358,7 @@
             🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A IA vai gerar as Abas Estratégicas (Ex: CARBO BAIXO, CARBO MEDIO, CARBO ALTO) e adicionar opções de substituição em cada refeição!
+            A IA vai gerar as Abas Estratégicas (Ex: [Carbo Baixo], [Carbo Médio], [Carbo Alto]) e adicionar opções de substituição em cada refeição!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
@@ -372,7 +372,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="(CARBO BAIXO)&#10;Dias: Segunda, Quarta e Sexta&#10;&#10;[REFEIÇÃO 1] CAFÉ DA MANHÃ&#10;• Ovos mexidos | 3 un&#10;(Troca) [CARBO] Tapioca | 40g&#10;&#10;---&#10;&#10;(CARBO ALTO)&#10;Dias: Terça e Quinta&#10;&#10;[REFEIÇÃO 1] CAFÉ DA MANHÃ&#10;• Ovos mexidos | 3 un&#10;• Pão integral | 2 fatias"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;Frango Grelhado 150g&#10;Pão de Forma Tradicional 50g (2 fatias)&#10;(Troca) [CARBO] Tapioca 40g&#10;&#10;---&#10;&#10;[Carbo Alto]&#10;Sábado e Domingo&#10;&#10;1ª Refeição&#10;Frango Grelhado 120g&#10;Pão de Forma Tradicional 125g"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -579,7 +579,7 @@
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="(CARBO BAIXO)&#10;Dias: Segunda, Terça e Quarta&#10;&#10;[REFEIÇÃO 1] CAFÉ DA MANHÃ&#10;• Ovos mexidos | 3 un"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;• Ovos mexidos | 3 un"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -1833,21 +1833,29 @@ Bons treinos! 💪🏼`;
     }
 
     let str = "";
-    currentStudentData.refeicoes.forEach(ref => {
-      str += `${ref.titulo}\n${ref.alimentos}\n\n`;
-    });
+    if (typeof currentStudentData.refeicoes === 'string') {
+      str = currentStudentData.refeicoes;
+    } else if (Array.isArray(currentStudentData.refeicoes)) {
+      currentStudentData.refeicoes.forEach(ref => {
+        if (typeof ref === 'string') {
+          str += `${ref}\n\n`;
+        } else {
+          str += `${ref.titulo || ''}\n${ref.alimentos || ''}\n\n`;
+        }
+      });
+    }
     tx.value = str.trim();
     atualizarPreviewDietaAoVivo();
   }
 
-  /* PARSER DA DIETA SUPORTANDO ABAS DE CARBO E DIAS */
+  /* PARSER DA DIETA ATUALIZADO SUPORTANDO ABAS DE CARBO E REFEIÇÕES ORDINÁRIAS */
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|---)/gi);
+    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
 
-    const regexTitulosRefeicao = /(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*[1-5]|REFEIÇÃO\s*[1-5]|CAFÉ DA MANHÃ|CAFÉ DA TARDE|ALMOÇO|JANTAR|CEIA|LANCHE PÓS CORRIDA)/gi;
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
@@ -1856,13 +1864,13 @@ Bons treinos! 💪🏼`;
       let abaNome = "PLANO PRINCIPAL";
       let textContent = cleanAba;
 
-      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\))/i.test(cleanAba)) {
+      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\])/i.test(cleanAba)) {
         const firstLineEnd = cleanAba.indexOf('\n');
         if (firstLineEnd !== -1) {
-          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
+          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = cleanAba.substring(firstLineEnd).trim();
         } else {
-          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
+          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = "";
         }
       }
@@ -1874,7 +1882,10 @@ Bons treinos! 💪🏼`;
         const clean = bloco.trim();
         if (!clean) return;
 
-        const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
+        const lines = clean.split('\n')
+          .map(l => l.trim())
+          .filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
+
         if (lines.length === 0) return;
 
         let title = lines[0].replace(/^\[.*?\]\s*/, '');
