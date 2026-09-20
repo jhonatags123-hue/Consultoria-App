@@ -2090,7 +2090,9 @@
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|---)/gi);
+    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|---)/gi);
+
+    const regexTitulosRefeicao = /(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*[1-5]|REFEIÇÃO\s*[1-5]|CAFÉ DA MANHÃ|CAFÉ DA TARDE|ALMOÇO|JANTAR|CEIA|LANCHE PÓS CORRIDA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
@@ -2099,18 +2101,18 @@
       let abaNome = "PLANO ALIMENTAR";
       let textContent = cleanAba;
 
-      if (cleanAba.startsWith('[ABA]') || cleanAba.startsWith('[CICLO]')) {
+      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\))/i.test(cleanAba)) {
         const firstLineEnd = cleanAba.indexOf('\n');
         if (firstLineEnd !== -1) {
-          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
           textContent = cleanAba.substring(firstLineEnd).trim();
         } else {
-          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
           textContent = "";
         }
       }
 
-      const rawMeals = textContent.split(/(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+      const rawMeals = textContent.split(regexTitulosRefeicao);
       const meals = [];
 
       rawMeals.forEach(bloco => {
@@ -2127,8 +2129,20 @@
         const trocasProt = [];
 
         lines.slice(1).forEach(line => {
-          if (line.toLowerCase().startsWith('dias:')) {
-            days = line;
+          const lineLower = line.toLowerCase();
+          if (
+            lineLower.startsWith('dias:') || 
+            lineLower.startsWith('dias da semana:') || 
+            lineLower.includes('segunda') || 
+            lineLower.includes('terça') || 
+            lineLower.includes('quarta') || 
+            lineLower.includes('quinta') || 
+            lineLower.includes('sexta') || 
+            lineLower.includes('sábado') || 
+            lineLower.includes('domingo')
+          ) {
+            days = line.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
+            if (!days.startsWith('📅')) days = '📅 ' + days;
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
             if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
@@ -2212,19 +2226,21 @@
       let html = `
         <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
           <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽️ ${escapeHtml(meal.mealTitle)}</h3>
-          ${meal.days ? `<span style="font-size:11px; color:var(--ink-dim);">${escapeHtml(meal.days)}</span>` : ''}
+          ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
         </div>
         
-        <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
       `;
 
       meal.baseItems.forEach(item => {
         html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
       });
 
+      html += `</div>`;
+
       if (meal.trocasCarbo.length > 0 || meal.trocasProt.length > 0) {
         html += `
-          <div style="margin-top:10px; border-top:1px dashed var(--line); padding-top:8px;">
+          <div style="border-top:1px dashed var(--line); padding-top:8px;">
             <button type="button" onclick="document.getElementById('trocas_aluno_${idx}').classList.toggle('hidden')" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:8px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer;">
               🔄 VER OPÇÕES DE TROCA / SUBSTITUIÇÃO ▾
             </button>
@@ -2235,21 +2251,20 @@
         if (meal.trocasCarbo.length > 0) {
           html += `<div style="font-size:11px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
           meal.trocasCarbo.forEach(subC => {
-            html += `<div style="font-size:12px; color:var(--ink-dim); margin-left:6px; margin-bottom:4px;">• ${escapeHtml(subC)}</div>`;
+            html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
           });
         }
 
         if (meal.trocasProt.length > 0) {
           html += `<div style="font-size:11px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
           meal.trocasProt.forEach(subP => {
-            html += `<div style="font-size:12px; color:var(--ink-dim); margin-left:6px; margin-bottom:4px;">• ${escapeHtml(subP)}</div>`;
+            html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
           });
         }
 
         html += `</div></div>`;
       }
 
-      html += `</div>`;
       card.innerHTML = html;
       categoryList.appendChild(card);
     });
