@@ -78,6 +78,10 @@
   .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
+  /* ESTILOS DE REFEIÇÃO E TROCAS DA DIETA */
+  .meal-item-base { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-top:8px; }
+  .sub-item-box { background:#0a0204; border-left:3px solid var(--gold); padding:8px 10px; margin-top:4px; margin-left:12px; border-radius:6px; font-size:11.5px; color:#e0d0d3; }
+
   .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling: touch; }
   .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; position:relative; }
   .tab-btn:hover { border-color:var(--gold); color:#fff; }
@@ -353,35 +357,39 @@
       </div>
 
       <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Dieta via Anamnese (IA 1: TMB + Dieta | IA 2: Trocas de Carbo & Proteína)</div>
+        <div class="panel-title">🥗 Editor de Dieta Inteligente (Geração ou Exemplo Base + Substitutos)</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold); font-size:12px; font-weight:800;">
-            🚀 GERAR DIETA COMPLETA AUTOMÁTICA PELA ANAMNESE DO ALUNO
+            🚀 GERAR OU AJUSTAR DIETA PELA ANAMNESE / EXEMPLO EXISTENTE
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A <b>IA 1</b> lerá a anamnese, calculará a TMB, gasto calórico e montará a dieta base. Em seguida, a <b>IA 2</b> irá calcular e anexar as <b>opções de troca para Carboidratos e Proteínas</b> de cada refeição.
+            Se o campo abaixo estiver vazio, a IA lerá a Anamnese do aluno. Se você digitar ou mantiver uma Dieta de Exemplo, a IA utilizará ela diretamente como estrutura!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras opcionais (Ex: Foco em 4 refeições, sem lactose, preferencia por cuscuz/ovos)">
+            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras (Ex: Adicionar opção de cuscuz no café ou manter 4 refeições)">
             <button class="btn" id="btnRunAnamneseDualAI" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800;" onclick="gerarDietaCompletaPorAnamnese()">
-              ⚡ Ler Anamnese ➔ Calcular TMB/Dieta (IA 1) ➔ Criar Trocas Carbo/Proteína (IA 2)
+              ⚡ Gerar Plano Alimentar + Substituições
             </button>
           </div>
         </div>
 
-        <label>Bloco de Refeições (Edite Direto Aqui):</label>
-        <textarea id="dietTextarea" rows="14" oninput="lidarEdicaoDieta()" placeholder="[DIETA BASE] Refeição 1 - Café da Manhã&#10;Pão francês | 2 unidades (100g)&#10;Ovos inteiros mexidos | 3 unidades&#10;(Opção de troca) Cuscuz | 150g&#10;(Opção de troca) Peito de frango desfiado | 90g"></textarea>
-        
-        <div style="margin-top:12px;">
-          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR E SUBSTITUIÇÕES</button>
-        </div>
+        <div class="editor-grid">
+          <div>
+            <label>Texto da Dieta (Edite Direto Aqui):</label>
+            <textarea id="dietTextarea" rows="16" oninput="lidarEdicaoDieta()" placeholder="[DIETA BASE] REFEIÇÃO 1 - CAFÉ DA MANHÃ (07:00 – 08:00)&#10;Dias: Terça, Sexta, Domingo&#10;Pão de forma | 4 fatias (120g)&#10;Ovos mexidos/cozidos | 4 unidades&#10;(Opção de troca) Cuscuz | 150g&#10;(Opção de troca) Peito de frango desfiado | 90g"></textarea>
+            
+            <div style="margin-top:12px;">
+              <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
+            </div>
+          </div>
 
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
-          <label style="margin-top:0;">Pré-visualização do Plano (Ao Vivo):</label>
-          <div id="dietPreviewFilters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto;"></div>
-          <div id="dietPreviewList" class="preview-card"></div>
+          <div>
+            <label>Pré-visualização do Plano (Estilo Sanfona/Card):</label>
+            <div id="dietPreviewFilters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto;"></div>
+            <div id="dietPreviewList" class="preview-card"></div>
+          </div>
         </div>
       </div>
 
@@ -1251,24 +1259,22 @@ ${guidelinesTx.value}`,
     }
   }
 
+  /* ENVIO DA DIETA COM SUPORTE A EXEMPLO BASE PELA IA */
   async function gerarDietaCompletaPorAnamnese() {
     if (!currentStudentCode || !currentStudentData) {
       return showToast("Selecione um aluno primeiro.", "error");
     }
 
     const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
-    if (!anamnese || (!anamnese.peso && !anamnese.objetivo && !anamnese.nome)) {
-      return showToast("O aluno selecionado não possui dados de Anamnese cadastrados.", "error");
-    }
-
     const instrucaoExtra = document.getElementById('aiDietExtraInstructions').value.trim();
     const textarea = document.getElementById('dietTextarea');
+    const dietaAtual = textarea.value.trim();
+
     const btn = document.getElementById('btnRunAnamneseDualAI');
     const txtOriginal = btn.textContent;
 
     btn.disabled = true;
-    btn.textContent = "⏳ Executando IAs (1. TMB e Dieta Base ➔ 2. Substitutos)...";
-    showToast("Executando IAs para calcular TMB, Dieta Base e Substituições...", "info");
+    btn.textContent = "⏳ IA Processando Dieta e Substituições...";
 
     try {
       const res = await fetch(`${BACKEND_URL}/api/admin/gerar-dieta-duas-ias`, {
@@ -1277,7 +1283,8 @@ ${guidelinesTx.value}`,
         cache: 'no-cache',
         body: JSON.stringify({
           anamneseData: anamnese,
-          instrucaoExtra: instrucaoExtra
+          instrucaoExtra: instrucaoExtra,
+          dietaAtual: dietaAtual
         })
       });
 
@@ -1285,9 +1292,9 @@ ${guidelinesTx.value}`,
       if (res.ok && data.dietaCompleta) {
         textarea.value = data.dietaCompleta;
         lidarEdicaoDieta();
-        showToast("✅ Dieta calculada com substitutos de Carbo e Proteína!", "success");
+        showToast("✅ Dieta gerada com sucesso em Sanfona com Trocas!", "success");
       } else {
-        showToast(data.error || "Falha ao gerar dieta com as duas IAs.", "error");
+        showToast(data.error || "Falha ao gerar dieta.", "error");
       }
     } catch (erro) {
       showToast("Erro de conexão com o servidor ao gerar a dieta.", "error");
@@ -1307,6 +1314,7 @@ ${guidelinesTx.value}`,
     salvarAlteracoes('workout');
   }
 
+  /* MENSAGEM DO WHATSAPP ATUALIZADA COM O TEXTO DE INDICAÇÃO */
   function enviarCredenciaisWhatsApp() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1332,7 +1340,16 @@ ${TUTORIAL_IOS}
 🤖 *Se o seu celular for Android (Chrome):*
 ${TUTORIAL_ANDROID}
 
-Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à sua tela inicial. Bons treinos! 💪🏼`;
+Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à sua tela inicial.
+
+---
+
+🔥 *ESQUEMA DE INDICAÇÃO:*
+Fala! Só pra tu saber, temos um esquema de indicação na consultoria 👊
+Se tu indicar meu trabalho, postar algo sobre a consultoria e trouxer alguém que tenha interesse e essa pessoa fechar, tu ganha R$20 de desconto na tua mensalidade e a pessoa indicada ganha R$10 de desconto na primeira mensalidade.
+E pode acumular as indicações. Quanto mais gente vier através de ti, maior fica teu desconto. 🔥
+
+Bons treinos! 💪🏼`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
     const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(mensagem)}` : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
@@ -1835,142 +1852,95 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
-  const NOMES_DIA_SEMANA = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  /* PARSER DA DIETA PARA IDENTIFICAR REFEIÇÕES E SUBSTITUTOS EM SANFONA */
+  function parseDietaEstruturada(rawText) {
+    if (!rawText || !rawText.trim()) return [];
 
-  function parseBlocoDietaAdmin(rawText) {
-    if (!rawText || typeof rawText !== 'string') return [];
-
-    const lines = rawText.split('\n');
-    const items = [];
-
-    lines.forEach(line => {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.includes('---')) return;
-
-      const lower = trimmed.toLowerCase();
-      if (lower.startsWith('segunda') || lower.startsWith('terça') || lower.startsWith('quarta') ||
-          lower.startsWith('quinta') || lower.startsWith('sexta') || lower.startsWith('sábado') ||
-          lower.startsWith('domingo') || lower.startsWith('dias:')) return;
-
-      const parts = trimmed.split('|').map(p => p.trim());
-      if (parts.length >= 2) {
-        items.push({
-          nome: parts[0],
-          qtd: parts[1] || 'A gosto',
-          kcal: parts[2] || '-',
-          ptn: parts[3] || '-',
-          carb: parts[4] || '-',
-          fat: parts[5] || '-'
-        });
-      } else {
-        items.push({ nome: trimmed, qtd: 'A gosto', kcal: '-', ptn: '-', carb: '-', fat: '-' });
-      }
-    });
-
-    return items;
-  }
-
-  function parseDietaCompletaAdmin(rawFullText) {
-    if (!rawFullText || !rawFullText.trim()) return [];
-
-    const rawBlocks = rawFullText.split(/(?=\[.*?\])/g);
     const blocks = [];
-    let currentCategory = "DIETA BASE";
+    const rawBlocks = rawText.split(/(?=\[.*?\]|REFEIÇÃO\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
 
     rawBlocks.forEach(bloco => {
-      const cleanBloco = bloco.trim();
-      if (!cleanBloco) return;
+      const clean = bloco.trim();
+      if (!clean) return;
 
-      const lines = cleanBloco.split('\n');
-      let title = (lines[0] || '').trim();
+      const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
+      if (lines.length === 0) return;
 
-      if (title.startsWith('[')) {
-        const tagMatch = title.match(/\[(.*?)\]/);
-        if (tagMatch) {
-          currentCategory = tagMatch[1].toUpperCase();
-          title = title.replace(/\[.*?\]/, '').trim();
+      let title = lines[0].replace(/^\[.*?\]\s*/, '');
+      let days = "";
+      const items = [];
+
+      lines.slice(1).forEach(line => {
+        if (line.toLowerCase().startsWith('dias:')) {
+          days = line;
+        } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
+          items.push({
+            tipo: 'troca',
+            texto: line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim()
+          });
+        } else {
+          items.push({
+            tipo: 'base',
+            texto: line
+          });
         }
-      }
-
-      const rest = lines.slice(1).join('\n');
-      const daysMatch = rest.match(/(Segunda|Terça|Quarta|Quinta|Sexta|Sábado|Domingo|Dias:)[^\n]*/i);
-      const daysText = daysMatch ? daysMatch[0].trim() : "";
+      });
 
       blocks.push({
-        category: currentCategory,
-        days: daysText,
-        mealTitle: title || "Refeição",
-        items: parseBlocoDietaAdmin(rest)
+        mealTitle: title,
+        days: days,
+        items: items
       });
     });
 
     return blocks;
   }
 
+  /* RENDERIZAÇÃO EM CARDS EXPAN SÍVEIS DA DIETA */
   function atualizarPreviewDietaAoVivo() {
     const raw = document.getElementById('dietTextarea').value;
-    const filtersEl = document.getElementById('dietPreviewFilters');
     const listEl = document.getElementById('dietPreviewList');
 
-    const blocks = parseDietaCompletaAdmin(raw).filter(b => b.items && b.items.length > 0);
-    filtersEl.innerHTML = '';
+    const blocks = parseDietaEstruturada(raw);
     listEl.innerHTML = '';
 
     if (blocks.length === 0) {
-      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite blocos no formato [Tag] Nome da Refeição.</div>`;
+      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite os blocos de refeição.</div>`;
       return;
     }
 
-    const categories = [...new Set(blocks.map(b => b.category))];
-    const hojeNome = NOMES_DIA_SEMANA[new Date().getDay()];
-
-    let categoriaInicial = categories.find(cat =>
-      blocks.some(b => b.category === cat && b.days && b.days.toLowerCase().includes(hojeNome.toLowerCase()))
-    ) || categories[0];
-
-    categories.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'tab-btn' + (cat === categoriaInicial ? ' active' : '');
-      btn.style.padding = '8px 14px';
-      btn.textContent = cat === categoriaInicial ? `${cat} (Hoje)` : cat;
-      btn.onclick = () => {
-        filtersEl.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        renderDietPreviewCategoria(blocks, cat);
-      };
-      filtersEl.appendChild(btn);
-    });
-
-    renderDietPreviewCategoria(blocks, categoriaInicial);
-  }
-
-  function renderDietPreviewCategoria(blocks, cat) {
-    const listEl = document.getElementById('dietPreviewList');
-    listEl.innerHTML = '';
-
-    const filtered = blocks.filter(b => b.category === cat);
-    if (filtered.length === 0) {
-      listEl.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhuma refeição nesta categoria ainda.</p>`;
-      return;
-    }
-
-    filtered.forEach(block => {
+    blocks.forEach((block, idx) => {
       const card = document.createElement('div');
-      card.style.cssText = 'background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px;';
+      card.style.cssText = 'margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid var(--border);';
 
-      let html = `<div style="font-weight:800; color:var(--gold); font-size:12.5px; margin-bottom:6px;">🍽️ ${escapeHtml(block.mealTitle)}</div>`;
-      if (block.days) {
-        html += `<div style="font-size:10.5px; color:var(--muted); margin-bottom:8px;">${escapeHtml(block.days)}</div>`;
-      }
+      let html = `
+        <div class="day-accordion-header" onclick="toggleResumoAccordion('preview_ref_${idx}')" style="margin-bottom:0;">
+          <div>
+            <b style="color:var(--gold); font-size:14px;">🍽️ ${escapeHtml(block.mealTitle)}</b>
+            ${block.days ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">${escapeHtml(block.days)}</div>` : ''}
+          </div>
+          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos & Trocas ▾</span>
+        </div>
+        <div id="preview_ref_${idx}" class="hidden" style="background:#0d0204; padding:12px; font-size:12px;">
+      `;
 
       block.items.forEach(item => {
-        html += `<div style="display:flex; justify-content:space-between; font-size:11.5px; color:#fff; padding:3px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
-          <span>${escapeHtml(item.nome)}</span>
-          <span style="color:var(--gold); font-weight:700;">${escapeHtml(item.qtd)}</span>
-        </div>`;
+        if (item.tipo === 'base') {
+          html += `
+            <div class="meal-item-base">
+              <span style="color:#fff; font-weight:700;">• ${escapeHtml(item.texto)}</span>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="sub-item-box">
+              <span style="color:var(--gold); font-weight:700;">🔄 Opção de troca:</span> ${escapeHtml(item.texto)}
+            </div>
+          `;
+        }
       });
 
+      html += `</div>`;
       card.innerHTML = html;
       listEl.appendChild(card);
     });
@@ -1980,7 +1950,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return showToast("A caixa de texto da dieta está vazia.", "error");
 
-    const rawBlocks = raw.split(/(?=\[.*?\])/g);
+    const rawBlocks = raw.split(/(?=\[.*?\]|REFEIÇÃO\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
     const refeicoesFormatadas = [];
 
     rawBlocks.forEach(bloco => {
@@ -1997,19 +1967,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         refeicoesFormatadas.push({ titulo: title, alimentos: items });
       }
     });
-
-    if (refeicoesFormatadas.length === 0) {
-      const simpleBlocks = raw.split(/\n\s*\n/);
-      simpleBlocks.forEach(b => {
-        const lines = b.trim().split('\n');
-        if (lines.length > 0) {
-          refeicoesFormatadas.push({
-            titulo: lines[0],
-            alimentos: lines.slice(1).join('\n')
-          });
-        }
-      });
-    }
 
     currentStudentData.refeicoes = refeicoesFormatadas;
     salvarAlteracoes('diet');
