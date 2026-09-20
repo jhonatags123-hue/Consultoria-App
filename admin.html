@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Painel de Gestão Restrito — Jhonata Personal</title>
-<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap)" rel="stylesheet">
-<script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
-<link rel="apple-touch-icon" href="[https://cdn-icons-png.flaticon.com/512/2548/2548537.png](https://cdn-icons-png.flaticon.com/512/2548/2548537.png)">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2548/2548537.png">
 <link rel="manifest" href="manifest-admin.json">
 
 <style>
@@ -256,8 +256,8 @@
 
         <div class="tutorial-box">
           <b style="color:#fff;">📹 Tutoriais de Instalação do App:</b><br>
-          🍏 iOS: <a href="[https://youtube.com/shorts/AC3qVx1mglc](https://youtube.com/shorts/AC3qVx1mglc)" target="_blank">Assistir Vídeo</a><br>
-          🤖 Android: <a href="[https://youtube.com/shorts/Px4gUAlgR7w](https://youtube.com/shorts/Px4gUAlgR7w)" target="_blank">Assistir Vídeo</a>
+          🍏 iOS: <a href="https://youtube.com/shorts/AC3qVx1mglc" target="_blank">Assistir Vídeo</a><br>
+          🤖 Android: <a href="https://youtube.com/shorts/Px4gUAlgR7w" target="_blank">Assistir Vídeo</a>
         </div>
       </div>
     </aside>
@@ -352,7 +352,6 @@
         <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
-      <!-- SEÇÃO DIETA AUTOMÁTICA COM DUAS IAs (ANAMNESE ➔ TMB/GET/DIETA BASE ➔ TROCAS CARBO E PROTEÍNA) -->
       <div id="secDieta" class="panel-card hidden">
         <div class="panel-title">🥗 Dieta via Anamnese (IA 1: TMB + Dieta | IA 2: Trocas de Carbo & Proteína)</div>
         
@@ -506,7 +505,6 @@
           </div>
         </div>
 
-        <!-- CICLO / ROTAÇÃO DE TREINO DE 5 SEMANAS -->
         <div style="margin-top:12px;">
           <label>Ciclo de Rotação de Treino (Semanas)</label>
           <select id="editSemanasRotacao">
@@ -602,15 +600,15 @@
 </div>
 
 <script>
-  const BACKEND_URL = "[https://consultoria-backend-kbqi.onrender.com](https://consultoria-backend-kbqi.onrender.com)";
+  const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
   let currentStudentCode = "";
   let currentStudentData = null;
   let lastGeneratedPassword = "";
   let allStudentsList = [];
   let chartInstance = null;
 
-  const TUTORIAL_IOS = "[https://youtube.com/shorts/AC3qVx1mglc](https://youtube.com/shorts/AC3qVx1mglc)";
-  const TUTORIAL_ANDROID = "[https://youtube.com/shorts/Px4gUAlgR7w](https://youtube.com/shorts/Px4gUAlgR7w)";
+  const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
+  const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 
   function showToast(mensagem, tipo = 'info') {
     const container = document.getElementById('toastContainer');
@@ -1253,9 +1251,6 @@ ${guidelinesTx.value}`,
     }
   }
 
-  /**
-   * FLUXO DAS DUAS IAs ENCADEADAS PELA ANAMNESE (IA 1 -> TMB/Dieta Base | IA 2 -> Trocas de Carbo e Proteína)
-   */
   async function gerarDietaCompletaPorAnamnese() {
     if (!currentStudentCode || !currentStudentData) {
       return showToast("Selecione um aluno primeiro.", "error");
@@ -1318,7 +1313,7 @@ ${guidelinesTx.value}`,
     const nome = currentStudentData.clientName || currentStudentCode;
     const codigo = currentStudentCode;
     const senha = lastGeneratedPassword || "123456";
-    const linkApp = `[https://jhonataconsultoria.com.br/app.html?aluno=$](https://jhonataconsultoria.com.br/app.html?aluno=$){codigo}`;
+    const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
 
     const mensagem = 
 `🏋️ *ACESSO AO APLICATIVO — JHONATA PERSONAL*
@@ -1340,7 +1335,7 @@ ${TUTORIAL_ANDROID}
 Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à sua tela inicial. Bons treinos! 💪🏼`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
-    const urlWpp = fone ? `[https://wa.me/55$](https://wa.me/55$){fone}?text=${encodeURIComponent(mensagem)}` : `[https://wa.me/?text=$](https://wa.me/?text=$){encodeURIComponent(mensagem)}`;
+    const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(mensagem)}` : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
 
     window.open(urlWpp, '_blank');
   }
@@ -2257,13 +2252,13 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
   function copiarLinkAcessoAluno() {
     if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
-    const linkAluno = `[https://jhonataconsultoria.com.br/app.html?aluno=$](https://jhonataconsultoria.com.br/app.html?aluno=$){currentStudentCode}`;
+    const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
     navigator.clipboard.writeText(linkAluno);
     showToast("Link de acesso copiado!", "success");
   }
 
   function copiarLinkAnamnese() {
-    const link = "[https://jhonataconsultoria.com.br/app.html?modo=anamnese](https://jhonataconsultoria.com.br/app.html?modo=anamnese)";
+    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
     navigator.clipboard.writeText(link);
     showToast("Link da Anamnese copiado!", "success");
   }
