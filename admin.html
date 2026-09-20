@@ -53,7 +53,7 @@
   .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
   .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-space-between; align-items:center; }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
@@ -358,7 +358,7 @@
             🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A IA vai gerar as Abas Estratégicas (Ex: Carbo Alto, Carbo Médio) e adicionar opções de substituição em cada refeição!
+            A IA vai gerar as Abas Estratégicas (Ex: Carbo Alto, Carbo Baixo) e adicionar opções de substituição em cada refeição!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
@@ -372,7 +372,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[ABA] CARBO ALTO&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;[REFEIÇÃO] REF 1 - CAFÉ DA MANHÃ (07:00)&#10;Pão de forma integral | 4 fatias (120g)&#10;Ovos mexidos/cozidos | 4 unidades (200g)&#10;(Opção de troca) [CARBO] Cuscuz | 160g&#10;(Opção de troca) [PROT] Peito de frango desfiado | 100g"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[ABA] CARBO BAIXO&#10;Dias: Segunda, Terça, Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;• Ovos mexidos | 3 un&#10;• Pão integral | 2 fatias&#10;(Opção de troca) [PROT] Whey Protein | 30g&#10;(Opção de troca) [CARBO] Tapioca | 40g&#10;&#10;ALMOÇO&#10;• Arroz branco | 120g&#10;• Peito de frango | 150g&#10;(Opção de troca) [CARBO] Batata doce | 150g"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -579,7 +579,7 @@
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[ABA] CARBO BAIXO&#10;Dias: Segunda, Terça e Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;• Ovos mexidos | 3 un"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -1840,12 +1840,14 @@ Bons treinos! 💪🏼`;
     atualizarPreviewDietaAoVivo();
   }
 
-  /* PARSER DA DIETA PARA ESTRUTURA DE ABAS, REFEIÇÕES E SUBSTITUTOS */
+  /* PARSER DA DIETA SUPORTANDO OS TÍTULOS ESPECÍFICOS E SUBSTITUIÇÕES */
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
     const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|---)/gi);
+
+    const regexTitulosRefeicao = /(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*[1-5]|REFEIÇÃO\s*[1-5]|CAFÉ DA MANHÃ|CAFÉ DA TARDE|ALMOÇO|JANTAR|CEIA|LANCHE PÓS CORRIDA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
@@ -1865,7 +1867,7 @@ Bons treinos! 💪🏼`;
         }
       }
 
-      const rawMeals = textContent.split(/(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+      const rawMeals = textContent.split(regexTitulosRefeicao);
       const meals = [];
 
       rawMeals.forEach(bloco => {
@@ -1968,7 +1970,7 @@ Bons treinos! 💪🏼`;
       block.baseItems.forEach(item => {
         html += `
           <div class="meal-item-base">
-            <span style="color:#fff; font-weight:700;">• ${escapeHtml(item)}</span>
+            <span style="color:#fff; font-weight:700;">${escapeHtml(item)}</span>
           </div>
         `;
       });
@@ -1998,7 +2000,8 @@ Bons treinos! 💪🏼`;
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return showToast("A caixa de texto da dieta está vazia.", "error");
 
-    const rawBlocks = raw.split(/(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+    const regexTitulosRefeicao = /(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*[1-5]|REFEIÇÃO\s*[1-5]|CAFÉ DA MANHÃ|CAFÉ DA TARDE|ALMOÇO|JANTAR|CEIA|LANCHE PÓS CORRIDA)/gi;
+    const rawBlocks = raw.split(regexTitulosRefeicao);
     const refeicoesFormatadas = [];
 
     rawBlocks.forEach(bloco => {
@@ -2016,7 +2019,7 @@ Bons treinos! 💪🏼`;
       }
     });
 
-    currentStudentData.refeicoes = refeicoesFormatadas;
+    currentStudentData.refeicoes = refeicoesFormatadas.length > 0 ? refeicoesFormatadas : [{ titulo: "Plano Alimentar", alimentos: raw }];
     salvarAlteracoes('diet');
   }
 
