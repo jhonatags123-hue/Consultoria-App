@@ -2090,9 +2090,9 @@
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|---)/gi);
+    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
 
-    const regexTitulosRefeicao = /(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*[1-5]|REFEIÇÃO\s*[1-5]|CAFÉ DA MANHÃ|CAFÉ DA TARDE|ALMOÇO|JANTAR|CEIA|LANCHE PÓS CORRIDA)/gi;
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
@@ -2101,13 +2101,13 @@
       let abaNome = "PLANO ALIMENTAR";
       let textContent = cleanAba;
 
-      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\))/i.test(cleanAba)) {
+      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\])/i.test(cleanAba)) {
         const firstLineEnd = cleanAba.indexOf('\n');
         if (firstLineEnd !== -1) {
-          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
+          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = cleanAba.substring(firstLineEnd).trim();
         } else {
-          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)]/g, '').trim();
+          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = "";
         }
       }
@@ -2119,7 +2119,10 @@
         const clean = bloco.trim();
         if (!clean) return;
 
-        const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
+        const lines = clean.split('\n')
+          .map(l => l.trim())
+          .filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
+
         if (lines.length === 0) return;
 
         let title = lines[0].replace(/^\[.*?\]\s*/, '');
