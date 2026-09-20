@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Painel de Gestão Restrito — Jhonata Personal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap)" rel="stylesheet">
+<script src="[https://cdn.jsdelivr.net/npm/chart.js](https://cdn.jsdelivr.net/npm/chart.js)"></script>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2548/2548537.png">
+<link rel="apple-touch-icon" href="[https://cdn-icons-png.flaticon.com/512/2548/2548537.png](https://cdn-icons-png.flaticon.com/512/2548/2548537.png)">
 <link rel="manifest" href="manifest-admin.json">
 
 <style>
@@ -256,8 +256,8 @@
 
         <div class="tutorial-box">
           <b style="color:#fff;">📹 Tutoriais de Instalação do App:</b><br>
-          🍏 iOS: <a href="https://youtube.com/shorts/AC3qVx1mglc" target="_blank">Assistir Vídeo</a><br>
-          🤖 Android: <a href="https://youtube.com/shorts/Px4gUAlgR7w" target="_blank">Assistir Vídeo</a>
+          🍏 iOS: <a href="[https://youtube.com/shorts/AC3qVx1mglc](https://youtube.com/shorts/AC3qVx1mglc)" target="_blank">Assistir Vídeo</a><br>
+          🤖 Android: <a href="[https://youtube.com/shorts/Px4gUAlgR7w](https://youtube.com/shorts/Px4gUAlgR7w)" target="_blank">Assistir Vídeo</a>
         </div>
       </div>
     </aside>
@@ -352,23 +352,31 @@
         <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
       </div>
 
+      <!-- SEÇÃO DIETA AUTOMÁTICA COM DUAS IAs (ANAMNESE ➔ TMB/GET/DIETA BASE ➔ TROCAS CARBO E PROTEÍNA) -->
       <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Editor de Dieta + IA do Treinador</div>
+        <div class="panel-title">🥗 Dieta via Anamnese (IA 1: TMB + Dieta | IA 2: Trocas de Carbo & Proteína)</div>
         
-        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Montar ou Ajustar a Dieta:</label>
+        <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
+          <label style="margin-top:0; color:var(--gold); font-size:12px; font-weight:800;">
+            🚀 GERAR DIETA COMPLETA AUTOMÁTICA PELA ANAMNESE DO ALUNO
+          </label>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
+            A <b>IA 1</b> lerá a anamnese, calculará a TMB, gasto calórico e montará a dieta base. Em seguida, a <b>IA 2</b> irá calcular e anexar as <b>opções de troca para Carboidratos e Proteínas</b> de cada refeição.
+          </p>
+
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiDietCommand" placeholder="Ex: Crie um plano de 2200kcal para hipertrofia OU Aumente o carbo do almoço e troque o pão por aveia">
-            <button class="btn btn-soft" id="btnAiDietCmd" style="border-color:var(--gold); color:var(--gold);" onclick="executarComandoIaDieta()">⚡ Aplicar Ajuste de Dieta via IA</button>
+            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras opcionais (Ex: Foco em 4 refeições, sem lactose, preferencia por cuscuz/ovos)">
+            <button class="btn" id="btnRunAnamneseDualAI" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800;" onclick="gerarDietaCompletaPorAnamnese()">
+              ⚡ Ler Anamnese ➔ Calcular TMB/Dieta (IA 1) ➔ Criar Trocas Carbo/Proteína (IA 2)
+            </button>
           </div>
-          <div style="font-size:10px; color:var(--muted); margin-top:4px;">A IA criará ou ajustará o texto do plano alimentando de forma totalmente automatizada.</div>
         </div>
 
         <label>Bloco de Refeições (Edite Direto Aqui):</label>
-        <textarea id="dietTextarea" rows="14" oninput="lidarEdicaoDieta()" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 3 unidades"></textarea>
+        <textarea id="dietTextarea" rows="14" oninput="lidarEdicaoDieta()" placeholder="[DIETA BASE] Refeição 1 - Café da Manhã&#10;Pão francês | 2 unidades (100g)&#10;Ovos inteiros mexidos | 3 unidades&#10;(Opção de troca) Cuscuz | 150g&#10;(Opção de troca) Peito de frango desfiado | 90g"></textarea>
         
         <div style="margin-top:12px;">
-          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR E SUBSTITUIÇÕES</button>
         </div>
 
         <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
@@ -594,15 +602,15 @@
 </div>
 
 <script>
-  const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+  const BACKEND_URL = "[https://consultoria-backend-kbqi.onrender.com](https://consultoria-backend-kbqi.onrender.com)";
   let currentStudentCode = "";
   let currentStudentData = null;
   let lastGeneratedPassword = "";
   let allStudentsList = [];
   let chartInstance = null;
 
-  const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
-  const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
+  const TUTORIAL_IOS = "[https://youtube.com/shorts/AC3qVx1mglc](https://youtube.com/shorts/AC3qVx1mglc)";
+  const TUTORIAL_ANDROID = "[https://youtube.com/shorts/Px4gUAlgR7w](https://youtube.com/shorts/Px4gUAlgR7w)";
 
   function showToast(mensagem, tipo = 'info') {
     const container = document.getElementById('toastContainer');
@@ -1245,52 +1253,49 @@ ${guidelinesTx.value}`,
     }
   }
 
-  async function executarComandoIaDieta() {
-    const input = document.getElementById('aiDietCommand');
-    const tx = document.getElementById('dietTextarea');
-    const btn = document.getElementById('btnAiDietCmd');
-    const cmd = input.value.trim();
+  /**
+   * FLUXO DAS DUAS IAs ENCADEADAS PELA ANAMNESE (IA 1 -> TMB/Dieta Base | IA 2 -> Trocas de Carbo e Proteína)
+   */
+  async function gerarDietaCompletaPorAnamnese() {
+    if (!currentStudentCode || !currentStudentData) {
+      return showToast("Selecione um aluno primeiro.", "error");
+    }
 
-    if (!cmd) return showToast("Digite o comando para a IA de Dieta.", "error");
+    const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
+    if (!anamnese || (!anamnese.peso && !anamnese.objetivo && !anamnese.nome)) {
+      return showToast("O aluno selecionado não possui dados de Anamnese cadastrados.", "error");
+    }
 
+    const instrucaoExtra = document.getElementById('aiDietExtraInstructions').value.trim();
+    const textarea = document.getElementById('dietTextarea');
+    const btn = document.getElementById('btnRunAnamneseDualAI');
     const txtOriginal = btn.textContent;
-    btn.textContent = "⚡ Modificando...";
+
     btn.disabled = true;
+    btn.textContent = "⏳ Executando IAs (1. TMB e Dieta Base ➔ 2. Substitutos)...";
+    showToast("Executando IAs para calcular TMB, Dieta Base e Substituições...", "info");
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-dieta-duas-ias`, {
         method: 'POST',
         headers: authHeaders(),
         cache: 'no-cache',
         body: JSON.stringify({
-          mensagem: `Você é um nutricionista esportivo.
-Sua missão é receber o texto atual da dieta e aplicar a seguinte alteração/criação solicitada pelo treinador: "${cmd}".
-Formate o plano sempre utilizando tags de categoria entre colchetes e alimentos divididos por barra vertical:
-
-[Tag/Categoria] Refeição Nome
-Alimento | Quantidade
-
-Texto da Dieta Atual:
-${tx.value}
-
-Retorne ESTRITAMENTE o texto final da dieta formatada.`,
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
+          anamneseData: anamnese,
+          instrucaoExtra: instrucaoExtra
         })
       });
 
       const data = await res.json();
-      if (res.ok && data.resposta) {
-        let respLimpa = data.resposta.replace(/```/g, '').trim();
-        tx.value = respLimpa;
+      if (res.ok && data.dietaCompleta) {
+        textarea.value = data.dietaCompleta;
         lidarEdicaoDieta();
-        input.value = "";
-        showToast("Plano alimentar atualizado pela IA!", "success");
+        showToast("✅ Dieta calculada com substitutos de Carbo e Proteína!", "success");
       } else {
-        showToast("Erro ao processar comando na IA de Dieta.", "error");
+        showToast(data.error || "Falha ao gerar dieta com as duas IAs.", "error");
       }
-    } catch(e) {
-      showToast("Erro de conexão com a IA de Dieta.", "error");
+    } catch (erro) {
+      showToast("Erro de conexão com o servidor ao gerar a dieta.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
