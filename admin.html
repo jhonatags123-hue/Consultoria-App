@@ -53,7 +53,7 @@
   .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
   .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
@@ -79,8 +79,13 @@
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
   /* ESTILOS DE REFEIÇÃO E TROCAS DA DIETA */
-  .meal-item-base { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-top:8px; }
-  .sub-item-box { background:#0a0204; border-left:3px solid var(--gold); padding:8px 10px; margin-top:4px; margin-left:12px; border-radius:6px; font-size:11.5px; color:#e0d0d3; }
+  .diet-aba-btn { background:#100305; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .diet-aba-btn.active { background:var(--gold); color:#100305; border-color:var(--gold); }
+
+  .meal-item-base { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-top:6px; }
+  .sub-item-box { background:#0a0204; border-left:3px solid var(--gold); padding:8px 10px; margin-top:4px; margin-left:10px; border-radius:6px; font-size:11.5px; color:#e0d0d3; }
+  .sub-item-box.carbo { border-left-color: #3b82f6; }
+  .sub-item-box.prot { border-left-color: #25d366; }
 
   .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling: touch; }
   .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; position:relative; }
@@ -106,15 +111,9 @@
   .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
 
   .feedback-badge {
-    background: #dcaa3a;
-    color: #000;
-    font-size: 9px;
-    font-weight: 900;
-    padding: 2px 6px;
-    border-radius: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    animation: pulseBadge 1.5s infinite alternate;
+    background: #dcaa3a; color: #000; font-size: 9px; font-weight: 900;
+    padding: 2px 6px; border-radius: 10px; text-transform: uppercase;
+    letter-spacing: 0.5px; animation: pulseBadge 1.5s infinite alternate;
   }
   @keyframes pulseBadge {
     from { opacity: 0.7; transform: scale(0.95); }
@@ -132,13 +131,8 @@
 
   .ai-insight-box {
     background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--text);
+    border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px;
+    margin-bottom: 14px; font-size: 12px; line-height: 1.5; color: var(--text);
   }
 
   .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -357,20 +351,20 @@
       </div>
 
       <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Editor de Dieta Inteligente (Geração ou Exemplo Base + Substitutos)</div>
+        <div class="panel-title">🥗 Editor de Dieta Inteligente (Abas + Refeição + Substituições)</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold); font-size:12px; font-weight:800;">
-            🚀 GERAR OU AJUSTAR DIETA PELA ANAMNESE / EXEMPLO EXISTENTE
+            🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            Se o campo abaixo estiver vazio, a IA lerá a Anamnese do aluno. Se você digitar ou mantiver uma Dieta de Exemplo, a IA utilizará ela diretamente como estrutura!
+            A IA vai gerar as Abas Estratégicas (Ex: Carbo Alto, Carbo Médio) e adicionar opções de substituição em cada refeição!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras (Ex: Adicionar opção de cuscuz no café ou manter 4 refeições)">
+            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras (Ex: Incluir cuscuz no café e manter 4 refeições)">
             <button class="btn" id="btnRunAnamneseDualAI" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800;" onclick="gerarDietaCompletaPorAnamnese()">
-              ⚡ Gerar Plano Alimentar + Substituições
+              ⚡ Gerar Plano Alimentar Estruturado + Substituições
             </button>
           </div>
         </div>
@@ -378,7 +372,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="16" oninput="lidarEdicaoDieta()" placeholder="[DIETA BASE] REFEIÇÃO 1 - CAFÉ DA MANHÃ (07:00 – 08:00)&#10;Dias: Terça, Sexta, Domingo&#10;Pão de forma | 4 fatias (120g)&#10;Ovos mexidos/cozidos | 4 unidades&#10;(Opção de troca) Cuscuz | 150g&#10;(Opção de troca) Peito de frango desfiado | 90g"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[ABA] CARBO ALTO&#10;Dias: Segunda, Quarta, Sexta&#10;&#10;[REFEIÇÃO] REF 1 - CAFÉ DA MANHÃ (07:00)&#10;Pão de forma integral | 4 fatias (120g)&#10;Ovos mexidos/cozidos | 4 unidades (200g)&#10;(Opção de troca) [CARBO] Cuscuz | 160g&#10;(Opção de troca) [PROT] Peito de frango desfiado | 100g"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -386,8 +380,8 @@
           </div>
 
           <div>
-            <label>Pré-visualização do Plano (Estilo Sanfona/Card):</label>
-            <div id="dietPreviewFilters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto;"></div>
+            <label>Pré-visualização do Plano (Abas & Cards):</label>
+            <div id="dietPreviewFilters" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;"></div>
             <div id="dietPreviewList" class="preview-card"></div>
           </div>
         </div>
@@ -614,6 +608,7 @@
   let lastGeneratedPassword = "";
   let allStudentsList = [];
   let chartInstance = null;
+  let activeDietAbaIndex = 0;
 
   const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
   const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
@@ -1067,7 +1062,7 @@ Monte uma semana de cardio dividida por dias (seg, ter, qua, qui, sex, sab, dom)
 Prompt do treinador: "${prompt || 'Cardio equilibrado focado no objetivo do aluno'}".
 Retorne ESTRITAMENTE um JSON puro no formato:
 {
-  "cardio_guidelines": "Orientação geral de cardio (ex: Mantenha a frequência cardíaca Z2 em corridas longas e hidratar bem)",
+  "cardio_guidelines": "Orientação geral de cardio",
   "semana": {
     "seg": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km moderado + 1km leve"},
     "ter": {"km": "0", "min": "20", "intensidade": "Leve", "desc": "Bike regenerativa"},
@@ -1210,17 +1205,11 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         headers: authHeaders(),
         cache: 'no-cache',
         body: JSON.stringify({
-          mensagem: `Você é um assistente de personal trainer focado em musculação.
-Receba o texto atual da ficha de treino e das diretrizes gerais do treinador, e aplique a alteração solicitada: "${cmd}".
-
-REGRAS DE DIRETRIZES GERAIS:
-1. Se a alteração solicitada for APENAS um ajuste simples de exercícios/séries/repetições, MANTENHA as diretrizes gerais exatamente IGUAIS ao texto original.
-2. Se a alteração envolver mudanças conceituais, de objetivo, de método ou de estratégia geral do treino, ATUALIZE as diretrizes para ficarem alinhadas com o novo treino.
-
+          mensagem: `Ajuste o treino e as diretrizes com base na solicitação: "${cmd}".
 Retorne ESTRITAMENTE um JSON no formato:
 {
-  "trainer_guidelines": "Diretrizes mantidas ou atualizadas conforme a regra acima",
-  "workout_text": "Texto completo da ficha de treino ajustada"
+  "trainer_guidelines": "Diretrizes mantidas ou atualizadas",
+  "workout_text": "Texto completo da ficha ajustada"
 }
 
 Ficha Atual:
@@ -1259,7 +1248,7 @@ ${guidelinesTx.value}`,
     }
   }
 
-  /* ENVIO DA DIETA COM SUPORTE A EXEMPLO BASE PELA IA */
+  /* GERADOR DE DIETA INTEGRADO COM ABAS E SUBSTITUIÇÕES */
   async function gerarDietaCompletaPorAnamnese() {
     if (!currentStudentCode || !currentStudentData) {
       return showToast("Selecione um aluno primeiro.", "error");
@@ -1292,7 +1281,7 @@ ${guidelinesTx.value}`,
       if (res.ok && data.dietaCompleta) {
         textarea.value = data.dietaCompleta;
         lidarEdicaoDieta();
-        showToast("✅ Dieta gerada com sucesso em Sanfona com Trocas!", "success");
+        showToast("✅ Dieta gerada com sucesso com Abas e Trocas!", "success");
       } else {
         showToast(data.error || "Falha ao gerar dieta.", "error");
       }
@@ -1314,7 +1303,6 @@ ${guidelinesTx.value}`,
     salvarAlteracoes('workout');
   }
 
-  /* MENSAGEM DO WHATSAPP ATUALIZADA COM O TEXTO DE INDICAÇÃO */
   function enviarCredenciaisWhatsApp() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1723,7 +1711,7 @@ Bons treinos! 💪🏼`;
         labels: labels,
         datasets: [
           {
-            label: 'Carga (kg) - Amarelo',
+            label: 'Carga (kg)',
             data: dataCargas,
             borderColor: '#dcaa3a',
             backgroundColor: 'rgba(220,170,58,0.15)',
@@ -1735,7 +1723,7 @@ Bons treinos! 💪🏼`;
             yAxisID: 'y'
           },
           {
-            label: 'Repetições - Azul',
+            label: 'Repetições',
             data: dataReps,
             borderColor: '#3b82f6',
             backgroundColor: 'rgba(59,130,246,0.15)',
@@ -1852,64 +1840,116 @@ Bons treinos! 💪🏼`;
     atualizarPreviewDietaAoVivo();
   }
 
-  /* PARSER DA DIETA PARA IDENTIFICAR REFEIÇÕES E SUBSTITUTOS EM SANFONA */
+  /* PARSER DA DIETA PARA ESTRUTURA DE ABAS, REFEIÇÕES E SUBSTITUTOS */
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
-    const blocks = [];
-    const rawBlocks = rawText.split(/(?=\[.*?\]|REFEIÇÃO\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+    const abas = [];
+    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|---)/gi);
 
-    rawBlocks.forEach(bloco => {
-      const clean = bloco.trim();
-      if (!clean) return;
+    rawAbas.forEach(rawAba => {
+      const cleanAba = rawAba.trim();
+      if (!cleanAba || cleanAba === '---') return;
 
-      const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
-      if (lines.length === 0) return;
+      let abaNome = "PLANO PRINCIPAL";
+      let textContent = cleanAba;
 
-      let title = lines[0].replace(/^\[.*?\]\s*/, '');
-      let days = "";
-      const items = [];
-
-      lines.slice(1).forEach(line => {
-        if (line.toLowerCase().startsWith('dias:')) {
-          days = line;
-        } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
-          items.push({
-            tipo: 'troca',
-            texto: line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim()
-          });
+      if (cleanAba.startsWith('[ABA]') || cleanAba.startsWith('[CICLO]')) {
+        const firstLineEnd = cleanAba.indexOf('\n');
+        if (firstLineEnd !== -1) {
+          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+          textContent = cleanAba.substring(firstLineEnd).trim();
         } else {
-          items.push({
-            tipo: 'base',
-            texto: line
-          });
+          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+          textContent = "";
         }
+      }
+
+      const rawMeals = textContent.split(/(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+      const meals = [];
+
+      rawMeals.forEach(bloco => {
+        const clean = bloco.trim();
+        if (!clean) return;
+
+        const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
+        if (lines.length === 0) return;
+
+        let title = lines[0].replace(/^\[.*?\]\s*/, '');
+        let days = "";
+        const baseItems = [];
+        const trocasCarbo = [];
+        const trocasProt = [];
+
+        lines.slice(1).forEach(line => {
+          if (line.toLowerCase().startsWith('dias:')) {
+            days = line;
+          } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
+            let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
+            if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
+              trocasCarbo.push(itemTxt.replace(/\[CARBO\]/gi, '').trim());
+            } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
+              trocasProt.push(itemTxt.replace(/\[PROT\]/gi, '').trim());
+            } else {
+              trocasCarbo.push(itemTxt);
+            }
+          } else {
+            baseItems.push(line);
+          }
+        });
+
+        meals.push({
+          mealTitle: title,
+          days: days,
+          baseItems: baseItems,
+          trocasCarbo: trocasCarbo,
+          trocasProt: trocasProt
+        });
       });
 
-      blocks.push({
-        mealTitle: title,
-        days: days,
-        items: items
-      });
+      if (meals.length > 0) {
+        abas.push({
+          abaNome: abaNome,
+          meals: meals
+        });
+      }
     });
 
-    return blocks;
+    return abas;
   }
 
-  /* RENDERIZAÇÃO EM CARDS EXPAN SÍVEIS DA DIETA */
+  /* RENDERIZAÇÃO EM CARDS / SANFONA COM NAVEGAÇÃO POR ABAS */
   function atualizarPreviewDietaAoVivo() {
     const raw = document.getElementById('dietTextarea').value;
+    const filtersEl = document.getElementById('dietPreviewFilters');
     const listEl = document.getElementById('dietPreviewList');
 
-    const blocks = parseDietaEstruturada(raw);
+    const abas = parseDietaEstruturada(raw);
+    filtersEl.innerHTML = '';
     listEl.innerHTML = '';
 
-    if (blocks.length === 0) {
-      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite os blocos de refeição.</div>`;
+    if (abas.length === 0) {
+      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite blocos de refeição no editor.</div>`;
       return;
     }
 
-    blocks.forEach((block, idx) => {
+    if (activeDietAbaIndex >= abas.length) activeDietAbaIndex = 0;
+
+    // Renderiza botões de Abas Principais (Ciclismo de Carbo)
+    abas.forEach((aba, idx) => {
+      const btn = document.createElement('button');
+      btn.className = `diet-aba-btn ${idx === activeDietAbaIndex ? 'active' : ''}`;
+      btn.textContent = aba.abaNome;
+      btn.onclick = () => {
+        activeDietAbaIndex = idx;
+        atualizarPreviewDietaAoVivo();
+      };
+      filtersEl.appendChild(btn);
+    });
+
+    // Renderiza as refeições da Aba selecionada
+    const currentAba = abas[activeDietAbaIndex];
+    (currentAba.meals || []).forEach((block, idx) => {
       const card = document.createElement('div');
       card.style.cssText = 'margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid var(--border);';
 
@@ -1919,26 +1959,34 @@ Bons treinos! 💪🏼`;
             <b style="color:var(--gold); font-size:14px;">🍽️ ${escapeHtml(block.mealTitle)}</b>
             ${block.days ? `<div style="font-size:11px; color:var(--muted); margin-top:2px;">${escapeHtml(block.days)}</div>` : ''}
           </div>
-          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos & Trocas ▾</span>
+          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Base & Trocas ▾</span>
         </div>
         <div id="preview_ref_${idx}" class="hidden" style="background:#0d0204; padding:12px; font-size:12px;">
       `;
 
-      block.items.forEach(item => {
-        if (item.tipo === 'base') {
-          html += `
-            <div class="meal-item-base">
-              <span style="color:#fff; font-weight:700;">• ${escapeHtml(item.texto)}</span>
-            </div>
-          `;
-        } else {
-          html += `
-            <div class="sub-item-box">
-              <span style="color:var(--gold); font-weight:700;">🔄 Opção de troca:</span> ${escapeHtml(item.texto)}
-            </div>
-          `;
-        }
+      // Alimentos Principais Base
+      block.baseItems.forEach(item => {
+        html += `
+          <div class="meal-item-base">
+            <span style="color:#fff; font-weight:700;">• ${escapeHtml(item)}</span>
+          </div>
+        `;
       });
+
+      // Caixas de Substituição por Categoria
+      if (block.trocasCarbo.length > 0) {
+        html += `<div style="font-size:11px; color:#60a5fa; font-weight:800; margin-top:8px;">🌾 OPÇÕES DE TROCA DE CARBOIDRATOS:</div>`;
+        block.trocasCarbo.forEach(subC => {
+          html += `<div class="sub-item-box carbo"><span style="color:#60a5fa; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subC)}</div>`;
+        });
+      }
+
+      if (block.trocasProt.length > 0) {
+        html += `<div style="font-size:11px; color:#25d366; font-weight:800; margin-top:8px;">🥩 OPÇÕES DE TROCA DE PROTEÍNA/GORDURA:</div>`;
+        block.trocasProt.forEach(subP => {
+          html += `<div class="sub-item-box prot"><span style="color:#25d366; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subP)}</div>`;
+        });
+      }
 
       html += `</div>`;
       card.innerHTML = html;
@@ -1950,7 +1998,7 @@ Bons treinos! 💪🏼`;
     const raw = document.getElementById('dietTextarea').value.trim();
     if (!raw) return showToast("A caixa de texto da dieta está vazia.", "error");
 
-    const rawBlocks = raw.split(/(?=\[.*?\]|REFEIÇÃO\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
+    const rawBlocks = raw.split(/(?=\[REFEIÇÃO\]|\[DIETA BASE\]|REF\s*\d+|JANTAR|ALMOÇO|CAFÉ DA MANHÃ)/gi);
     const refeicoesFormatadas = [];
 
     rawBlocks.forEach(bloco => {
