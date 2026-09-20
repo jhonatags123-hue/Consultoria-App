@@ -224,7 +224,6 @@
 
   .diet-container { display:flex; flex-direction:column; gap:12px; }
 
-  /* NOVOS ESTILOS DAS ABAS E CARDS DE SUBSTITUIÇÃO DA DIETA */
   .diet-aba-btn {
     background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
     padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
@@ -1400,7 +1399,7 @@
 
         if (hDia.length > 4) hDia = hDia.slice(-4);
 
-        hDia.forEach((c, idx) => {
+        hDia.forEach((c) => {
           const km = parseFloat(c.km) || 0;
           const min = parseFloat(c.min || c.minutos) || 0;
           totalKm += km;
@@ -2085,7 +2084,7 @@
   }
 
   /* ==========================================
-     PARSER E RENDERIZADOR DA DIETA DO ALUNO
+      PARSER E RENDERIZADOR DA DIETA DO ALUNO
   ========================================== */
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
@@ -2191,7 +2190,6 @@
 
     if (activeAlunoDietAbaIndex >= abas.length) activeAlunoDietAbaIndex = 0;
 
-    // Renderiza Botões de Seleção de Aba (Se houver mais de uma)
     if (abas.length > 1 && filtersContainer) {
       abas.forEach((aba, idx) => {
         const btn = document.createElement('button');
@@ -2206,7 +2204,6 @@
       });
     }
 
-    // Renderiza os Cards de Refeição da Aba Ativa
     const currentAba = abas[activeAlunoDietAbaIndex];
     (currentAba.meals || []).forEach((meal, idx) => {
       const card = document.createElement('div');
@@ -2221,12 +2218,10 @@
         <div style="display:flex; flex-direction:column; gap:6px;">
       `;
 
-      // Alimentos Base
       meal.baseItems.forEach(item => {
         html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
       });
 
-      // Opções de Troca / Substituição
       if (meal.trocasCarbo.length > 0 || meal.trocasProt.length > 0) {
         html += `
           <div style="margin-top:10px; border-top:1px dashed var(--line); padding-top:8px;">
