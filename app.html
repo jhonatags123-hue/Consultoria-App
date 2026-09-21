@@ -747,6 +747,16 @@
     return dias[new Date().getDay()];
   }
 
+  function calcularPaceTexto(kmNum, minNum) {
+    const km = parseFloat(kmNum) || 0;
+    const min = parseFloat(minNum) || 0;
+    if (km <= 0 || min <= 0) return "--'--\"";
+    const paceFloat = min / km;
+    const paceMin = Math.floor(paceFloat);
+    const paceSec = Math.round((paceFloat - paceMin) * 60);
+    return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
+  }
+
   let restTimerInterval = null;
   let restSecondsLeft = 0;
   let audioCtx = null;
@@ -1352,6 +1362,7 @@
 
       const kmVal = ultimoReg?.km || '';
       const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
+      const paceDiaStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
 
       const card = document.createElement('div');
       card.className = 'run-item';
@@ -1361,7 +1372,10 @@
         <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
           <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
           <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min (Ex: 25)" value="${escapeHtml(minVal)}">
-          <button type="button" class="btn-login btn-blue" style="width:80px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
+          <button type="button" id="btn_save_run_${d.key}" class="btn-login btn-blue" style="width:100px; min-height:36px; padding:0 6px; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
+        </div>
+        <div id="run_pace_display_${d.key}" style="font-size:11.5px; font-weight:700; color:var(--blue); margin-top:6px;">
+          ⏱ Pace do dia: <span>${paceDiaStr}</span> /km
         </div>
       `;
       presContainer.appendChild(card);
@@ -1378,10 +1392,7 @@
         totalMin += min;
         totalRegistros++;
 
-        const paceFloat = km > 0 ? (min / km) : 0;
-        const paceMin = Math.floor(paceFloat);
-        const paceSec = Math.round((paceFloat - paceMin) * 60);
-        const paceStr = `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
+        const paceStr = calcularPaceTexto(km, min);
 
         const div = document.createElement('div');
         div.className = 'run-item';
@@ -1411,10 +1422,7 @@
           totalMin += min;
           totalRegistros++;
 
-          const paceFloat = km > 0 ? (min / km) : 0;
-          const paceMin = Math.floor(paceFloat);
-          const paceSec = Math.round((paceFloat - paceMin) * 60);
-          const paceStr = `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
+          const paceStr = calcularPaceTexto(km, min);
 
           const div = document.createElement('div');
           div.className = 'run-item';
@@ -1437,17 +1445,22 @@
     }
 
     document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
-    const paceMedioGlobal = totalKm > 0 ? (totalMin / totalKm) : 0;
-    const pMinG = Math.floor(paceMedioGlobal);
-    const pSecG = Math.round((paceMedioGlobal - pMinG) * 60);
-    document.getElementById('runPaceMedio').textContent = `${pMinG}'${pSecG < 10 ? '0' : ''}${pSecG}"`;
+    const paceMedioGlobal = calcularPaceTexto(totalKm, totalMin);
+    document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
   }
 
   async function salvarRunDia(keyDia) {
+    const btn = document.getElementById(`btn_save_run_${keyDia}`);
     const km = document.getElementById(`run_km_${keyDia}`).value.trim();
     const min = document.getElementById(`run_min_${keyDia}`).value.trim();
 
     if (!km || !min) return alert("Informe a distância em Km e o tempo em minutos.");
+
+    // MENSAGEM DE CARREGAMENTO NO BOTÃO
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "⌛ Salvando e calculando...";
+    }
 
     if (!currentData.registros_corrida) currentData.registros_corrida = {};
     if (!Array.isArray(currentData.registros_corrida[keyDia])) {
@@ -1472,10 +1485,23 @@
         cache: 'no-cache',
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      alert("✅ Treino de corrida salvo com sucesso!");
+      
+      // Atualiza na hora o texto de Pace do Dia abaixo dos campos
+      const paceDiaStr = calcularPaceTexto(km, min);
+      const paceDisplay = document.getElementById(`run_pace_display_${keyDia}`);
+      if (paceDisplay) {
+        paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
+      }
+
+      alert("✅ Corrida salva e pace calculado com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = "Salvar";
+      }
     }
   }
 
@@ -2182,7 +2208,6 @@
     return abas;
   }
 
-  /* RENDERIZAÇÃO DA DIETA EXIBINDO EXCLUSIVAMENTE OS CICLOS DOS DIAS E FOCADA NO DIA ATUAL */
   function renderDietaAluno(refeicoesData) {
     const filtersContainer = document.getElementById('dietFiltersContainer');
     const categoryList = document.getElementById('dietCategoryList');
@@ -2206,7 +2231,6 @@
     if (filtersContainer) filtersContainer.innerHTML = "";
     categoryList.innerHTML = "";
 
-    // Filtra descartando abas genéricas com o título "PLANO ALIMENTAR" ou "PLANO PRINCIPAL"
     abas = abas.filter(aba => {
       const nomeUpper = aba.abaNome.trim().toUpperCase();
       return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
@@ -2217,7 +2241,6 @@
       return;
     }
 
-    // Identifica o ciclo correspondente ao DIA DE HOJE
     const diaHoje = obterDiaSemanaNormalizado();
     let abaIndexHoje = 0;
 
@@ -2237,7 +2260,6 @@
       activeAlunoDietAbaIndex = abaIndexHoje;
     }
 
-    // Renderiza os botões das Abas de Ciclos no topo
     if (filtersContainer) {
       abas.forEach((aba, idx) => {
         const btn = document.createElement('button');
@@ -2255,7 +2277,6 @@
       });
     }
 
-    // Renderiza as refeições da aba ativa
     const currentAba = abas[activeAlunoDietAbaIndex];
     if (currentAba && currentAba.meals) {
       currentAba.meals.forEach((meal, idx) => {
