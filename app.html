@@ -135,7 +135,6 @@
   }
   .quick-switch-chip.active { background:var(--signal-dim); border-color:var(--signal-light); color:var(--ink); }
 
-  /* CARDS DE EXERCÍCIO MODERNOS */
   .item { 
     background:var(--panel-2); 
     border:1px solid var(--line); 
@@ -151,7 +150,6 @@
   .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
   .item-title { font-weight:700; font-size:15.5px; color:var(--ink); flex:1; }
 
-  /* BOTÃO DE CHECK-IN NO EXERCÍCIO */
   .btn-check-exercise {
     background: var(--panel);
     border: 1px solid var(--line);
@@ -255,7 +253,7 @@
   }
   @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-  /* TIMER DE DESCANSO FIXO NO RODAPÉ SEM TAPAR CONTEÚDO */
+  /* TIMER DE DESCANSO OCULTO POR PADRÃO (SÓ APARECE NA ABA DE TREINO) */
   .rest-timer-widget {
     position: fixed; 
     bottom: 0; 
@@ -267,12 +265,15 @@
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--line); 
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); 
-    display: flex; 
+    display: none; /* OCULTO POR PADRÃO */
     align-items: center; 
     justify-content: space-between;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.6); 
     z-index: 9999; 
     transition: border-color 0.3s ease;
+  }
+  .rest-timer-widget.visible {
+    display: flex !important; /* EXIBE APENAS QUANDO ATIVADO NO JS */
   }
   .rest-timer-display {
     font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center;
@@ -477,6 +478,13 @@
       <label class="label-fdb" style="margin-top:10px;">7. Quanto tempo você tem disponível por sessão de treino?</label>
       <input type="text" id="anamTempoTreinoMin" class="input-field" placeholder="Ex: 1 hora a 1h15m">
 
+      <label class="label-fdb" style="margin-top:10px;">8. Quanto tempo você costuma descansar entre as séries?</label>
+      <select id="anamTempoDescanso" class="input-field" required>
+        <option value="45s a 60s (Curto / Metabólico)">45s a 60s (Descanso Curto)</option>
+        <option value="90s a 2min (Moderado / Padrão)" selected>90s a 2min (Descanso Moderado / Padrão)</option>
+        <option value="2min a 3min+ (Longo / Cargas Altas)">2min a 3min+ (Descanso Longo / Força)</option>
+      </select>
+
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(2)">Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(4)">Avançar</button>
@@ -484,13 +492,13 @@
     </div>
 
     <div id="anamStep4" class="hidden">
-      <label class="label-fdb">8. Pratica alguma outra atividade física além da musculação?</label>
+      <label class="label-fdb">9. Pratica alguma outra atividade física além da musculação?</label>
       <input type="text" id="anamOutrasAtividades" class="input-field" placeholder="Ex: Corrida 2x na semana, Nenhuma...">
 
-      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">9. Possui alguma lesão, dor articular ou restrição médica?</label>
+      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">10. Possui alguma lesão, dor articular ou restrição médica?</label>
       <textarea id="anamLesoes" class="input-field" rows="2" placeholder="Ex: Dor lombar crônica, tendinite no ombro direito..."></textarea>
 
-      <label class="label-fdb" style="margin-top:10px;">10. Possui alguma doença crônica (pressão alta, diabetes, tireoide, etc.)?</label>
+      <label class="label-fdb" style="margin-top:10px;">11. Possui alguma doença crônica (pressão alta, diabetes, tireoide, etc.)?</label>
       <input type="text" id="anamDoencas" class="input-field" placeholder="Ex: Nenhuma / Hipertensão controlada">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -500,7 +508,7 @@
     </div>
 
     <div id="anamStep5" class="hidden">
-      <label class="label-fdb">11. Como é a sua rotina diária (trabalho, estudos, nível de esforço)?</label>
+      <label class="label-fdb">12. Como é a sua rotina diária (trabalho, estudos, nível de esforço)?</label>
       <textarea id="anamRotina" class="input-field" rows="2" placeholder="Ex: Trabalho sentado o dia todo / Trabalho em pé movimentando peso..."></textarea>
 
       <div style="display:flex; gap:8px; margin-top:10px;">
@@ -521,10 +529,10 @@
     </div>
 
     <div id="anamStep6" class="hidden">
-      <label class="label-fdb">12. Consome bebida alcoólica com que frequência?</label>
+      <label class="label-fdb">13. Consome bebida alcoólica com que frequência?</label>
       <input type="text" id="anamAlcool" class="input-field" placeholder="Ex: Socialmente no fim de semana / Não consumo">
 
-      <label class="label-fdb" style="margin-top:10px;">13. Fuma ou utiliza cigarros eletrônicos (vape)?</label>
+      <label class="label-fdb" style="margin-top:10px;">14. Fuma ou utiliza cigarros eletrônicos (vape)?</label>
       <input type="text" id="anamTabagismo" class="input-field" placeholder="Ex: Não / Sim">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -534,13 +542,13 @@
     </div>
 
     <div id="anamStep7" class="hidden">
-      <label class="label-fdb">14. Quantas refeições você consegue fazer por dia?</label>
+      <label class="label-fdb">15. Quantas refeições você consegue fazer por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 4 refeições">
 
-      <label class="label-fdb" style="margin-top:10px;">15. Possui alguma alergia ou intolerância alimentar (lactose, glúten)?</label>
+      <label class="label-fdb" style="margin-top:10px;">16. Possui alguma alergia ou intolerância alimentar (lactose, glúten)?</label>
       <input type="text" id="anamAlergias" class="input-field" placeholder="Ex: Nenhuma / Intolerância leve a lactose">
 
-      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">16. Cite alimentos que você NÃO come de jeito nenhum (aversões/odiados):</label>
+      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">17. Cite alimentos que você NÃO come de jeito nenhum (aversões/odiados):</label>
       <input type="text" id="anamAlimentosOdiados" class="input-field" placeholder="Ex: Peixe, brócolis, fígado...">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -550,13 +558,13 @@
     </div>
 
     <div id="anamStep8" class="hidden">
-      <label class="label-fdb">17. Quais fontes de carboidratos você mais gosta?</label>
+      <label class="label-fdb">18. Quais fontes de carboidratos você mais gosta?</label>
       <input type="text" id="anamGostaCarbos" class="input-field" placeholder="Ex: Arroz, batata doce, aveia, macarrão">
 
-      <label class="label-fdb" style="margin-top:10px;">18. Quais fontes de proteínas você mais consome?</label>
+      <label class="label-fdb" style="margin-top:10px;">19. Quais fontes de proteínas você mais consome?</label>
       <input type="text" id="anamGostaProteinas" class="input-field" placeholder="Ex: Frango, patinho, ovos, peixe">
 
-      <label class="label-fdb" style="margin-top:10px;">19. Quais legumes, verduras e frutas prefere?</label>
+      <label class="label-fdb" style="margin-top:10px;">20. Quais legumes, verduras e frutas prefere?</label>
       <input type="text" id="anamGostaLegumes" class="input-field" placeholder="Ex: Alface, tomate, banana, maçã">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -566,13 +574,13 @@
     </div>
 
     <div id="anamStep9" class="hidden">
-      <label class="label-fdb">20. Como é o seu orçamento para a dieta?</label>
+      <label class="label-fdb">21. Como é o seu orçamento para a dieta?</label>
       <input type="text" id="anamOrcamento" class="input-field" placeholder="Ex: Flexível / Preciso de opções econômicas">
 
-      <label class="label-fdb" style="margin-top:10px;">21. Utiliza ou tem interesse em utilizar suplementos?</label>
+      <label class="label-fdb" style="margin-top:10px;">22. Utiliza ou tem interesse em utilizar suplementos?</label>
       <input type="text" id="anamSuplementos" class="input-field" placeholder="Ex: Whey, creatina, multivitamínico">
 
-      <label class="label-fdb" style="margin-top:10px;">22. Como é a sua flexibilidade alimentar no fim de semana?</label>
+      <label class="label-fdb" style="margin-top:10px;">23. Como é a sua flexibilidade alimentar no fim de semana?</label>
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Mantenho 80% da dieta / Saio da dieta no sábado à noite..."></textarea>
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -582,7 +590,7 @@
     </div>
 
     <div id="anamStep10" class="hidden">
-      <label class="label-fdb">23. Plano de Consultoria Selecionado:</label>
+      <label class="label-fdb">24. Plano de Consultoria Selecionado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
         <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00/mês</option>
         <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00/mês</option>
@@ -592,7 +600,7 @@
         <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
       </select>
 
-      <label class="label-fdb" style="margin-top:10px;">24. Forma de Pagamento:</label>
+      <label class="label-fdb" style="margin-top:10px;">25. Forma de Pagamento:</label>
       <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
         <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
         <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
@@ -953,6 +961,10 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
+      // GARANTE QUE O TIMER FICA OCULTO NA ANAMNESE
+      const restWidget = document.getElementById('restTimerWidget');
+      if (restWidget) restWidget.classList.remove('visible');
+
       // BLOQUEIO TOTAL DA SELEÇÃO DE PLANO QUANDO VEM DA BIO
       const planoParam = params.get('plano');
       const selectPlano = document.getElementById('anamTipoConsultoria');
@@ -1004,6 +1016,10 @@
       document.getElementById('loginScreen').classList.remove('hidden');
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.add('hidden');
+
+      // GARANTE QUE O TIMER FICA OCULTO NO LOGIN
+      const restWidget = document.getElementById('restTimerWidget');
+      if (restWidget) restWidget.classList.remove('visible');
     }
   });
 
@@ -1115,6 +1131,7 @@
       diasSemana: document.getElementById('anamDiasSemana').value.trim(),
       preferenciaDias: document.getElementById('anamPreferenciaDias').value.trim(),
       tempoTreinoMin: document.getElementById('anamTempoTreinoMin').value.trim(),
+      tempoDescanso: document.getElementById('anamTempoDescanso').value,
       outrasAtividades: document.getElementById('anamOutrasAtividades').value.trim(),
       lesoes: document.getElementById('anamLesoes').value.trim(),
       doencas: document.getElementById('anamDoencas').value.trim(),
@@ -1306,6 +1323,9 @@
     setupWorkout(data.days || []);
     renderFeedbackHistory();
     setupSwipeNavigation();
+
+    // INICIA NA ABA DE TREINO COM O TIMER VISÍVEL
+    showTab('treino');
   }
 
   function toggleCheckExercise(btn, dayIdx, exIdx) {
@@ -1594,7 +1614,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculado com sucesso!");
+      alert("✅ Corrida salva e pace calculated com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1724,7 +1744,6 @@
           if (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
         }
 
-        // CORRIGIDO: Arredondamento limpo sem decimais bizarras
         const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
 
         if (cMax > 0 || rMed > 0) {
@@ -2460,6 +2479,7 @@
 
   const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'config'];
 
+  /* CONTROLE DAS ABAS E EXIBIÇÃO DO TIMER APENAS NO TREINO */
   function showTab(tab) {
     TAB_ORDER.forEach(t => {
       const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -2472,6 +2492,16 @@
     const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
     if (activeTab) activeTab.classList.remove('hidden');
     if (activeBtn) activeBtn.classList.add('active');
+
+    // CONTROLE DO TIMER DE DESCANSO: SÓ MOSTRA SE FOR A ABA DE TREINO
+    const restWidget = document.getElementById('restTimerWidget');
+    if (restWidget) {
+      if (tab === 'treino') {
+        restWidget.classList.add('visible');
+      } else {
+        restWidget.classList.remove('visible');
+      }
+    }
   }
 
   let swipeNavReady = false;
@@ -2651,6 +2681,10 @@
     currentData = null;
     loggedUserCode = "";
     currentTreinoDayIdx = 0;
+
+    // OCULTA O TIMER NO LOGOUT
+    const restWidget = document.getElementById('restTimerWidget');
+    if (restWidget) restWidget.classList.remove('visible');
 
     document.body.classList.remove('app-mode');
     document.getElementById('mainContent').classList.add('hidden');
