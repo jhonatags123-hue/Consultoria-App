@@ -40,15 +40,28 @@
   html { height:100%; }
   ::-webkit-scrollbar { width:6px; height:6px; }
   ::-webkit-scrollbar-thumb { background:var(--line); border-radius:3px; }
-  body { background:var(--bg); color:var(--ink); font-family:var(--font-body); padding:18px; max-width:500px; margin:0 auto; min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; justify-content:center; }
+  
+  body { 
+    background:var(--bg); 
+    color:var(--ink); 
+    font-family:var(--font-body); 
+    padding:18px; 
+    max-width:500px; 
+    margin:0 auto; 
+    min-height:100vh; 
+    min-height:100dvh; 
+    display:flex; 
+    flex-direction:column; 
+    justify-content:center; 
+  }
 
   body.app-mode {
     max-width: 720px;
     justify-content: flex-start;
-    padding: 14px 16px calc(80px + env(safe-area-inset-bottom));
+    padding: 14px 16px calc(110px + env(safe-area-inset-bottom));
   }
   @media (max-width: 640px) {
-    body.app-mode { max-width: 100%; padding: 12px 12px calc(80px + env(safe-area-inset-bottom)); }
+    body.app-mode { max-width: 100%; padding: 12px 12px calc(110px + env(safe-area-inset-bottom)); }
   }
 
   .card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px; margin-bottom:14px; }
@@ -122,26 +135,57 @@
   }
   .quick-switch-chip.active { background:var(--signal-dim); border-color:var(--signal-light); color:var(--ink); }
 
-  .item { background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:15px; margin-bottom:10px; }
-  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; }
-  .item-title { font-weight:600; font-size:15px; color:var(--ink); flex:1; }
+  /* CARDS DE EXERCÍCIO MODERNOS */
+  .item { 
+    background:var(--panel-2); 
+    border:1px solid var(--line); 
+    border-radius:12px; 
+    padding:16px; 
+    margin-bottom:14px; 
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+  .item.exercise-done {
+    border-color: var(--good) !important;
+    background: rgba(79, 156, 110, 0.08) !important;
+  }
+  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
+  .item-title { font-weight:700; font-size:15.5px; color:var(--ink); flex:1; }
+
+  /* BOTÃO DE CHECK-IN NO EXERCÍCIO */
+  .btn-check-exercise {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-check-exercise.done {
+    background: var(--good-dim);
+    border-color: var(--good);
+    color: var(--good);
+  }
 
   .mode-select {
     background: var(--bg); border: 1px solid var(--line); color: var(--mark);
-    font-size: 12px; font-weight: 600; font-family:var(--font-body); padding: 5px 8px; border-radius: 5px; cursor: pointer;
+    font-size: 11.5px; font-weight: 600; font-family:var(--font-body); padding: 5px 8px; border-radius: 6px; cursor: pointer;
   }
   .mode-select:focus { outline:none; border-color:var(--mark); }
 
-  .series-container { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
-  .series-row { display:flex; align-items:center; gap:5px; background:var(--bg); padding:8px 10px; border-radius:6px; border:1px solid var(--line); border-left:2px solid var(--line); flex-wrap:nowrap; overflow-x:auto; }
-  .series-tag { font-size:11px; font-weight:600; color:var(--ink-dim); width:85px; flex-shrink:0; font-family:var(--font-mono); }
+  .series-container { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+  .series-row { display:flex; align-items:center; gap:6px; background:var(--bg); padding:8px 10px; border-radius:8px; border:1px solid var(--line); flex-wrap:nowrap; overflow-x:auto; }
+  .series-tag { font-size:11px; font-weight:600; color:var(--ink-dim); width:80px; flex-shrink:0; font-family:var(--font-mono); }
   .unit { font-size:10px; color:var(--ink-dim); flex-shrink:0; }
-  .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:14px; border-radius:5px !important; }
+  .input-log { background:var(--panel) !important; border:1px solid var(--line) !important; color:var(--mark) !important; text-align:center; font-weight:700; font-family:var(--font-mono) !important; padding:7px 4px !important; margin-bottom:0 !important; font-size:14px; border-radius:6px !important; }
 
   .btn-check-serie {
     background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
-    padding: 6px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer;
-    transition: all 0.2s ease; margin-left: 4px; flex-shrink: 0;
+    padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+    transition: all 0.2s ease; margin-left: 2px; flex-shrink: 0;
   }
   .btn-check-serie.done {
     background: var(--good-dim); border-color: var(--good); color: var(--good);
@@ -156,10 +200,21 @@
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
   }
 
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:20px; }
-  .modal-card-finish { background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--good); border-radius:12px; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,0.8); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:20px; }
+  .modal-card-finish { background:var(--panel); border:1px solid var(--line); border-top:3px solid var(--good); border-radius:14px; padding:22px; width:100%; max-width:480px; max-height:85vh; overflow-y:auto; box-shadow:0 12px 30px rgba(0,0,0,0.8); }
 
-  .progression-item { background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:10px; margin-bottom:8px; font-size:12px; }
+  .progression-item { 
+    background:var(--panel-2); 
+    border:1px solid var(--line); 
+    border-left:3px solid var(--mark);
+    border-radius:8px; 
+    padding:12px 14px; 
+    margin-bottom:8px; 
+    font-size:12.5px; 
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
 
   .trainer-goals-card {
     background: linear-gradient(135deg, rgba(132,22,40,0.25), rgba(21,24,29,0.95));
@@ -200,11 +255,24 @@
   }
   @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
+  /* TIMER DE DESCANSO FIXO NO RODAPÉ SEM TAPAR CONTEÚDO */
   .rest-timer-widget {
-    position: fixed; bottom: calc(18px + env(safe-area-inset-bottom)); right: 16px;
-    background: var(--panel); border: 2px solid var(--signal-light); border-radius: 30px;
-    padding: 8px 16px; display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 9999; transition: transform 0.2s ease, border-color 0.3s ease;
+    position: fixed; 
+    bottom: 0; 
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(21, 24, 29, 0.95); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--line); 
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.6); 
+    z-index: 9999; 
+    transition: border-color 0.3s ease;
   }
   .rest-timer-display {
     font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center;
@@ -298,12 +366,18 @@
     <div style="text-align:center; margin-bottom:16px;">
       <span style="font-size:36px;">🔥</span>
       <h2 style="font-family:var(--font-display); font-size:26px; color:var(--mark); margin-top:4px;">TREINO CONCLUÍDO!</h2>
-      <p style="font-size:12px; color:var(--ink-dim);">Confira seu tempo de treino e evolução:</p>
+      <p style="font-size:12px; color:var(--ink-dim);">Confira seu desempenho no treino de hoje:</p>
     </div>
 
-    <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; text-align:center; margin-bottom:14px;">
-      <div style="font-size:10.5px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">⏱️ Tempo Total de Treino</div>
-      <div id="summaryTimeDisplay" style="font-family:var(--font-mono); font-size:24px; font-weight:700; color:var(--ink); margin-top:2px;">-- min</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+      <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:10px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">⏱️ Duração</div>
+        <div id="summaryTimeDisplay" style="font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--ink); margin-top:2px;">-- min</div>
+      </div>
+      <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px; text-align:center;">
+        <div style="font-size:10px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">🏋️ Volume Total (VTT)</div>
+        <div id="summaryVolumeDisplay" style="font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--mark); margin-top:2px;">0 kg</div>
+      </div>
     </div>
 
     <div style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase; margin-bottom:8px;">📈 Progresso nos Exercícios:</div>
@@ -316,9 +390,15 @@
 </div>
 
 <div id="restTimerWidget" class="rest-timer-widget">
-  <div id="timerDisplay" class="rest-timer-display">00:00</div>
-  <button type="button" class="rest-timer-btn" onclick="startRestTimer(90)">⏱ 90s</button>
-  <button type="button" class="rest-timer-btn" onclick="startRestTimer(120)">⏱ 120s</button>
+  <div>
+    <span style="font-size:10px; color:var(--ink-dim); display:block; text-transform:uppercase; font-weight:700;">Descanso</span>
+    <div id="timerDisplay" class="rest-timer-display">00:00</div>
+  </div>
+  <div style="display:flex; gap:6px;">
+    <button type="button" class="rest-timer-btn" onclick="startRestTimer(60)">⏱ 60s</button>
+    <button type="button" class="rest-timer-btn" onclick="startRestTimer(90)">⏱ 90s</button>
+    <button type="button" class="rest-timer-btn" onclick="startRestTimer(120)">⏱ 120s</button>
+  </div>
 </div>
 
 <div id="anamneseScreen" class="card hidden">
@@ -502,14 +582,14 @@
     </div>
 
     <div id="anamStep10" class="hidden">
-      <label class="label-fdb">23. Escolha o seu Plano de Consultoria:</label>
+      <label class="label-fdb">23. Plano de Consultoria Selecionado:</label>
       <select id="anamTipoConsultoria" class="input-field" required>
-        <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00</option>
-        <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00</option>
-        <option value="COMPLETA_TRIMESTRAL">3 Meses Consultoria Completa — 3x R$ 130,00</option>
-        <option value="COMPLETA_MENSAL">Consultoria Completa (Mensal) — R$ 150,00/mês</option>
-        <option value="TREINO_ANUAL">Consultoria de Treino Anual — R$ 55,00/mês</option>
-        <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00</option>
+        <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00/mês</option>
+        <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00/mês</option>
+        <option value="COMPLETA_TRIMESTRAL">3 Meses Consultoria Completa — 3x R$ 130,00/mês</option>
+        <option value="COMPLETA_DUPLA_ANUAL">Consultoria Completa em DUPLA (Anual) — 12x R$ 150,00/mês</option>
+        <option value="TREINO_ANUAL">Consultoria de Treino Anual — 12x R$ 55,00/mês</option>
+        <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
       </select>
 
       <label class="label-fdb" style="margin-top:10px;">24. Forma de Pagamento:</label>
@@ -627,7 +707,7 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE DIETA COM SUPORTE A ABAS DE CICLISMO E SUBSTITUIÇÕES -->
+    <!-- MÓDULO DE DIETA -->
     <div id="tabDieta" class="hidden">
       <div id="noDietBanner" class="card hidden" style="text-align:center; border-color:var(--mark);">
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
@@ -646,7 +726,7 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE CORRIDA COM PRESCRIÇÃO DE CARDIO INTEGRADA -->
+    <!-- MÓDULO DE CORRIDA -->
     <div id="tabCorrida" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
       
@@ -722,6 +802,7 @@
     'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/oky8it88u28d4vat",
     'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/lvfk6qle0ufq0t57",
     'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+    'COMPLETA_DUPLA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
     'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
     'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
   };
@@ -872,13 +953,18 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
+      // BLOQUEIO TOTAL DA SELEÇÃO DE PLANO QUANDO VEM DA BIO
       const planoParam = params.get('plano');
-      if (planoParam && document.getElementById('anamTipoConsultoria')) {
-        document.getElementById('anamTipoConsultoria').value = planoParam;
+      const selectPlano = document.getElementById('anamTipoConsultoria');
+
+      if (planoParam && selectPlano) {
+        selectPlano.value = planoParam;
+        selectPlano.disabled = true; // IMPEDE TROCA
+        selectPlano.style.opacity = '0.85';
+        selectPlano.style.background = 'var(--panel)';
       }
 
       if (modo === 'anamnese_convidado') {
-        const selectPlano = document.getElementById('anamTipoConsultoria');
         const selectPagamento = document.getElementById('anamFormaPagamento');
         const pixBox = document.getElementById('pixDiretoBox');
 
@@ -1065,10 +1151,10 @@
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        const isPlanoDupla = tipoConsultoria === 'TREINO_DUPLA_ANUAL';
+        const isPlanoDupla = tipoConsultoria === 'TREINO_DUPLA_ANUAL' || tipoConsultoria === 'COMPLETA_DUPLA_ANUAL';
 
         let boxDuplaHtml = '';
-        if (isPlanoDupla) {
+        if (isPlanoDupla && formaPagamento === 'ASAAS_LINK') {
           boxDuplaHtml = `
             <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
               <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">
@@ -1106,7 +1192,7 @@
             </div>
 
             <div style="font-size:12px; color:var(--ink-dim); margin-top:14px;">
-               Se efetuou o pagamento via Pix Direto, lembre-se de enviar o comprovante no meu WhatsApp para acelerar a liberação!
+               Se efetuou o pagamento via Pix Direto, envie o comprovante no meu WhatsApp para acelerar a liberação e receber o link da sua dupla!
             </div>
 
             <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
@@ -1220,6 +1306,23 @@
     setupWorkout(data.days || []);
     renderFeedbackHistory();
     setupSwipeNavigation();
+  }
+
+  function toggleCheckExercise(btn, dayIdx, exIdx) {
+    const card = btn.closest('.item');
+    const isDone = btn.classList.toggle('done');
+    
+    if (isDone) {
+      btn.textContent = '✓ Concluído';
+      if (card) card.classList.add('exercise-done');
+      if (navigator.vibrate) navigator.vibrate(50);
+    } else {
+      btn.textContent = 'Marcar Concluído';
+      if (card) card.classList.remove('exercise-done');
+    }
+
+    const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
+    scheduleAutoSave(keyExDone, isDone ? 'true' : 'false');
   }
 
   function verificarNotificacaoFeedback(alunoData) {
@@ -1456,10 +1559,9 @@
 
     if (!km || !min) return alert("Informe a distância em Km e o tempo em minutos.");
 
-    // MENSAGEM DE CARREGAMENTO NO BOTÃO
     if (btn) {
       btn.disabled = true;
-      btn.textContent = "⌛ Salvando e calculando...";
+      btn.textContent = "⌛ Salvando...";
     }
 
     if (!currentData.registros_corrida) currentData.registros_corrida = {};
@@ -1486,7 +1588,6 @@
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
       
-      // Atualiza na hora o texto de Pace do Dia abaixo dos campos
       const paceDiaStr = calcularPaceTexto(km, min);
       const paceDisplay = document.getElementById(`run_pace_display_${keyDia}`);
       if (paceDisplay) {
@@ -1561,6 +1662,7 @@
     }
   }
 
+  /* RESUMO DO TREINO COM CÁLCULO DE VTT E INTEIROS LIMPOS */
   async function concluirTreinoDoDia() {
     if (!currentData) return;
 
@@ -1571,7 +1673,7 @@
 
     const m = Math.floor(workoutTimerSeconds / 60);
     const s = workoutTimerSeconds % 60;
-    const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} segundos`;
+    const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
 
     document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
 
@@ -1580,6 +1682,7 @@
 
     const day = currentData.days?.[currentTreinoDayIdx];
     let evolucoes = [];
+    let volumeToneladoTotal = 0;
 
     if (day && day.exercicios) {
       day.exercicios.forEach((ex, exIdx) => {
@@ -1596,19 +1699,32 @@
           const rVal = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
 
           if (!isNaN(cVal) && cVal > cMax) cMax = cVal;
-          if (!isNaN(rVal)) { rTotal += rVal; seriesCount++; }
+          if (!isNaN(rVal)) { 
+            rTotal += rVal; 
+            seriesCount++; 
+            if (!isNaN(cVal)) volumeToneladoTotal += (cVal * rVal);
+          }
         }
 
         const cAtiv = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
         const rAtiv = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
         if (!isNaN(cAtiv) && cAtiv > cMax) cMax = cAtiv;
-        if (!isNaN(rAtiv)) { rTotal += rAtiv; seriesCount++; }
+        if (!isNaN(rAtiv)) { 
+          rTotal += rAtiv; 
+          seriesCount++; 
+          if (!isNaN(cAtiv)) volumeToneladoTotal += (cAtiv * rAtiv);
+        }
 
         const cCl = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
         const rCl = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
         if (!isNaN(cCl) && cCl > cMax) cMax = cCl;
-        if (!isNaN(rCl)) { rTotal += rCl; seriesCount++; }
+        if (!isNaN(rCl)) { 
+          rTotal += rCl; 
+          seriesCount++; 
+          if (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
+        }
 
+        // CORRIGIDO: Arredondamento limpo sem decimais bizarras
         const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
 
         if (cMax > 0 || rMed > 0) {
@@ -1617,14 +1733,15 @@
 
           if (ultimoReg) {
             const cargaAnt = parseFloat(ultimoReg.cargaMax) || 0;
-            const repsAnt = parseFloat(ultimoReg.repsMed) || 0;
+            const repsAnt = Math.round(parseFloat(ultimoReg.repsMed) || 0);
 
             if (cMax > cargaAnt) {
               const diff = (cMax - cargaAnt).toFixed(1);
-              statusText = `🚀 Aumentou +${diff}kg de carga!`;
+              statusText = `🚀 +${diff}kg de carga!`;
               statusColor = "var(--good)";
             } else if (cMax === cargaAnt && rMed > repsAnt) {
-              statusText = `📈 Fez +${rMed - repsAnt} reps com a mesma carga!`;
+              const diffReps = rMed - repsAnt;
+              statusText = `📈 +${diffReps} rep${diffReps > 1 ? 's' : ''} com a mesma carga!`;
               statusColor = "var(--blue)";
             }
           }
@@ -1640,15 +1757,17 @@
       });
     }
 
+    document.getElementById('summaryVolumeDisplay').textContent = `${Math.round(volumeToneladoTotal)} kg`;
+
     if (evolucoes.length === 0) {
       summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
     } else {
       evolucoes.forEach(item => {
         summaryList.innerHTML += `
           <div class="progression-item">
-            <b style="color:var(--ink);">${escapeHtml(item.nome)}</b><br>
+            <b style="color:var(--ink);">${escapeHtml(item.nome)}</b>
             <span style="color:${item.color}; font-weight:700;">${item.status}</span> 
-            <span style="color:var(--ink-dim);">(${item.carga}kg | ${item.reps} reps méd.)</span>
+            <span style="color:var(--ink-dim); font-size:11px;">Carga máx: ${item.carga}kg | Média: ${item.reps} reps</span>
           </div>
         `;
       });
@@ -1769,6 +1888,9 @@
       const modeKey = `${dayIdx}_${exIdx}`;
       const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
 
+      const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
+      const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
+
       const exName = ex.nome || '';
       const exMeta = ex.reps || '';
       const metaText = (exName + ' ' + exMeta).toLowerCase();
@@ -1790,7 +1912,7 @@
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
 
       const div = document.createElement('div');
-      div.className = 'item';
+      div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
       let selectHtml = '';
       if (podeAlterarTecnicas) {
@@ -1820,7 +1942,13 @@
       let html = `
         <div class="item-header">
           <div class="item-title">${escapeHtml(cleanName)}</div>
-          ${selectHtml}
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${selectHtml}
+            <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" 
+              onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
+              ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
+            </button>
+          </div>
         </div>
         <div class="series-container">
       `;
@@ -2095,7 +2223,7 @@
     if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
 
     if (maxCarga > 0) {
-      const mediaReps = seriesPreenchidas > 0 ? (totalReps / seriesPreenchidas).toFixed(1) : "-";
+      const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
       const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
       if (!currentData.weekly_logs[keyLog]) currentData.weekly_logs[keyLog] = [];
@@ -2114,9 +2242,6 @@
     }
   }
 
-  /* ==========================================
-      PARSER E RENDERIZADOR DA DIETA DO ALUNO
-  ========================================== */
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
