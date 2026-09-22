@@ -26,6 +26,7 @@
     --text: #f8efec;
     --muted: #a3878d;
     --green: #25d366;
+    --blue: #3b82f6;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   ::-webkit-scrollbar { width:4px; height:4px; }
@@ -141,44 +142,39 @@
   .tab-icon { font-size: 12px; color: var(--gold); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
   .tab-card.active .tab-icon { transform: rotate(180deg); }
 
-  .tab-body { background: #0a0104; border-top: 1px solid var(--border-soft); padding: 20px; font-size: 12.5px; line-height: 1.6; }
-  .manifesto-text {
-    font-size: 12.5px; color: #e6d3d6; margin-bottom: 16px;
-    border-left: 3px solid var(--accent); padding-left: 12px; font-style: italic;
+  .tab-body { background: #0a0104; border-top: 1px solid var(--border-soft); padding: 18px; font-size: 12.5px; line-height: 1.6; }
+
+  /* SUB-OPÇÕES DE PLANOS NA BIO */
+  .plan-suboptions { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .plan-item {
+    background: rgba(18, 3, 7, 0.9);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s ease;
   }
-
-  .tech-pills { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 16px; }
-  .tech-pill {
-    background: rgba(196,50,79,0.12); border: 1px solid rgba(196,50,79,0.4);
-    color: #ff9ebb; font-size: 10px; font-weight: 700; padding: 4px 9px; border-radius: 8px;
+  .plan-item:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    background: rgba(30, 6, 13, 0.9);
   }
-
-  .feature-list { list-style: none; padding: 0; }
-  .feature-list li { margin-bottom: 10px; display: flex; gap: 10px; font-size: 12.5px; align-items: flex-start; }
-  .feature-list li .bullet { color: var(--green); font-weight: 900; }
-
-  .price-box {
-    background: linear-gradient(135deg, #24060e, #110205);
-    border: 1px solid var(--gold); border-radius: 16px; padding: 18px; text-align: center; margin-top: 16px;
-    box-shadow: inset 0 0 15px rgba(220,170,58,0.06);
+  .plan-item.promo-dupla {
+    border: 1px solid var(--gold);
+    background: linear-gradient(135deg, rgba(220,170,58,0.12), rgba(21,5,8,0.9));
+    box-shadow: 0 4px 15px rgba(220,170,58,0.15);
   }
-  .price-box .tag { font-size: 9.5px; font-weight: 800; color: #140307; background: var(--gold-soft); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .price-box .price-main { font-size: 28px; font-weight: 900; color: #fff; margin: 6px 0 2px; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-  .price-box .price-sub { font-size: 11px; color: var(--muted); }
-
-  .btn-action {
-    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-    background: linear-gradient(135deg, #34e37a, #1fae55); color: #03210e;
-    font-weight: 800; font-size: 13.5px; text-transform: uppercase; padding: 16px;
-    border-radius: 14px; text-decoration: none; box-shadow: 0 6px 20px rgba(37,211,102,0.3);
-    margin-top: 16px; letter-spacing: 0.04em; transition: transform 0.2s ease, box-shadow 0.2s ease;
-    animation: pulseGlow 3s infinite ease-in-out;
-  }
-  .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,211,102,0.4); }
-
-  @keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 6px 20px rgba(37,211,102,0.25); }
-    50% { box-shadow: 0 6px 28px rgba(37,211,102,0.45); }
+  .plan-info-title { font-size: 13.5px; font-weight: 700; color: #fff; }
+  .plan-info-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .plan-price-tag { text-align: right; font-weight: 900; font-size: 14px; color: var(--gold); }
+  .plan-price-tag span { font-size: 10px; color: var(--muted); font-weight: 500; display: block; }
+  .badge-offer {
+    background: var(--gold); color: #100305; font-size: 9px; font-weight: 900;
+    padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-left: 6px;
   }
 
   .hidden { display: none !important; }
@@ -254,40 +250,53 @@
     <div class="tab-header" onclick="toggleTab('Completa')">
       <div>
         <h2>🏆 1. Consultoria Completa</h2>
-        <span class="subtitle-tag">Treino Personalizado + Plano Alimentar</span>
+        <span class="subtitle-tag">Treino Personalizado + Plano Alimentar + Suporte</span>
       </div>
       <span class="tab-icon" id="iconCompleta">▼</span>
     </div>
 
     <div class="tab-body" id="bodyCompleta">
-      <div class="manifesto-text">
-        "A união perfeita da ciência do treino com a nutrição adaptada para a sua rotina diária."
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        Selecione a duração do plano ou aproveite a promoção em dupla:
       </div>
 
-      <div class="tech-pills">
-        <span class="tech-pill">Cluster Sets</span>
-        <span class="tech-pill">Back-off Sets</span>
-        <span class="tech-pill">Volume Adaptável</span>
-        <span class="tech-pill">Ciclo de Carbos</span>
+      <div class="plan-suboptions">
+        <!-- Trimestral Individual -->
+        <a href="app.html?modo=anamnese&plano=COMPLETA_TRIMESTRAL" class="plan-item">
+          <div>
+            <div class="plan-info-title">Plano Trimestral Individual</div>
+            <div class="plan-info-desc">3 meses de acompanhamento completo</div>
+          </div>
+          <div class="plan-price-tag">3x R$ 130<span>/mês</span></div>
+        </a>
+
+        <!-- Semestral Individual -->
+        <a href="app.html?modo=anamnese&plano=COMPLETA_SEMESTRAL" class="plan-item">
+          <div>
+            <div class="plan-info-title">Plano Semestral Individual</div>
+            <div class="plan-info-desc">6 meses de acompanhamento completo</div>
+          </div>
+          <div class="plan-price-tag">6x R$ 110<span>/mês</span></div>
+        </a>
+
+        <!-- Anual Individual -->
+        <a href="app.html?modo=anamnese&plano=COMPLETA_ANUAL" class="plan-item">
+          <div>
+            <div class="plan-info-title">Plano Anual Individual</div>
+            <div class="plan-info-desc">12 meses de evolução contínua</div>
+          </div>
+          <div class="plan-price-tag">12x R$ 85<span>/mês</span></div>
+        </a>
+
+        <!-- PROMOCIONAL DUPLA COMPLETA -->
+        <a href="app.html?modo=anamnese&plano=COMPLETA_DUPLA_ANUAL" class="plan-item promo-dupla">
+          <div>
+            <div class="plan-info-title">Plano Anual em DUPLA <span class="badge-offer">OFERTA</span></div>
+            <div class="plan-info-desc" style="color:var(--gold-soft);">R$ 75,00/mês por pessoa (Treine com um amigo)</div>
+          </div>
+          <div class="plan-price-tag">12x R$ 150<span>Total Dupla</span></div>
+        </a>
       </div>
-
-      <ul class="feature-list">
-        <li><span class="bullet">✔</span><span><b>Treino Personalizado:</b> Focado em hipertrofia e densidade real.</span></li>
-        <li><span class="bullet">✔</span><span><b>Plano Alimentar:</b> Dieta calculada e ajustada ao seu gosto.</span></li>
-        <li><span class="bullet">✔</span><span><b>Métricas no App:</b> Acompanhe suas cargas e progresso semanal.</span></li>
-        <li><span class="bullet">✔</span><span><b>Suporte no WhatsApp:</b> Dúvidas tiradas diretamente comigo.</span></li>
-      </ul>
-
-      <div class="price-box">
-        <span class="tag">⭐ Protocolo Mais Completo</span>
-        <div class="price-main">R$ 150,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
-        <div class="price-sub">No plano anual sai por R$ 85,00/mês — economize no plano anual</div>
-      </div>
-
-      <!-- CORRIGIDO PARA APONTAR PARA app.html -->
-      <a href="app.html?modo=anamnese&plano=COMPLETA_ANUAL" class="btn-action">
-        🚀 QUERO CONSULTORIA COMPLETA
-      </a>
     </div>
   </div>
 
@@ -302,32 +311,29 @@
     </div>
 
     <div class="tab-body hidden" id="bodyTreino">
-      <div class="manifesto-text">
-        "Ideal para quem já tem acompanhamento nutricional e busca uma ficha de treino avançada para quebrar platôs."
+      <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">
+        Selecione o plano individual ou treine com sua dupla por um valor promocional:
       </div>
 
-      <div class="tech-pills">
-        <span class="tech-pill">Myo-Reps</span>
-        <span class="tech-pill">Cluster Sets</span>
-        <span class="tech-pill">Sobrecarga Progressiva</span>
+      <div class="plan-suboptions">
+        <!-- Anual Individual Treino -->
+        <a href="app.html?modo=anamnese&plano=TREINO_ANUAL" class="plan-item">
+          <div>
+            <div class="plan-info-title">Plano Anual Individual</div>
+            <div class="plan-info-desc">Ficha de treino contínua e suporte técnico</div>
+          </div>
+          <div class="plan-price-tag">12x R$ 55<span>/mês</span></div>
+        </a>
+
+        <!-- PROMOCIONAL DUPLA TREINO -->
+        <a href="app.html?modo=anamnese&plano=TREINO_DUPLA_ANUAL" class="plan-item promo-dupla">
+          <div>
+            <div class="plan-info-title">Plano Anual em DUPLA <span class="badge-offer">OFERTA</span></div>
+            <div class="plan-info-desc" style="color:var(--gold-soft);">R$ 40,00/mês por pessoa (Total R$ 80/mês)</div>
+          </div>
+          <div class="plan-price-tag">12x R$ 80<span>Total Dupla</span></div>
+        </a>
       </div>
-
-      <ul class="feature-list">
-        <li><span class="bullet">✔</span><span><b>Ficha de Treino Exclusiva:</b> Periodização e técnicas avançadas.</span></li>
-        <li><span class="bullet">✔</span><span><b>Registro no Aplicativo:</b> Histórico de cargas e evolução por exercício.</span></li>
-        <li><span class="bullet">✔</span><span><b>Suporte Técnico:</b> Correção de execução e ajuste de volume.</span></li>
-      </ul>
-
-      <div class="price-box">
-        <span class="tag">🏋️ Foco em Treinamento</span>
-        <div class="price-main">R$ 55,00 <small style="font-size:12px; color:var(--muted);">/mês</small></div>
-        <div class="price-sub">Plano Anual de Treino de Alta Performance</div>
-      </div>
-
-      <!-- CORRIGIDO PARA APONTAR PARA app.html -->
-      <a href="app.html?modo=anamnese&plano=TREINO_ANUAL" class="btn-action" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; animation:none;">
-        🏋️ QUERO APENAS O TREINO
-      </a>
     </div>
   </div>
 
