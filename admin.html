@@ -320,7 +320,7 @@
             <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA):</label>
             <button class="btn btn-soft" id="btnGerarTreinoIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarTreinoComIA()">🤖 Gerar Treino + Diretrizes (IA)</button>
           </div>
-          <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga."></textarea>
+          <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga. Tempo de descanso recomendado: 90s."></textarea>
           <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA preenche as diretrizes e a ficha de treino simultaneamente.</div>
         </div>
 
@@ -523,7 +523,7 @@
               <option value="pago">🟢 Pago / Acesso Liberado</option>
               <option value="pendente">🔴 Suspenso / Pendente</option>
             </select>
-            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar +1 Mês (+30 Dias Acumulativos)</button>
+            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar Acesso (30 Dias)</button>
           </div>
         </div>
 
@@ -927,7 +927,7 @@
     container.innerHTML = "";
 
     if (!currentStudentData) {
-      container.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum aluno selecionado.</p>";
+      container.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenum aluno selecionado.</p>";
       return;
     }
 
@@ -1439,6 +1439,7 @@ Bons treinos! 💪🏼`;
       </div>
 
       <div style="display:flex; flex-direction:column; gap:10px;">
+        <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">⏱️ Tempo de Descanso Habitual entre Séries</div><div class="anamnese-val" style="font-weight:800; color:var(--gold); font-size:14px;">${escapeHtml(a.tempoDescanso) || '90s a 2min (Padrão)'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${escapeHtml(a.objetivo) || 'Não informado'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">⏱️ Experiência / Tempo de Treino</div><div class="anamnese-val">${escapeHtml(a.tempoTreino) || 'Não informado'}</div></div>
         <div class="anamnese-box"><div class="anamnese-label">💉 Uso de Ergogênicos / Anabolizantes</div><div class="anamnese-val">${escapeHtml(a.anabolizantes) || 'Não informado'}</div></div>
