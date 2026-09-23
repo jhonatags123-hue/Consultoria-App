@@ -73,6 +73,7 @@
   .input-field { width:100%; background:var(--bg); border:1px solid var(--line); color:var(--ink); padding:12px 13px; border-radius:6px; font-size:16px; font-family:var(--font-body); transition:border-color .15s ease; }
   .input-field:focus { outline:none; border-color:var(--signal-light); }
   .input-field::placeholder { color:#565b64; }
+  .input-field:disabled { opacity:0.4; cursor:not-allowed; background:var(--panel-2); }
   select.input-field { color:var(--ink); cursor:pointer; }
   textarea.input-field { resize:none; font-family:var(--font-body); }
 
@@ -167,6 +168,7 @@
     border-color: var(--good);
     color: var(--good);
   }
+  .btn-check-exercise:disabled { opacity:0.4; cursor:not-allowed; }
 
   .mode-select {
     background: var(--bg); border: 1px solid var(--line); color: var(--mark);
@@ -188,6 +190,7 @@
   .btn-check-serie.done {
     background: var(--good-dim); border-color: var(--good); color: var(--good);
   }
+  .btn-check-serie:disabled { opacity:0.4; cursor:not-allowed; }
 
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
@@ -667,6 +670,7 @@
     <button class="menu-btn hidden" id="btnCorrida" onclick="showTab('corrida')">🏃 Corrida</button>
     <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">Assistente</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">Feedback</button>
+    <button class="menu-btn" id="btnIndique" onclick="showTab('indique')">🎁 Indique & Ganhe</button>
     <button class="menu-btn" id="btnConfig" onclick="showTab('config')">Senha</button>
   </div>
   <div class="swipe-hint">Arraste para o lado para trocar de aba</div>
@@ -785,6 +789,28 @@
       </button>
     </div>
 
+    <!-- MÓDULO INDIQUE E GANHE -->
+    <div id="tabIndique" class="card hidden" style="text-align:center;">
+      <div style="font-size:36px; margin-bottom:6px;">🎁</div>
+      <h2 style="font-family:var(--font-display); font-size:24px; color:var(--mark);">Indique Amigos e Ganhe Benefícios!</h2>
+      <p style="font-size:12.5px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
+        Compartilhe a sua evolução com seus amigos e parceiros de treino. Para cada amigo que iniciar a consultoria através da sua indicação, você ganha <b>desconto na sua próxima mensalidade</b> ou bônus no seu plano!
+      </p>
+
+      <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
+        <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:4px;">💡 Como funciona:</div>
+        <ol style="font-size:12px; color:var(--ink-dim); padding-left:16px; line-height:1.6;">
+          <li>Envie o link do aplicativo ou indique pelo WhatsApp.</li>
+          <li>Seu amigo preenche a anamnese informando que veio por você.</li>
+          <li>Assim que o plano for confirmado, seu benefício é liberado!</li>
+        </ol>
+      </div>
+
+      <button class="btn-login btn-wpp" style="margin-top:18px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="compartilharIndicaoWpp()">
+        <span>📱 Indicar Amigo pelo WhatsApp</span>
+      </button>
+    </div>
+
     <div id="tabConfig" class="card hidden">
       <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Alterar Senha de Acesso</div>
       <label class="label-fdb">Nova Senha Pessoal</label>
@@ -814,8 +840,8 @@
   let currentTreinoDayIdx = 0;
   let activeAlunoDietAbaIndex = 0;
 
+  // CRONÔMETRO PERSISTENTE DO TREINO
   let workoutTimerInterval = null;
-  let workoutTimerSeconds = 0;
   let workoutTimerRunning = false;
 
   function escapeHtml(str) {
@@ -900,33 +926,92 @@
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  function toggleWorkoutTimer() {
+  // LÓGICA DE CRONÔMETRO PERSISTENTE E TRAVA DE TREINO
+  function checkAndRestoreWorkoutTimer() {
+    const keyStart = `workout_start_time_${loggedUserCode}`;
+    const startTimeStr = localStorage.getItem(keyStart);
     const btn = document.getElementById('btnWorkoutTimer');
-    if (!workoutTimerRunning) {
+
+    if (startTimeStr) {
       workoutTimerRunning = true;
-      btn.textContent = "⏹️ PAUSAR";
-      btn.style.background = "var(--signal-light)";
-      workoutTimerInterval = setInterval(() => {
-        workoutTimerSeconds++;
-        updateWorkoutTimerDisplay();
-      }, 1000);
+      if (btn) {
+        btn.textContent = "⏹️ PAUSAR";
+        btn.style.background = "var(--signal-light)";
+      }
+      setInputsLockState(false);
+
+      if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+      workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
+      updateWorkoutTimerDisplay();
     } else {
       workoutTimerRunning = false;
-      clearInterval(workoutTimerInterval);
-      btn.textContent = "▶️ CONTINUAR";
+      if (btn) {
+        btn.textContent = "▶️ INICIAR TREINO";
+        btn.style.background = "var(--good)";
+      }
+      setInputsLockState(true);
+      document.getElementById('workoutTimerClock').textContent = "00:00:00";
+    }
+  }
+
+  function setInputsLockState(locked) {
+    document.querySelectorAll('.input-log, .btn-check-serie, .btn-check-exercise').forEach(el => {
+      el.disabled = locked;
+    });
+  }
+
+  function toggleWorkoutTimer() {
+    const btn = document.getElementById('btnWorkoutTimer');
+    const keyStart = `workout_start_time_${loggedUserCode}`;
+
+    if (!workoutTimerRunning) {
+      workoutTimerRunning = true;
+      const startTime = Date.now();
+      localStorage.setItem(keyStart, startTime.toString());
+
+      btn.textContent = "⏹️ PAUSAR";
+      btn.style.background = "var(--signal-light)";
+
+      setInputsLockState(false);
+
+      if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+      workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
+      updateWorkoutTimerDisplay();
+    } else {
+      workoutTimerRunning = false;
+      localStorage.removeItem(keyStart);
+      if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+
+      btn.textContent = "▶️ INICIAR TREINO";
       btn.style.background = "var(--good)";
+
+      setInputsLockState(true);
     }
   }
 
   function updateWorkoutTimerDisplay() {
-    const h = Math.floor(workoutTimerSeconds / 3600);
-    const m = Math.floor((workoutTimerSeconds % 3600) / 60);
-    const s = workoutTimerSeconds % 60;
+    const keyStart = `workout_start_time_${loggedUserCode}`;
+    const startTimeStr = localStorage.getItem(keyStart);
+
+    if (!startTimeStr) {
+      document.getElementById('workoutTimerClock').textContent = "00:00:00";
+      return;
+    }
+
+    const elapsedSeconds = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+    const h = Math.floor(elapsedSeconds / 3600);
+    const m = Math.floor((elapsedSeconds % 3600) / 60);
+    const s = elapsedSeconds % 60;
+
     const fmt = n => String(n).padStart(2, '0');
     document.getElementById('workoutTimerClock').textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
   }
 
   function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
+    if (!workoutTimerRunning) {
+      alert("⚠️ Clique em '▶️ INICIAR TREINO' para registrar cargas!");
+      return;
+    }
     const el = document.getElementById(`input_${keyInput}`);
     if (el) el.value = valorCarga;
     scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
@@ -1035,6 +1120,12 @@
     const linkConvidado = "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
     navigator.clipboard.writeText(linkConvidado);
     alert("✅ Link da Anamnese sem cobrança copiado! Envie para o seu amigo:\n\n" + linkConvidado);
+  }
+
+  function compartilharIndicaoWpp() {
+    const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+    const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação do aluno: ${nome}_`;
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
 
   async function handleLogin(e) {
@@ -1317,6 +1408,11 @@
   }
 
   function toggleCheckExercise(btn, dayIdx, exIdx) {
+    if (!workoutTimerRunning) {
+      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de marcar o exercício!");
+      return;
+    }
+
     const card = btn.closest('.item');
     const isDone = btn.classList.toggle('done');
     
@@ -1602,7 +1698,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculado com sucesso!");
+      alert("✅ Corrida salva e pace calculated com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1662,6 +1758,10 @@
   }
 
   function toggleCheckSerie(btn) {
+    if (!workoutTimerRunning) {
+      alert("⚠️ Clique em '▶️ INICIAR TREINO' para começar a marcar as séries!");
+      return;
+    }
     btn.classList.toggle('done');
     if (btn.classList.contains('done')) {
       btn.textContent = "✓ Feito";
@@ -1673,13 +1773,20 @@
   async function concluirTreinoDoDia() {
     if (!currentData) return;
 
-    if (workoutTimerRunning) {
-      clearInterval(workoutTimerInterval);
-      workoutTimerRunning = false;
+    const keyStart = `workout_start_time_${loggedUserCode}`;
+    const startTimeStr = localStorage.getItem(keyStart);
+    let durationSeconds = 0;
+
+    if (startTimeStr) {
+      durationSeconds = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+      localStorage.removeItem(keyStart);
     }
 
-    const m = Math.floor(workoutTimerSeconds / 60);
-    const s = workoutTimerSeconds % 60;
+    if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+    workoutTimerRunning = false;
+
+    const m = Math.floor(durationSeconds / 60);
+    const s = durationSeconds % 60;
     const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
 
     document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
@@ -1794,10 +1901,10 @@
   function fecharModalConclusao() {
     document.getElementById('modalTreinoConcluido').classList.add('hidden');
     
-    workoutTimerSeconds = 0;
-    updateWorkoutTimerDisplay();
+    document.getElementById('workoutTimerClock').textContent = "00:00:00";
     document.getElementById('btnWorkoutTimer').textContent = "▶️ INICIAR TREINO";
     document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
+    setInputsLockState(true);
 
     const totalDays = (currentData.days || []).length;
     if (totalDays > 0) {
@@ -1869,6 +1976,8 @@
       <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Esta anotação fica salva junto com o histórico de cargas deste treino.</div>
     `;
     exercisesContainer.appendChild(obsDiv);
+
+    checkAndRestoreWorkoutTimer();
   }
 
   function createLogInputAttr(nameKey) {
@@ -1884,6 +1993,7 @@
       exercisesContainer.innerHTML = '';
       renderExercisesForDay(currentData.days[dayIdx], dayIdx, exercisesContainer);
       scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
+      setInputsLockState(!workoutTimerRunning);
     }
   }
 
@@ -2151,6 +2261,11 @@
   }
 
   function scheduleAutoSave(key, value, dayIdx, exIdx) {
+    if (!workoutTimerRunning) {
+      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de registrar dados!");
+      return;
+    }
+
     if (!currentData.logs) currentData.logs = {};
     currentData.logs[key] = value;
 
@@ -2464,7 +2579,7 @@
     }
   }
 
-  const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'config'];
+  const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'indique', 'config'];
 
   function showTab(tab) {
     TAB_ORDER.forEach(t => {
