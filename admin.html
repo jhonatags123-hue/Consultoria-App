@@ -286,6 +286,16 @@
           </div>
         </div>
 
+        <!-- PAINEL DE INCÔMODOS E DURAÇÃO DO ÚLTIMO TREINO -->
+        <div id="incomodosBox" style="margin-bottom:16px; background:#100305; border:1px solid var(--accent); padding:14px; border-radius:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="color:var(--accent); font-size:13px;">⚠️ Observações / Incômodos do Último Treino:</b>
+            <button class="btn btn-soft" style="width:auto; padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="analisarIncomodosIA()">🤖 Analisar com IA</button>
+          </div>
+          <div id="incomodosList" style="font-size:12px; color:#fff; margin-top:8px;">Selecione um aluno para carregar os relatos.</div>
+          <div id="resumoIncomodosIA" style="margin-top:10px; font-size:11.5px; color:var(--gold); background:#0d0204; padding:8px; border-radius:6px;" class="hidden"></div>
+        </div>
+
         <div id="summaryOverviewContainer">
           <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
         </div>
@@ -335,7 +345,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps"></textarea>
+            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 3x+myoreps"></textarea>
           </div>
 
           <div>
@@ -490,8 +500,17 @@
       </div>
 
       <div id="secCadastro" class="panel-card hidden">
-        <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
+        <div class="panel-title">⚙️ Configurações & Bloco de Notas do Treinador</div>
         
+        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR -->
+        <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
+          <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
+          <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">
+            Anote aqui estratégias, dores, combinados ou planejamentos futuros do aluno.
+          </p>
+          <textarea id="editNotasTreinador" rows="4" placeholder="Ex: Aluno relatou dor no ombro esquerdo. Evitar desenvolvimento pesado. Planejar transição para Bulk na semana 3."></textarea>
+        </div>
+
         <label>Nome Exibido</label>
         <input type="text" id="editName">
 
@@ -585,10 +604,10 @@
 
       <div id="secChatAdmin" class="panel-card hidden">
         <div class="panel-title">🤖 Assistente IA do Treinador</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição com base em todo o contexto do aluno.</p>
 
         <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje?</div>
+          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje? Estou lendo todo o histórico e anotações do aluno selecionado.</div>
         </div>
 
         <div style="display:flex; gap:8px;">
@@ -908,10 +927,12 @@
 
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
       document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
+      document.getElementById('editNotasTreinador').value = currentStudentData.notas_treinador || '';
 
       carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
 
       renderResumoVisaoGeral();
+      renderIncomodosAluno();
       renderAnamneseDetails();
       renderAdminFeedbackHistory();
       carregarTreinoNoEditorAoVivo();
@@ -922,12 +943,68 @@
     }
   }
 
+  function renderIncomodosAluno() {
+    const list = document.getElementById('incomodosList');
+    const sessoes = (currentStudentData && currentStudentData.historico_sessoes) || [];
+    
+    if (sessoes.length === 0) {
+      list.innerHTML = `<span style="color:var(--muted)">Nenhuma sessão de treino finalizada pelo aluno ainda.</span>`;
+      return;
+    }
+
+    const ultimaSessao = sessoes[sessoes.length - 1];
+    const obs = ultimaSessao.observacoes || [];
+    const minGasto = ultimaSessao.duracaoMinutos || 0;
+
+    let html = `<div style="margin-bottom:6px;">⏱️ <b>Duração do Último Treino:</b> <span style="color:var(--gold); font-weight:800;">${minGasto} minutos</span></div>`;
+
+    if (obs.length === 0) {
+      html += `<span style="color:var(--muted)">O aluno não digitou observações ou dores no último treino.</span>`;
+    } else {
+      html += `<b>Relatos e Incômodos:</b><ul style="margin-left:18px; margin-top:4px;">`;
+      obs.forEach(o => {
+        html += `<li style="color:#ff6b7f;">${escapeHtml(o)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    list.innerHTML = html;
+  }
+
+  async function analisarIncomodosIA() {
+    if (!currentStudentData) return;
+
+    const sessoes = currentStudentData.historico_sessoes || [];
+    const ultimasObs = sessoes.length > 0 ? sessoes[sessoes.length - 1].observacoes || [] : [];
+
+    const box = document.getElementById('resumoIncomodosIA');
+    box.classList.remove('hidden');
+    box.innerHTML = "<i>Gerando análise de incômodos e dores via IA...</i>";
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/analisar-incomodos-ia`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          nomeAluno: currentStudentData.clientName || currentStudentCode,
+          observacoes: ultimasObs,
+          notasTreinador: currentStudentData.notas_treinador || ""
+        })
+      });
+
+      const data = await res.json();
+      box.innerHTML = `<b>🤖 Análise da IA:</b><br>${escapeHtml(data.resumo || 'Sem recomendações no momento.').replace(/\n/g, '<br>')}`;
+    } catch(e) {
+      box.innerHTML = "Erro ao conectar com a IA.";
+    }
+  }
+
   function renderResumoVisaoGeral() {
     const container = document.getElementById('summaryOverviewContainer');
     container.innerHTML = "";
 
     if (!currentStudentData) {
-      container.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenum aluno selecionado.</p>";
+      container.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum aluno selecionado.</p>";
       return;
     }
 
@@ -1149,7 +1226,10 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         method: 'POST',
         headers: authHeaders(),
         cache: 'no-cache',
-        body: JSON.stringify({ anamneseData: anamnese })
+        body: JSON.stringify({ 
+          anamneseData: anamnese,
+          notasTreinador: currentStudentData.notas_treinador || ""
+        })
       });
 
       const data = await res.json();
@@ -1298,6 +1378,11 @@ ${guidelinesTx.value}`,
     currentStudentData.days = parseWorkoutText(raw);
     currentStudentData.trainer_guidelines = guidelinesText;
 
+    // Limpa as observações do treino anterior que já foram resolvidas nesta nova ficha
+    if (currentStudentData.historico_sessoes && currentStudentData.historico_sessoes.length > 0) {
+      currentStudentData.historico_sessoes[currentStudentData.historico_sessoes.length - 1].observacoes = [];
+    }
+
     salvarAlteracoes('workout');
   }
 
@@ -1308,6 +1393,7 @@ ${guidelinesTx.value}`,
     const codigo = currentStudentCode;
     const senha = lastGeneratedPassword || "123456";
     const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+    const linkConfirmacao = `https://wa.me/5551990169026?text=${encodeURIComponent("Consegui acessar o aplicativo!")}`;
 
     const mensagem = 
 `🏋️ *ACESSO AO APLICATIVO — JHONATA PERSONAL*
@@ -1330,12 +1416,8 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
 ---
 
-🔥 *ESQUEMA DE INDICAÇÃO:*
-Fala! Só pra tu saber, temos um esquema de indicação na consultoria 👊
-Se tu indicar meu trabalho, postar algo sobre a consultoria e trouxer alguém que tenha interesse e essa pessoa fechar, tu ganha R$20 de desconto na tua mensalidade e a pessoa indicada ganha R$10 de desconto na primeira mensalidade.
-E pode acumular as indicações. Quanto mais gente vier através de ti, maior fica teu desconto. 🔥
-
-Bons treinos! 💪🏼`;
+✅ *Assim que conseguir acessar o app, clique no link abaixo para me confirmar:*
+👉 ${linkConfirmacao}`;
 
     const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
     const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(mensagem)}` : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
@@ -2049,7 +2131,8 @@ Bons treinos! 💪🏼`;
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
     currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
     currentStudentData.corredor = document.getElementById('editCorredor').checked;
-    
+    currentStudentData.notas_treinador = document.getElementById('editNotasTreinador').value.trim();
+
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
       currentStudentData.senha = newPass;
@@ -2138,53 +2221,78 @@ Bons treinos! 💪🏼`;
         const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
         const hasCluster = lowerLine.includes('cluster');
 
-        if (hasMyo) {
-          name = name.replace(/1x\+myoreps|1x\+myo|\(myo-reps\)|\(myoreps\)/gi, '').trim();
+        const matchX = cleanLine.match(/^(\d+)\s*[xX×]\s*/i);
+        let numSeriesDigitado = matchX ? parseInt(matchX[1]) : null;
+
+        // 1. CLUSTER + BACK-OFF (3 Séries)
+        if (hasCluster && hasBackoff) {
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+cluster\+backoff|2x\+cluster\+backoff|3x\+cluster\+backoff|cluster\+backoff/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
-            series: "1 + Mini-blocos",
-            reps: "Ativação (4-6 reps, 40s desc) + Mini-blocos (2 reps, 15s desc)",
-            isTecnico: true,
-            tecnicaTipo: "MYO-REPS"
-          });
-        } else if (hasCluster && hasBackoff) {
-          name = name.replace(/1x\+cluster\+backoff|1x\+cluster\+back-off/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "Cluster + Back-off",
-            reps: "Blocos Cluster (20s desc) + Back-off (-20% a 30% carga)",
+            series: "3 Séries",
+            reps: "2 Séries Cluster (20s desc) + 1 Série Back-off (-20% carga)",
             isTecnico: true,
             tecnicaTipo: "CLUSTER + BACK-OFF"
           });
-        } else if (hasCluster) {
-          name = name.replace(/1x\+cluster|\(cluster\)/gi, '').trim();
+        } 
+        // 2. MYO-REPS (1 Série de Ativação + 4 a 6 Mini-blocos)
+        else if (hasMyo) {
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+myoreps|2x\+myoreps|3x\+myoreps|myoreps|myo/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
-            series: "Cluster Set",
+            series: "Myo-Reps",
+            reps: "1 Série Ativação (4-6 reps) + 4 a 6 Mini-blocos (10-15s desc)",
+            isTecnico: true,
+            tecnicaTipo: "MYO-REPS"
+          });
+        } 
+        // 3. 2 SÉRIES + BACK-OFF (Total 3 Séries)
+        else if (hasBackoff && numSeriesDigitado === 3) {
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+backoff|2x\+backoff|3x\+backoff|backoff/gi, '').trim();
+          currentDay.exercicios.push({
+            nome: name,
+            series: "3 Séries",
+            reps: "2 Séries Top Set + 1 Série Back-off (-20% a 30% carga)",
+            isTecnico: true,
+            tecnicaTipo: "2 SÉRIES + BACK-OFF"
+          });
+        } 
+        // 4. CLUSTER SET APENAS
+        else if (hasCluster) {
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+cluster|2x\+cluster|3x\+cluster|cluster/gi, '').trim();
+          const qtdSeries = numSeriesDigitado ? `${numSeriesDigitado} Séries` : "2 Séries";
+          currentDay.exercicios.push({
+            nome: name,
+            series: qtdSeries,
             reps: "Blocos de 2-3 reps (20s descanso intra-série)",
             isTecnico: true,
             tecnicaTipo: "CLUSTER SET"
           });
-        } else if (hasBackoff) {
-          name = name.replace(/1x\+backoff|1x\+back-off|\(back-off\)|\(backoff\)/gi, '').trim();
+        } 
+        // 5. BACK-OFF PADRÃO
+        else if (hasBackoff) {
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+backoff|2x\+backoff|3x\+backoff|backoff/gi, '').trim();
+          const qtdSeries = numSeriesDigitado ? `${numSeriesDigitado} Séries` : "2 Séries";
           currentDay.exercicios.push({
             nome: name,
-            series: "1 Top Set + 1 Back-off",
-            reps: "Top Set + Back-off (-20% a 30% carga)",
+            series: qtdSeries,
+            reps: "Top Set(s) + Back-off (-20% carga)",
             isTecnico: true,
             tecnicaTipo: "BACK-OFF SET"
           });
-        } else {
-          const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+        } 
+        // 6. EXERCÍCIO CONVENCIONAL
+        else {
+          const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
-          if (matchX) {
-            let series = matchX[1];
-            let reps = matchX[2] || globalReps;
+          if (matchFull) {
+            let series = matchFull[1];
+            let reps = matchFull[2] || globalReps;
             name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
 
-            currentDay.exercicios.push({ nome: name, series: series, reps: reps });
+            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps });
           } else {
-            currentDay.exercicios.push({ nome: name, series: globalSeries, reps: globalReps });
+            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps });
           }
         }
       }
@@ -2220,6 +2328,7 @@ Bons treinos! 💪🏼`;
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
+      notas_treinador: "",
       trainer_guidelines: "",
       cardio_guidelines: "",
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
@@ -2292,7 +2401,7 @@ Bons treinos! 💪🏼`;
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.')}</div>`;
+      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.').replace(/\n/g, '<br>')}</div>`;
     } catch(e) {
       history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
     }
