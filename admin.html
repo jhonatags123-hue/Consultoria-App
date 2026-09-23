@@ -286,7 +286,6 @@
           </div>
         </div>
 
-        <!-- PAINEL DE INCÔMODOS E DURAÇÃO DO ÚLTIMO TREINO -->
         <div id="incomodosBox" style="margin-bottom:16px; background:#100305; border:1px solid var(--accent); padding:14px; border-radius:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <b style="color:var(--accent); font-size:13px;">⚠️ Observações / Incômodos do Último Treino:</b>
@@ -502,13 +501,16 @@
       <div id="secCadastro" class="panel-card hidden">
         <div class="panel-title">⚙️ Configurações & Bloco de Notas do Treinador</div>
         
-        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR -->
+        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR (CORRIGIDO) -->
         <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
-          <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
+            <button type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px;" onclick="salvarNotasTreinadorSozinhas()">Salvar Nota</button>
+          </div>
           <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">
             Anote aqui estratégias, dores, combinados ou planejamentos futuros do aluno.
           </p>
-          <textarea id="editNotasTreinador" rows="4" placeholder="Ex: Aluno relatou dor no ombro esquerdo. Evitar desenvolvimento pesado. Planejar transição para Bulk na semana 3."></textarea>
+          <textarea id="editNotasTreinador" rows="4" placeholder="Ex: Aluno relatou dor no ombro esquerdo. Evitar desenvolvimento pesado. Planejar transição para Bulk na semana 3." onchange="atualizarCampoNotasMemoria()"></textarea>
         </div>
 
         <label>Nome Exibido</label>
@@ -558,7 +560,7 @@
           <div style="display:flex; align-items:center; gap:10px;">
             <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
             <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino
+              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino (Livre)
             </label>
           </div>
 
@@ -578,7 +580,7 @@
         </div>
 
         <div style="display:flex; gap:10px; margin-top:16px; flex-direction:column;">
-          <button class="btn" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
+          <button class="btn" onclick="salvarConfiguracoesConta()">💾 Atualizar Todos os Dados</button>
           <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Credenciais no WhatsApp</button>
           <button class="btn btn-danger" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
         </div>
@@ -667,20 +669,17 @@
       .replace(/'/g, '&#39;');
   }
 
-  function limparRascunhosAntigos() {
-    try {
-      const chaves = Object.keys(localStorage);
-      const codigosValidos = allStudentsList.map(a => a.codigo);
+  function atualizarCampoNotasMemoria() {
+    if (currentStudentData) {
+      currentStudentData.notas_treinador = document.getElementById('editNotasTreinador').value.trim();
+    }
+  }
 
-      chaves.forEach(chave => {
-        if (chave.startsWith('draft_workout_') || chave.startsWith('draft_diet_')) {
-          const cod = chave.replace('draft_workout_', '').replace('draft_diet_', '');
-          if (codigosValidos.length > 0 && !codigosValidos.includes(cod)) {
-            localStorage.removeItem(chave);
-          }
-        }
-      });
-    } catch(e) {}
+  async function salvarNotasTreinadorSozinhas() {
+    atualizarCampoNotasMemoria();
+    if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
+    await salvarAlteracoes();
+    showToast("Bloco de notas do treinador salvo!", "success");
   }
 
   function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
@@ -803,7 +802,6 @@
       });
       if (!res.ok) { logoutAdmin(); return; }
       allStudentsList = await res.json();
-      limparRascunhosAntigos();
       renderStudentsList(allStudentsList);
     } catch(e) { 
       container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
@@ -927,6 +925,8 @@
 
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
       document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
+      
+      // Carregamento garantido do Bloco de Notas Privado do Treinador
       document.getElementById('editNotasTreinador').value = currentStudentData.notas_treinador || '';
 
       carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
@@ -1245,7 +1245,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
           prot.days.forEach(day => {
             textoTreino += `${day.title}\n`;
             (day.exercicios || []).forEach(ex => {
-              textoTreino += `${ex.nome} ${ex.series}x (${ex.reps})\n`;
+              textoTreino += `${ex.nome} ${ex.series} (${ex.reps})\n`;
             });
             textoTreino += "\n";
           });
@@ -1378,7 +1378,6 @@ ${guidelinesTx.value}`,
     currentStudentData.days = parseWorkoutText(raw);
     currentStudentData.trainer_guidelines = guidelinesText;
 
-    // Limpa as observações do treino anterior que já foram resolvidas nesta nova ficha
     if (currentStudentData.historico_sessoes && currentStudentData.historico_sessoes.length > 0) {
       currentStudentData.historico_sessoes[currentStudentData.historico_sessoes.length - 1].observacoes = [];
     }
@@ -2147,6 +2146,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
   async function salvarAlteracoes(tipoLimpezaRascunho = null) {
     try {
+      atualizarCampoNotasMemoria();
       const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: 'POST',
         headers: authHeaders(),
@@ -2224,35 +2224,38 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         const matchX = cleanLine.match(/^(\d+)\s*[xX×]\s*/i);
         let numSeriesDigitado = matchX ? parseInt(matchX[1]) : null;
 
-        // 1. CLUSTER + BACK-OFF (3 Séries)
+        // 1. CLUSTER + BACK-OFF
         if (hasCluster && hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+cluster\+backoff|2x\+cluster\+backoff|3x\+cluster\+backoff|cluster\+backoff/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
             series: "3 Séries",
             reps: "2 Séries Cluster (20s desc) + 1 Série Back-off (-20% carga)",
+            tecnica: "cluster_backoff",
             isTecnico: true,
             tecnicaTipo: "CLUSTER + BACK-OFF"
           });
         } 
-        // 2. MYO-REPS (1 Série de Ativação + 4 a 6 Mini-blocos)
+        // 2. MYO-REPS
         else if (hasMyo) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+myoreps|2x\+myoreps|3x\+myoreps|myoreps|myo/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
             series: "Myo-Reps",
             reps: "1 Série Ativação (4-6 reps) + 4 a 6 Mini-blocos (10-15s desc)",
+            tecnica: "myoreps",
             isTecnico: true,
             tecnicaTipo: "MYO-REPS"
           });
         } 
-        // 3. 2 SÉRIES + BACK-OFF (Total 3 Séries)
-        else if (hasBackoff && numSeriesDigitado === 3) {
+        // 3. 2 SÉRIES + BACK-OFF
+        else if (hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+backoff|2x\+backoff|3x\+backoff|backoff/gi, '').trim();
           currentDay.exercicios.push({
             nome: name,
             series: "3 Séries",
-            reps: "2 Séries Top Set + 1 Série Back-off (-20% a 30% carga)",
+            reps: "2 Séries normais + 1 Série Back-off (-20% a 30% carga)",
+            tecnica: "backoff_2x",
             isTecnico: true,
             tecnicaTipo: "2 SÉRIES + BACK-OFF"
           });
@@ -2265,23 +2268,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             nome: name,
             series: qtdSeries,
             reps: "Blocos de 2-3 reps (20s descanso intra-série)",
+            tecnica: "cluster",
             isTecnico: true,
             tecnicaTipo: "CLUSTER SET"
           });
         } 
-        // 5. BACK-OFF PADRÃO
-        else if (hasBackoff) {
-          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+backoff|2x\+backoff|3x\+backoff|backoff/gi, '').trim();
-          const qtdSeries = numSeriesDigitado ? `${numSeriesDigitado} Séries` : "2 Séries";
-          currentDay.exercicios.push({
-            nome: name,
-            series: qtdSeries,
-            reps: "Top Set(s) + Back-off (-20% carga)",
-            isTecnico: true,
-            tecnicaTipo: "BACK-OFF SET"
-          });
-        } 
-        // 6. EXERCÍCIO CONVENCIONAL
+        // 5. EXERCÍCIO CONVENCIONAL
         else {
           const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
@@ -2290,9 +2282,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             let reps = matchFull[2] || globalReps;
             name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
 
-            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps });
+            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
           } else {
-            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps });
+            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
           }
         }
       }
