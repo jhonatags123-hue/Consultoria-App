@@ -253,7 +253,6 @@
   }
   @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-  /* TIMER DE DESCANSO OCULTO POR PADRÃO (SÓ APARECE NA ABA DE TREINO) */
   .rest-timer-widget {
     position: fixed; 
     bottom: 0; 
@@ -265,7 +264,7 @@
     -webkit-backdrop-filter: blur(10px);
     border-top: 1px solid var(--line); 
     padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); 
-    display: none; /* OCULTO POR PADRÃO */
+    display: none;
     align-items: center; 
     justify-content: space-between;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.6); 
@@ -273,7 +272,7 @@
     transition: border-color 0.3s ease;
   }
   .rest-timer-widget.visible {
-    display: flex !important; /* EXIBE APENAS QUANDO ATIVADO NO JS */
+    display: flex !important;
   }
   .rest-timer-display {
     font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center;
@@ -361,7 +360,6 @@
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
-<!-- MODAL RESUMO DO TREINO CONCLUÍDO -->
 <div id="modalTreinoConcluido" class="modal-overlay hidden">
   <div class="modal-card-finish">
     <div style="text-align:center; margin-bottom:16px;">
@@ -648,7 +646,6 @@
     <div class="sub" id="billingInfo" style="text-align:left; margin-top:4px;"></div>
   </div>
 
-  <!-- NOTIFICAÇÃO DE MENSAGEM DO PERSONAL -->
   <div id="feedbackNotifyBox" class="feedback-notify-card hidden">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
       <span style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase;">💬 Nova Mensagem do Treinador</span>
@@ -686,7 +683,6 @@
           <div class="detail-title" id="treinoDetailTitle">Treino do Dia</div>
         </div>
 
-        <!-- CRONÔMETRO DE TREINO EM TEMPO REAL -->
         <div class="workout-timer-card">
           <div>
             <div style="font-size:10px; font-weight:800; color:var(--ink-dim); text-transform:uppercase;">⏱️ Duração do Treino</div>
@@ -697,7 +693,6 @@
           </button>
         </div>
         
-        <!-- DIRETRIZES DO TREINADOR SANFONA -->
         <div class="trainer-goals-card" onclick="toggleTrainerGoals()">
           <div class="trainer-goals-title">
             <span>🎯 Diretrizes do Treinador</span>
@@ -715,7 +710,6 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE DIETA -->
     <div id="tabDieta" class="hidden">
       <div id="noDietBanner" class="card hidden" style="text-align:center; border-color:var(--mark);">
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
@@ -734,7 +728,6 @@
       </div>
     </div>
 
-    <!-- MÓDULO DE CORRIDA -->
     <div id="tabCorrida" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
       
@@ -821,7 +814,6 @@
   let currentTreinoDayIdx = 0;
   let activeAlunoDietAbaIndex = 0;
 
-  // VARIÁVEIS CRONÔMETRO TREINO
   let workoutTimerInterval = null;
   let workoutTimerSeconds = 0;
   let workoutTimerRunning = false;
@@ -961,17 +953,15 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
-      // GARANTE QUE O TIMER FICA OCULTO NA ANAMNESE
       const restWidget = document.getElementById('restTimerWidget');
       if (restWidget) restWidget.classList.remove('visible');
 
-      // BLOQUEIO TOTAL DA SELEÇÃO DE PLANO QUANDO VEM DA BIO
       const planoParam = params.get('plano');
       const selectPlano = document.getElementById('anamTipoConsultoria');
 
       if (planoParam && selectPlano) {
         selectPlano.value = planoParam;
-        selectPlano.disabled = true; // IMPEDE TROCA
+        selectPlano.disabled = true;
         selectPlano.style.opacity = '0.85';
         selectPlano.style.background = 'var(--panel)';
       }
@@ -1017,7 +1007,6 @@
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.add('hidden');
 
-      // GARANTE QUE O TIMER FICA OCULTO NO LOGIN
       const restWidget = document.getElementById('restTimerWidget');
       if (restWidget) restWidget.classList.remove('visible');
     }
@@ -1324,7 +1313,6 @@
     renderFeedbackHistory();
     setupSwipeNavigation();
 
-    // INICIA NA ABA DE TREINO COM O TIMER VISÍVEL
     showTab('treino');
   }
 
@@ -1614,7 +1602,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculated com sucesso!");
+      alert("✅ Corrida salva e pace calculado com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1682,7 +1670,6 @@
     }
   }
 
-  /* RESUMO DO TREINO COM CÁLCULO DE VTT E INTEIROS LIMPOS */
   async function concluirTreinoDoDia() {
     if (!currentData) return;
 
@@ -2479,7 +2466,6 @@
 
   const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'config'];
 
-  /* CONTROLE DAS ABAS E EXIBIÇÃO DO TIMER APENAS NO TREINO */
   function showTab(tab) {
     TAB_ORDER.forEach(t => {
       const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -2493,7 +2479,6 @@
     if (activeTab) activeTab.classList.remove('hidden');
     if (activeBtn) activeBtn.classList.add('active');
 
-    // CONTROLE DO TIMER DE DESCANSO: SÓ MOSTRA SE FOR A ABA DE TREINO
     const restWidget = document.getElementById('restTimerWidget');
     if (restWidget) {
       if (tab === 'treino') {
@@ -2682,7 +2667,6 @@
     loggedUserCode = "";
     currentTreinoDayIdx = 0;
 
-    // OCULTA O TIMER NO LOGOUT
     const restWidget = document.getElementById('restTimerWidget');
     if (restWidget) restWidget.classList.remove('visible');
 
