@@ -1353,6 +1353,26 @@
 
     currentData = data;
 
+    // VERIFICAÇÃO DA DATA DE VIGÊNCIA DO NOVO PROTOCOLO
+    if (data.data_vigencia) {
+      const hojeStr = new Date().toISOString().split('T')[0];
+      
+      // Se a data de hoje for anterior à data marcada no Admin
+      if (hojeStr < data.data_vigencia) {
+        const parts = data.data_vigencia.split('-');
+        const dataFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        
+        // Exibe banner avisando quando o novo treino entra no ar
+        const headerCard = document.querySelector('#mainContent .card');
+        if (headerCard) {
+          const alertVigencia = document.createElement('div');
+          alertVigencia.style.cssText = "background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:10px 12px; margin-top:10px; font-size:12px; color:var(--mark); text-align:center; font-weight:600;";
+          alertVigencia.innerHTML = `⏳ Seu novo protocolo de Treino, Dieta e Cardio entrará em vigor no dia <b>${dataFmt}</b>!`;
+          headerCard.appendChild(alertVigencia);
+        }
+      }
+    }
+
     const localLogs = localStorage.getItem(`draft_student_logs_${loggedUserCode}`);
     if (localLogs) {
       try {
@@ -1799,7 +1819,7 @@
 
   function toggleCheckSerie(btn) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️ INICIAR TREINO' para começar a marcar as séries!");
+      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de começar a marcar as séries!");
       return;
     }
     btn.classList.toggle('done');
