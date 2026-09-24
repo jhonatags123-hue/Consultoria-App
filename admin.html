@@ -501,7 +501,7 @@
       <div id="secCadastro" class="panel-card hidden">
         <div class="panel-title">⚙️ Configurações & Bloco de Notas do Treinador</div>
         
-        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR (CORRIGIDO) -->
+        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR -->
         <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
@@ -524,6 +524,14 @@
           <div style="flex:1;">
             <label>Evolução de Carga / Força (%)</label>
             <input type="number" id="editEvolucaoCarga" placeholder="Ex: 12.5">
+          </div>
+        </div>
+
+        <div style="margin-top:12px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px;">
+          <label style="color:var(--gold); margin-top:0;">⏳ Data de Vigência do Novo Protocolo</label>
+          <input type="date" id="editDataVigencia" style="margin-top:4px;">
+          <div style="font-size:10px; color:var(--muted); margin-top:4px;">
+            Se preenchida com uma data futura, o aplicativo do aluno exibirá um aviso avisando que o novo treino/dieta entrará no ar nesta data.
           </div>
         </div>
 
@@ -919,6 +927,9 @@
       document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
       document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
 
+      // Carregamento da Data de Vigência
+      document.getElementById('editDataVigencia').value = currentStudentData.data_vigencia || '';
+
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
       document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
@@ -926,7 +937,6 @@
       document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
       document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
       
-      // Carregamento garantido do Bloco de Notas Privado do Treinador
       document.getElementById('editNotasTreinador').value = currentStudentData.notas_treinador || '';
 
       carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
@@ -2127,6 +2137,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
     currentStudentData.semanas_rotacao = parseInt(document.getElementById('editSemanasRotacao').value) || 5;
 
+    // Salvando a Data de Vigência
+    currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
+
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
     currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
     currentStudentData.corredor = document.getElementById('editCorredor').checked;
@@ -2317,6 +2330,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       dia_vencimento: hoje.getDate(),
       data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
       semanas_rotacao: 5,
+      data_vigencia: "",
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
