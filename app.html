@@ -88,6 +88,8 @@
   .btn-blue:hover { background:#2563eb; }
   .btn-header { background:transparent; border:1px solid var(--line); color:var(--ink-dim); padding:6px 12px; border-radius:6px; font-size:12px; font-family:var(--font-body); cursor:pointer; transition:all .15s ease; }
   .btn-header:hover { border-color:var(--ink-dim); color:var(--ink); }
+  .btn-indique-header { background:var(--mark-dim); border:1px solid var(--mark); color:var(--mark); font-weight:700; }
+  .btn-indique-header:hover { background:var(--mark); color:#000; }
   .error-msg { color:var(--signal-light); font-size:12.5px; text-align:center; margin-top:10px; font-weight:600; }
 
   .progress-bar-bg { width:100%; background:var(--bg); border:1px solid var(--line); height:4px; border-radius:2px; margin:16px 0 6px; overflow:hidden; }
@@ -362,6 +364,44 @@
 <body>
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
+
+<!-- MODAL INDIQUE E GANHE -->
+<div id="modalIndique" class="modal-overlay hidden">
+  <div class="modal-card-finish" style="text-align:center;">
+    <div style="font-size:36px; margin-bottom:6px;">🎁</div>
+    <h2 style="font-family:var(--font-display); font-size:24px; color:var(--mark);">Indique Amigos e Ganhe Benefícios!</h2>
+    <p style="font-size:12.5px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
+      Compartilhe a sua evolução com seus amigos. Para cada amigo que iniciar a consultoria através da sua indicação, você ganha <b>desconto na sua próxima mensalidade</b> ou bônus no seu plano!
+    </p>
+
+    <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
+      <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:4px;">💡 Como funciona:</div>
+      <ol style="font-size:12px; color:var(--ink-dim); padding-left:16px; line-height:1.6;">
+        <li>Envie o link do aplicativo ou indique pelo WhatsApp.</li>
+        <li>Seu amigo preenche a anamnese informando que veio por você.</li>
+        <li>Assim que o plano for confirmado, seu benefício é liberado!</li>
+      </ol>
+    </div>
+
+    <button class="btn-login btn-wpp" style="margin-top:18px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="compartilharIndicaoWpp()">
+      <span>📱 Indicar Amigo pelo WhatsApp</span>
+    </button>
+    <button class="btn-login" style="background:var(--panel-2); border:1px solid var(--line); margin-top:8px;" onclick="fecharModalIndique()">Fechar</button>
+  </div>
+</div>
+
+<!-- MODAL ALTERAR SENHA -->
+<div id="modalSenha" class="modal-overlay hidden">
+  <div class="modal-card-finish">
+    <div style="font-size:14px; font-weight:800; color:var(--mark); text-align:center; margin-bottom:12px;">🔑 ALTERAR SENHA DE ACESSO</div>
+    <label class="label-fdb">Nova Senha Pessoal</label>
+    <input type="password" id="alunoNovaSenhaModal" class="input-field" placeholder="Digite sua nova senha..." autocomplete="new-password">
+    <div style="display:flex; gap:8px; margin-top:14px;">
+      <button class="btn-login" style="background:var(--panel-2); border:1px solid var(--line);" onclick="fecharModalSenha()">Cancelar</button>
+      <button class="btn-login btn-gold" onclick="alterarSenhaAlunoModal()">Salvar nova senha</button>
+    </div>
+  </div>
+</div>
 
 <div id="modalTreinoConcluido" class="modal-overlay hidden">
   <div class="modal-card-finish">
@@ -643,6 +683,8 @@
     <div class="header-app">
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
+        <button class="btn-header btn-indique-header" type="button" onclick="abrirModalIndique()">🎁 Indique & Ganhe</button>
+        <button class="btn-header" type="button" onclick="abrirModalSenha()">🔑 Senha</button>
         <button class="btn-header" type="button" onclick="logout()">Sair</button>
       </div>
     </div>
@@ -667,11 +709,9 @@
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">Treino</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">Dieta</button>
-    <button class="menu-btn hidden" id="btnCorrida" onclick="showTab('corrida')">🏃 Corrida</button>
+    <button class="menu-btn hidden" id="btnCorrida" onclick="showTab('corrida')">Cardio</button>
     <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">Assistente</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">Feedback</button>
-    <button class="menu-btn" id="btnIndique" onclick="showTab('indique')">🎁 Indique & Ganhe</button>
-    <button class="menu-btn" id="btnConfig" onclick="showTab('config')">Senha</button>
   </div>
   <div class="swipe-hint">Arraste para o lado para trocar de aba</div>
 
@@ -789,35 +829,6 @@
       </button>
     </div>
 
-    <!-- MÓDULO INDIQUE E GANHE -->
-    <div id="tabIndique" class="card hidden" style="text-align:center;">
-      <div style="font-size:36px; margin-bottom:6px;">🎁</div>
-      <h2 style="font-family:var(--font-display); font-size:24px; color:var(--mark);">Indique Amigos e Ganhe Benefícios!</h2>
-      <p style="font-size:12.5px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
-        Compartilhe a sua evolução com seus amigos e parceiros de treino. Para cada amigo que iniciar a consultoria através da sua indicação, você ganha <b>desconto na sua próxima mensalidade</b> ou bônus no seu plano!
-      </p>
-
-      <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
-        <div style="font-size:12px; font-weight:700; color:var(--ink); margin-bottom:4px;">💡 Como funciona:</div>
-        <ol style="font-size:12px; color:var(--ink-dim); padding-left:16px; line-height:1.6;">
-          <li>Envie o link do aplicativo ou indique pelo WhatsApp.</li>
-          <li>Seu amigo preenche a anamnese informando que veio por você.</li>
-          <li>Assim que o plano for confirmado, seu benefício é liberado!</li>
-        </ol>
-      </div>
-
-      <button class="btn-login btn-wpp" style="margin-top:18px; display:flex; align-items:center; justify-content:center; gap:8px;" onclick="compartilharIndicaoWpp()">
-        <span>📱 Indicar Amigo pelo WhatsApp</span>
-      </button>
-    </div>
-
-    <div id="tabConfig" class="card hidden">
-      <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">Alterar Senha de Acesso</div>
-      <label class="label-fdb">Nova Senha Pessoal</label>
-      <input type="password" id="alunoNovaSenha" class="input-field" placeholder="Digite sua nova senha..." autocomplete="new-password">
-      <button class="btn-login btn-gold" style="margin-top:12px;" onclick="alterarSenhaAluno()">Salvar nova senha</button>
-    </div>
-
   </div>
 </div>
 
@@ -843,6 +854,35 @@
   // CRONÔMETRO PERSISTENTE DO TREINO
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
+
+  function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
+  function fecharModalIndique() { document.getElementById('modalIndique').classList.add('hidden'); }
+  function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
+  function fecharModalSenha() { document.getElementById('modalSenha').classList.add('hidden'); }
+
+  async function alterarSenhaAlunoModal() {
+    const novaSenha = document.getElementById('alunoNovaSenhaModal').value.trim();
+    if (!novaSenha) return alert("Digite uma nova senha.");
+
+    currentData.senha = novaSenha;
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+
+      if (res.ok) {
+        alert("Senha alterada com sucesso.");
+        document.getElementById('alunoNovaSenhaModal').value = "";
+        fecharModalSenha();
+      }
+    } catch (e) {
+      alert("Erro ao alterar senha.");
+    }
+  }
 
   function escapeHtml(str) {
     if (!str || typeof str !== 'string') return '';
@@ -1698,7 +1738,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculated com sucesso!");
+      alert("✅ Corrida salva e pace calculado com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1886,14 +1926,28 @@
       });
     }
 
-    currentData.ultimo_treino_idx = currentTreinoDayIdx;
+    // GIRO AUTOMÁTICO DE SEMANAS
+    const totalDays = (currentData.days || []).length;
+    let proximoTreino = currentTreinoDayIdx;
+
+    if (totalDays > 0) {
+      proximoTreino = (currentTreinoDayIdx + 1) % totalDays;
+      
+      // Se deu uma volta completa no ciclo de treinos, avança a semana de rotação
+      if (proximoTreino === 0) {
+        let semanaAtual = currentData.semana_rotacao || 1;
+        currentData.semana_rotacao = (semanaAtual % 5) + 1;
+      }
+    }
+
+    currentData.ultimo_treino_idx = proximoTreino;
 
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + btn.dataset.num;
     });
 
-    scheduleAutoSave('ultimo_treino_idx', currentTreinoDayIdx);
+    scheduleAutoSave('ultimo_treino_idx', proximoTreino);
 
     document.getElementById('modalTreinoConcluido').classList.remove('hidden');
   }
@@ -1906,11 +1960,8 @@
     document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
     setInputsLockState(true);
 
-    const totalDays = (currentData.days || []).length;
-    if (totalDays > 0) {
-      const nextIdx = (currentTreinoDayIdx + 1) % totalDays;
-      selectTreinoDay(nextIdx);
-    }
+    const proximoIdx = currentData.ultimo_treino_idx !== undefined ? currentData.ultimo_treino_idx : 0;
+    selectTreinoDay(proximoIdx);
   }
 
   function toggleTrainerGoals() {
@@ -1963,21 +2014,52 @@
     exercisesContainer.innerHTML = '';
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
 
+    // CORREÇÃO DEFINITIVA DAS OBSERVAÇÕES
     const keyObs = `obs_day_${currentTreinoDayIdx}`;
-    const savedObs = (currentData.logs && currentData.logs[keyObs]) || '';
+    const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
+                     localStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
 
     const obsDiv = document.createElement('div');
     obsDiv.style.cssText = "margin-top:16px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px;";
     obsDiv.innerHTML = `
       <label class="label-fdb" style="color:var(--mark); font-size:12px;">📝 Observações / Como foi a sessão hoje?</label>
-      <textarea class="input-field" rows="2" style="font-size:14px; margin-top:4px;" 
+      <textarea class="input-field" id="input_obs_${currentTreinoDayIdx}" rows="2" style="font-size:14px; margin-top:4px;" 
         placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
-        oninput="scheduleAutoSave('${keyObs}', this.value)">${escapeHtml(savedObs)}</textarea>
-      <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Esta anotação fica salva junto com o histórico de cargas deste treino.</div>
+        oninput="salvarObservacaoTreino('${keyObs}', this.value, ${currentTreinoDayIdx})">${escapeHtml(savedObs)}</textarea>
+      <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Salvo automaticamente no seu histórico de treino.</div>
     `;
     exercisesContainer.appendChild(obsDiv);
 
     checkAndRestoreWorkoutTimer();
+  }
+
+  function salvarObservacaoTreino(keyObs, valor, dayIdx) {
+    if (!currentData.logs) currentData.logs = {};
+    currentData.logs[keyObs] = valor;
+
+    if (loggedUserCode) {
+      localStorage.setItem(`draft_obs_${loggedUserCode}_${dayIdx}`, valor);
+      localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
+    }
+
+    const ind = document.getElementById('saveIndicator');
+    if (ind) ind.style.display = 'block';
+
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+
+    autoSaveTimer = setTimeout(async () => {
+      try {
+        await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+          method: "POST",
+          headers: authHeaders(),
+          cache: 'no-cache',
+          body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+        });
+        if (ind) ind.style.display = 'none';
+      } catch (e) {
+        if (ind) ind.style.display = 'none';
+      }
+    }, 1200);
   }
 
   function createLogInputAttr(nameKey) {
@@ -1998,8 +2080,6 @@
   }
 
   function renderExercisesForDay(day, dayIdx, container) {
-    const podeAlterarTecnicas = currentData && currentData.permitirTecnicas === true;
-
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
       const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
@@ -2012,15 +2092,29 @@
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
+      // TRAVA E DETECÇÃO DE SÉRIES
+      let isStrict2x = seriesStr.includes('2x') || seriesStr.trim() === '2';
+      let isStrict3x = seriesStr.includes('3x') || seriesStr.trim() === '3';
+
       const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
+      // SE O ADMIN ESCREVEU TÉCNICA OBRIGATÓRIA NO NOME
+      let tecnicaAdminFixa = null;
+      if (temBackoff && temCluster) tecnicaAdminFixa = 'cluster_backoff';
+      else if (temBackoff) tecnicaAdminFixa = 'backoff_2x';
+      else if (temCluster) tecnicaAdminFixa = isStrict3x ? 'cluster_backoff' : 'cluster';
+      else if (temMyo) tecnicaAdminFixa = 'myoreps';
+
       let defaultMode = 'convencional';
-      if (temBackoff && temCluster) defaultMode = 'cluster_backoff';
-      else if (temBackoff) defaultMode = 'backoff_2x';
-      else if (temCluster) defaultMode = 'cluster';
-      else if (temMyo) defaultMode = 'myoreps';
+      if (tecnicaAdminFixa) {
+        defaultMode = tecnicaAdminFixa;
+      } else if (isStrict2x) {
+        defaultMode = 'convencional';
+      } else if (isStrict3x) {
+        defaultMode = 'convencional';
+      }
 
       const activeMode = savedUserMode || defaultMode;
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
@@ -2031,17 +2125,8 @@
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
       let selectHtml = '';
-      if (podeAlterarTecnicas) {
-        selectHtml = `
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>Convencional</option>
-            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
-            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-          </select>
-        `;
-      } else {
+      if (tecnicaAdminFixa) {
+        // Se o admin escreveu explicitamente no texto, MOSTRA APENAS A TAG DA TÉCNICA
         const nomesExibicao = {
           'convencional': '',
           'backoff_2x': '⚙️ 2x + Back-Off',
@@ -2049,9 +2134,26 @@
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙️ Myo-Reps'
         };
-        const lblTecnica = nomesExibicao[activeMode] || '';
-        if (lblTecnica) {
-          selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${lblTecnica}</span>`;
+        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${nomesExibicao[tecnicaAdminFixa]}</span>`;
+      } else {
+        // REGRAS RÍGIDAS DE SELEÇÃO DO ALUNO (2x VS 3x)
+        if (isStrict2x) {
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 Séries Convencionais</option>
+              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set (2x)</option>
+            </select>
+          `;
+        } else {
+          // Default para 3x ou superior
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>3 Séries Convencionais</option>
+              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
+              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+              <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+            </select>
+          `;
         }
       }
 
@@ -2579,7 +2681,7 @@
     }
   }
 
-  const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback', 'indique', 'config'];
+  const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback'];
 
   function showTab(tab) {
     TAB_ORDER.forEach(t => {
@@ -2749,29 +2851,6 @@
     const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
     const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
     window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
-  }
-
-  async function alterarSenhaAluno() {
-    const novaSenha = document.getElementById('alunoNovaSenha').value.trim();
-    if (!novaSenha) return alert("Digite uma nova senha.");
-
-    currentData.senha = novaSenha;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: "POST",
-        headers: authHeaders(),
-        cache: 'no-cache',
-        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
-      });
-
-      if (res.ok) {
-        alert("Senha alterada com sucesso.");
-        document.getElementById('alunoNovaSenha').value = "";
-      }
-    } catch (e) {
-      alert("Erro ao alterar senha.");
-    }
   }
 
   function logout() {
