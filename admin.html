@@ -326,17 +326,17 @@
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA):</label>
-            <button class="btn btn-soft" id="btnGerarTreinoIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarTreinoComIA()">🤖 Gerar Treino + Diretrizes (IA)</button>
+            <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA Exclusiva):</label>
+            <button class="btn btn-soft" id="btnGerarApenasDiretrizesIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarApenasDiretrizesIA()">🤖 Gerar Diretrizes do Treino (IA)</button>
           </div>
           <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga. Tempo de descanso recomendado: 90s."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA preenche as diretrizes e a ficha de treino simultaneamente.</div>
+          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA lê o treino abaixo e a anamnese (se existir) para montar as diretrizes sem alterar a ficha de treino.</div>
         </div>
 
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha (Com ajuste inteligente de Diretrizes):</label>
+          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha de Treino:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque o foco para Hipertrofia com novas diretrizes">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque o foco para Hipertrofia">
             <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
           </div>
         </div>
@@ -927,7 +927,6 @@
       document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
       document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
 
-      // Carregamento da Data de Vigência
       document.getElementById('editDataVigencia').value = currentStudentData.data_vigencia || '';
 
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
@@ -1218,57 +1217,58 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     showToast("Plano de cardio e prescrição salvos!", "success");
   }
 
-  async function gerarTreinoComIA() {
+  // ==========================================
+  // IA EXCLUSIVA DE DIRETRIZES (NÃO ALTERA A FICHA DE TREINO)
+  // ==========================================
+  async function gerarApenasDiretrizesIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
-    
-    const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
-    if (!anamnese || (!anamnese.objetivo && !anamnese.nome)) {
-      return showToast("Aluno sem dados de anamnese cadastrados.", "error");
+
+    const treinoAtualTexto = document.getElementById('liveWorkoutText').value.trim();
+    if (!treinoAtualTexto) {
+      return showToast("Insira ou monte a ficha de treino antes de gerar as diretrizes.", "error");
     }
 
-    const btn = document.getElementById('btnGerarTreinoIA');
+    const anamnese = currentStudentData.dadosAnamnese || currentStudentData || {};
+    const btn = document.getElementById('btnGerarApenasDiretrizesIA');
     const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ IA Gerando Treino...";
+
+    btn.textContent = "⏳ Analisando Treino & Gerando Diretrizes...";
     btn.disabled = true;
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-protocolo-ia`, {
+      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
         method: 'POST',
         headers: authHeaders(),
         cache: 'no-cache',
-        body: JSON.stringify({ 
-          anamneseData: anamnese,
-          notasTreinador: currentStudentData.notas_treinador || ""
+        body: JSON.stringify({
+          mensagem: `Você é um Personal Trainer de elite.
+Analise a ficha de treino atual do aluno e os dados de anamnese (caso existam) para elaborar ESTRITAMENTE as Diretrizes Gerais do Treinador.
+Sua resposta deve conter apenas as recomendações técnicas de treino (Ex: cadência, RPE/percepção de esforço, descansos entre séries, execução de técnicas como myoreps/back-off, estratégias de progressão de carga).
+
+REGRA CRÍTICA: Retorne APENAS um texto claro e objetivo em tópicos com as diretrizes. Não inclua treinos nem códigos adicionais.
+
+--- FICHA DE TREINO ATUAL ---
+${treinoAtualTexto}
+
+--- NOTAS PRIVADAS DO TREINADOR ---
+${currentStudentData.notas_treinador || "Nenhuma nota"}
+
+--- DADOS DA ANAMNESE (USE SE EXISTIR, CASO CONTRÁRIO IGNORE) ---
+${JSON.stringify(anamnese)}`,
+          contexto: currentStudentData || {},
+          origem: "ADMIN"
         })
       });
 
       const data = await res.json();
-      if (res.ok && data.protocolo) {
-        const prot = data.protocolo;
-
-        if (prot.trainer_guidelines) {
-          document.getElementById('editTrainerGuidelines').value = prot.trainer_guidelines;
-        }
-
-        if (prot.days && prot.days.length > 0) {
-          let textoTreino = "";
-          prot.days.forEach(day => {
-            textoTreino += `${day.title}\n`;
-            (day.exercicios || []).forEach(ex => {
-              textoTreino += `${ex.nome} ${ex.series} (${ex.reps})\n`;
-            });
-            textoTreino += "\n";
-          });
-          document.getElementById('liveWorkoutText').value = textoTreino.trim();
-          lidarEdicaoTreino();
-        }
-
-        showToast("Ficha de Treino + Diretrizes salvas no editor!", "success");
+      if (res.ok && data.resposta) {
+        document.getElementById('editTrainerGuidelines').value = data.resposta.trim();
+        showToast("Diretrizes geradas com sucesso pela IA!", "success");
       } else {
-        showToast(data.error || "Não foi possível gerar a ficha.", "error");
+        showToast(data.error || "Não foi possível gerar as diretrizes.", "error");
       }
-    } catch(e) {
-      showToast("Erro ao conectar à IA de Treino.", "error");
+    } catch (e) {
+      showToast("Erro ao conectar à IA de Diretrizes.", "error");
     } finally {
       btn.textContent = txtOriginal;
       btn.disabled = false;
@@ -1294,18 +1294,14 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         headers: authHeaders(),
         cache: 'no-cache',
         body: JSON.stringify({
-          mensagem: `Ajuste o treino e as diretrizes com base na solicitação: "${cmd}".
+          mensagem: `Ajuste a ficha de treino com base na solicitação: "${cmd}".
 Retorne ESTRITAMENTE um JSON no formato:
 {
-  "trainer_guidelines": "Diretrizes mantidas ou atualizadas",
   "workout_text": "Texto completo da ficha ajustada"
 }
 
 Ficha Atual:
-${tx.value}
-
-Diretrizes Atuais:
-${guidelinesTx.value}`,
+${tx.value}`,
           contexto: currentStudentData || {},
           origem: "ADMIN"
         })
@@ -1319,9 +1315,6 @@ ${guidelinesTx.value}`,
         if (parsedRes.workout_text) {
           tx.value = parsedRes.workout_text.trim();
           lidarEdicaoTreino();
-        }
-        if (parsedRes.trainer_guidelines) {
-          guidelinesTx.value = parsedRes.trainer_guidelines.trim();
         }
 
         input.value = "";
@@ -1342,7 +1335,7 @@ ${guidelinesTx.value}`,
       return showToast("Selecione um aluno primeiro.", "error");
     }
 
-    const anamnese = currentStudentData.dadosAnamnese || currentStudentData;
+    const anamnese = currentStudentData.dadosAnamnese || currentStudentData || {};
     const instrucaoExtra = document.getElementById('aiDietExtraInstructions').value.trim();
     const textarea = document.getElementById('dietTextarea');
     const dietaAtual = textarea.value.trim();
@@ -2137,7 +2130,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
     currentStudentData.semanas_rotacao = parseInt(document.getElementById('editSemanasRotacao').value) || 5;
 
-    // Salvando a Data de Vigência
     currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
 
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
@@ -2181,10 +2173,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       }
     } catch(e) { showToast("Erro de conexão ao salvar no servidor.", "error"); }
   }
-
-  // ==========================================
-  // PARSER DE TREINOS - COM LIMPEZA DE NOME
-  // ==========================================
 
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
@@ -2232,7 +2220,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
           days.push(currentDay);
         }
 
-        // Limpa marcadores e séries iniciais do nome do exercício
         let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
 
         const hasMyo = lowerLine.includes('myo');
@@ -2242,7 +2229,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         const matchX = cleanLine.match(/^(\d+)\s*[xX×]\s*/i);
         let numSeriesDigitado = matchX ? parseInt(matchX[1]) : null;
 
-        // 1. CLUSTER + BACK-OFF
         if (hasCluster && hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+cluster\+backoff|\d+x\+backoff|cluster\+backoff|\+cluster|\+backoff)/gi, '')
@@ -2257,7 +2243,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             tecnicaTipo: "CLUSTER + BACK-OFF"
           });
         } 
-        // 2. MYO-REPS
         else if (hasMyo) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+myoreps|myoreps|myo|\+myo)/gi, '')
@@ -2272,7 +2257,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             tecnicaTipo: "MYO-REPS"
           });
         } 
-        // 3. 2 SÉRIES + BACK-OFF
         else if (hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+backoff|\d+x\+back-off|backoff|back-off|\+backoff|\+back-off)/gi, '')
@@ -2287,7 +2271,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             tecnicaTipo: "2 SÉRIES + BACK-OFF"
           });
         } 
-        // 4. CLUSTER SET APENAS
         else if (hasCluster) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+cluster|cluster|\+cluster)/gi, '')
@@ -2303,7 +2286,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             tecnicaTipo: "CLUSTER SET"
           });
         } 
-        // 5. EXERCÍCIO CONVENCIONAL
         else {
           const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
