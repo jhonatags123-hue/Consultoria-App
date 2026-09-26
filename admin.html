@@ -2182,6 +2182,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     } catch(e) { showToast("Erro de conexão ao salvar no servidor.", "error"); }
   }
 
+  // ==========================================
+  // PARSER DE TREINOS - COM LIMPEZA DE NOME
+  // ==========================================
+
   function parseWorkoutText(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -2228,6 +2232,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
           days.push(currentDay);
         }
 
+        // Limpa marcadores e séries iniciais do nome do exercício
         let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
 
         const hasMyo = lowerLine.includes('myo');
@@ -2239,7 +2244,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
         // 1. CLUSTER + BACK-OFF
         if (hasCluster && hasBackoff) {
-          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+cluster\+backoff|2x\+cluster\+backoff|3x\+cluster\+backoff|cluster\+backoff/gi, '').trim();
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
+                     .replace(/(\d+x\+cluster\+backoff|\d+x\+backoff|cluster\+backoff|\+cluster|\+backoff)/gi, '')
+                     .trim();
+
           currentDay.exercicios.push({
             nome: name,
             series: "3 Séries",
@@ -2251,7 +2259,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         } 
         // 2. MYO-REPS
         else if (hasMyo) {
-          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+myoreps|2x\+myoreps|3x\+myoreps|myoreps|myo/gi, '').trim();
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
+                     .replace(/(\d+x\+myoreps|myoreps|myo|\+myo)/gi, '')
+                     .trim();
+
           currentDay.exercicios.push({
             nome: name,
             series: "Myo-Reps",
@@ -2263,7 +2274,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         } 
         // 3. 2 SÉRIES + BACK-OFF
         else if (hasBackoff) {
-          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+backoff|2x\+backoff|3x\+backoff|backoff/gi, '').trim();
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
+                     .replace(/(\d+x\+backoff|\d+x\+back-off|backoff|back-off|\+backoff|\+back-off)/gi, '')
+                     .trim();
+
           currentDay.exercicios.push({
             nome: name,
             series: "3 Séries",
@@ -2275,7 +2289,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         } 
         // 4. CLUSTER SET APENAS
         else if (hasCluster) {
-          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '').replace(/1x\+cluster|2x\+cluster|3x\+cluster|cluster/gi, '').trim();
+          name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
+                     .replace(/(\d+x\+cluster|cluster|\+cluster)/gi, '')
+                     .trim();
+
           const qtdSeries = numSeriesDigitado ? `${numSeriesDigitado} Séries` : "2 Séries";
           currentDay.exercicios.push({
             nome: name,
