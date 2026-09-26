@@ -1218,7 +1218,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
   }
 
   // ==========================================
-  // IA EXCLUSIVA DE DIRETRIZES (NÃO ALTERA A FICHA DE TREINO)
+  // IA EXCLUSIVA DE DIRETRIZES (SEMM NEGRITO E SEM DIETA/CARDIO)
   // ==========================================
   async function gerarApenasDiretrizesIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
@@ -1228,11 +1228,10 @@ Retorne ESTRITAMENTE um JSON puro no formato:
       return showToast("Insira ou monte a ficha de treino antes de gerar as diretrizes.", "error");
     }
 
-    const anamnese = currentStudentData.dadosAnamnese || currentStudentData || {};
     const btn = document.getElementById('btnGerarApenasDiretrizesIA');
     const txtOriginal = btn.textContent;
 
-    btn.textContent = "⏳ Analisando Treino & Gerando Diretrizes...";
+    btn.textContent = "⏳ Gerando Diretrizes Limpas...";
     btn.disabled = true;
 
     try {
@@ -1241,20 +1240,17 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         headers: authHeaders(),
         cache: 'no-cache',
         body: JSON.stringify({
-          mensagem: `Você é um Personal Trainer de elite.
-Analise a ficha de treino atual do aluno e os dados de anamnese (caso existam) para elaborar ESTRITAMENTE as Diretrizes Gerais do Treinador.
-Sua resposta deve conter apenas as recomendações técnicas de treino (Ex: cadência, RPE/percepção de esforço, descansos entre séries, execução de técnicas como myoreps/back-off, estratégias de progressão de carga).
+          mensagem: `Você é um assistente de musculação.
+Sua única função é escrever as DIRETRIZES DE TREINO DE FORÇA resumidas para o aluno, com base no treino atual fornecido.
 
-REGRA CRÍTICA: Retorne APENAS um texto claro e objetivo em tópicos com as diretrizes. Não inclua treinos nem códigos adicionais.
+REGRAS RÍGIDAS E OBRIGATÓRIAS:
+1. NUNCA use o caractere asterisco (*). Não coloque NADA em negrito.
+2. NUNCA mencione dieta, alimentação, suplemento, cardio, aeróbico ou corrida. Fale APENAS de treino de força/musculação.
+3. Seja EXTREMAMENTE curto, direto e objetivo (máximo 4 a 5 linhas ou tópicos curtos sem asterisco).
+4. Foque apenas em: cadência, tempo de descanso entre séries, percepção de esforço (RPE) e progressão de carga.
 
 --- FICHA DE TREINO ATUAL ---
-${treinoAtualTexto}
-
---- NOTAS PRIVADAS DO TREINADOR ---
-${currentStudentData.notas_treinador || "Nenhuma nota"}
-
---- DADOS DA ANAMNESE (USE SE EXISTIR, CASO CONTRÁRIO IGNORE) ---
-${JSON.stringify(anamnese)}`,
+${treinoAtualTexto}`,
           contexto: currentStudentData || {},
           origem: "ADMIN"
         })
@@ -1262,8 +1258,10 @@ ${JSON.stringify(anamnese)}`,
 
       const data = await res.json();
       if (res.ok && data.resposta) {
-        document.getElementById('editTrainerGuidelines').value = data.resposta.trim();
-        showToast("Diretrizes geradas com sucesso pela IA!", "success");
+        // Filtro extra via código para garantir zero asteriscos
+        let textoLimpo = data.resposta.replace(/\*/g, '').trim();
+        document.getElementById('editTrainerGuidelines').value = textoLimpo;
+        showToast("Diretrizes geradas com sucesso!", "success");
       } else {
         showToast(data.error || "Não foi possível gerar as diretrizes.", "error");
       }
@@ -2183,7 +2181,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     let globalSeries = "3";
     let globalReps = "8-10";
 
-    // Adicionado anterior e posterior na lista de divisões
     const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
 
     lines.forEach(line => {
