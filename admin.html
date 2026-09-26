@@ -336,7 +336,7 @@
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha de Treino:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque o foco para Hipertrofia">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque a divisão para Anterior / Posterior">
             <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
           </div>
         </div>
@@ -344,7 +344,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 3x+myoreps"></textarea>
+            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="ANTERIOR (SEGUNDA)&#10;Agachamento Cobre 3x 8-10&#10;Extensora 3x+myoreps&#10;&#10;POSTERIOR (QUARTA)&#10;Stiff com Halteres 3x 8-10&#10;Mesa Flexora 3x 10-12"></textarea>
           </div>
 
           <div>
@@ -1278,7 +1278,6 @@ ${JSON.stringify(anamnese)}`,
   async function executarComandoIaTreino() {
     const input = document.getElementById('aiWorkoutCommand');
     const tx = document.getElementById('liveWorkoutText');
-    const guidelinesTx = document.getElementById('editTrainerGuidelines');
     const btn = document.getElementById('btnAiCmd');
     const cmd = input.value.trim();
 
@@ -1689,7 +1688,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
     container.innerHTML = "";
     if (parsedDays.length === 0) {
-      container.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhum treino reconhecido. Digite divisões claras (Ex: UPPER, LOWER ou TREINO A).</div>`;
+      container.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhum treino reconhecido. Digite divisões claras (Ex: UPPER, LOWER, ANTERIOR, POSTERIOR ou TREINO A).</div>`;
       return;
     }
 
@@ -2184,7 +2183,8 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     let globalSeries = "3";
     let globalReps = "8-10";
 
-    const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'treino', 'dia'];
+    // Adicionado anterior e posterior na lista de divisões
+    const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
 
     lines.forEach(line => {
       const cleanLine = line.trim();
