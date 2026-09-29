@@ -53,7 +53,7 @@
   .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
   .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
@@ -1038,7 +1038,7 @@
 
         (day.exercicios || []).forEach((ex, exIdx) => {
           htmlContent += `
-            <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
+            <div class="ex-clickable" onclick="verEvolucaoSemanal('${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
               <span>• <b>${escapeHtml(ex.nome)}</b></span>
               <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) 📈 Cargas</span>
             </div>
@@ -1217,9 +1217,6 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     showToast("Plano de cardio e prescrição salvos!", "success");
   }
 
-  // ==========================================
-  // IA EXCLUSIVA DE DIRETRIZES (SEMM NEGRITO E SEM DIETA/CARDIO)
-  // ==========================================
   async function gerarApenasDiretrizesIA() {
     if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1258,7 +1255,6 @@ ${treinoAtualTexto}`,
 
       const data = await res.json();
       if (res.ok && data.resposta) {
-        // Filtro extra via código para garantir zero asteriscos
         let textoLimpo = data.resposta.replace(/\*/g, '').trim();
         document.getElementById('editTrainerGuidelines').value = textoLimpo;
         showToast("Diretrizes geradas com sucesso!", "success");
@@ -1554,9 +1550,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
     feedbacks.forEach(f => {
       const isAluno = f.autor === "ALUNO";
+      const htmlFoto = f.fotoUrl ? `<br><a href="${f.fotoUrl}" target="_blank"><img src="${f.fotoUrl}" style="max-width:180px; border-radius:8px; margin-top:8px; border:1px solid var(--gold);"></a>` : '';
+      
       history.innerHTML += `
         <div style="background:${isAluno ? '#1a050b' : '#100305'}; padding:10px 12px; border-radius:8px; font-size:12.5px; color:#fff; align-self:${isAluno ? 'flex-start' : 'flex-end'}; border:1px solid ${isAluno ? 'var(--accent)' : 'var(--gold)'}; max-width:85%;">
           <b style="color:${isAluno ? 'var(--accent)' : 'var(--gold)'}">${isAluno ? 'Aluno' : 'Você (Personal)'}:</b> ${escapeHtml(f.mensagem)}
+          ${htmlFoto}
         </div>
       `;
     });
@@ -1707,13 +1706,13 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     });
   }
 
-  async function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
+  async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
 
     const weeklyLogs = currentStudentData.weekly_logs || {};
-    const key = `${dayIdx}_${exIdx}`;
-    const historicoSemanal = (weeklyLogs[key] || []).slice(-4);
+    const keyEx = nomeEx.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const historicoSemanal = (weeklyLogs[keyEx] || []).slice(-4);
 
     let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
     let cargasValidas = [];
