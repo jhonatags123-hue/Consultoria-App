@@ -53,7 +53,7 @@
   .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
   .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-space-between; align-items:center; }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
@@ -641,6 +641,11 @@
   const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
   const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 
+  function sanitizeExKey(nome) {
+    if (!nome) return "ex";
+    return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
   function showToast(mensagem, tipo = 'info') {
     const container = document.getElementById('toastContainer');
     if (!container) return;
@@ -1017,8 +1022,10 @@
       return;
     }
 
-    let htmlContent = `<div class="section-subtitle">🏋️ TREINOS CADASTRADOS</div>`;
+    let htmlContent = `<div class="section-subtitle">🏋️️ TREINOS CADASTRADOS & EVOLUÇÃO DE CARGAS</div>`;
     const days = currentStudentData.days || [];
+    const weeklyLogs = currentStudentData.weekly_logs || {};
+    const dailyLogs = currentStudentData.logs || {};
 
     if (days.length === 0) {
       htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhum treino cadastrado.</p>`;
@@ -1036,11 +1043,34 @@
           <div id="resumo_day_${dayIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
         `;
 
-        (day.exercicios || []).forEach((ex, exIdx) => {
+        (day.exercicios || []).forEach((ex) => {
+          const exKey = sanitizeExKey(ex.nome);
+          const historico = weeklyLogs[exKey] || [];
+          let cargaRecenteTexto = "Sem carga salva";
+
+          if (historico.length > 0) {
+            const ult = historico[historico.length - 1];
+            cargaRecenteTexto = `${ult.cargaMax}kg (${ult.repsMed} reps)`;
+          } else {
+            let maxC = 0;
+            let totalR = 0;
+            let countS = 0;
+            for (let s = 1; s <= 5; s++) {
+              const c = parseFloat(dailyLogs[`log_c_${exKey}_s${s}`]);
+              const r = parseFloat(dailyLogs[`log_r_${exKey}_s${s}`]);
+              if (!isNaN(c) && c > maxC) maxC = c;
+              if (!isNaN(r)) { totalR += r; countS++; }
+            }
+            if (maxC > 0) {
+              const rMed = countS > 0 ? Math.round(totalR / countS) : '-';
+              cargaRecenteTexto = `${maxC}kg (${rMed} reps)`;
+            }
+          }
+
           htmlContent += `
             <div class="ex-clickable" onclick="verEvolucaoSemanal('${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
               <span>• <b>${escapeHtml(ex.nome)}</b></span>
-              <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) 📈 Cargas</span>
+              <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) | 📈 ${cargaRecenteTexto}</span>
             </div>
           `;
         });
@@ -1059,7 +1089,7 @@
         htmlContent += `
           <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_ref_${refIdx}')">
             <div>
-              <b style="color:var(--gold)">🍽️ ${escapeHtml(ref.titulo || 'Refeição')}</b>
+              <b style="color:var(--gold)">🍽️️ ${escapeHtml(ref.titulo || 'Refeição')}</b>
             </div>
             <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos ▾</span>
           </div>
@@ -1710,9 +1740,29 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     document.getElementById('chartExName').textContent = nomeEx;
     document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
 
-    const weeklyLogs = currentStudentData.weekly_logs || {};
-    const keyEx = nomeEx.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const historicoSemanal = (weeklyLogs[keyEx] || []).slice(-4);
+    const weeklyLogs = (currentStudentData && currentStudentData.weekly_logs) || {};
+    const dailyLogs = (currentStudentData && currentStudentData.logs) || {};
+    
+    const keyEx = sanitizeExKey(nomeEx);
+    let historicoSemanal = (weeklyLogs[keyEx] || []).slice(-4);
+
+    if (historicoSemanal.length === 0) {
+      let maxC = 0;
+      let totalR = 0;
+      let countS = 0;
+
+      for (let s = 1; s <= 5; s++) {
+        const c = parseFloat(dailyLogs[`log_c_${keyEx}_s${s}`]);
+        const r = parseFloat(dailyLogs[`log_r_${keyEx}_s${s}`]);
+        if (!isNaN(c) && c > maxC) maxC = c;
+        if (!isNaN(r)) { totalR += r; countS++; }
+      }
+
+      if (maxC > 0) {
+        const rMed = countS > 0 ? Math.round(totalR / countS) : '-';
+        historicoSemanal = [{ data: 'Hoje', cargaMax: maxC, repsMed: rMed, tecnica: 'Sessão Recente' }];
+      }
+    }
 
     let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
     let cargasValidas = [];
@@ -1728,7 +1778,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             <div>
               <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data)}):</b><br>
               <span style="color:#60a5fa; font-size:11px; font-weight:700;">Reps Médias: ${escapeHtml(reg.repsMed)}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica: ${escapeHtml(reg.tecnica)}</span>` : ''}
+              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️️ Técnica: ${escapeHtml(reg.tecnica)}</span>` : ''}
             </div>
             <div style="font-size:15px; font-weight:800; color:var(--gold);">${escapeHtml(reg.cargaMax)} kg</div>
           </div>
