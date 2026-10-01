@@ -501,7 +501,6 @@
       <div id="secCadastro" class="panel-card hidden">
         <div class="panel-title">⚙️ Configurações & Bloco de Notas do Treinador</div>
         
-        <!-- BLOCO DE NOTAS PRIVADO DO TREINADOR -->
         <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
@@ -653,7 +652,7 @@
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
     
-    let icone = 'ℹ️';
+    let icone = 'ℹ️️';
     if (tipo === 'success') icone = '✅';
     if (tipo === 'error') icone = '❌';
 
@@ -1022,7 +1021,7 @@
       return;
     }
 
-    let htmlContent = `<div class="section-subtitle">🏋️️ TREINOS CADASTRADOS & EVOLUÇÃO DE CARGAS</div>`;
+    let htmlContent = `<div class="section-subtitle">🏋 TREINOS CADASTRADOS & EVOLUÇÃO DE CARGAS</div>`;
     const days = currentStudentData.days || [];
     const weeklyLogs = currentStudentData.weekly_logs || {};
     const dailyLogs = currentStudentData.logs || {};
@@ -1043,21 +1042,22 @@
           <div id="resumo_day_${dayIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
         `;
 
-        (day.exercicios || []).forEach((ex) => {
+        (day.exercicios || []).forEach((ex, exIdx) => {
           const exKey = sanitizeExKey(ex.nome);
-          const historico = weeklyLogs[exKey] || [];
+          const keyDirect = `${dayIdx}_${exIdx}`;
+          const historico = weeklyLogs[exKey] || weeklyLogs[keyDirect] || [];
           let cargaRecenteTexto = "Sem carga salva";
 
           if (historico.length > 0) {
             const ult = historico[historico.length - 1];
-            cargaRecenteTexto = `${ult.cargaMax}kg (${ult.repsMed} reps)`;
+            cargaRecenteTexto = `${ult.cargaMax || ult.carga || 0}kg (${ult.repsMed || ult.reps || '-'} reps)`;
           } else {
             let maxC = 0;
             let totalR = 0;
             let countS = 0;
             for (let s = 1; s <= 5; s++) {
-              const c = parseFloat(dailyLogs[`log_c_${exKey}_s${s}`]);
-              const r = parseFloat(dailyLogs[`log_r_${exKey}_s${s}`]);
+              const c = parseFloat(dailyLogs[`log_c_${exKey}_s${s}`] || dailyLogs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+              const r = parseFloat(dailyLogs[`log_r_${exKey}_s${s}`] || dailyLogs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
               if (!isNaN(c) && c > maxC) maxC = c;
               if (!isNaN(r)) { totalR += r; countS++; }
             }
@@ -1089,7 +1089,7 @@
         htmlContent += `
           <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_ref_${refIdx}')">
             <div>
-              <b style="color:var(--gold)">🍽️️ ${escapeHtml(ref.titulo || 'Refeição')}</b>
+              <b style="color:var(--gold)">🍽 ${escapeHtml(ref.titulo || 'Refeição')}</b>
             </div>
             <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos ▾</span>
           </div>
@@ -1403,10 +1403,6 @@ ${tx.value}`,
 
     currentStudentData.days = parseWorkoutText(raw);
     currentStudentData.trainer_guidelines = guidelinesText;
-
-    if (currentStudentData.historico_sessoes && currentStudentData.historico_sessoes.length > 0) {
-      currentStudentData.historico_sessoes[currentStudentData.historico_sessoes.length - 1].observacoes = [];
-    }
 
     salvarAlteracoes('workout');
   }
@@ -1773,18 +1769,20 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       document.getElementById('aiProgressInsight').classList.add('hidden');
     } else {
       historicoSemanal.forEach((reg, idx) => {
+        const cargaVal = reg.cargaMax || reg.carga || 0;
+        const repsVal = reg.repsMed || reg.reps || '-';
         html += `
           <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
             <div>
-              <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data)}):</b><br>
-              <span style="color:#60a5fa; font-size:11px; font-weight:700;">Reps Médias: ${escapeHtml(reg.repsMed)}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️️ Técnica: ${escapeHtml(reg.tecnica)}</span>` : ''}
+              <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data || 'Recente')}):</b><br>
+              <span style="color:#60a5fa; font-size:11px; font-weight:700;">Reps Médias: ${escapeHtml(repsVal)}</span>
+              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙ Técnica: ${escapeHtml(reg.tecnica)}</span>` : ''}
             </div>
-            <div style="font-size:15px; font-weight:800; color:var(--gold);">${escapeHtml(reg.cargaMax)} kg</div>
+            <div style="font-size:15px; font-weight:800; color:var(--gold);">${escapeHtml(cargaVal)} kg</div>
           </div>
         `;
-        if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
-        if (!isNaN(parseFloat(reg.repsMed))) repsValidas.push(parseFloat(reg.repsMed));
+        if (!isNaN(parseFloat(cargaVal))) cargasValidas.push(parseFloat(cargaVal));
+        if (!isNaN(parseFloat(repsVal))) repsValidas.push(parseFloat(repsVal));
       });
 
       gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
@@ -2382,6 +2380,8 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       notas_treinador: "",
       trainer_guidelines: "",
       cardio_guidelines: "",
+      logs: {},
+      weekly_logs: {},
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
