@@ -855,6 +855,11 @@
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
 
+  function sanitizeExKey(nome) {
+    if (!nome) return "ex";
+    return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
   function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
   function fecharModalIndique() { document.getElementById('modalIndique').classList.add('hidden'); }
   function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
@@ -1357,12 +1362,10 @@
     if (data.data_vigencia) {
       const hojeStr = new Date().toISOString().split('T')[0];
       
-      // Se a data de hoje for anterior à data marcada no Admin
       if (hojeStr < data.data_vigencia) {
         const parts = data.data_vigencia.split('-');
         const dataFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
         
-        // Exibe banner avisando quando o novo treino entra no ar
         const headerCard = document.querySelector('#mainContent .card');
         if (headerCard) {
           const alertVigencia = document.createElement('div');
@@ -1758,7 +1761,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculado com sucesso!");
+      alert("✅ Corrida salva e pace calculated com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1861,7 +1864,8 @@
     if (day && day.exercicios) {
       day.exercicios.forEach((ex, exIdx) => {
         const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
-        const historico = currentData.weekly_logs?.[keyLog] || [];
+        const exKeySanitized = sanitizeExKey(ex.nome);
+        const historico = currentData.weekly_logs?.[exKeySanitized] || currentData.weekly_logs?.[keyLog] || [];
         const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
 
         let cMax = 0;
@@ -1869,8 +1873,8 @@
         let seriesCount = 0;
 
         for (let s = 1; s <= 5; s++) {
-          const cVal = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
-          const rVal = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+          const cVal = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+          const rVal = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
 
           if (!isNaN(cVal) && cVal > cMax) cMax = cVal;
           if (!isNaN(rVal)) { 
@@ -1880,8 +1884,8 @@
           }
         }
 
-        const cAtiv = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-        const rAtiv = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+        const cAtiv = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+        const rAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
         if (!isNaN(cAtiv) && cAtiv > cMax) cMax = cAtiv;
         if (!isNaN(rAtiv)) { 
           rTotal += rAtiv; 
@@ -1889,8 +1893,8 @@
           if (!isNaN(cAtiv)) volumeToneladoTotal += (cAtiv * rAtiv);
         }
 
-        const cCl = parseFloat(currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
-        const rCl = parseFloat(currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
+        const cCl = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
+        const rCl = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
         if (!isNaN(cCl) && cCl > cMax) cMax = cCl;
         if (!isNaN(rCl)) { 
           rTotal += rCl; 
@@ -1946,6 +1950,21 @@
       });
     }
 
+    // REGISTRO DE SESSÃO PARA O PAINEL ADMIN
+    if (!currentData.historico_sessoes) currentData.historico_sessoes = [];
+    const obsAtualSessao = (currentData.logs && currentData.logs[`obs_day_${currentTreinoDayIdx}`]) || "";
+
+    currentData.historico_sessoes.push({
+      data: new Date().toISOString(),
+      treinoTitulo: day ? day.title : "Treino",
+      duracaoMinutos: m,
+      observacoes: obsAtualSessao ? [obsAtualSessao] : []
+    });
+
+    if (currentData.historico_sessoes.length > 10) {
+      currentData.historico_sessoes = currentData.historico_sessoes.slice(-10);
+    }
+
     // GIRO AUTOMÁTICO DE SEMANAS
     const totalDays = (currentData.days || []).length;
     let proximoTreino = currentTreinoDayIdx;
@@ -1953,7 +1972,6 @@
     if (totalDays > 0) {
       proximoTreino = (currentTreinoDayIdx + 1) % totalDays;
       
-      // Se deu uma volta completa no ciclo de treinos, avança a semana de rotação
       if (proximoTreino === 0) {
         let semanaAtual = currentData.semana_rotacao || 1;
         currentData.semana_rotacao = (semanaAtual % 5) + 1;
@@ -2034,7 +2052,6 @@
     exercisesContainer.innerHTML = '';
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
 
-    // CORREÇÃO DEFINITIVA DAS OBSERVAÇÕES
     const keyObs = `obs_day_${currentTreinoDayIdx}`;
     const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
                      localStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
@@ -2112,7 +2129,6 @@
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
-      // TRAVA E DETECÇÃO DE SÉRIES
       let isStrict2x = seriesStr.includes('2x') || seriesStr.trim() === '2';
       let isStrict3x = seriesStr.includes('3x') || seriesStr.trim() === '3';
 
@@ -2120,7 +2136,6 @@
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
-      // SE O ADMIN ESCREVEU TÉCNICA OBRIGATÓRIA NO NOME
       let tecnicaAdminFixa = null;
       if (temBackoff && temCluster) tecnicaAdminFixa = 'cluster_backoff';
       else if (temBackoff) tecnicaAdminFixa = 'backoff_2x';
@@ -2146,17 +2161,15 @@
 
       let selectHtml = '';
       if (tecnicaAdminFixa) {
-        // Se o admin escreveu explicitamente no texto, MOSTRA APENAS A TAG DA TÉCNICA
         const nomesExibicao = {
           'convencional': '',
           'backoff_2x': '⚙️ 2x + Back-Off',
           'cluster': '⚙️ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
-          'myoreps': '⚙️ Myo-Reps'
+          'myoreps': '⚙️️ Myo-Reps'
         };
         selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${nomesExibicao[tecnicaAdminFixa]}</span>`;
       } else {
-        // REGRAS RÍGIDAS DE SELEÇÃO DO ALUNO (2x VS 3x)
         if (isStrict2x) {
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
@@ -2165,7 +2178,6 @@
             </select>
           `;
         } else {
-          // Default para 3x ou superior
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>3 Séries Convencionais</option>
@@ -2191,16 +2203,18 @@
         <div class="series-container">
       `;
 
-      if (activeMode === 'myoreps') {
-        const keyAtivC = `log_c_${dayIdx}_${exIdx}_ativ`;
-        const keyAtivR = `log_r_${dayIdx}_${exIdx}_ativ`;
-        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
-        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
+      const exKeySanitized = sanitizeExKey(cleanName);
 
-        const keyMbC = `log_c_${dayIdx}_${exIdx}_mb`;
-        const keyMbR = `log_r_${dayIdx}_${exIdx}_mb`;
-        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
-        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
+      if (activeMode === 'myoreps') {
+        const keyAtivC = `log_c_${exKeySanitized}_ativ`;
+        const keyAtivR = `log_r_${exKeySanitized}_ativ`;
+        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]) || '';
+        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]) || '';
+
+        const keyMbC = `log_c_${exKeySanitized}_mb`;
+        const keyMbR = `log_r_${exKeySanitized}_mb`;
+        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_mb`]) || '';
+        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_mb`]) || '';
 
         html += `
           <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
@@ -2222,13 +2236,13 @@
           </div>
         `;
       } else if (activeMode === 'cluster') {
-        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
-        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
-        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
+        const keyClC = `log_c_${exKeySanitized}_cl_peso`;
+        const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
+        const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
 
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || (currentData.logs && currentData.logs[`log_b_${dayIdx}_${exIdx}_cl_blocos`]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]) || '';
 
         html += `
           <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
@@ -2242,17 +2256,17 @@
           </div>
         `;
       } else if (activeMode === 'cluster_backoff') {
-        const keyClC = `log_c_${dayIdx}_${exIdx}_cl_peso`;
-        const keyClB = `log_b_${dayIdx}_${exIdx}_cl_blocos`;
-        const keyClR = `log_r_${dayIdx}_${exIdx}_cl_lastreps`;
-        const keyBoC = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyBoR = `log_r_${dayIdx}_${exIdx}_s2`;
+        const keyClC = `log_c_${exKeySanitized}_cl_peso`;
+        const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
+        const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
+        const keyBoC = `log_c_${exKeySanitized}_s2`;
+        const keyBoR = `log_r_${exKeySanitized}_s2`;
 
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || (currentData.logs && currentData.logs[`log_b_${dayIdx}_${exIdx}_cl_blocos`]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s2`]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s2`]) || '';
 
         const nCl = parseFloat(valClC) || 0;
         let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
@@ -2294,19 +2308,19 @@
           </div>
         `;
       } else if (activeMode === 'backoff_2x') {
-        const keyS1C = `log_c_${dayIdx}_${exIdx}_s1`;
-        const keyS1R = `log_r_${dayIdx}_${exIdx}_s1`;
-        const keyS2C = `log_c_${dayIdx}_${exIdx}_s2`;
-        const keyS2R = `log_r_${dayIdx}_${exIdx}_s2`;
-        const keyBoC = `log_c_${dayIdx}_${exIdx}_bo`;
-        const keyBoR = `log_r_${dayIdx}_${exIdx}_bo`;
+        const keyS1C = `log_c_${exKeySanitized}_s1`;
+        const keyS1R = `log_r_${exKeySanitized}_s1`;
+        const keyS2C = `log_c_${exKeySanitized}_s2`;
+        const keyS2R = `log_r_${exKeySanitized}_s2`;
+        const keyBoC = `log_c_${exKeySanitized}_bo`;
+        const keyBoR = `log_r_${exKeySanitized}_bo`;
 
-        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
-        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
-        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
-        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s1`]) || '';
+        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s1`]) || '';
+        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s2`]) || '';
+        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s2`]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]) || '';
 
         const nS1 = parseFloat(valS1C) || 0;
         const nS2 = parseFloat(valS2C) || 0;
@@ -2359,10 +2373,10 @@
         `;
       } else {
         for (let s = 1; s <= numSeriesPrescritas; s++) {
-          const keyLoad = `log_c_${dayIdx}_${exIdx}_s${s}`;
-          const keyReps = `log_r_${dayIdx}_${exIdx}_s${s}`;
-          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
-          const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+          const keyLoad = `log_c_${exKeySanitized}_s${s}`;
+          const keyReps = `log_r_${exKeySanitized}_s${s}`;
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]) || '';
 
           html += `
             <div class="series-row">
@@ -2421,11 +2435,14 @@
 
   function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     if (!currentData.weekly_logs) currentData.weekly_logs = {};
-    const keyLog = `${dayIdx}_${exIdx}`;
-
+    
     if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
     const exObj = currentData.days[dayIdx].exercicios[exIdx];
+    const cleanExName = (exObj.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+    const exKeySanitized = sanitizeExKey(cleanExName);
+    const keyLog = `${dayIdx}_${exIdx}`;
+
     const numSeries = parseInt(exObj.series) || 3;
 
     const modeKey = `${dayIdx}_${exIdx}`;
@@ -2445,8 +2462,8 @@
     let seriesPreenchidas = 0;
 
     for (let s = 1; s <= numSeries + 2; s++) {
-      const cVal = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-      const rVal = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
+      const cVal = parseFloat(currentData.logs[`log_c_${exKeySanitized}_s${s}`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+      const rVal = parseFloat(currentData.logs[`log_r_${exKeySanitized}_s${s}`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
       if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
       if (!isNaN(rVal)) {
@@ -2455,13 +2472,13 @@
       }
     }
 
-    const cAtiv = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
-    const rAtiv = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
+    const cAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+    const rAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
     if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
     if (!isNaN(rAtiv)) { totalReps += rAtiv; seriesPreenchidas++; }
 
-    const cCl = parseFloat(currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
-    const rCl = parseFloat(currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
+    const cCl = parseFloat(currentData.logs[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
+    const rCl = parseFloat(currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
     if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
     if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
 
@@ -2469,9 +2486,9 @@
       const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
       const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-      if (!currentData.weekly_logs[keyLog]) currentData.weekly_logs[keyLog] = [];
+      if (!currentData.weekly_logs[exKeySanitized]) currentData.weekly_logs[exKeySanitized] = [];
 
-      let hist = currentData.weekly_logs[keyLog];
+      let hist = currentData.weekly_logs[exKeySanitized];
       
       const idxHoje = hist.findIndex(item => item.data === dataHoje);
       if (idxHoje !== -1) {
@@ -2481,6 +2498,7 @@
       }
 
       if (hist.length > 4) hist = hist.slice(-4);
+      currentData.weekly_logs[exKeySanitized] = hist;
       currentData.weekly_logs[keyLog] = hist;
     }
   }
