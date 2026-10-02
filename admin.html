@@ -567,7 +567,7 @@
           <div style="display:flex; align-items:center; gap:10px;">
             <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
             <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino (Livre)
+              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino (Cluster / Myo-Reps)
             </label>
           </div>
 
@@ -652,7 +652,7 @@
     const toast = document.createElement('div');
     toast.className = `toast ${tipo}`;
     
-    let icone = 'ℹ️️';
+    let icone = 'ℹ';
     if (tipo === 'success') icone = '✅';
     if (tipo === 'error') icone = '❌';
 
@@ -933,7 +933,8 @@
 
       document.getElementById('editDataVigencia').value = currentStudentData.data_vigencia || '';
 
-      document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
+      const pTecnicas = (currentStudentData.pode_alterar_tecnica !== undefined) ? currentStudentData.pode_alterar_tecnica : currentStudentData.permitirTecnicas;
+      document.getElementById('editPermitirTecnicas').checked = pTecnicas === true;
       document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
 
@@ -2176,7 +2177,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
     currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
 
-    currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
+    const estaPermitido = document.getElementById('editPermitirTecnicas').checked;
+    currentStudentData.pode_alterar_tecnica = estaPermitido;
+    currentStudentData.permitirTecnicas = estaPermitido;
+
     currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
     currentStudentData.corredor = document.getElementById('editCorredor').checked;
     currentStudentData.notas_treinador = document.getElementById('editNotasTreinador').value.trim();
@@ -2374,6 +2378,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
       semanas_rotacao: 5,
       data_vigencia: "",
+      pode_alterar_tecnica: false,
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
