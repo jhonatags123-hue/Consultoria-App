@@ -632,7 +632,7 @@
 
     <div id="anamStep10" class="hidden">
       <label class="label-fdb">24. Plano de Consultoria Selecionado:</label>
-      <select id="anamTipoConsultoria" class="input-field" required>
+      <select id="anamTipoConsultoria" class="input-field" onchange="atualizarResumoPrecoAnamnese()" required>
         <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00/mês</option>
         <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00/mês</option>
         <option value="COMPLETA_TRIMESTRAL">3 Meses Consultoria Completa — 3x R$ 130,00/mês</option>
@@ -641,7 +641,14 @@
         <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
       </select>
 
-      <label class="label-fdb" style="margin-top:10px;">25. Forma de Pagamento:</label>
+      <!-- CARD DINÂMICO DE RESUMO DO VALOR PARA O CLIENTE -->
+      <div id="resumoPlanoBox" style="background:var(--panel-2); border:1px solid var(--mark); border-radius:10px; padding:14px; margin-top:12px; text-align:center;">
+        <div style="font-size:11px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">💳 Resumo do Investimento:</div>
+        <div id="resumoPlanoValor" style="font-size:22px; font-weight:800; color:var(--mark); margin-top:4px;">12x R$ 85,00/mês</div>
+        <div id="resumoPlanoSub" style="font-size:11.5px; color:var(--ink-dim); margin-top:2px;">Acesso completo individual ao protocolo personalizado</div>
+      </div>
+
+      <label class="label-fdb" style="margin-top:12px;">25. Forma de Pagamento:</label>
       <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
         <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
         <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
@@ -733,7 +740,7 @@
             <div id="workoutTimerClock" class="workout-timer-clock">00:00:00</div>
           </div>
           <button id="btnWorkoutTimer" type="button" class="btn-login btn-wpp" style="width:auto; margin-top:0; min-height:36px; padding:6px 14px; font-size:11.5px;" onclick="toggleWorkoutTimer()">
-            ▶️ INICIAR TREINO
+            ▶️️ INICIAR TREINO
           </button>
         </div>
         
@@ -845,6 +852,15 @@
     'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
   };
 
+  const DETALHES_PLANOS = {
+    'COMPLETA_ANUAL': { valor: '12x R$ 85,00/mês', sub: 'Acompanhamento completo individual com treino + dieta.' },
+    'COMPLETA_SEMESTRAL': { valor: '6x R$ 110,00/mês', sub: 'Protocolo completo semestral com suporte contínuo.' },
+    'COMPLETA_TRIMESTRAL': { valor: '3x R$ 130,00/mês', sub: 'Acompanhamento trimestral focado em metas rápidas.' },
+    'COMPLETA_DUPLA_ANUAL': { valor: '12x R$ 140,00/mês', sub: 'Plano em Dupla: apenas R$ 70,00 por mês para cada pessoa.' },
+    'TREINO_ANUAL': { valor: '12x R$ 55,00/mês', sub: 'Ficha de treino contínua individual com ajuste de cargas.' },
+    'TREINO_DUPLA_ANUAL': { valor: '12x R$ 80,00/mês', sub: 'Apenas R$ 40,00 por mês por pessoa para treinar em dupla.' }
+  };
+
   let currentData = null;
   let loggedUserCode = "";
   let autoSaveTimer = null;
@@ -858,6 +874,13 @@
   function sanitizeExKey(nome) {
     if (!nome) return "ex";
     return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function atualizarResumoPrecoAnamnese() {
+    const plano = document.getElementById('anamTipoConsultoria').value;
+    const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
+    document.getElementById('resumoPlanoValor').textContent = info.valor;
+    document.getElementById('resumoPlanoSub').textContent = info.sub;
   }
 
   function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
@@ -1095,6 +1118,7 @@
         selectPlano.style.opacity = '0.85';
         selectPlano.style.background = 'var(--panel)';
       }
+      atualizarResumoPrecoAnamnese();
 
       if (modo === 'anamnese_convidado') {
         const selectPagamento = document.getElementById('anamFormaPagamento');
@@ -1147,6 +1171,7 @@
     document.getElementById(`anamStep${step}`).classList.remove('hidden');
     document.getElementById('progressBar').style.width = `${(step/10)*100}%`;
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 10`;
+    if (step === 10) atualizarResumoPrecoAnamnese();
   }
 
   function togglePaymentView() {
@@ -1358,7 +1383,6 @@
 
     currentData = data;
 
-    // VERIFICAÇÃO DA DATA DE VIGÊNCIA DO NOVO PROTOCOLO
     if (data.data_vigencia) {
       const hojeStr = new Date().toISOString().split('T')[0];
       
@@ -1822,7 +1846,7 @@
 
   function toggleCheckSerie(btn) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de começar a marcar as séries!");
+      alert("⚠️ Clique em '▶️️ INICIAR TREINO' antes de começar a marcar as séries!");
       return;
     }
     btn.classList.toggle('done');
@@ -1950,9 +1974,10 @@
       });
     }
 
-    // REGISTRO DE SESSÃO PARA O PAINEL ADMIN
+    // REGISTRO DE SESSÃO E OBSERVAÇÕES PARA O ADMIN
     if (!currentData.historico_sessoes) currentData.historico_sessoes = [];
-    const obsAtualSessao = (currentData.logs && currentData.logs[`obs_day_${currentTreinoDayIdx}`]) || "";
+    const obsEl = document.getElementById(`input_obs_${currentTreinoDayIdx}`);
+    const obsAtualSessao = obsEl ? obsEl.value.trim() : "";
 
     currentData.historico_sessoes.push({
       data: new Date().toISOString(),
@@ -1961,17 +1986,28 @@
       observacoes: obsAtualSessao ? [obsAtualSessao] : []
     });
 
-    if (currentData.historico_sessoes.length > 10) {
-      currentData.historico_sessoes = currentData.historico_sessoes.slice(-10);
+    if (currentData.historico_sessoes.length > 15) {
+      currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
     }
 
-    // GIRO AUTOMÁTICO DE SEMANAS
+    // LIMPEZA DAS MARCAÇÕES DE EXERCÍCIOS/SÉRIES E DA OBSERVAÇÃO DO DIA FINALIZADO
+    if (!currentData.logs) currentData.logs = {};
+    if (day && day.exercicios) {
+      day.exercicios.forEach((_, exIdx) => {
+        delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
+      });
+    }
+    delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
+    if (loggedUserCode) {
+      localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
+    }
+
+    // GIRO AUTOMÁTICO DE TREINOS
     const totalDays = (currentData.days || []).length;
     let proximoTreino = currentTreinoDayIdx;
 
     if (totalDays > 0) {
       proximoTreino = (currentTreinoDayIdx + 1) % totalDays;
-      
       if (proximoTreino === 0) {
         let semanaAtual = currentData.semana_rotacao || 1;
         currentData.semana_rotacao = (semanaAtual % 5) + 1;
@@ -1980,9 +2016,17 @@
 
     currentData.ultimo_treino_idx = proximoTreino;
 
+    // LIMPA BOTÕES NA TELA
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + btn.dataset.num;
+    });
+    document.querySelectorAll('.btn-check-exercise').forEach(btn => {
+      btn.classList.remove('done');
+      btn.textContent = 'Marcar Concluído';
+    });
+    document.querySelectorAll('.item').forEach(card => {
+      card.classList.remove('exercise-done');
     });
 
     scheduleAutoSave('ultimo_treino_idx', proximoTreino);
@@ -2063,7 +2107,7 @@
       <textarea class="input-field" id="input_obs_${currentTreinoDayIdx}" rows="2" style="font-size:14px; margin-top:4px;" 
         placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
         oninput="salvarObservacaoTreino('${keyObs}', this.value, ${currentTreinoDayIdx})">${escapeHtml(savedObs)}</textarea>
-      <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Salvo automaticamente no seu histórico de treino.</div>
+      <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Enviado diretamente ao Personal ao finalizar o treino.</div>
     `;
     exercisesContainer.appendChild(obsDiv);
 
