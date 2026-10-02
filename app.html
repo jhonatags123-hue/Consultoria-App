@@ -6,7 +6,6 @@
 <title>Área do Aluno — Jhonata Personal</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Big+Shoulders+Display:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
-<!-- PWA ALUNO -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Jhonata Personal">
@@ -365,7 +364,6 @@
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
-<!-- MODAL INDIQUE E GANHE -->
 <div id="modalIndique" class="modal-overlay hidden">
   <div class="modal-card-finish" style="text-align:center;">
     <div style="font-size:36px; margin-bottom:6px;">🎁</div>
@@ -390,7 +388,6 @@
   </div>
 </div>
 
-<!-- MODAL ALTERAR SENHA -->
 <div id="modalSenha" class="modal-overlay hidden">
   <div class="modal-card-finish">
     <div style="font-size:14px; font-weight:800; color:var(--mark); text-align:center; margin-bottom:12px;">🔑 ALTERAR SENHA DE ACESSO</div>
@@ -641,7 +638,6 @@
         <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
       </select>
 
-      <!-- CARD DINÂMICO DE RESUMO DO VALOR PARA O CLIENTE -->
       <div id="resumoPlanoBox" style="background:var(--panel-2); border:1px solid var(--mark); border-radius:10px; padding:14px; margin-top:12px; text-align:center;">
         <div style="font-size:11px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">💳 Resumo do Investimento:</div>
         <div id="resumoPlanoValor" style="font-size:22px; font-weight:800; color:var(--mark); margin-top:4px;">12x R$ 85,00/mês</div>
@@ -740,7 +736,7 @@
             <div id="workoutTimerClock" class="workout-timer-clock">00:00:00</div>
           </div>
           <button id="btnWorkoutTimer" type="button" class="btn-login btn-wpp" style="width:auto; margin-top:0; min-height:36px; padding:6px 14px; font-size:11.5px;" onclick="toggleWorkoutTimer()">
-            ▶️️ INICIAR TREINO
+            ▶ INICIAR TREINO
           </button>
         </div>
         
@@ -867,7 +863,6 @@
   let currentTreinoDayIdx = 0;
   let activeAlunoDietAbaIndex = 0;
 
-  // CRONÔMETRO PERSISTENTE DO TREINO
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
 
@@ -994,7 +989,6 @@
     display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // LÓGICA DE CRONÔMETRO PERSISTENTE E TRAVA DE TREINO
   function checkAndRestoreWorkoutTimer() {
     const keyStart = `workout_start_time_${loggedUserCode}`;
     const startTimeStr = localStorage.getItem(keyStart);
@@ -1594,7 +1588,7 @@
     document.getElementById('congratsBox').classList.remove('hidden');
   }
 
-  function fecharCardEvolucao() {
+  fecharCardEvolucao = function() {
     document.getElementById('congratsBox').classList.add('hidden');
     localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
   }
@@ -1785,7 +1779,7 @@
         paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
       }
 
-      alert("✅ Corrida salva e pace calculated com sucesso!");
+      alert("✅ Corrida salva e pace calculado com sucesso!");
       setupCorrida(currentData);
     } catch (e) {
       alert("Erro ao salvar o treino de corrida.");
@@ -1846,7 +1840,7 @@
 
   function toggleCheckSerie(btn) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️️ INICIAR TREINO' antes de começar a marcar as séries!");
+      alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar a marcar as séries!");
       return;
     }
     btn.classList.toggle('done');
@@ -1974,7 +1968,6 @@
       });
     }
 
-    // REGISTRO DE SESSÃO E OBSERVAÇÕES PARA O ADMIN
     if (!currentData.historico_sessoes) currentData.historico_sessoes = [];
     const obsEl = document.getElementById(`input_obs_${currentTreinoDayIdx}`);
     const obsAtualSessao = obsEl ? obsEl.value.trim() : "";
@@ -1990,7 +1983,6 @@
       currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
     }
 
-    // LIMPEZA DAS MARCAÇÕES DE EXERCÍCIOS/SÉRIES E DA OBSERVAÇÃO DO DIA FINALIZADO
     if (!currentData.logs) currentData.logs = {};
     if (day && day.exercicios) {
       day.exercicios.forEach((_, exIdx) => {
@@ -2002,7 +1994,6 @@
       localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
     }
 
-    // GIRO AUTOMÁTICO DE TREINOS
     const totalDays = (currentData.days || []).length;
     let proximoTreino = currentTreinoDayIdx;
 
@@ -2016,7 +2007,6 @@
 
     currentData.ultimo_treino_idx = proximoTreino;
 
-    // LIMPA BOTÕES NA TELA
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + btn.dataset.num;
@@ -2189,10 +2179,6 @@
       let defaultMode = 'convencional';
       if (tecnicaAdminFixa) {
         defaultMode = tecnicaAdminFixa;
-      } else if (isStrict2x) {
-        defaultMode = 'convencional';
-      } else if (isStrict3x) {
-        defaultMode = 'convencional';
       }
 
       const activeMode = savedUserMode || defaultMode;
@@ -2204,15 +2190,20 @@
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
       let selectHtml = '';
-      if (tecnicaAdminFixa) {
+      const podeAlterarTecnica = currentData.pode_alterar_tecnica === true;
+
+      if (tecnicaAdminFixa || !podeAlterarTecnica) {
         const nomesExibicao = {
           'convencional': '',
           'backoff_2x': '⚙️ 2x + Back-Off',
-          'cluster': '⚙️ Cluster Set',
+          'cluster': '⚙️️ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙ Myo-Reps'
         };
-        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${nomesExibicao[tecnicaAdminFixa]}</span>`;
+        const rotulo = nomesExibicao[activeMode] || '';
+        if (rotulo) {
+          selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
+        }
       } else {
         if (isStrict2x) {
           selectHtml = `
@@ -2553,7 +2544,7 @@
     const abas = [];
     const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
 
-    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
@@ -2587,6 +2578,16 @@
         if (lines.length === 0) return;
 
         let title = lines[0].replace(/^\[.*?\]\s*/, '');
+
+        if (title.toLowerCase() === 'plano alimentar') {
+          if (lines.length > 1) {
+            title = lines[1].replace(/^\[.*?\]\s*/, '');
+            lines.splice(0, 1);
+          } else {
+            return;
+          }
+        }
+
         let days = "";
         const baseItems = [];
         const trocasCarbo = [];
@@ -2617,7 +2618,9 @@
               trocasCarbo.push(itemTxt);
             }
           } else {
-            baseItems.push(line);
+            if (line.toLowerCase() !== 'plano alimentar') {
+              baseItems.push(line);
+            }
           }
         });
 
@@ -2661,10 +2664,12 @@
     if (filtersContainer) filtersContainer.innerHTML = "";
     categoryList.innerHTML = "";
 
-    abas = abas.filter(aba => {
-      const nomeUpper = aba.abaNome.trim().toUpperCase();
-      return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
-    });
+    if (abas.length > 1) {
+      abas = abas.filter(aba => {
+        const nomeUpper = aba.abaNome.trim().toUpperCase();
+        return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
+      });
+    }
 
     if (!abas || abas.length === 0) {
       categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
@@ -2710,7 +2715,7 @@
     const currentAba = abas[activeAlunoDietAbaIndex];
     if (currentAba && currentAba.meals) {
       currentAba.meals.forEach((meal, idx) => {
-        if (meal.mealTitle.trim().toUpperCase() === 'PLANO ALIMENTAR') return;
+        if (meal.mealTitle.trim().toUpperCase() === 'PLANO ALIMENTAR' && currentAba.meals.length > 1) return;
 
         const card = document.createElement('div');
         card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
