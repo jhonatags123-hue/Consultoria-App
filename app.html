@@ -1110,14 +1110,16 @@
     }
 
     const modo = params.get('modo');
-    if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado') {
+    const tipo = params.get('tipo');
+
+    if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || tipo === 'treino') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
       const restWidget = document.getElementById('restTimerWidget');
       if (restWidget) restWidget.classList.remove('visible');
 
-      if (modo === 'anamnese_treino') {
+      if (modo === 'anamnese_treino' || tipo === 'treino') {
         isApenasTreinoMode = true;
         document.getElementById('anamMainTitle').textContent = "Anamnese de Treino";
         document.getElementById('anamMainSub').textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
