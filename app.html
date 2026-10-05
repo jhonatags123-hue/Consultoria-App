@@ -454,8 +454,8 @@
 </div>
 
 <div id="anamneseScreen" class="card hidden">
-  <h1>Anamnese de treino e nutrição</h1>
-  <div class="sub">Preencha com atenção para a montagem do seu protocolo personalizado</div>
+  <h1 id="anamMainTitle">Anamnese de treino e nutrição</h1>
+  <div class="sub" id="anamMainSub">Preencha com atenção para a montagem do seu protocolo personalizado</div>
   
   <div class="progress-bar-bg">
     <div id="progressBar" class="progress-bar-fill"></div>
@@ -671,7 +671,7 @@
       </div>
 
       <div style="display:flex; gap:8px; margin-top:14px;">
-        <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(9)">Voltar</button>
+        <button type="button" id="btnVoltarStep10" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(9)">Voltar</button>
         <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">Finalizar e enviar</button>
       </div>
     </div>
@@ -875,6 +875,7 @@
   let autoSaveTimer = null;
   let currentTreinoDayIdx = 0;
   let activeAlunoDietAbaIndex = 0;
+  let isApenasTreinoMode = false;
 
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
@@ -1109,12 +1110,26 @@
     }
 
     const modo = params.get('modo');
-    if (modo === 'anamnese' || modo === 'anamnese_convidado') {
+    if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado') {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
       const restWidget = document.getElementById('restTimerWidget');
       if (restWidget) restWidget.classList.remove('visible');
+
+      if (modo === 'anamnese_treino') {
+        isApenasTreinoMode = true;
+        document.getElementById('anamMainTitle').textContent = "Anamnese de Treino";
+        document.getElementById('anamMainSub').textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
+        
+        const selectPlano = document.getElementById('anamTipoConsultoria');
+        if (selectPlano) {
+          selectPlano.innerHTML = `
+            <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — 12x R$ 55,00/mês</option>
+            <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
+          `;
+        }
+      }
 
       const planoParam = params.get('plano');
       const selectPlano = document.getElementById('anamTipoConsultoria');
@@ -1174,10 +1189,23 @@
   });
 
   function nextAnamStep(step) {
+    if (isApenasTreinoMode) {
+      if (step === 7 || step === 8) {
+        step = 9; // Pula as etapas de nutrição se for Apenas Treino
+      }
+    }
+
     for (let i = 1; i <= 10; i++) document.getElementById(`anamStep${i}`).classList.add('hidden');
     document.getElementById(`anamStep${step}`).classList.remove('hidden');
+    
     document.getElementById('progressBar').style.width = `${(step/10)*100}%`;
     document.getElementById('stepCounter').textContent = `Etapa ${step} de 10`;
+    
+    const btnVoltarStep10 = document.getElementById('btnVoltarStep10');
+    if (btnVoltarStep10) {
+      btnVoltarStep10.setAttribute('onclick', isApenasTreinoMode ? 'nextAnamStep(6)' : 'nextAnamStep(9)');
+    }
+
     if (step === 10) atualizarResumoPrecoAnamnese();
   }
 
@@ -1297,16 +1325,17 @@
       qualidadeSono: document.getElementById('anamQualidadeSono').value.trim(),
       alcool: document.getElementById('anamAlcool').value.trim(),
       tabagismo: document.getElementById('anamTabagismo').value.trim(),
-      numRefeicoes: document.getElementById('anamNumRefeicoes').value.trim(),
-      alergias: document.getElementById('anamAlergias').value.trim(),
-      alimentosOdiados: document.getElementById('anamAlimentosOdiados').value.trim(),
-      gostaCarbos: document.getElementById('anamGostaCarbos').value.trim(),
-      gostaProteinas: document.getElementById('anamGostaProteinas').value.trim(),
-      gostaLegumes: document.getElementById('anamGostaLegumes').value.trim(),
-      orcamento: document.getElementById('anamOrcamento').value.trim(),
-      suplementos: document.getElementById('anamSuplementos').value.trim(),
-      fimDeSemana: document.getElementById('anamFimDeSemana').value.trim(),
-      formaPagamento: formaPagamento
+      numRefeicoes: isApenasTreinoMode ? "" : document.getElementById('anamNumRefeicoes').value.trim(),
+      alergias: isApenasTreinoMode ? "" : document.getElementById('anamAlergias').value.trim(),
+      alimentosOdiados: isApenasTreinoMode ? "" : document.getElementById('anamAlimentosOdiados').value.trim(),
+      gostaCarbos: isApenasTreinoMode ? "" : document.getElementById('anamGostaCarbos').value.trim(),
+      gostaProteinas: isApenasTreinoMode ? "" : document.getElementById('anamGostaProteinas').value.trim(),
+      gostaLegumes: isApenasTreinoMode ? "" : document.getElementById('anamGostaLegumes').value.trim(),
+      orcamento: isApenasTreinoMode ? "" : document.getElementById('anamOrcamento').value.trim(),
+      suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
+      fimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
+      formaPagamento: formaPagamento,
+      apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
     };
 
     try {
@@ -2149,7 +2178,7 @@
 
       let tecnicaAdminFixa = null;
       if (isStrict1x) {
-        tecnicaAdminFixa = 'convencional'; // Força modo simples sem seleção quando for 1x
+        tecnicaAdminFixa = 'convencional';
       } else if (temBackoff && temCluster) {
         tecnicaAdminFixa = 'cluster_backoff';
       } else if (temBackoff) {
@@ -2408,7 +2437,7 @@
           </div>
         `;
       } else {
-        // RENDERA SÉRIES CONVENCIONAIS (Série 1 para 1x, Séries 1..N para outros)
+        // RENDERA SÉRIES CONVENCIONAIS
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
