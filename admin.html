@@ -247,7 +247,9 @@
         <div class="panel-title">⚡ Ferramentas</div>
         <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso via WhatsApp</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese Geral</button>
+        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="copiarLinkAnamneseApenasTreino()">📋 Copiar Link Anamnese (Apenas Treino)</button>
+        <button class="btn btn-soft" style="margin-top:8px;" onclick="calcularVolumeMuscularSemanal()">📊 Volume Semanal & Tonagem</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
 
@@ -2430,7 +2432,139 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
   function copiarLinkAnamnese() {
     const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
     navigator.clipboard.writeText(link);
-    showToast("Link da Anamnese copiado!", "success");
+    showToast("Link da Anamnese Geral copiado!", "success");
+  }
+
+  function copiarLinkAnamneseApenasTreino() {
+    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino";
+    navigator.clipboard.writeText(link);
+    showToast("Link da Anamnese (Apenas Treino) copiado!", "success");
+  }
+
+  function calcularVolumeMuscularSemanal() {
+    if (!currentStudentData || !currentStudentData.days) {
+      return showToast("Selecione um aluno com treino cadastrado.", "error");
+    }
+
+    const grupos = {
+      "Peitoral": ["supino", "crucifixo", "crossover", "peitoral", "fly", "chest", "flexao"],
+      "Dorsais / Costas": ["puxada", "remada", "pulldown", "barra fixa", "serrote", "lat", "trapezio"],
+      "Quadríceps": ["agachamento", "leg press", "extensora", "hack", "afundo", "sissy", "passada"],
+      "Posterior de Coxa": ["stiff", "flexora", "mesa flexora", "cadeira flexora", "rdl", "good morning"],
+      "Glúteos": ["elevacao pélvica", "elevação pelvica", "gluteo", "glúteo", "abducao", "abdução", "coice"],
+      "Ombros (Deltoides)": ["desenvolvimento", "elevacao lateral", "elevação lateral", "facepull", "crucifixo invertido", "deltoide"],
+      "Bíceps": ["rosca", "biceps", "bíceps", "scott"],
+      "Tríceps": ["triceps", "tríceps", "testa", "frances", "francês", "pulley", "paralela"],
+      "Panturrilhas": ["panturrilha", "gêmeos", "gemeos", "solear"]
+    };
+
+    const relatorio = {};
+    Object.keys(grupos).forEach(g => relatorio[g] = { series: 0, tonagemKg: 0, exercicios: [] });
+
+    const weeklyLogs = currentStudentData.weekly_logs || {};
+    const dailyLogs = currentStudentData.logs || {};
+
+    currentStudentData.days.forEach((day, dayIdx) => {
+      (day.exercicios || []).forEach((ex, exIdx) => {
+        const exNome = ex.nome.toLowerCase();
+        const exKey = sanitizeExKey(ex.nome);
+        const keyDirect = `${dayIdx}_${exIdx}`;
+
+        const matchSeries = String(ex.series || '').match(/(\d+)/);
+        const numSeries = matchSeries ? parseInt(matchSeries[1], 10) : 3;
+
+        const matchReps = String(ex.reps || '').match(/(\d+)/);
+        const repsMedias = matchReps ? parseInt(matchReps[1], 10) : 10;
+
+        let cargaKg = 0;
+        const historico = weeklyLogs[exKey] || weeklyLogs[keyDirect] || [];
+        if (historico.length > 0) {
+          const ult = historico[historico.length - 1];
+          cargaKg = parseFloat(ult.cargaMax || ult.carga || 0);
+        } else {
+          for (let s = 1; s <= 5; s++) {
+            const c = parseFloat(dailyLogs[`log_c_${exKey}_s${s}`] || dailyLogs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+            if (!isNaN(c) && c > cargaKg) cargaKg = c;
+          }
+        }
+
+        let grupoEncontrado = "Outros / Core";
+        for (const [grupo, keywords] of Object.entries(grupos)) {
+          if (keywords.some(kw => exNome.includes(kw))) {
+            grupoEncontrado = grupo;
+            break;
+          }
+        }
+
+        if (!relatorio[grupoEncontrado]) {
+          relatorio[grupoEncontrado] = { series: 0, tonagemKg: 0, exercicios: [] };
+        }
+
+        const tonagemExercicio = numSeries * repsMedias * cargaKg;
+        relatorio[grupoEncontrado].series += numSeries;
+        relatorio[grupoEncontrado].tonagemKg += tonagemExercicio;
+        relatorio[grupoEncontrado].exercicios.push(ex.nome);
+      });
+    });
+
+    renderModalVolumeMuscular(relatorio);
+  }
+
+  function renderModalVolumeMuscular(relatorio) {
+    let modal = document.getElementById('volumeModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'volumeModal';
+      modal.className = 'modal-overlay';
+      document.body.appendChild(modal);
+    }
+
+    let htmlCards = '';
+    Object.keys(relatorio).forEach(grupo => {
+      const data = relatorio[grupo];
+      if (data.series > 0) {
+        let faixaStatus = '🟢 Volume Adequado';
+        let corBorder = 'var(--green)';
+
+        if (data.series < 10) {
+          faixaStatus = '🟡 Manutenção / Baixo';
+          corBorder = 'var(--gold)';
+        } else if (data.series > 22) {
+          faixaStatus = '🔴 Volume Elevado / Overreaching';
+          corBorder = 'var(--accent)';
+        }
+
+        htmlCards += `
+          <div style="background:#0d0204; border:1px solid ${corBorder}; border-radius:12px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <b style="color:#fff; font-size:14px;">💪 ${grupo}</b>
+              <span style="font-size:10px; font-weight:800; color:${corBorder}; font-weight:700;">${faixaStatus}</span>
+            </div>
+            <div style="display:flex; gap:16px; margin-top:8px; font-size:12px; color:var(--muted);">
+              <span>📊 Séries Semanais: <b style="color:var(--gold);">${data.series} séries</b></span>
+              <span>🏋️ Tonagem Aprox.: <b style="color:#60a5fa;">${data.tonagemKg.toLocaleString('pt-BR')} kg</b></span>
+            </div>
+            <div style="font-size:10.5px; color:var(--muted); margin-top:6px;">
+              <b>Exercícios:</b> ${data.exercicios.join(', ')}
+            </div>
+          </div>
+        `;
+      }
+    });
+
+    modal.innerHTML = `
+      <div class="modal-chart" style="max-width:550px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="color:#fff; font-size:16px;">📊 Volume Semanal & Tonagem por Grupo Muscular</h3>
+          <button onclick="document.getElementById('volumeModal').classList.add('hidden')" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+        </div>
+        <div style="max-height:60vh; overflow-y:auto; padding-right:4px;">
+          ${htmlCards || '<p style="color:var(--muted); font-size:12px;">Nenhum exercício contabilizado para este treino.</p>'}
+        </div>
+      </div>
+    `;
+
+    modal.classList.remove('hidden');
   }
 
   async function sendAdminChatMessage() {
