@@ -149,8 +149,21 @@
     border-color: var(--good) !important;
     background: rgba(79, 156, 110, 0.08) !important;
   }
-  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px; }
+  .item-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; }
   .item-title { font-weight:700; font-size:15.5px; color:var(--ink); flex:1; }
+
+  .previous-log-badge {
+    display: inline-block;
+    background: rgba(220, 170, 58, 0.1);
+    border: 1px solid var(--mark-dim);
+    color: var(--mark);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-family: var(--font-mono);
+  }
 
   .btn-check-exercise {
     background: var(--panel);
@@ -196,7 +209,7 @@
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-space-between; align-items: center;
   }
   .workout-timer-clock {
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
@@ -1008,7 +1021,7 @@
     } else {
       workoutTimerRunning = false;
       if (btn) {
-        btn.textContent = "▶️ INICIAR TREINO";
+        btn.textContent = "▶ INICIAR TREINO";
         btn.style.background = "var(--good)";
       }
       setInputsLockState(true);
@@ -1044,7 +1057,7 @@
       localStorage.removeItem(keyStart);
       if (workoutTimerInterval) clearInterval(workoutTimerInterval);
 
-      btn.textContent = "▶️ INICIAR TREINO";
+      btn.textContent = "▶ INICIAR TREINO";
       btn.style.background = "var(--good)";
 
       setInputsLockState(true);
@@ -1737,65 +1750,11 @@
     document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
   }
 
-  async function salvarRunDia(keyDia) {
-    const btn = document.getElementById(`btn_save_run_${keyDia}`);
-    const km = document.getElementById(`run_km_${keyDia}`).value.trim();
-    const min = document.getElementById(`run_min_${keyDia}`).value.trim();
-
-    if (!km || !min) return alert("Informe a distância em Km e o tempo em minutos.");
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = "⌛ Salvando...";
-    }
-
-    if (!currentData.registros_corrida) currentData.registros_corrida = {};
-    if (!Array.isArray(currentData.registros_corrida[keyDia])) {
-      currentData.registros_corrida[keyDia] = [];
-    }
-
-    const dataHoje = new Date().toLocaleDateString('pt-BR');
-    currentData.registros_corrida[keyDia].push({
-      km: km,
-      min: min,
-      data: dataHoje
-    });
-
-    if (currentData.registros_corrida[keyDia].length > 4) {
-      currentData.registros_corrida[keyDia] = currentData.registros_corrida[keyDia].slice(-4);
-    }
-
-    try {
-      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: "POST",
-        headers: authHeaders(),
-        cache: 'no-cache',
-        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
-      });
-      
-      const paceDiaStr = calcularPaceTexto(km, min);
-      const paceDisplay = document.getElementById(`run_pace_display_${keyDia}`);
-      if (paceDisplay) {
-        paceDisplay.innerHTML = `⏱ Pace do dia: <span>${paceDiaStr}</span> /km`;
-      }
-
-      alert("✅ Corrida salva e pace calculado com sucesso!");
-      setupCorrida(currentData);
-    } catch (e) {
-      alert("Erro ao salvar o treino de corrida.");
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = "Salvar";
-      }
-    }
-  }
-
   function setupWorkout(days) {
     currentData.days = days;
     renderTreinoDayList();
 
-    const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx + 1) % days.length : 0;
+    const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx) % days.length : 0;
     selectTreinoDay(proximoIdx);
   }
 
@@ -1985,13 +1944,29 @@
 
     if (!currentData.logs) currentData.logs = {};
     if (day && day.exercicios) {
-      day.exercicios.forEach((_, exIdx) => {
+      day.exercicios.forEach((ex, exIdx) => {
+        const exKeySanitized = sanitizeExKey(ex.nome);
         delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
+        for(let s=1; s<=5; s++) {
+          delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
+          delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
+          delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
+          delete currentData.logs[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`];
+        }
+        delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
+        delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
+        delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
+        delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
+        delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
+        delete currentData.logs[`log_c_${exKeySanitized}_bo`];
+        delete currentData.logs[`log_r_${exKeySanitized}_bo`];
       });
     }
     delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
+    
     if (loggedUserCode) {
       localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
+      localStorage.removeItem(`draft_student_logs_${loggedUserCode}`);
     }
 
     const totalDays = (currentData.days || []).length;
@@ -2163,6 +2138,8 @@
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
+      // REGRAS DE SÉRIES PRESCITAS
+      let isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
       let isStrict2x = seriesStr.includes('2x') || seriesStr.trim() === '2';
       let isStrict3x = seriesStr.includes('3x') || seriesStr.trim() === '3';
 
@@ -2171,32 +2148,41 @@
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
       let tecnicaAdminFixa = null;
-      if (temBackoff && temCluster) tecnicaAdminFixa = 'cluster_backoff';
-      else if (temBackoff) tecnicaAdminFixa = 'backoff_2x';
-      else if (temCluster) tecnicaAdminFixa = isStrict3x ? 'cluster_backoff' : 'cluster';
-      else if (temMyo) tecnicaAdminFixa = 'myoreps';
+      if (isStrict1x) {
+        tecnicaAdminFixa = 'convencional'; // Força modo simples sem seleção quando for 1x
+      } else if (temBackoff && temCluster) {
+        tecnicaAdminFixa = 'cluster_backoff';
+      } else if (temBackoff) {
+        tecnicaAdminFixa = 'backoff_2x';
+      } else if (temCluster) {
+        tecnicaAdminFixa = isStrict3x ? 'cluster_backoff' : 'cluster';
+      } else if (temMyo) {
+        tecnicaAdminFixa = 'myoreps';
+      }
 
       let defaultMode = 'convencional';
       if (tecnicaAdminFixa) {
         defaultMode = tecnicaAdminFixa;
       }
 
-      const activeMode = savedUserMode || defaultMode;
+      const activeMode = isStrict1x ? 'convencional' : (savedUserMode || defaultMode);
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
-      let numSeriesPrescritas = parseInt(seriesStr) || 3;
+      let numSeriesPrescritas = isStrict1x ? 1 : (parseInt(seriesStr) || 3);
 
       const div = document.createElement('div');
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
       let selectHtml = '';
-      const podeAlterarTecnica = currentData.pode_alterar_tecnica === true;
+      const podeAlterarTecnica = currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true;
 
-      if (tecnicaAdminFixa || !podeAlterarTecnica) {
+      if (isStrict1x) {
+        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">1 Série Única</span>`;
+      } else if (tecnicaAdminFixa || !podeAlterarTecnica) {
         const nomesExibicao = {
           'convencional': '',
           'backoff_2x': '⚙️ 2x + Back-Off',
-          'cluster': '⚙️️ Cluster Set',
+          'cluster': '⚙ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙ Myo-Reps'
         };
@@ -2224,6 +2210,22 @@
         }
       }
 
+      // HISTÓRICO DA SESSÃO ANTERIOR
+      const exKeySanitized = sanitizeExKey(cleanName);
+      const keyLog = `${dayIdx}_${exIdx}`;
+      const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
+      const ultimoRegistro = historicoEx.length > 0 ? historicoEx[historicoEx.length - 1] : null;
+
+      let prevBadgeHtml = "";
+      if (ultimoRegistro) {
+        const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : 'Sem carga';
+        const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '';
+        const tAnt = ultimoRegistro.tecnica ? `(${ultimoRegistro.tecnica})` : '';
+        prevBadgeHtml = `<div class="previous-log-badge">📈 Anterior: ${cAnt} | ${rAnt} ${tAnt}</div>`;
+      } else {
+        prevBadgeHtml = `<div class="previous-log-badge">📈 Anterior: Sem registro prévio</div>`;
+      }
+
       let html = `
         <div class="item-header">
           <div class="item-title">${escapeHtml(cleanName)}</div>
@@ -2235,26 +2237,25 @@
             </button>
           </div>
         </div>
+        ${prevBadgeHtml}
         <div class="series-container">
       `;
 
-      const exKeySanitized = sanitizeExKey(cleanName);
-
-      if (activeMode === 'myoreps') {
+      if (activeMode === 'myoreps' && !isStrict1x) {
         const keyAtivC = `log_c_${exKeySanitized}_ativ`;
         const keyAtivR = `log_r_${exKeySanitized}_ativ`;
-        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]) || '';
-        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]) || '';
+        const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
+        const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
 
         const keyMbC = `log_c_${exKeySanitized}_mb`;
         const keyMbR = `log_r_${exKeySanitized}_mb`;
-        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_mb`]) || '';
-        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_mb`]) || '';
+        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
+        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
 
         html += `
           <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
@@ -2270,19 +2271,19 @@
             <span class="unit">reps</span>
           </div>
         `;
-      } else if (activeMode === 'cluster') {
+      } else if (activeMode === 'cluster' && !isStrict1x) {
         const keyClC = `log_c_${exKeySanitized}_cl_peso`;
         const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
         const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
 
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || (currentData.logs && currentData.logs[`log_b_${dayIdx}_${exIdx}_cl_blocos`]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]) || '';
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
 
         html += `
           <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Peso'}" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
@@ -2290,18 +2291,18 @@
             <span class="unit">reps</span>
           </div>
         `;
-      } else if (activeMode === 'cluster_backoff') {
+      } else if (activeMode === 'cluster_backoff' && !isStrict1x) {
         const keyClC = `log_c_${exKeySanitized}_cl_peso`;
         const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
         const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
         const keyBoC = `log_c_${exKeySanitized}_s2`;
         const keyBoR = `log_r_${exKeySanitized}_s2`;
 
-        const valClC = (currentData.logs && currentData.logs[keyClC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]) || '';
-        const valClB = (currentData.logs && currentData.logs[keyClB]) || (currentData.logs && currentData.logs[`log_b_${dayIdx}_${exIdx}_cl_blocos`]) || '';
-        const valClR = (currentData.logs && currentData.logs[keyClR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s2`]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s2`]) || '';
+        const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+        const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+        const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         const nCl = parseFloat(valClC) || 0;
         let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
@@ -2310,7 +2311,7 @@
         html += `
           <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Peso" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Peso'}" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
@@ -2342,7 +2343,7 @@
             </div>
           </div>
         `;
-      } else if (activeMode === 'backoff_2x') {
+      } else if (activeMode === 'backoff_2x' && !isStrict1x) {
         const keyS1C = `log_c_${exKeySanitized}_s1`;
         const keyS1R = `log_r_${exKeySanitized}_s1`;
         const keyS2C = `log_c_${exKeySanitized}_s2`;
@@ -2350,12 +2351,12 @@
         const keyBoC = `log_c_${exKeySanitized}_bo`;
         const keyBoR = `log_r_${exKeySanitized}_bo`;
 
-        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s1`]) || '';
-        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s1`]) || '';
-        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s2`]) || '';
-        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s2`]) || '';
-        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]) || '';
-        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]) || '';
+        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
+        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
+        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         const nS1 = parseFloat(valS1C) || 0;
         const nS2 = parseFloat(valS2C) || 0;
@@ -2367,7 +2368,7 @@
         html += `
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valS1C)}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
@@ -2407,16 +2408,17 @@
           </div>
         `;
       } else {
+        // RENDERA SÉRIES CONVENCIONAIS (Série 1 para 1x, Séries 1..N para outros)
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
-          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || (currentData.logs && currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]) || '';
-          const savedReps = (currentData.logs && currentData.logs[keyReps]) || (currentData.logs && currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]) || '';
+          const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+          const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
 
           html += `
             <div class="series-row">
               <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
-              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Carga" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Carga'}" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
@@ -2478,13 +2480,15 @@
     const exKeySanitized = sanitizeExKey(cleanExName);
     const keyLog = `${dayIdx}_${exIdx}`;
 
-    const numSeries = parseInt(exObj.series) || 3;
+    const seriesStr = String(exObj.series || '').toLowerCase();
+    const isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
+    const numSeries = isStrict1x ? 1 : (parseInt(exObj.series) || 3);
 
     const modeKey = `${dayIdx}_${exIdx}`;
     const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
     
     const nomesTecnica = {
-      'convencional': 'Convencional',
+      'convencional': isStrict1x ? 'Série Única' : 'Convencional',
       'myoreps': 'Myo-Reps',
       'cluster': 'Cluster Set',
       'cluster_backoff': 'Cluster + Back-Off',
@@ -2722,7 +2726,7 @@
 
         let html = `
           <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
-            <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽️ ${escapeHtml(meal.mealTitle)}</h3>
+            <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽 ${escapeHtml(meal.mealTitle)}</h3>
             ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
           </div>
           
