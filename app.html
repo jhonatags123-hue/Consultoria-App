@@ -91,6 +91,8 @@
   .btn-indique-header:hover { background:var(--mark); color:#000; }
   .error-msg { color:var(--signal-light); font-size:12.5px; text-align:center; margin-top:10px; font-weight:600; }
 
+  .btn-sm-copy { padding: 8px 12px; font-size: 11.5px; min-height: 34px; font-weight: 700; border-radius: 6px; }
+
   .progress-bar-bg { width:100%; background:var(--bg); border:1px solid var(--line); height:4px; border-radius:2px; margin:16px 0 6px; overflow:hidden; }
   .progress-bar-fill { width:10%; background:var(--signal-light); height:100%; transition:width 0.25s ease; }
   .step-counter { font-size:11px; color:var(--ink-dim); font-family:var(--font-mono); text-align:right; margin-bottom:10px; }
@@ -238,7 +240,7 @@
   }
   .trainer-goals-title {
     font-size: 12px; font-weight: 800; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase;
-    display: flex; align-items: center; justify-content: space-between; user-select: none;
+    display: flex; align-items: center; justify-space-between; user-select: none;
   }
   .trainer-goals-body {
     font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500; margin-top: 8px;
@@ -254,7 +256,7 @@
   }
   .cardio-goals-title {
     font-size: 12px; font-weight: 800; color: var(--blue); letter-spacing: 0.04em; text-transform: uppercase;
-    display: flex; align-items: center; justify-content: space-between; user-select: none;
+    display: flex; align-items: center; justify-space-between; user-select: none;
   }
   .cardio-goals-body {
     font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500; margin-top: 8px;
@@ -288,24 +290,12 @@
     z-index: 9999; 
     transition: border-color 0.3s ease;
   }
-  .rest-timer-widget.visible {
-    display: flex !important;
-  }
-  .rest-timer-display {
-    font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center;
-  }
-  .rest-timer-btn {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink);
-    padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 0.15s ease;
-  }
+  .rest-timer-widget.visible { display: flex !important; }
+  .rest-timer-display { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--mark); min-width: 55px; text-align: center; }
+  .rest-timer-btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--ink); padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color 0.15s ease; }
   .rest-timer-btn:active { background: var(--signal-light); color: #fff; }
-  .timer-finished-glow {
-    animation: glowPulse 0.8s infinite alternate; border-color: var(--mark) !important;
-  }
-  @keyframes glowPulse {
-    0% { box-shadow: 0 0 5px var(--mark); }
-    100% { box-shadow: 0 0 22px var(--mark); }
-  }
+  .timer-finished-glow { animation: glowPulse 0.8s infinite alternate; border-color: var(--mark) !important; }
+  @keyframes glowPulse { 0% { box-shadow: 0 0 5px var(--mark); } 100% { box-shadow: 0 0 22px var(--mark); } }
 
   .diet-container { display:flex; flex-direction:column; gap:12px; }
 
@@ -382,7 +372,7 @@
     <div style="font-size:36px; margin-bottom:6px;">🎁</div>
     <h2 style="font-family:var(--font-display); font-size:24px; color:var(--mark);">Indique Amigos e Ganhe Benefícios!</h2>
     <p style="font-size:12.5px; color:var(--ink-dim); margin-top:8px; line-height:1.5;">
-      Compartilhe a sua evolução com seus amigos. Para cada amigo que iniciar a consultoria através da sua indicação, você ganha <b>desconto na sua próxima mensalidade</b> ou bônus no seu plano!
+      Compartilhe a sua evolução com seus amigos. Para cada amigo que iniciar a consultoria através da sua indicação, você ganha <b>desconto na sua próxima mensalidade</b>!
     </p>
 
     <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
@@ -876,6 +866,7 @@
   let currentTreinoDayIdx = 0;
   let activeAlunoDietAbaIndex = 0;
   let isApenasTreinoMode = false;
+  let isConvidadoDuplaMode = false;
 
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
@@ -896,6 +887,19 @@
   function fecharModalIndique() { document.getElementById('modalIndique').classList.add('hidden'); }
   function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
   function fecharModalSenha() { document.getElementById('modalSenha').classList.add('hidden'); }
+
+  function copiarMensagemConvidadoDupla(tipoTreino = false) {
+    const link = tipoTreino 
+      ? "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino"
+      : "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
+
+    const textoConsultoria = tipoTreino ? "o treino" : "o treino e a alimentação";
+
+    const mensagemPronta = `Olá, tudo bem? Sou o Jhonata Personal! Sua dupla me contratou para acompanharmos ${textoConsultoria} de vocês. Clica no link abaixo, preenche a anamnese e bora juntos buscar o resultado! 🚀🚀\n\n${link}`;
+
+    navigator.clipboard.writeText(mensagemPronta);
+    alert("✅ Mensagem e link para a 2ª pessoa copiados com sucesso!");
+  }
 
   async function alterarSenhaAlunoModal() {
     const novaSenha = document.getElementById('alunoNovaSenhaModal').value.trim();
@@ -1112,20 +1116,27 @@
     const modo = params.get('modo');
     const tipo = params.get('tipo');
 
-    if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || tipo === 'treino') {
+    if (tipo === 'treino' || modo === 'anamnese_treino') {
+      isApenasTreinoMode = true;
+    }
+
+    if (modo === 'anamnese_convidado') {
+      isConvidadoDuplaMode = true;
+    }
+
+    if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode) {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('anamneseScreen').classList.remove('hidden');
 
       const restWidget = document.getElementById('restTimerWidget');
       if (restWidget) restWidget.classList.remove('visible');
 
-      if (modo === 'anamnese_treino' || tipo === 'treino') {
-        isApenasTreinoMode = true;
+      if (isApenasTreinoMode) {
         document.getElementById('anamMainTitle').textContent = "Anamnese de Treino";
         document.getElementById('anamMainSub').textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
         
         const selectPlano = document.getElementById('anamTipoConsultoria');
-        if (selectPlano) {
+        if (selectPlano && !isConvidadoDuplaMode) {
           selectPlano.innerHTML = `
             <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — 12x R$ 55,00/mês</option>
             <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
@@ -1136,20 +1147,19 @@
       const planoParam = params.get('plano');
       const selectPlano = document.getElementById('anamTipoConsultoria');
 
-      if (planoParam && selectPlano) {
+      if (planoParam && selectPlano && !isConvidadoDuplaMode) {
         selectPlano.value = planoParam;
         selectPlano.disabled = true;
         selectPlano.style.opacity = '0.85';
         selectPlano.style.background = 'var(--panel)';
       }
-      atualizarResumoPrecoAnamnese();
 
-      if (modo === 'anamnese_convidado') {
+      if (isConvidadoDuplaMode) {
         const selectPagamento = document.getElementById('anamFormaPagamento');
         const pixBox = document.getElementById('pixDiretoBox');
 
         if (selectPlano) {
-          selectPlano.innerHTML = `<option value="TREINO_DUPLA_CONVIDADO" selected>Promocional Treino para 2 Pessoas (Já pago pelo titular)</option>`;
+          selectPlano.innerHTML = `<option value="DUPLA_CONVIDADO_INCLUSO" selected>Consultoria em Dupla (Incluso no Plano do Titular)</option>`;
           selectPlano.disabled = true;
         }
         if (selectPagamento) {
@@ -1158,6 +1168,8 @@
         }
         if (pixBox) pixBox.classList.add('hidden');
       }
+
+      atualizarResumoPrecoAnamnese();
       return;
     }
 
@@ -1221,12 +1233,6 @@
   function copiarChavePix() {
     navigator.clipboard.writeText("jhonatags123@gmail.com");
     alert("Chave Pix copiada: jhonatags123@gmail.com");
-  }
-
-  function copiarLinkConvidadoDupla() {
-    const linkConvidado = "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
-    navigator.clipboard.writeText(linkConvidado);
-    alert("✅ Link da Anamnese sem cobrança copiado! Envie para o seu amigo:\n\n" + linkConvidado);
   }
 
   function compartilharIndicaoWpp() {
@@ -1341,35 +1347,34 @@
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
+      await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: 'no-cache',
         body: JSON.stringify(anamneseData)
       });
-      await res.json();
 
-      const redirectUrl = (formaPagamento === 'ASAAS_LINK' && tipoConsultoria !== 'TREINO_DUPLA_CONVIDADO') 
+      const redirectUrl = (formaPagamento === 'ASAAS_LINK' && !isConvidadoDuplaMode) 
         ? ASAAS_LINKS[tipoConsultoria] 
         : null;
 
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        const isPlanoDupla = tipoConsultoria === 'TREINO_DUPLA_ANUAL' || tipoConsultoria === 'COMPLETA_DUPLA_ANUAL';
-
+        const isPlanoDupla = tipoConsultoria.includes('DUPLA');
         let boxDuplaHtml = '';
-        if (isPlanoDupla && formaPagamento === 'ASAAS_LINK') {
+
+        if (isPlanoDupla && !isConvidadoDuplaMode) {
           boxDuplaHtml = `
-            <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
+            <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
               <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">
                 👥 Envie a Anamnese para a sua dupla!
               </div>
               <p style="font-size:12px; color:var(--ink-dim); line-height:1.4; margin-bottom:10px;">
-                Copie o link abaixo e envie para a pessoa que vai treinar com você. Ela preencherá a anamnese sem cobranças adicionais.
+                Clique no botão abaixo para copiar a mensagem pronta com o link e envie para quem vai treinar com você.
               </p>
-              <button type="button" class="btn-login btn-gold" style="margin-top:0; font-size:12px;" onclick="copiarLinkConvidadoDupla()">
-                📋 Copiar Link do Amigo
+              <button type="button" class="btn-login btn-gold btn-sm-copy" onclick="copiarMensagemConvidadoDupla(${isApenasTreinoMode})">
+                📋 Copiar Mensagem da Dupla
               </button>
             </div>
           `;
@@ -1394,10 +1399,6 @@
               <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
                 O protocolo personalizado e o <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
               </p>
-            </div>
-
-            <div style="font-size:12px; color:var(--ink-dim); margin-top:14px;">
-               Se efetuou o pagamento via Pix Direto, envie o comprovante no meu WhatsApp para acelerar a liberação e receber o link da sua dupla!
             </div>
 
             <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
