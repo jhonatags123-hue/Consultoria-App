@@ -249,6 +249,8 @@
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese Geral</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="copiarLinkAnamneseApenasTreino()">📋 Copiar Link Anamnese (Apenas Treino)</button>
+        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--green); color:var(--green);" onclick="copiarMensagemAnamneseDuplaCompleta()">👥 Copiar Msg Dupla (Completa)</button>
+        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--blue); color:var(--blue);" onclick="copiarMensagemAnamneseDuplaTreino()">👥 Copiar Msg Dupla (Apenas Treino)</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="calcularVolumeMuscularSemanal()">📊 Volume Semanal & Tonagem</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
@@ -263,67 +265,16 @@
 
     <main>
       <div class="nav-tabs">
-        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-        <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
-        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks <span id="tabFeedbackBadge" class="feedback-badge hidden">NOVO</span></button>
-        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
+        <button class="tab-btn active" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editor de Dieta IA</button>
+        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks <span id="tabFeedbackBadge" class="feedback-badge hidden">NOVO</span></button>
+        <button class="tab-btn" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
+        <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
-        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
+        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️️ Dados & Pagamento</button>
       </div>
 
-      <div id="secResumo" class="panel-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
-          <div>
-            <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-            <div style="display:flex; gap:10px; margin-top:4px; align-items:center; flex-wrap:wrap;">
-              <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
-              <span id="studentVencimentoDisplay" style="font-size:12px; color:var(--muted); font-weight:600;">📅 Vencimento: --</span>
-            </div>
-          </div>
-          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-            <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
-            <span id="studentDaysPill" class="status-pill status-pago" style="font-size:9px;">-- DIAS</span>
-          </div>
-        </div>
-
-        <div id="incomodosBox" style="margin-bottom:16px; background:#100305; border:1px solid var(--accent); padding:14px; border-radius:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b style="color:var(--accent); font-size:13px;">⚠️ Observações / Incômodos do Último Treino:</b>
-            <button class="btn btn-soft" style="width:auto; padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="analisarIncomodosIA()">🤖 Analisar com IA</button>
-          </div>
-          <div id="incomodosList" style="font-size:12px; color:#fff; margin-top:8px;">Selecione um aluno para carregar os relatos.</div>
-          <div id="resumoIncomodosIA" style="margin-top:10px; font-size:11.5px; color:var(--gold); background:#0d0204; padding:8px; border-radius:6px;" class="hidden"></div>
-        </div>
-
-        <div id="summaryOverviewContainer">
-          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
-        </div>
-      </div>
-
-      <div id="secAnamnese" class="panel-card hidden">
-        <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
-        <div id="anamneseDetails">
-          <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
-        </div>
-      </div>
-
-      <div id="secFeedbackAdmin" class="panel-card hidden">
-        <div class="panel-title">💬 Chat de Feedback com o Aluno</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Histórico de relatórios e mensagens trocadas. Mensagens armazenadas por 10 dias.</p>
-
-        <div id="adminFeedbackHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="color:var(--muted); font-size:12px; text-align:center;">Selecione um aluno para ver os feedbacks.</div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="adminFeedbackInput" placeholder="Responder aluno..." style="font-size:13px;" onkeypress="if(event.key==='Enter') responderFeedbackAdmin()">
-          <button class="btn" style="width:120px;" onclick="responderFeedbackAdmin()">Enviar</button>
-        </div>
-      </div>
-
-      <div id="secTreino" class="panel-card hidden">
+      <div id="secTreino" class="panel-card">
         <div class="panel-title">🏋️ Editor de Treino em Tempo Real + IA do Treinador</div>
         
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
@@ -382,7 +333,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;Frango Grelhado 150g&#10;Pão de Forma Tradicional 50g (2 fatias)&#10;(Troca) [CARBO] Tapioca 40g&#10;&#10;---&#10;&#10;[Carbo Alto]&#10;Sábado e Domingo&#10;&#10;1ª Refeição&#10;Frango Grelhado 120g&#10;Pão de Forma Tradicional 125g"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;Frango Grelhado 150g&#10;Pão de Forma Tradicional 50g (2 fatias)&#10;(Troca) Tapioca 40g&#10;&#10;---&#10;&#10;[Carbo Alto]&#10;Sábado e Domingo&#10;&#10;1ª Refeição&#10;Frango Grelhado 120g&#10;Pão de Forma Tradicional 125g"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -394,6 +345,57 @@
             <div id="dietPreviewFilters" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;"></div>
             <div id="dietPreviewList" class="preview-card"></div>
           </div>
+        </div>
+      </div>
+
+      <div id="secFeedbackAdmin" class="panel-card hidden">
+        <div class="panel-title">💬 Chat de Feedback com o Aluno</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Histórico de relatórios e mensagens trocadas. Mensagens armazenadas por 10 dias.</p>
+
+        <div id="adminFeedbackHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+          <div style="color:var(--muted); font-size:12px; text-align:center;">Selecione um aluno para ver os feedbacks.</div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="adminFeedbackInput" placeholder="Responder aluno..." style="font-size:13px;" onkeypress="if(event.key==='Enter') responderFeedbackAdmin()">
+          <button class="btn" style="width:120px;" onclick="responderFeedbackAdmin()">Enviar</button>
+        </div>
+      </div>
+
+      <div id="secResumo" class="panel-card hidden">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
+          <div>
+            <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
+            <div style="display:flex; gap:10px; margin-top:4px; align-items:center; flex-wrap:wrap;">
+              <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
+              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
+              <span id="studentVencimentoDisplay" style="font-size:12px; color:var(--muted); font-weight:600;">📅 Vencimento: --</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
+            <span id="studentDaysPill" class="status-pill status-pago" style="font-size:9px;">-- DIAS</span>
+          </div>
+        </div>
+
+        <div id="incomodosBox" style="margin-bottom:16px; background:#100305; border:1px solid var(--accent); padding:14px; border-radius:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <b style="color:var(--accent); font-size:13px;">⚠️ Observações / Incômodos do Último Treino:</b>
+            <button class="btn btn-soft" style="width:auto; padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="analisarIncomodosIA()">🤖 Analisar com IA</button>
+          </div>
+          <div id="incomodosList" style="font-size:12px; color:#fff; margin-top:8px;">Selecione um aluno para carregar os relatos.</div>
+          <div id="resumoIncomodosIA" style="margin-top:10px; font-size:11.5px; color:var(--gold); background:#0d0204; padding:8px; border-radius:6px;" class="hidden"></div>
+        </div>
+
+        <div id="summaryOverviewContainer">
+          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
+        </div>
+      </div>
+
+      <div id="secAnamnese" class="panel-card hidden">
+        <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
+        <div id="anamneseDetails">
+          <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
         </div>
       </div>
 
@@ -1900,8 +1902,8 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     document.getElementById('chartModal').classList.add('hidden');
   }
 
-  const ORDEM_ABAS_PRINCIPAIS = ['resumo', 'anamnese', 'feedbackAdmin', 'treino', 'dieta', 'corrida', 'cadastro'];
-  let abaAtual = 'resumo';
+  const ORDEM_ABAS_PRINCIPAIS = ['treino', 'dieta', 'feedbackAdmin', 'resumo', 'anamnese', 'corrida', 'cadastro'];
+  let abaAtual = 'treino';
 
   function switchTab(tab) {
     if (ORDEM_ABAS_PRINCIPAIS.includes(tab)) abaAtual = tab;
@@ -2040,10 +2042,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             if (!days.startsWith('📅')) days = '📅 ' + days;
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
-            if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
-              trocasCarbo.push(itemTxt.replace(/\[CARBO\]/gi, '').trim());
-            } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
-              trocasProt.push(itemTxt.replace(/\[PROT\]/gi, '').trim());
+            itemTxt = itemTxt.replace(/\[CARBO\]|\[PROT\]/gi, '').trim();
+
+            if (lineLower.includes('carbo')) {
+              trocasCarbo.push(itemTxt);
+            } else if (lineLower.includes('prot')) {
+              trocasProt.push(itemTxt);
             } else {
               trocasCarbo.push(itemTxt);
             }
@@ -2439,6 +2443,22 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino";
     navigator.clipboard.writeText(link);
     showToast("Link da Anamnese (Apenas Treino) copiado!", "success");
+  }
+
+  function copiarMensagemAnamneseDuplaCompleta() {
+    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese&plano=dupla&pago=true";
+    const mensagem = `Olá, tudo bem? Eu sou o Jhonata Personal! 💪\n\nSeja muito bem-vindo(a) à nossa consultoria em dupla!\n\nPara eu montar o seu protocolo completo (Treino + Dieta), por favor preencha a sua anamnese individual no link abaixo:\n\n👉 ${link}\n\nObs: O seu acesso já constará como PAGO no sistema (pago pela sua dupla).`;
+    
+    navigator.clipboard.writeText(mensagem);
+    showToast("Mensagem (Dupla Completa) copiada!", "success");
+  }
+
+  function copiarMensagemAnamneseDuplaTreino() {
+    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&plano=dupla&pago=true";
+    const mensagem = `Olá, tudo bem? Eu sou o Jhonata Personal! 💪\n\nSeja muito bem-vindo(a) à nossa consultoria em dupla!\n\nPara eu montar o seu protocolo exclusivo (Apenas Treino), por favor preencha a sua anamnese individual no link abaixo:\n\n👉 ${link}\n\nObs: O seu acesso já constará como PAGO no sistema (pago pela sua dupla).`;
+    
+    navigator.clipboard.writeText(mensagem);
+    showToast("Mensagem (Dupla Apenas Treino) copiada!", "success");
   }
 
   function calcularVolumeMuscularSemanal() {
