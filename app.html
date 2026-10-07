@@ -211,7 +211,7 @@
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
-    display: flex; justify-space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
   }
   .workout-timer-clock {
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
@@ -240,7 +240,7 @@
   }
   .trainer-goals-title {
     font-size: 12px; font-weight: 800; color: var(--mark); letter-spacing: 0.04em; text-transform: uppercase;
-    display: flex; align-items: center; justify-space-between; user-select: none;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
   }
   .trainer-goals-body {
     font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500; margin-top: 8px;
@@ -256,7 +256,7 @@
   }
   .cardio-goals-title {
     font-size: 12px; font-weight: 800; color: var(--blue); letter-spacing: 0.04em; text-transform: uppercase;
-    display: flex; align-items: center; justify-space-between; user-select: none;
+    display: flex; align-items: center; justify-content: space-between; user-select: none;
   }
   .cardio-goals-body {
     font-size: 12.5px; color: var(--ink); line-height: 1.5; font-weight: 500; margin-top: 8px;
@@ -870,6 +870,87 @@
 
   let workoutTimerInterval = null;
   let workoutTimerRunning = false;
+
+  function parseWorkoutText(rawText) {
+    if (!rawText || !rawText.trim()) return [];
+
+    const lines = rawText.split('\n');
+    const days = [];
+    let currentDay = null;
+
+    let globalSeries = "3";
+    let globalReps = "8-10";
+
+    const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
+
+    lines.forEach(line => {
+      const cleanLine = line.trim();
+      if (!cleanLine) return;
+
+      const lowerLine = cleanLine.toLowerCase();
+
+      if (lowerLine.includes('global') || lowerLine.startsWith('series') || lowerLine.startsWith('séries')) {
+        const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
+        if (matchGlobal) {
+          globalSeries = matchGlobal[1];
+          globalReps = matchGlobal[2];
+        }
+        return;
+      }
+
+      let isDayHeader = false;
+      const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
+
+      const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
+      const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
+
+      if (hasDivKeyword || isShortHeader) {
+        isDayHeader = true;
+      }
+
+      if (isDayHeader) {
+        currentDay = { title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), exercicios: [] };
+        days.push(currentDay);
+      } else {
+        if (!currentDay) {
+          currentDay = { title: "TREINO A", exercicios: [] };
+          days.push(currentDay);
+        }
+
+        let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
+
+        // RECONHECIMENTO DE TEMPO/DURAÇÃO (ex: 3x1min, 3x45s, 4x1minuto)
+        const matchTempo = cleanLine.match(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/i);
+
+        if (matchTempo) {
+          let series = matchTempo[1];
+          let tempoStr = matchTempo[2];
+          name = name.replace(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/gi, '').trim();
+
+          currentDay.exercicios.push({ 
+            nome: name, 
+            series: `${series} Séries`, 
+            reps: tempoStr, 
+            tecnica: 'convencional' 
+          });
+        } else {
+          const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+
+          if (matchFull) {
+            let series = matchFull[1];
+            let reps = matchFull[2] || globalReps;
+            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+
+            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
+          } else {
+            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
+          }
+        }
+      }
+    });
+
+    return days.filter(d => d.exercicios.length > 0);
+  }
 
   function sanitizeExKey(nome) {
     if (!nome) return "ex";
@@ -2251,7 +2332,7 @@
       let prevBadgeHtml = "";
       if (ultimoRegistro) {
         const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : 'Sem carga';
-        const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '';
+        const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed}` : '';
         const tAnt = ultimoRegistro.tecnica ? `(${ultimoRegistro.tecnica})` : '';
         prevBadgeHtml = `<div class="previous-log-badge">📈 Anterior: ${cAnt} | ${rAnt} ${tAnt}</div>`;
       } else {
@@ -2289,7 +2370,7 @@
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
             <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="4-6" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || '4-6'}" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
@@ -2299,7 +2380,7 @@
             <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
             <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valMbC)}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valMbR)}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valMbR)}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
@@ -2319,7 +2400,7 @@
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="${exMeta || 'Últ. Bloco'}" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
         `;
@@ -2347,7 +2428,7 @@
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
-            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="Últ. Bloco" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="${exMeta || 'Últ. Bloco'}" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
@@ -2370,7 +2451,7 @@
               <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
               <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
@@ -2402,14 +2483,14 @@
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
             <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valS1C)}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
             <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
 
@@ -2434,7 +2515,7 @@
               <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
               <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="10-12" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           </div>
@@ -2452,7 +2533,7 @@
               <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
               <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Carga'}" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
-              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="Reps" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
+              <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
             </div>
           `;
