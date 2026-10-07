@@ -271,7 +271,7 @@
         <button class="tab-btn" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
-        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️️ Dados & Pagamento</button>
+        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
       </div>
 
       <div id="secTreino" class="panel-card">
@@ -289,7 +289,7 @@
         <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
           <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha de Treino:</label>
           <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Troque a divisão para Anterior / Posterior">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Adicione Prancha Abdominal 3x1min">
             <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
           </div>
         </div>
@@ -297,7 +297,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="ANTERIOR (SEGUNDA)&#10;Agachamento Cobre 3x 8-10&#10;Extensora 3x+myoreps&#10;&#10;POSTERIOR (QUARTA)&#10;Stiff com Halteres 3x 8-10&#10;Mesa Flexora 3x 10-12"></textarea>
+            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="ANTERIOR (SEGUNDA)&#10;Agachamento Cobre 3x 8-10&#10;Extensora 3x+myoreps&#10;Prancha Abdominal 3x1min&#10;&#10;POSTERIOR (QUARTA)&#10;Stiff com Halteres 3x 8-10&#10;Mesa Flexora 3x 10-12"></textarea>
           </div>
 
           <div>
@@ -607,7 +607,7 @@
         <input type="text" id="newCode" placeholder="Ex: lucas">
 
         <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8"></textarea>
+        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Prancha Abdominal 3x1min"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
         <textarea id="rawDiet" rows="6" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;• Ovos mexidos | 3 un"></textarea>
@@ -2086,7 +2086,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     listEl.innerHTML = '';
 
     if (abas.length === 0) {
-      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite blocos de refeição no editor.</div>`;
+      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️️ Nenhuma refeição reconhecida. Digite blocos de refeição no editor.</div>`;
       return;
     }
 
@@ -2341,16 +2341,32 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
           });
         } 
         else {
-          const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+          // Identificação de tempo/duração (ex: 3x1min, 3x45s, 4x1minuto)
+          const matchTempo = cleanLine.match(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/i);
 
-          if (matchFull) {
-            let series = matchFull[1];
-            let reps = matchFull[2] || globalReps;
-            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+          if (matchTempo) {
+            let series = matchTempo[1];
+            let tempoStr = matchTempo[2];
+            name = name.replace(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/gi, '').trim();
 
-            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
+            currentDay.exercicios.push({ 
+              nome: name, 
+              series: `${series} Séries`, 
+              reps: tempoStr, 
+              tecnica: 'convencional' 
+            });
           } else {
-            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
+            const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+
+            if (matchFull) {
+              let series = matchFull[1];
+              let reps = matchFull[2] || globalReps;
+              name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+
+              currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
+            } else {
+              currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
+            }
           }
         }
       }
