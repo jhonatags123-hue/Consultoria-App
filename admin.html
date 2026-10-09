@@ -164,6 +164,11 @@
   .toast.success { border-color: var(--green); background: #051a0e; }
   @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+  .gif-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; margin-top: 10px; }
+  .gif-card { background: #0d0204; border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .gif-card img { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; }
+  .gif-card span { font-size: 11px; color: #fff; font-weight: 600; display: block; margin-top: 4px; }
+
   @media (max-width: 820px) {
     header { padding: 12px 16px; }
     h1 { font-size: 22px; }
@@ -253,6 +258,7 @@
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--blue); color:var(--blue);" onclick="copiarMensagemAnamneseDuplaTreino()">👥 Copiar Msg Dupla (Apenas Treino)</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="calcularVolumeMuscularSemanal()">📊 Volume Semanal & Tonagem</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
+        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('gifs')">🎥 Banco de GIFs de Exercícios</button>
         <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
 
         <div class="tutorial-box">
@@ -309,6 +315,17 @@
         </div>
 
         <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
+      </div>
+
+      <div id="secGifs" class="panel-card hidden">
+        <div class="panel-title">🎥 Banco de Execuções em GIF (PT-BR)</div>
+        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
+          Veja e pesquise por animações de execução técnica em GIFs pré-carregadas para associar aos treinos dos alunos.
+        </p>
+        <input type="text" id="searchGifInput" placeholder="🔍 Buscar exercício por nome (ex: Supino, Agachamento)..." oninput="filtrarGifsAdmin()" style="margin-bottom:12px;">
+        <div id="gifGalleryList" class="gif-grid">
+          <div style="color:var(--muted); font-size:12px; grid-column: 1/-1;">Carregando repositório de GIFs...</div>
+        </div>
       </div>
 
       <div id="secDieta" class="panel-card hidden">
@@ -640,6 +657,7 @@
   let allStudentsList = [];
   let chartInstance = null;
   let activeDietAbaIndex = 0;
+  let gifsDatabase = [];
 
   const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
   const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
@@ -683,6 +701,50 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function carregarGifsAdmin() {
+    fetch(`${BACKEND_URL}/api/exercicios/gifs`, { headers: authHeaders() })
+      .then(res => res.json())
+      .then(data => {
+        gifsDatabase = data || [];
+        renderGifsAdmin(gifsDatabase);
+      })
+      .catch(() => {
+        document.getElementById('gifGalleryList').innerHTML = `<div style="color:var(--accent); font-size:12px; grid-column: 1/-1;">Não foi possível carregar a lista de GIFs.</div>`;
+      });
+  }
+
+  function renderGifsAdmin(lista) {
+    const gallery = document.getElementById('gifGalleryList');
+    gallery.innerHTML = "";
+    if (!lista || lista.length === 0) {
+      gallery.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column: 1/-1;">Nenhum GIF encontrado.</div>`;
+      return;
+    }
+
+    lista.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'gif-card';
+      card.innerHTML = `
+        <img src="${item.url}" alt="${escapeHtml(item.nome)}" loading="lazy">
+        <span>${escapeHtml(item.nome)}</span>
+      `;
+      gallery.appendChild(card);
+    });
+  }
+
+  function filtrarGifsAdmin() {
+    const termo = document.getElementById('searchGifInput').value.toLowerCase();
+    const filtrados = gifsDatabase.filter(g => g.nome.toLowerCase().includes(termo));
+    renderGifsAdmin(filtrados);
+  }
+
+  function buscarGifExercicio(nomeEx) {
+    if (!nomeEx || !gifsDatabase.length) return null;
+    const key = sanitizeExKey(nomeEx);
+    const ex = gifsDatabase.find(g => sanitizeExKey(g.nome) === key || key.includes(sanitizeExKey(g.nome)) || sanitizeExKey(g.nome).includes(key));
+    return ex ? ex.url : null;
   }
 
   function atualizarCampoNotasMemoria() {
@@ -762,6 +824,7 @@
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('adminApp').classList.remove('hidden');
       fetchAlunos();
+      carregarGifsAdmin();
     }
   });
 
@@ -789,6 +852,7 @@
         document.getElementById('adminApp').classList.remove('hidden');
         showToast("Login realizado com sucesso!", "success");
         fetchAlunos();
+        carregarGifsAdmin();
       } else {
         errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
         errorDiv.style.display = 'block';
@@ -1072,9 +1136,11 @@
             }
           }
 
+          const hasGif = ex.gifUrl ? '📹 GIF vinculado' : '';
+
           htmlContent += `
             <div class="ex-clickable" onclick="verEvolucaoSemanal('${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
-              <span>• <b>${escapeHtml(ex.nome)}</b></span>
+              <span>• <b>${escapeHtml(ex.nome)}</b> <small style="color:var(--green);">${hasGif}</small></span>
               <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) | 📈 ${cargaRecenteTexto}</span>
             </div>
           `;
@@ -1277,7 +1343,7 @@ Sua única função é escrever as DIRETRIZES DE TREINO DE FORÇA resumidas para
 
 REGRAS RÍGIDAS E OBRIGATÓRIAS:
 1. NUNCA use o caractere asterisco (*). Não coloque NADA em negrito.
-2. NUNCA mencione dieta, alimentação, suplemento, cardio, aeróbico ou corrida. Fale APENAS de treino de força/musculação.
+​2. NUNCA mencione dieta, alimentação, suplemento, cardio, aeróbico ou corrida. Fale APENAS de treino de força/musculação.
 3. Seja EXTREMAMENTE curto, direto e objetivo (máximo 4 a 5 linhas ou tópicos curtos sem asterisco).
 4. Foque apenas em: cadência, tempo de descanso entre séries, percepção de esforço (RPE) e progressão de carga.
 
@@ -1726,8 +1792,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       
       day.exercicios.forEach(ex => {
         const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
+        const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 Execution GIF</span>` : '';
         html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-          <span>• ${escapeHtml(ex.nome)}${isTecnico}</span>
+          <span>• ${escapeHtml(ex.nome)}${isTecnico}${gifBadge}</span>
           <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
         </div>`;
       });
@@ -1917,6 +1984,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     document.getElementById('secCadastro').classList.add('hidden');
     document.getElementById('secNovo').classList.add('hidden');
     document.getElementById('secChatAdmin').classList.add('hidden');
+    document.getElementById('secGifs').classList.add('hidden');
 
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
@@ -1945,6 +2013,8 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       document.getElementById('secNovo').classList.remove('hidden');
     } else if (tab === 'chatAdmin') {
       document.getElementById('secChatAdmin').classList.remove('hidden');
+    } else if (tab === 'gifs') {
+      document.getElementById('secGifs').classList.remove('hidden');
     }
   }
 
@@ -2042,7 +2112,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             if (!days.startsWith('📅')) days = '📅 ' + days;
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
-            itemTxt = itemTxt.replace(/\[CARBO\]|\[PROT\]/gi, '').trim();
+            itemTxt = itemTxt.replace(/[CARBO]|[PROT]/gi, '').trim();
 
             if (lineLower.includes('carbo')) {
               trocasCarbo.push(itemTxt);
@@ -2086,7 +2156,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     listEl.innerHTML = '';
 
     if (abas.length === 0) {
-      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️️ Nenhuma refeição reconhecida. Digite blocos de refeição no editor.</div>`;
+      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠ Nenhuma refeição reconhecida. Digite blocos de refeição no editor.</div>`;
       return;
     }
 
@@ -2283,47 +2353,49 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         const matchX = cleanLine.match(/^(\d+)\s*[xX×]\s*/i);
         let numSeriesDigitado = matchX ? parseInt(matchX[1]) : null;
 
+        let exObj = {};
+
         if (hasCluster && hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+cluster\+backoff|\d+x\+backoff|cluster\+backoff|\+cluster|\+backoff)/gi, '')
                      .trim();
 
-          currentDay.exercicios.push({
+          exObj = {
             nome: name,
             series: "3 Séries",
             reps: "2 Séries Cluster (20s desc) + 1 Série Back-off (-20% carga)",
             tecnica: "cluster_backoff",
             isTecnico: true,
             tecnicaTipo: "CLUSTER + BACK-OFF"
-          });
+          };
         } 
         else if (hasMyo) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+myoreps|myoreps|myo|\+myo)/gi, '')
                      .trim();
 
-          currentDay.exercicios.push({
+          exObj = {
             nome: name,
             series: "Myo-Reps",
             reps: "1 Série Ativação (4-6 reps) + 4 a 6 Mini-blocos (10-15s desc)",
             tecnica: "myoreps",
             isTecnico: true,
             tecnicaTipo: "MYO-REPS"
-          });
+          };
         } 
         else if (hasBackoff) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
                      .replace(/(\d+x\+backoff|\d+x\+back-off|backoff|back-off|\+backoff|\+back-off)/gi, '')
                      .trim();
 
-          currentDay.exercicios.push({
+          exObj = {
             nome: name,
             series: "3 Séries",
             reps: "2 Séries normais + 1 Série Back-off (-20% a 30% carga)",
             tecnica: "backoff_2x",
             isTecnico: true,
             tecnicaTipo: "2 SÉRIES + BACK-OFF"
-          });
+          };
         } 
         else if (hasCluster) {
           name = name.replace(/^(\d+)\s*[xX×]\s*/i, '')
@@ -2331,17 +2403,16 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
                      .trim();
 
           const qtdSeries = numSeriesDigitado ? `${numSeriesDigitado} Séries` : "2 Séries";
-          currentDay.exercicios.push({
+          exObj = {
             nome: name,
             series: qtdSeries,
             reps: "Blocos de 2-3 reps (20s descanso intra-série)",
             tecnica: "cluster",
             isTecnico: true,
             tecnicaTipo: "CLUSTER SET"
-          });
+          };
         } 
         else {
-          // Identificação de tempo/duração (ex: 3x1min, 3x45s, 4x1minuto)
           const matchTempo = cleanLine.match(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/i);
 
           if (matchTempo) {
@@ -2349,12 +2420,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
             let tempoStr = matchTempo[2];
             name = name.replace(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/gi, '').trim();
 
-            currentDay.exercicios.push({ 
+            exObj = { 
               nome: name, 
               series: `${series} Séries`, 
               reps: tempoStr, 
               tecnica: 'convencional' 
-            });
+            };
           } else {
             const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
 
@@ -2363,12 +2434,19 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
               let reps = matchFull[2] || globalReps;
               name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
 
-              currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
+              exObj = { nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' };
             } else {
-              currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
+              exObj = { nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' };
             }
           }
         }
+
+        const foundGifUrl = buscarGifExercicio(exObj.nome);
+        if (foundGifUrl) {
+          exObj.gifUrl = foundGifUrl;
+        }
+
+        currentDay.exercicios.push(exObj);
       }
     });
 
