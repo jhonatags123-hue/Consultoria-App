@@ -1329,7 +1329,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     const btn = document.getElementById('btnGerarApenasDiretrizesIA');
     const txtOriginal = btn.textContent;
 
-    btn.textContent = "⏳ Gerando Diretrizes Limpas...";
+    btn.textContent = "⏳ Gerando Diretrizes...";
     btn.disabled = true;
 
     try {
@@ -1338,14 +1338,20 @@ Retorne ESTRITAMENTE um JSON puro no formato:
         headers: authHeaders(),
         cache: 'no-cache',
         body: JSON.stringify({
-          mensagem: `Você é um assistente de musculação.
-Sua única função é escrever as DIRETRIZES DE TREINO DE FORÇA resumidas para o aluno, com base no treino atual fornecido.
+          mensagem: `Você é um preparador físico prático e objetivo.
+Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno com base no treino fornecido.
 
-REGRAS RÍGIDAS E OBRIGATÓRIAS:
-1. NUNCA use o caractere asterisco (*). Não coloque NADA em negrito.
-​2. NUNCA mencione dieta, alimentação, suplemento, cardio, aeróbico ou corrida. Fale APENAS de treino de força/musculação.
-3. Seja EXTREMAMENTE curto, direto e objetivo (máximo 4 a 5 linhas ou tópicos curtos sem asterisco).
-4. Foque apenas em: cadência, tempo de descanso entre séries, percepção de esforço (RPE) e progressão de carga.
+MANTENHA O TEXTO RESUMIDO E SIMPLES, MAS OBRIGATORIAMENTE INCLUA O PASSO A PASSO DA ATIVAÇÃO NEURAL E TRABALHO EM TÓPICOS RÁPIDOS:
+
+1. Aquecimento Geral / Articular: (Instrução rápida de mobilidade/elevação de temperatura).
+2. Série de Reconhecimento (Feeder Set): (1 série leve para ajustar carga e sentir o movimento sem fadiga).
+3. PAP / Ativação Neural (Ramp-up): (1 série de alta carga/85%+ com poucas reps para ativar o SNC).
+4. Séries de Trabalho (Working Sets): (Foco nas séries valendo, cadência, RPE/RIR e tempo de descanso).
+
+REGRAS DE FORMATO:
+- NUNCA use o caractere asterisco (*). Não coloque nada em negrito.
+- NUNCA fale sobre dieta, suplementos, cardio ou corrida neste bloco. Fale EXCLUSIVAMENTE sobre o treino de força.
+- Resumo prático e direto para o aluno ler em segundos no app.
 
 --- FICHA DE TREINO ATUAL ---
 ${treinoAtualTexto}`,
@@ -1358,7 +1364,7 @@ ${treinoAtualTexto}`,
       if (res.ok && data.resposta) {
         let textoLimpo = data.resposta.replace(/\*/g, '').trim();
         document.getElementById('editTrainerGuidelines').value = textoLimpo;
-        showToast("Diretrizes geradas com sucesso!", "success");
+        showToast("Diretrizes de Aquecimento, PAP e Trabalho geradas!", "success");
       } else {
         showToast(data.error || "Não foi possível gerar as diretrizes.", "error");
       }
@@ -2054,7 +2060,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
+    const rawAbas = rawText.split(/(?=[ABA]|[CICLO]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
 
     const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
@@ -2065,13 +2071,13 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       let abaNome = "PLANO PRINCIPAL";
       let textContent = cleanAba;
 
-      if (/^(\[ABA\]|\[CICLO\]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\])/i.test(cleanAba)) {
+      if (/^([ABA]|[CICLO]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\])/i.test(cleanAba)) {
         const firstLineEnd = cleanAba.indexOf('\n');
         if (firstLineEnd !== -1) {
-          abaNome = cleanAba.substring(0, firstLineEnd).replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
+          abaNome = cleanAba.substring(0, firstLineEnd).replace(/[ABA]|[CICLO]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = cleanAba.substring(firstLineEnd).trim();
         } else {
-          abaNome = cleanAba.replace(/\[ABA\]|\[CICLO\]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
+          abaNome = cleanAba.replace(/[ABA]|[CICLO]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
           textContent = "";
         }
       }
