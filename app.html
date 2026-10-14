@@ -884,87 +884,6 @@
     }
   }
 
-  function parseWorkoutText(rawText) {
-    if (!rawText || !rawText.trim()) return [];
-
-    const lines = rawText.split('\n');
-    const days = [];
-    let currentDay = null;
-
-    let globalSeries = "3";
-    let globalReps = "8-10";
-
-    const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
-
-    lines.forEach(line => {
-      const cleanLine = line.trim();
-      if (!cleanLine) return;
-
-      const lowerLine = cleanLine.toLowerCase();
-
-      if (lowerLine.includes('global') || lowerLine.startsWith('series') || lowerLine.startsWith('séries')) {
-        const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
-        if (matchGlobal) {
-          globalSeries = matchGlobal[1];
-          globalReps = matchGlobal[2];
-        }
-        return;
-      }
-
-      let isDayHeader = false;
-      const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
-
-      const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
-      const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
-
-      if (hasDivKeyword || isShortHeader) {
-        isDayHeader = true;
-      }
-
-      if (isDayHeader) {
-        currentDay = { title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), exercicios: [] };
-        days.push(currentDay);
-      } else {
-        if (!currentDay) {
-          currentDay = { title: "TREINO A", exercicios: [] };
-          days.push(currentDay);
-        }
-
-        let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
-
-        // RECONHECIMENTO DE TEMPO/DURAÇÃO (ex: 3x1min, 3x45s, 4x1minuto)
-        const matchTempo = cleanLine.match(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/i);
-
-        if (matchTempo) {
-          let series = matchTempo[1];
-          let tempoStr = matchTempo[2];
-          name = name.replace(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/gi, '').trim();
-
-          currentDay.exercicios.push({ 
-            nome: name, 
-            series: `${series} Séries`, 
-            reps: tempoStr, 
-            tecnica: 'convencional' 
-          });
-        } else {
-          const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
-
-          if (matchFull) {
-            let series = matchFull[1];
-            let reps = matchFull[2] || globalReps;
-            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
-
-            currentDay.exercicios.push({ nome: name, series: `${series} Séries`, reps: reps, tecnica: 'convencional' });
-          } else {
-            currentDay.exercicios.push({ nome: name, series: `${globalSeries} Séries`, reps: globalReps, tecnica: 'convencional' });
-          }
-        }
-      }
-    });
-
-    return days.filter(d => d.exercicios.length > 0);
-  }
-
   function sanitizeExKey(nome) {
     if (!nome) return "ex";
     return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -988,7 +907,6 @@
       : "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
 
     const textoConsultoria = tipoTreino ? "o treino" : "o treino e a alimentação";
-
     const mensagemPronta = `Olá, tudo bem? Sou o Jhonata Personal! Sua dupla me contratou para acompanharmos ${textoConsultoria} de vocês. Clica no link abaixo, preenche a anamnese e bora juntos buscar o resultado! 🚀🚀\n\n${link}`;
 
     navigator.clipboard.writeText(mensagemPronta);
@@ -1299,7 +1217,7 @@
   function nextAnamStep(step) {
     if (isApenasTreinoMode) {
       if (step === 7 || step === 8) {
-        step = 9; // Pula as etapas de nutrição se for Apenas Treino
+        step = 9;
       }
     }
 
@@ -1346,39 +1264,48 @@
     btn.textContent = "Conectando ao servidor...";
     btn.disabled = true;
 
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-cache',
-        body: JSON.stringify({ codigo: user, senha: pass })
-      });
+    const tentarConexao = async (tentativasRestantes) => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-cache',
+          body: JSON.stringify({ codigo: user, senha: pass })
+        });
 
-      const result = await res.json();
+        const result = await res.json();
 
-      if (!res.ok) {
-        errorDiv.textContent = result.error || "Erro de login.";
-        errorDiv.classList.remove('hidden');
-        btn.textContent = "Entrar";
-        btn.disabled = false;
-        return;
+        if (!res.ok) {
+          errorDiv.textContent = result.error || "Erro de login.";
+          errorDiv.classList.remove('hidden');
+          btn.textContent = "Entrar";
+          btn.disabled = false;
+          return;
+        }
+
+        localStorage.setItem('logged_user', user);
+        localStorage.setItem('aluno_token', result.token);
+        loggedUserCode = user;
+
+        if (window.history.replaceState) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        loadStudentData(result.data);
+      } catch (err) {
+        if (tentativasRestantes > 0) {
+          btn.textContent = "Iniciando servidor, aguarde...";
+          setTimeout(() => tentarConexao(tentativasRestantes - 1), 3500);
+        } else {
+          errorDiv.textContent = "O servidor demorou a responder. Aguarde alguns segundos e tente novamente.";
+          errorDiv.classList.remove('hidden');
+          btn.textContent = "Entrar";
+          btn.disabled = false;
+        }
       }
+    };
 
-      localStorage.setItem('logged_user', user);
-      localStorage.setItem('aluno_token', result.token);
-      loggedUserCode = user;
-
-      if (window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      loadStudentData(result.data);
-    } catch (err) {
-      errorDiv.textContent = "Servidor iniciando. Aguarde uns instantes e tente novamente.";
-      errorDiv.classList.remove('hidden');
-      btn.textContent = "Entrar";
-      btn.disabled = false;
-    }
+    tentarConexao(3);
   }
 
   async function sendAnamneseAppDirect() {
@@ -2068,12 +1995,23 @@
       currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
     }
 
+    // --- LIMPEZA COMPLETA E IRREVERSÍVEL DE TODOS OS STATUS ---
     if (!currentData.logs) currentData.logs = {};
+
+    // 1. Apaga todas as marcações de exercícios concluídos
+    Object.keys(currentData.logs).forEach(key => {
+      if (key.startsWith('ex_done_')) {
+        delete currentData.logs[key];
+      }
+    });
+
+    // 2. Apaga logs temporários e observações dos exercícios do treino concluído
     if (day && day.exercicios) {
       day.exercicios.forEach((ex, exIdx) => {
         const exKeySanitized = sanitizeExKey(ex.nome);
         delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
-        for(let s=1; s<=5; s++) {
+        
+        for (let s = 1; s <= 5; s++) {
           delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
           delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
           delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
@@ -2088,13 +2026,16 @@
         delete currentData.logs[`log_r_${exKeySanitized}_bo`];
       });
     }
-    delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
     
+    delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
+
+    // 3. Limpa rascunhos salvos no cache do navegador (LocalStorage)
     if (loggedUserCode) {
       localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
-      localStorage.removeItem(`draft_student_logs_${loggedUserCode}`);
+      localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
     }
 
+    // 4. Rotação para o próximo treino da ficha
     const totalDays = (currentData.days || []).length;
     let proximoTreino = currentTreinoDayIdx;
 
@@ -2108,9 +2049,10 @@
 
     currentData.ultimo_treino_idx = proximoTreino;
 
+    // 5. Zera a interface visual imediatamente
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
-      btn.textContent = "Série " + btn.dataset.num;
+      btn.textContent = "Série " + (btn.dataset.num || '');
     });
     document.querySelectorAll('.btn-check-exercise').forEach(btn => {
       btn.classList.remove('done');
@@ -2120,7 +2062,17 @@
       card.classList.remove('exercise-done');
     });
 
-    scheduleAutoSave('ultimo_treino_idx', proximoTreino);
+    // 6. Envia e aguarda o salvamento completo no servidor antes de prosseguir
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+    } catch (e) {
+      console.error("Erro ao sincronizar término de treino com o servidor:", e);
+    }
 
     document.getElementById('modalTreinoConcluido').classList.remove('hidden');
   }
@@ -2129,7 +2081,7 @@
     document.getElementById('modalTreinoConcluido').classList.add('hidden');
     
     document.getElementById('workoutTimerClock').textContent = "00:00:00";
-    document.getElementById('btnWorkoutTimer').textContent = "▶️ INICIAR TREINO";
+    document.getElementById('btnWorkoutTimer').textContent = "▶ INICIAR TREINO";
     document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
     setInputsLockState(true);
 
@@ -2264,7 +2216,6 @@
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase();
 
-      // REGRAS DE SÉRIES PRESCITAS
       let isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
       let isStrict2x = seriesStr.includes('2x') || seriesStr.trim() === '2';
       let isStrict3x = seriesStr.includes('3x') || seriesStr.trim() === '3';
@@ -2336,7 +2287,6 @@
         }
       }
 
-      // HISTÓRICO DA SESSÃO ANTERIOR
       const exKeySanitized = sanitizeExKey(cleanName);
       const keyLog = `${dayIdx}_${exIdx}`;
       const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
@@ -2534,7 +2484,6 @@
           </div>
         `;
       } else {
-        // RENDERA SÉRIES CONVENCIONAIS
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
