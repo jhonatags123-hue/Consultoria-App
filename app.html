@@ -159,9 +159,9 @@
     background: rgba(220, 170, 58, 0.1);
     border: 1px solid var(--mark-dim);
     color: var(--mark);
-    padding: 3px 8px;
+    padding: 4px 8px;
     border-radius: 4px;
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 600;
     margin-bottom: 10px;
     font-family: var(--font-mono);
@@ -2141,7 +2141,6 @@
         let semanaAtual = currentData.semana_rotacao || 1;
         currentData.semana_rotacao = (semanaAtual % 5) + 1;
         
-        // Reset automático de cardio ao virar o ciclo da semana
         await resetCardioSemanal();
       }
     }
@@ -2341,7 +2340,6 @@
 
       const activeMode = isStrict1x ? 'convencional' : (savedUserMode || defaultMode);
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-
       let numSeriesPrescritas = isStrict1x ? 1 : (parseInt(seriesStr) || 3);
 
       const div = document.createElement('div');
@@ -2389,14 +2387,15 @@
       const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
       const ultimoRegistro = historicoEx.length > 0 ? historicoEx[historicoEx.length - 1] : null;
 
+      // --- EXIBIÇÃO FORMATADA DO ÚLTIMO TREINO ---
       let prevBadgeHtml = "";
       if (ultimoRegistro) {
-        const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : 'Sem carga';
-        const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed}` : '';
-        const tAnt = ultimoRegistro.tecnica ? `(${ultimoRegistro.tecnica})` : '';
-        prevBadgeHtml = `<div class="previous-log-badge">📈 Anterior: ${cAnt} | ${rAnt} ${tAnt}</div>`;
+        const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : '--';
+        const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '--';
+        const tAnt = ultimoRegistro.tecnica ? `| Técnica: ${ultimoRegistro.tecnica}` : '';
+        prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino — Peso: ${cAnt} | Reps: ${rAnt} ${tAnt}</div>`;
       } else {
-        prevBadgeHtml = `<div class="previous-log-badge">📈 Anterior: Sem registro prévio</div>`;
+        prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
       }
 
       let html = `
@@ -2484,7 +2483,7 @@
         html += `
           <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
-            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Peso'}" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Peso'}" value="${escapeHtml(valClC)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'cl', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit" style="font-size:9px;">blocos</span>
@@ -2492,24 +2491,24 @@
             <span class="unit">reps</span>
           </div>
           <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-              <span style="font-size:11px; font-weight:600; color:var(--signal-light);">Back-off Set:</span>
+            <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
+            <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
               ${nCl > 0 ? `
-                <div style="display:flex; gap:4px;">
-                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                <div style="display:flex; gap:4px; width:100%;">
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
                     onclick="aplicarCargaBackoff('${keyBoC}',${carga20Cl}, ${dayIdx},${exIdx})">
                     -20% (${carga20Cl}kg)
                   </button>
-                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
                     onclick="aplicarCargaBackoff('${keyBoC}',${carga30Cl}, ${dayIdx},${exIdx})">
                     -30% (${carga30Cl}kg)
                   </button>
                 </div>
-              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite o peso para calcular</span>`}
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga no Cluster para calcular o peso ideal do Back-off</span>`}
             </div>
             <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
               <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
-              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
@@ -2541,39 +2540,39 @@
         html += `
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-            <input ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valS1C)}" oninput="scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <input id="input_${keyS1C}" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="${ultimoRegistro ? ultimoRegistro.cargaMax : 'Kg'}" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '2x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
-            <input ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <input id="input_${keyS2C}" ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '2x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
 
           <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-              <span style="font-size:11px; font-weight:600; color:var(--signal-light);">Back-off Set (Escolha a redução):</span>
+            <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
+            <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
               ${maiorCarga > 0 ? `
-                <div style="display:flex; gap:4px;">
-                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                <div style="display:flex; gap:4px; width:100%;">
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
                     onclick="aplicarCargaBackoff('${keyBoC}',${carga20}, ${dayIdx},${exIdx})">
                     -20% (${carga20}kg)
                   </button>
-                  <button type="button" class="rest-timer-btn" style="padding:2px 6px; font-size:10px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
                     onclick="aplicarCargaBackoff('${keyBoC}',${carga30}, ${dayIdx},${exIdx})">
                     -30% (${carga30}kg)
                   </button>
                 </div>
-              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga acima para calcular</span>`}
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries acima para calcular o Back-off</span>`}
             </div>
 
             <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
               <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
-              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="-20-30%" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">reps</span>
@@ -2603,6 +2602,47 @@
       div.innerHTML = html;
       container.appendChild(div);
     });
+  }
+
+  function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
+    const box = document.getElementById(`calc_backoff_box_${exKeySanitized}`);
+    if (!box) return;
+
+    let maiorCarga = 0;
+    let keyBoC = "";
+
+    if (tipo === 'cl') {
+      const elCl = document.querySelector(`input[name="workout_log_c_${exKeySanitized}_cl_peso"]`);
+      if (elCl) maiorCarga = parseFloat(elCl.value) || 0;
+      keyBoC = `log_c_${exKeySanitized}_s2`;
+    } else {
+      const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
+      const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
+      const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
+      const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
+      maiorCarga = Math.max(v1, v2);
+      keyBoC = `log_c_${exKeySanitized}_bo`;
+    }
+
+    if (maiorCarga > 0) {
+      const c20 = Math.round(maiorCarga * 0.80);
+      const c30 = Math.round(maiorCarga * 0.70);
+
+      box.innerHTML = `
+        <div style="display:flex; gap:4px; width:100%;">
+          <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+            onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
+            -20% (${c20}kg)
+          </button>
+          <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+            onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
+            -30% (${c30}kg)
+          </button>
+        </div>
+      `;
+    } else {
+      box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries acima para calcular o Back-off</span>`;
+    }
   }
 
   function scheduleAutoSave(key, value, dayIdx, exIdx) {
