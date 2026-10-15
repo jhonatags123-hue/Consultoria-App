@@ -779,8 +779,13 @@
     </div>
 
     <div id="tabCorrida" class="card hidden">
-      <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:12px; color:var(--blue);">🏃 Prescrição Semanal & Registro de Pace</div>
-      
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div class="label-fdb" style="font-size:14px; margin-bottom:0; color:var(--blue);">🏃 Prescrição Semanal & Pace</div>
+        <button type="button" class="btn-header" style="border-color:var(--signal-light); color:var(--signal-light); font-size:10.5px;" onclick="if(confirm('Limpar todos os dados de cardio da semana?')) resetCardioSemanal();">
+          🗑️ Zerar Semanal
+        </button>
+      </div>
+
       <div class="cardio-goals-card" onclick="toggleCardioGoals()">
         <div class="cardio-goals-title">
           <span>🏃 Prescrição de Aeróbico & Cardio</span>
@@ -886,7 +891,7 @@
 
   function sanitizeExKey(nome) {
     if (!nome) return "ex";
-    return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
   }
 
   function atualizarResumoPrecoAnamnese() {
@@ -1659,6 +1664,100 @@
     localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
   }
 
+  // --- FUNÇÕES DE CARDIO E RESETS ---
+  async function salvarRunDia(diaKey) {
+    if (!currentData) return;
+
+    const inputKm = document.getElementById(`run_km_${diaKey}`);
+    const inputMin = document.getElementById(`run_min_${diaKey}`);
+
+    const kmVal = inputKm ? inputKm.value.trim() : "";
+    const minVal = inputMin ? inputMin.value.trim() : "";
+
+    if (!currentData.registros_corrida) currentData.registros_corrida = {};
+
+    const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+
+    if (kmVal || minVal) {
+      currentData.registros_corrida[diaKey] = [{
+        data: dataHoje,
+        km: kmVal,
+        min: minVal
+      }];
+    } else {
+      delete currentData.registros_corrida[diaKey];
+    }
+
+    const paceStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
+    const displayPace = document.getElementById(`run_pace_display_${diaKey}`);
+    if (displayPace) {
+      displayPace.innerHTML = `⏱ Pace do dia: <span>${paceStr}</span> /km`;
+    }
+
+    setupCorrida(currentData);
+
+    const ind = document.getElementById('saveIndicator');
+    if (ind) ind.style.display = 'block';
+
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+    } catch (e) {
+      console.error("Erro ao salvar cardio:", e);
+    } finally {
+      if (ind) ind.style.display = 'none';
+    }
+  }
+
+  async function apagarRunDia(diaKey) {
+    if (!confirm(`Deseja apagar o registro de cardio deste dia?`)) return;
+
+    const inputKm = document.getElementById(`run_km_${diaKey}`);
+    const inputMin = document.getElementById(`run_min_${diaKey}`);
+
+    if (inputKm) inputKm.value = '';
+    if (inputMin) inputMin.value = '';
+
+    if (currentData && currentData.registros_corrida) {
+      delete currentData.registros_corrida[diaKey];
+    }
+
+    await salvarRunDia(diaKey);
+  }
+
+  async function resetCardioSemanal() {
+    if (!currentData) return;
+
+    currentData.registros_corrida = {};
+    currentData.corridas = [];
+
+    const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+    dias.forEach(d => {
+      const elKm = document.getElementById(`run_km_${d}`);
+      const elMin = document.getElementById(`run_min_${d}`);
+      const elPace = document.getElementById(`run_pace_display_${d}`);
+
+      if (elKm) elKm.value = '';
+      if (elMin) elMin.value = '';
+      if (elPace) elPace.innerHTML = '⏱ Pace do dia: <span>--\'--"</span> /km';
+    });
+
+    setupCorrida(currentData);
+
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+      });
+    } catch (e) {}
+  }
+
   function setupCorrida(data) {
     const presContainer = document.getElementById('corridaPrescricaoList');
     const histContainer = document.getElementById('corridaHistoryList');
@@ -1723,10 +1822,11 @@
       card.innerHTML = `
         <div class="run-day-title">${d.nome}</div>
         <div class="run-day-desc">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
-        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
+        <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
           <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
           <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min (Ex: 25)" value="${escapeHtml(minVal)}">
-          <button type="button" id="btn_save_run_${d.key}" class="btn-login btn-blue" style="width:100px; min-height:36px; padding:0 6px; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
+          <button type="button" class="btn-login btn-blue" style="width:70px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
+          <button type="button" class="btn-login" style="width:36px; min-height:36px; padding:0; font-size:12px; margin-top:0; background:var(--panel); border:1px solid var(--line); color:var(--signal-light);" title="Apagar registro do dia" onclick="apagarRunDia('${d.key}')">🗑️</button>
         </div>
         <div id="run_pace_display_${d.key}" style="font-size:11.5px; font-weight:700; color:var(--blue); margin-top:6px;">
           ⏱ Pace do dia: <span>${paceDiaStr}</span> /km
@@ -1995,17 +2095,15 @@
       currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
     }
 
-    // --- LIMPEZA COMPLETA E IRREVERSÍVEL DE TODOS OS STATUS ---
+    // --- LIMPEZA COMPLETA DE STATUS E LOGS TEMPORÁRIOS ---
     if (!currentData.logs) currentData.logs = {};
 
-    // 1. Apaga todas as marcações de exercícios concluídos
     Object.keys(currentData.logs).forEach(key => {
       if (key.startsWith('ex_done_')) {
         delete currentData.logs[key];
       }
     });
 
-    // 2. Apaga logs temporários e observações dos exercícios do treino concluído
     if (day && day.exercicios) {
       day.exercicios.forEach((ex, exIdx) => {
         const exKeySanitized = sanitizeExKey(ex.nome);
@@ -2029,13 +2127,11 @@
     
     delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
 
-    // 3. Limpa rascunhos salvos no cache do navegador (LocalStorage)
     if (loggedUserCode) {
       localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
       localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
     }
 
-    // 4. Rotação para o próximo treino da ficha
     const totalDays = (currentData.days || []).length;
     let proximoTreino = currentTreinoDayIdx;
 
@@ -2044,12 +2140,14 @@
       if (proximoTreino === 0) {
         let semanaAtual = currentData.semana_rotacao || 1;
         currentData.semana_rotacao = (semanaAtual % 5) + 1;
+        
+        // Reset automático de cardio ao virar o ciclo da semana
+        await resetCardioSemanal();
       }
     }
 
     currentData.ultimo_treino_idx = proximoTreino;
 
-    // 5. Zera a interface visual imediatamente
     document.querySelectorAll('.btn-check-serie').forEach(btn => {
       btn.classList.remove('done');
       btn.textContent = "Série " + (btn.dataset.num || '');
@@ -2062,7 +2160,6 @@
       card.classList.remove('exercise-done');
     });
 
-    // 6. Envia e aguarda o salvamento completo no servidor antes de prosseguir
     try {
       await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
         method: "POST",
@@ -2542,7 +2639,7 @@
       } catch (e) {
         ind.style.display = 'none';
       }
-    }, 1500);
+    }, 1200);
   }
 
   function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
