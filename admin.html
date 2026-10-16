@@ -664,7 +664,7 @@
 
   function sanitizeExKey(nome) {
     if (!nome) return "ex";
-    return nome.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
   }
 
   function showToast(mensagem, tipo = 'info') {
@@ -943,7 +943,7 @@
 
   function filterStudents() {
     const term = document.getElementById('searchStudent').value.toLowerCase();
-    const filtered = allStudentsList.filter(a => a.nome.toLowerCase().includes(term) || a.codigo.toLowerCase().includes(term));
+    const filtered = allStudentsList.filter(a => (a.nome || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
     renderStudentsList(filtered);
   }
 
@@ -975,7 +975,7 @@
         daysPill.className = "status-pill status-pendente";
         daysPill.textContent = infoCalculada.dias <= 0 ? `VENCIDO` : `PENDENTE`;
       } else if (infoCalculada.dias <= 5) {
-        stPill.className = "status-alerta";
+        stPill.className = "status-pill status-alerta";
         daysPill.className = "status-pill status-alerta";
         daysPill.textContent = `${infoCalculada.dias} DIAS RESTANTES`;
       } else {
@@ -2056,11 +2056,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
+  // --- PARSER DE DIETA CORRIGIDO ---
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=[ABA]|[CICLO]|---)/gi);
+    const rawAbas = rawText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
     const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
@@ -2071,9 +2072,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       let abaDias = "";
       let textContent = cleanAba;
 
-      if (/^([ABA]|[CICLO])/i.test(cleanAba)) {
+      if (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
         const linesAba = cleanAba.split('\n');
-        abaNome = linesAba[0].replace(/[ABA]|[CICLO]/gi, '').trim();
+        abaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim();
 
         let startIdx = 1;
         if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
@@ -2107,9 +2108,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
             if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
-              trocasCarbo.push(itemTxt.replace(/[CARBO]/gi, '').trim());
+              trocasCarbo.push(itemTxt.replace(/\[CARBO\]/gi, '').trim());
             } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
-              trocasProt.push(itemTxt.replace(/[PROT]/gi, '').trim());
+              trocasProt.push(itemTxt.replace(/\[PROT\]/gi, '').trim());
             } else {
               trocasCarbo.push(itemTxt);
             }
