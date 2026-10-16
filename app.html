@@ -209,7 +209,7 @@
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify- space-between; align-items: center;
   }
   .workout-timer-clock {
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
@@ -1112,7 +1112,7 @@
 
   function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️ INICIAR TREINO' para registrar cargas!");
+      alert("⚠️ Clique em '▶ INICIAR TREINO' para registrar cargas!");
       return;
     }
     const el = document.getElementById(`input_${keyInput}`);
@@ -1520,7 +1520,7 @@
 
   function toggleCheckExercise(btn, dayIdx, exIdx) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de marcar o exercício!");
+      alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
       return;
     }
 
@@ -2263,25 +2263,29 @@
       const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
 
       const exName = ex.nome || '';
-      const exMeta = ex.reps || '';
+      const exMeta = ex.reps || ex.repeticoes || '';
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase().trim();
+      const tecnicaPrescrita = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
 
-      const tem2x = seriesStr.includes('2x') || seriesStr === '2' || metaText.includes('2x');
-      const tem3x = seriesStr.includes('3x') || seriesStr === '3' || metaText.includes('3x');
-      
-      const explicitBackoffWord = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off');
-      const temBackoff = explicitBackoffWord && !tem3x; 
+      // IDENTIFICAÇÃO DE TÉCNICA E SÉRIES
+      const tem2x = seriesStr.includes('2x') || seriesStr === '2';
+      const tem3x = seriesStr.includes('3x') || seriesStr === '3';
+      const temPuraSeries = /^(\d+)x$/i.test(seriesStr);
 
-      const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
-      const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
+      const explicitBackoffWord = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off') || tecnicaPrescrita.includes('backoff') || tecnicaPrescrita.includes('back-off');
+      const temBackoff = explicitBackoffWord;
+
+      const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster') || tecnicaPrescrita.includes('cluster');
+      const temMyo = metaText.includes('myo') || seriesStr.includes('myo') || tecnicaPrescrita.includes('myo');
 
       let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
 
+      // SE O ADMIN CRAVOU UMA TÉCNICA NO EXERCÍCIO, ELA FICA FIXA
       let tecnicaAdminFixa = null;
-      if (temBackoff && (temCluster || seriesStr.includes('cluster'))) {
+      if (temBackoff && temCluster) {
         tecnicaAdminFixa = 'cluster_backoff';
-      } else if (temBackoff && tem2x) {
+      } else if (temBackoff) {
         tecnicaAdminFixa = 'backoff_2x';
       } else if (temCluster) {
         tecnicaAdminFixa = 'cluster';
@@ -2291,18 +2295,10 @@
         tecnicaAdminFixa = 'convencional';
       }
 
-      const isAdmin2x = tem2x || (!tem3x && !temBackoff && !temCluster && !temMyo);
-      const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa;
+      // PERMISSÃO DE TROCA: SÓ SE O ADMIN LIBEROU E NÃO PREGOU UMA TÉCNICA FIXA
+      const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && temPuraSeries;
 
-      let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || (tem3x ? 'convencional' : (tem2x ? 'convencional' : 'convencional')));
-
-      if (tem3x && !explicitBackoffWord && !temCluster && !temMyo) {
-        activeMode = 'convencional';
-      }
-
-      if (isAdmin2x && (activeMode === 'backoff_3x' || activeMode === 'myoreps' || activeMode === 'cluster_backoff')) {
-        activeMode = 'convencional';
-      }
+      let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
       let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
@@ -2321,27 +2317,21 @@
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙ Myo-Reps'
         };
-        const rotulo = nomesExibicao[activeMode] || '';
-        if (rotulo) {
-          selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
-        }
+        const rotulo = nomesExibicao[activeMode] || 'Técnica Prescrita';
+        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
       } else if (podeAlterarTecnica) {
-        if (isAdmin2x) {
-          selectHtml = `
-            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 Séries Convencionais</option>
-              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-            </select>
-          `;
-        } else {
-          selectHtml = `
-            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>3 Séries Convencionais</option>
-              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-              <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps + Back-Off</option>
-            </select>
-          `;
-        }
+        selectHtml = `
+          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
+            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
+            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+          </select>
+        `;
+      } else {
+        const exibicaoGeral = ex.tecnica || ex.tecnica_prescrita || `${numSeriesPrescritas}x Convencional`;
+        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${escapeHtml(exibicaoGeral)}</span>`;
       }
 
       const exKeySanitized = sanitizeExKey(cleanName);
@@ -2497,6 +2487,54 @@
             </div>
           </div>
         `;
+      } else if (activeMode === 'backoff_2x') {
+        const keyS1C = `log_c_${exKeySanitized}_s1`;
+        const keyS1R = `log_r_${exKeySanitized}_s1`;
+        const keyBoC = `log_c_${exKeySanitized}_bo`;
+        const keyBoR = `log_r_${exKeySanitized}_bo`;
+
+        const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
+        const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        const nS1 = parseFloat(valS1C) || 0;
+        let c20 = nS1 > 0 ? Math.round(nS1 * 0.80) : 0;
+        let c30 = nS1 > 0 ? Math.round(nS1 * 0.70) : 0;
+
+        html += `
+          <div class="series-row">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série Principal</button>
+            <input id="input_log_c_${exKeySanitized}_s1" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
+          <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
+            <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              ${nS1 > 0 ? `
+                <div style="display:flex; gap:4px; width:100%;">
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
+                    -20% (${c20}kg)
+                  </button>
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
+                    -30% (${c30}kg)
+                  </button>
+                </div>
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga da Série Principal para calcular o Back-off</span>`}
+            </div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
+          </div>
+        `;
       } else {
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
@@ -2586,7 +2624,7 @@
 
   function scheduleAutoSave(key, value, dayIdx, exIdx) {
     if (!workoutTimerRunning) {
-      alert("⚠️ Clique em '▶️ INICIAR TREINO' antes de registrar dados!");
+      alert("⚠️ Clique em '▶ INICIAR TREINO' antes de registrar dados!");
       return;
     }
 
@@ -2643,7 +2681,7 @@
       'myoreps': 'Myo-Reps',
       'cluster': 'Cluster Set',
       'cluster_backoff': 'Cluster + Back-Off',
-      'backoff_3x': '2x + Back-Off'
+      'backoff_2x': '2x + Back-Off'
     };
     const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
 
@@ -2751,14 +2789,14 @@
           if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
             days = lineClean.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
             if (!days.startsWith('📅')) days = '📅 ' + days;
-          } else if (lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)') || lineClean.includes('Trocas de') || lineClean.includes('Carboidratos:') || lineClean.includes('Proteínas')) {
-            let itemTxt = lineClean.replace(/\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
+          } else if (lineClean.includes('↳') || lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)') || lineClean.includes('Trocas de') || lineClean.includes('Carboidratos:') || lineClean.includes('Proteínas')) {
+            let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
             if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
             
-            if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('tpi') || lineClean.toLowerCase().includes('pã') || lineClean.toLowerCase().includes('usuz')) {
+            if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
               itemTxt = itemTxt.replace(/[CARBO]/gi, '').trim();
               trocasCarbo.push(itemTxt);
-            } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('queij') || lineClean.toLowerCase().includes('fang') || lineClean.toLowerCase().includes('aum')) {
+            } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('proteína') || lineClean.toLowerCase().includes('proteina')) {
               itemTxt = itemTxt.replace(/[PROT]/gi, '').trim();
               trocasProt.push(itemTxt);
             } else {
