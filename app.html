@@ -1425,7 +1425,6 @@
 
     currentData = data;
 
-    // Limpa logs locais órfãos de conclusão fantasma ao carregar os dados
     if (currentData.logs) {
       Object.keys(currentData.logs).forEach(k => {
         if (k.startsWith('ex_done_')) delete currentData.logs[k];
@@ -1500,7 +1499,7 @@
     } else {
       document.getElementById('btnDieta').style.display = 'block';
       document.getElementById('noDietBanner').classList.add('hidden');
-      renderDietaAluno(data.refeicoes || []);
+      renderDietaAluno(data.refeicoes || data.dieta || []);
     }
 
     if (data.corredor === true) {
@@ -2255,7 +2254,6 @@
     }
   }
 
-  /* --- RENDERIZADOR DE EXERCÍCIOS CORRIGIDO: NUNCA INSERE BACK-OFF EM FICHAS 3X PADRÃO --- */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -2272,7 +2270,6 @@
       const tem2x = seriesStr.includes('2x') || seriesStr === '2' || metaText.includes('2x');
       const tem3x = seriesStr.includes('3x') || seriesStr === '3' || metaText.includes('3x');
       
-      // VERIFICAÇÃO RIGOROSA: Apenas considera backoff se explicitamente escrito E se o admin não configurou 3x convencionais puras
       const explicitBackoffWord = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off');
       const temBackoff = explicitBackoffWord && !tem3x; 
 
@@ -2299,7 +2296,6 @@
 
       let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || (tem3x ? 'convencional' : (tem2x ? 'convencional' : 'convencional')));
 
-      // Se for 3x convencional pura, garante que nunca caia em back-off
       if (tem3x && !explicitBackoffWord && !temCluster && !temMyo) {
         activeMode = 'convencional';
       }
@@ -2502,7 +2498,6 @@
           </div>
         `;
       } else {
-        // Exibição convencional pura (seja 2x ou 3x)
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
@@ -2791,12 +2786,26 @@
       }
     });
 
+    if (abas.length === 0 && rawText.trim() !== '') {
+      abas.push({
+        abaNome: "Plano Alimentar",
+        meals: [{
+          mealTitle: "Refeição Diária",
+          days: "",
+          baseItems: rawText.split('\n').map(l => l.trim()).filter(l => l !== ''),
+          trocasCarbo: [],
+          trocasProt: []
+        }],
+        fullText: rawText.toLowerCase()
+      });
+    }
+
     return abas;
   }
 
   function trocarAbaDieta(valIndex) {
     activeAlunoDietAbaIndex = parseInt(valIndex) || 0;
-    renderDietaAluno(currentData.refeicoes || []);
+    renderDietaAluno(currentData.refeicoes || currentData.dieta || []);
   }
 
   function renderDietaAluno(refeicoesData) {
@@ -2812,8 +2821,10 @@
       refeicoesData.forEach(r => {
         if (typeof r === 'string') {
           rawText += `${r}\n\n`;
-        } else if (r.titulo || r.alimentos) {
-          rawText += `[REFEIÇÃO] ${r.titulo || ''}\n${r.alimentos || ''}\n\n`;
+        } else if (r.titulo || r.alimentos || r.mealTitle) {
+          const t = r.titulo || r.mealTitle || 'Refeição';
+          const a = r.alimentos || (r.baseItems ? r.baseItems.join('\n') : '');
+          rawText += `[REFEIÇÃO] ${t}\n${a}\n\n`;
         }
       });
     } else if (typeof refeicoesData === 'string') {
