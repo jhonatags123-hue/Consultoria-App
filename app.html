@@ -1740,7 +1740,7 @@
     const dias = [
       { key: 'seg', nome: 'Segunda-Feira' },
       { key: 'ter', nome: 'Terça-Feira' },
-      { key: 'qua', nome: 'Quarta-Feira' },
+      { key: 'qua', nome: 'Quinta-Feira' },
       { key: 'qui', nome: 'Quinta-Feira' },
       { key: 'sex', nome: 'Sexta-Feira' },
       { key: 'sab', nome: 'Sábado' },
@@ -2283,7 +2283,6 @@
 
       let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
 
-      // Lê o que o Admin digitou na técnica para fixar
       const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
       let tecnicaAdminFixa = null;
 
@@ -2299,7 +2298,6 @@
         tecnicaAdminFixa = 'convencional';
       }
 
-      // Permissão de troca liberada apenas se o admin não enviou uma técnica cravada no texto
       const podeAlterarTecnica = currentData.pode_alterar_tecnica === true && !tecnicaAdminFixa && temPuraSeries;
 
       let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
@@ -2336,7 +2334,7 @@
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
-              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
+              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
               <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
             </select>
           `;
