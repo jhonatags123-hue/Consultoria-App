@@ -209,7 +209,7 @@
   .workout-timer-card {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--mark);
     border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;
-    display: flex; justify- space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
   }
   .workout-timer-clock {
     font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--mark); letter-spacing: 1px;
@@ -2296,7 +2296,7 @@
       }
 
       // PERMISSÃO DE TROCA: SÓ SE O ADMIN LIBEROU E NÃO PREGOU UMA TÉCNICA FIXA
-      const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && temPuraSeries;
+      const podeAlterarTecnica = currentData.pode_alterar_tecnica === true && !tecnicaAdminFixa && temPuraSeries;
 
       let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
