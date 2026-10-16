@@ -2268,10 +2268,9 @@
       const seriesStr = String(ex.series || '').toLowerCase().trim();
       const tecnicaPrescrita = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
 
-      // IDENTIFICAÇÃO DE TÉCNICA E SÉRIES
       const tem2x = seriesStr.includes('2x') || seriesStr === '2';
       const tem3x = seriesStr.includes('3x') || seriesStr === '3';
-      const temPuraSeries = /^(\d+)x$/i.test(seriesStr);
+      const temPuraSeries = /^(\d+)x?$/i.test(seriesStr);
 
       const explicitBackoffWord = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off') || tecnicaPrescrita.includes('backoff') || tecnicaPrescrita.includes('back-off');
       const temBackoff = explicitBackoffWord;
@@ -2281,21 +2280,23 @@
 
       let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
 
-      // SE O ADMIN CRAVOU UMA TÉCNICA NO EXERCÍCIO, ELA FICA FIXA
+      // Lê o que o Admin digitou na técnica para fixar
+      const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
       let tecnicaAdminFixa = null;
-      if (temBackoff && temCluster) {
+
+      if (tAdmin.includes('cluster') && tAdmin.includes('back')) {
         tecnicaAdminFixa = 'cluster_backoff';
-      } else if (temBackoff) {
+      } else if (tAdmin.includes('back')) {
         tecnicaAdminFixa = 'backoff_2x';
-      } else if (temCluster) {
+      } else if (tAdmin.includes('cluster')) {
         tecnicaAdminFixa = 'cluster';
-      } else if (temMyo) {
+      } else if (tAdmin.includes('myo')) {
         tecnicaAdminFixa = 'myoreps';
       } else if (isStrict1x) {
         tecnicaAdminFixa = 'convencional';
       }
 
-      // PERMISSÃO DE TROCA: SÓ SE O ADMIN LIBEROU E NÃO PREGOU UMA TÉCNICA FIXA
+      // Permissão de troca liberada apenas se o admin não enviou uma técnica cravada no texto
       const podeAlterarTecnica = currentData.pode_alterar_tecnica === true && !tecnicaAdminFixa && temPuraSeries;
 
       let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
@@ -2320,15 +2321,24 @@
         const rotulo = nomesExibicao[activeMode] || 'Técnica Prescrita';
         selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
       } else if (podeAlterarTecnica) {
-        selectHtml = `
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
-            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
-            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-          </select>
-        `;
+        if (tem2x) {
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
+              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+            </select>
+          `;
+        } else {
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
+              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
+              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+              <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+            </select>
+          `;
+        }
       } else {
         const exibicaoGeral = ex.tecnica || ex.tecnica_prescrita || `${numSeriesPrescritas}x Convencional`;
         selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${escapeHtml(exibicaoGeral)}</span>`;
@@ -2793,11 +2803,12 @@
             let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
             if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
             
+            // CORREÇÃO DA DIETA - APENAS REMOVE AS TAGS SEM COMER LETRAS
+            itemTxt = itemTxt.replace(/\[\s*CARBO\s*\]/gi, '').replace(/\[\s*PROT\s*\]/gi, '').replace(/\[\s*\]/g, '').trim();
+
             if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
-              itemTxt = itemTxt.replace(/[CARBO]/gi, '').trim();
               trocasCarbo.push(itemTxt);
             } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('proteína') || lineClean.toLowerCase().includes('proteina')) {
-              itemTxt = itemTxt.replace(/[PROT]/gi, '').trim();
               trocasProt.push(itemTxt);
             } else {
               trocasCarbo.push(itemTxt);
