@@ -774,7 +774,6 @@
       </div>
 
       <div id="dietListView">
-        <!-- SELETOR DISCRETO NO TOPO DA DIETA -->
         <div class="diet-top-selector">
           <div style="font-size:12px; font-weight:700; color:var(--ink);" id="dietCurrentDayLabel">📅 Hoje</div>
           <div style="display:flex; align-items:center; gap:6px;">
@@ -2247,7 +2246,7 @@
     }
   }
 
-  /* --- RENDERIZADOR DE EXERCÍCIOS: RESPEITO RÍGIDO À PRESCRÇÃO DO TREINADOR --- */
+  /* --- RENDERIZADOR DE EXERCÍCIOS: LIMITADOR RIGOROSO DE 2X VS 3X --- */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -2261,20 +2260,22 @@
       const metaText = (exName + ' ' + exMeta).toLowerCase();
       const seriesStr = String(ex.series || '').toLowerCase().trim();
 
-      // Identifica prescrições específicas vindas do painel admin
+      const tem2x = seriesStr.includes('2x') || seriesStr === '2' || metaText.includes('2x');
+      const tem3x = seriesStr.includes('3x') || seriesStr === '3' || metaText.includes('3x');
       const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off');
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
       let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
-      let isStrict2x = seriesStr.includes('2x') || seriesStr === '2';
 
-      // Identifica se o treinador fixou uma técnica específica
+      // Identifica se o admin cravou uma técnica estrita
       let tecnicaAdminFixa = null;
       if (temBackoff && (temCluster || seriesStr.includes('cluster'))) {
         tecnicaAdminFixa = 'cluster_backoff';
-      } else if (temBackoff) {
+      } else if (temBackoff && tem2x) {
         tecnicaAdminFixa = 'backoff_2x';
+      } else if (temBackoff && tem3x) {
+        tecnicaAdminFixa = 'backoff_3x';
       } else if (temCluster) {
         tecnicaAdminFixa = 'cluster';
       } else if (temMyo) {
@@ -2283,12 +2284,20 @@
         tecnicaAdminFixa = 'convencional';
       }
 
-      // Permite a troca do aluno APENAS se a prescrição for livre/3x convencional e o admin liberar
+      // SE O ADMIN DEFINIU 2X: As únicas opções permitidas são Convencional/2x e Cluster Set
+      // SE O ADMIN DEFINIU 3X: O aluno pode escolher entre as opções de 3x (2x+backoff, cluster+backoff, myoreps+backoff)
+      const isAdmin2x = tem2x || (!tem3x && !temBackoff && !temCluster && !temMyo); // Padrão se for 2x
       const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa;
 
-      const activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
+      let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || (tem2x ? 'convencional' : 'backoff_3x'));
+
+      // Validação de segurança do limitador de 2x
+      if (isAdmin2x && (activeMode === 'backoff_3x' || activeMode === 'myoreps' || activeMode === 'cluster_backoff')) {
+        activeMode = 'convencional';
+      }
+
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-      let numSeriesPrescritas = parseInt(seriesStr) || 3;
+      let numSeriesPrescritas = tem2x ? 2 : (parseInt(seriesStr) || 3);
 
       const div = document.createElement('div');
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
@@ -2299,6 +2308,7 @@
         const nomesExibicao = {
           'convencional': isStrict1x ? '1 Série Única' : 'Série Convencional',
           'backoff_2x': '⚙️ 2x + Back-Off',
+          'backoff_3x': '⚙️ 3x + Back-Off',
           'cluster': '⚙ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙ Myo-Reps'
@@ -2308,14 +2318,24 @@
           selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
         }
       } else if (podeAlterarTecnica) {
-        selectHtml = `
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} Séries Convencionais</option>
-            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
-            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-          </select>
-        `;
+        if (isAdmin2x) {
+          // Dropdown restrito estritamente para 2x
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 Séries Convencionais</option>
+              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
+            </select>
+          `;
+        } else {
+          // Dropdown liberado para 3x
+          selectHtml = `
+            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+              <option value="backoff_3x" ${activeMode === 'backoff_3x' ? 'selected' : ''}>2x + Back-Off</option>
+              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+              <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps + Back-Off</option>
+            </select>
+          `;
+        }
       }
 
       const exKeySanitized = sanitizeExKey(cleanName);
@@ -2354,28 +2374,49 @@
         const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
         const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
 
-        const keyMbC = `log_c_${exKeySanitized}_mb`;
-        const keyMbR = `log_r_${exKeySanitized}_mb`;
-        const valMbC = (currentData.logs && currentData.logs[keyMbC]) || '';
-        const valMbR = (currentData.logs && currentData.logs[keyMbR]) || '';
+        const keyBoC = `log_c_${exKeySanitized}_bo`;
+        const keyBoR = `log_r_${exKeySanitized}_bo`;
+        const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+        const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+
+        const nAtiv = parseFloat(valAtivC) || 0;
+        let c20Myo = nAtiv > 0 ? Math.round(nAtiv * 0.80) : 0;
+        let c30Myo = nAtiv > 0 ? Math.round(nAtiv * 0.70) : 0;
 
         html += `
           <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
-            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-            <input ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Ativação</button>
+            <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="atualizarBackoffLiveMyo('${exKeySanitized}', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || '4-6'}" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+            <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || '8-12'}" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
-            ⏱ Descanso de 40s pós Ativação.
+            ⏱ Myo-Reps (Mini-séries com 15-20s de descanso).
           </div>
-          <div class="series-row" style="background:var(--bg); border:1px dashed var(--mark);">
-            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
-            <input ${createLogInputAttr(keyMbC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valMbC)}" oninput="scheduleAutoSave('${keyMbC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyMbR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valMbR)}" oninput="scheduleAutoSave('${keyMbR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
+          <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
+            <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
+            <div id="calc_backoff_box_myo_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              ${nAtiv > 0 ? `
+                <div style="display:flex; gap:4px; width:100%;">
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${c20Myo}, ${dayIdx},${exIdx})">
+                    -20% (${c20Myo}kg)
+                  </button>
+                  <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+                    onclick="aplicarCargaBackoff('${keyBoC}',${c30Myo}, ${dayIdx},${exIdx})">
+                    -30% (${c30Myo}kg)
+                  </button>
+                </div>
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`}
+            </div>
+            <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
+              <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
+              <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">kg</span>
+              <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
+              <span class="unit">reps</span>
+            </div>
           </div>
         `;
       } else if (activeMode === 'cluster') {
@@ -2450,7 +2491,7 @@
             </div>
           </div>
         `;
-      } else if (activeMode === 'backoff_2x') {
+      } else if (activeMode === 'backoff_3x') {
         const keyS1C = `log_c_${exKeySanitized}_s1`;
         const keyS1R = `log_r_${exKeySanitized}_s1`;
         const keyS2C = `log_c_${exKeySanitized}_s2`;
@@ -2475,14 +2516,14 @@
         html += `
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-            <input id="input_${keyS1C}" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '2x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+            <input id="input_${keyS1C}" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '3x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
-            <input id="input_${keyS2C}" ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '2x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <input id="input_${keyS2C}" ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="atualizarBackoffLive('${exKeySanitized}', '3x', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
@@ -2515,7 +2556,7 @@
           </div>
         `;
       } else {
-        // Exibição convencional do número de séries prescritas
+        // Exibição convencional (seja 2x ou 3x padrão)
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
@@ -2545,20 +2586,12 @@
     if (!box) return;
 
     let maiorCarga = 0;
-    let keyBoC = "";
-
-    if (tipo === 'cl') {
-      const elCl = document.querySelector(`input[name="workout_log_c_${exKeySanitized}_cl_peso"]`);
-      if (elCl) maiorCarga = parseFloat(elCl.value) || 0;
-      keyBoC = `log_c_${exKeySanitized}_s2`;
-    } else {
-      const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
-      const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
-      const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
-      const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
-      maiorCarga = Math.max(v1, v2);
-      keyBoC = `log_c_${exKeySanitized}_bo`;
-    }
+    const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
+    const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
+    const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
+    const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
+    maiorCarga = Math.max(v1, v2);
+    const keyBoC = `log_c_${exKeySanitized}_bo`;
 
     if (maiorCarga > 0) {
       const c20 = Math.round(maiorCarga * 0.80);
@@ -2578,6 +2611,35 @@
       `;
     } else {
       box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries acima para calcular o Back-off</span>`;
+    }
+  }
+
+  function atualizarBackoffLiveMyo(exKeySanitized, dayIdx, exIdx) {
+    const box = document.getElementById(`calc_backoff_box_myo_${exKeySanitized}`);
+    if (!box) return;
+
+    const elAtiv = document.getElementById(`input_ativ_${exKeySanitized}`);
+    const cargaAtiv = elAtiv ? (parseFloat(elAtiv.value) || 0) : 0;
+    const keyBoC = `log_c_${exKeySanitized}_bo`;
+
+    if (cargaAtiv > 0) {
+      const c20 = Math.round(cargaAtiv * 0.80);
+      const c30 = Math.round(cargaAtiv * 0.70);
+
+      box.innerHTML = `
+        <div style="display:flex; gap:4px; width:100%;">
+          <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
+            onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
+            -20% (${c20}kg)
+          </button>
+          <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
+            onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
+            -30% (${c30}kg)
+          </button>
+        </div>
+      `;
+    } else {
+      box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`;
     }
   }
 
@@ -2640,7 +2702,7 @@
       'myoreps': 'Myo-Reps',
       'cluster': 'Cluster Set',
       'cluster_backoff': 'Cluster + Back-Off',
-      'backoff_2x': '2x + Back-Off'
+      'backoff_3x': '2x + Back-Off'
     };
     const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
 
@@ -2690,7 +2752,7 @@
     }
   }
 
-  /* --- SISTEMA DE DIETA COM IDENTIFICAÇÃO EXATA DE DIA DA SEMANA --- */
+  /* --- SISTEMA DE DIETA COM CORREÇÃO DE LEITURA DE CARACTERES CORROMPIDOS --- */
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -2743,25 +2805,27 @@
         const trocasProt = [];
 
         lines.slice(1).forEach(line => {
-          const lineLower = line.toLowerCase();
+          let lineClean = line.replace(/\[\s*\]/g, '').trim(); // Remove caixas corrompidas de caractere []
+          const lineLower = lineClean.toLowerCase();
           
           if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
-            days = line.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
+            days = lineClean.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
             if (!days.startsWith('📅')) days = '📅 ' + days;
-          } else if (line.includes('(Opção de troca)') || line.includes('(Troca)')) {
-            let itemTxt = line.replace(/\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
+          } else if (lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)') || lineClean.includes('Trocas de') || lineClean.includes('Carboidratos:') || lineClean.includes('Proteínas')) {
+            let itemTxt = lineClean.replace(/\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
+            if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
             
-            if (line.toUpperCase().includes('[CARBO]')) {
+            if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('tpi') || lineClean.toLowerCase().includes('pã') || lineClean.toLowerCase().includes('usuz')) {
               itemTxt = itemTxt.replace(/[CARBO]/gi, '').trim();
               trocasCarbo.push(itemTxt);
-            } else if (line.toUpperCase().includes('[PROT]')) {
+            } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('queij') || lineClean.toLowerCase().includes('fang') || lineClean.toLowerCase().includes('aum')) {
               itemTxt = itemTxt.replace(/[PROT]/gi, '').trim();
               trocasProt.push(itemTxt);
             } else {
               trocasCarbo.push(itemTxt);
             }
           } else {
-            const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
+            const cleanItem = lineClean.replace(/^[-•*]\s*/, '').trim();
             if (cleanItem && cleanItem.toLowerCase() !== 'plano alimentar') {
               baseItems.push(cleanItem);
             }
@@ -2825,14 +2889,12 @@
       return;
     }
 
-    const diaHojeKey = obtainingDiaSemanaNormalizado();
+    const diaHojeKey = obterDiaSemanaNormalizado();
     const nomeHojeFmt = obterNomeDiaSemanaFormatado();
     let abaIndexHoje = -1;
 
-    // Procura exata do dia de hoje (ex: "sexta" ou "sexta-feira") no texto do ciclo
     abas.forEach((aba, idx) => {
       const textoAbaNorm = (aba.fullText || (aba.abaNome + " " + JSON.stringify(aba.meals))).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      
       if (textoAbaNorm.includes(diaHojeKey)) {
         abaIndexHoje = idx;
       }
@@ -2840,7 +2902,6 @@
 
     if (abaIndexHoje === -1) abaIndexHoje = 0;
 
-    // Seleciona a aba do dia automaticamente
     if (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
       activeAlunoDietAbaIndex = abaIndexHoje;
     }
@@ -2919,7 +2980,7 @@
     }
   }
 
-  function obtainingDiaSemanaNormalizado() {
+  function obterDiaSemanaNormalizado() {
     return obterDiaSemanaNormalizado();
   }
 
