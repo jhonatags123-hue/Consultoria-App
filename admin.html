@@ -78,8 +78,8 @@
   .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
   .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
 
-  .diet-aba-btn { background:#100305; border:1px solid var(--border); color:var(--muted); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
-  .diet-aba-btn.active { background:var(--gold); color:#100305; border-color:var(--gold); }
+  .diet-aba-btn { background:#100305; border:1px solid var(--border); color:var(--muted); padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all .18s; }
+  .diet-aba-btn.active { background:var(--gold); color:#100305; border-color:var(--gold); font-weight:800; }
 
   .meal-item-base { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-top:6px; }
   .sub-item-box { background:#0a0204; border-left:3px solid var(--gold); padding:8px 10px; margin-top:4px; margin-left:10px; border-radius:6px; font-size:11.5px; color:#e0d0d3; }
@@ -975,7 +975,7 @@
         daysPill.className = "status-pill status-pendente";
         daysPill.textContent = infoCalculada.dias <= 0 ? `VENCIDO` : `PENDENTE`;
       } else if (infoCalculada.dias <= 5) {
-        stPill.className = "status-pill status-alerta";
+        stPill.className = "status-alerta";
         daysPill.className = "status-pill status-alerta";
         daysPill.textContent = `${infoCalculada.dias} DIAS RESTANTES`;
       } else {
@@ -2056,12 +2056,11 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
-  // --- PARSER DE DIETA REVISADO E CORRIGIDO ---
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|---)/gi);
+    const rawAbas = rawText.split(/(?=[ABA]|[CICLO]|---)/gi);
     const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
@@ -2072,9 +2071,9 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       let abaDias = "";
       let textContent = cleanAba;
 
-      if (/^(\[ABA\]|\[CICLO\])/i.test(cleanAba)) {
+      if (/^([ABA]|[CICLO])/i.test(cleanAba)) {
         const linesAba = cleanAba.split('\n');
-        abaNome = linesAba[0].replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+        abaNome = linesAba[0].replace(/[ABA]|[CICLO]/gi, '').trim();
 
         let startIdx = 1;
         if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
@@ -2137,7 +2136,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     return abas;
   }
 
-  // --- RENDERIZAÇÃO DE PRÉ-VISUALIZAÇÃO CORRIGIDA ---
   function atualizarPreviewDietaAoVivo() {
     const raw = document.getElementById('dietTextarea').value;
     const filtersEl = document.getElementById('dietPreviewFilters');
