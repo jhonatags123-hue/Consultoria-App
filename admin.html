@@ -336,7 +336,7 @@
             🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A IA vai gerar as Abas Estratégicas (Ex: [Carbo Baixo], [Carbo Médio], [Carbo Alto]) e adicionar opções de substituição em cada refeição!
+            A IA vai gerar as Abas Estratégicas (Ex: [ABA] CARBO BAIXO, [ABA] CARBO ALTO) e adicionar opções de substituição em cada refeição!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
@@ -350,7 +350,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;Frango Grelhado 150g&#10;Pão de Forma Tradicional 50g (2 fatias)&#10;(Troca) Tapioca 40g&#10;&#10;---&#10;&#10;[Carbo Alto]&#10;Sábado e Domingo&#10;&#10;1ª Refeição&#10;Frango Grelhado 120g&#10;Pão de Forma Tradicional 125g"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[ABA] CARBO ALTO&#10;Dias: Sábado e Domingo&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Pão de forma integral | 3 fatias (75g)&#10;- Ovos mexidos | 3 unidades (150g)&#10;(Opção de troca) [CARBO] Tapioca | 60g&#10;(Opção de troca) [PROT] Whey Protein | 30g&#10;&#10;---&#10;&#10;[ABA] CARBO BAIXO&#10;Dias: Segunda, Terça e Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Ovos mexidos | 3 unidades (150g)"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -627,7 +627,7 @@
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Prancha Abdominal 3x1min"></textarea>
 
         <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Baixo]&#10;Segunda, Terça e Quarta&#10;&#10;1ª Refeição&#10;• Ovos mexidos | 3 un"></textarea>
+        <textarea id="rawDiet" rows="6" placeholder="[ABA] CARBO BAIXO&#10;Segunda, Terça e Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Ovos mexidos | 3 un"></textarea>
 
         <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
       </div>
@@ -2056,30 +2056,32 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
+  // --- PARSER DE DIETA REVISADO E CORRIGIDO ---
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
-    const rawAbas = rawText.split(/(?=[ABA]|[CICLO]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\]|---)/gi);
-
-    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
+    const rawAbas = rawText.split(/(?=\[ABA\]|\[CICLO\]|---)/gi);
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach(rawAba => {
       const cleanAba = rawAba.trim();
       if (!cleanAba || cleanAba === '---') return;
 
       let abaNome = "PLANO PRINCIPAL";
+      let abaDias = "";
       let textContent = cleanAba;
 
-      if (/^([ABA]|[CICLO]|\(CARBO\s+[^\)]+\)|\[Carbo\s+[^\]]+\])/i.test(cleanAba)) {
-        const firstLineEnd = cleanAba.indexOf('\n');
-        if (firstLineEnd !== -1) {
-          abaNome = cleanAba.substring(0, firstLineEnd).replace(/[ABA]|[CICLO]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
-          textContent = cleanAba.substring(firstLineEnd).trim();
-        } else {
-          abaNome = cleanAba.replace(/[ABA]|[CICLO]/gi, '').replace(/[\(\)\[\]]/g, '').trim();
-          textContent = "";
+      if (/^(\[ABA\]|\[CICLO\])/i.test(cleanAba)) {
+        const linesAba = cleanAba.split('\n');
+        abaNome = linesAba[0].replace(/\[ABA\]|\[CICLO\]/gi, '').trim();
+
+        let startIdx = 1;
+        if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
+          abaDias = linesAba[1].trim();
+          startIdx = 2;
         }
+        textContent = linesAba.slice(startIdx).join('\n').trim();
       }
 
       const rawMeals = textContent.split(regexTitulosRefeicao);
@@ -2089,13 +2091,10 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         const clean = bloco.trim();
         if (!clean) return;
 
-        const lines = clean.split('\n')
-          .map(l => l.trim())
-          .filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
-
+        const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
         if (lines.length === 0) return;
 
-        let title = lines[0].replace(/^\[.*?\]\s*/, '');
+        let title = lines[0];
         let days = "";
         const baseItems = [];
         const trocasCarbo = [];
@@ -2103,55 +2102,42 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
         lines.slice(1).forEach(line => {
           const lineLower = line.toLowerCase();
-          if (
-            lineLower.startsWith('dias:') || 
-            lineLower.startsWith('dias da semana:') || 
-            lineLower.includes('segunda') || 
-            lineLower.includes('terça') || 
-            lineLower.includes('quarta') || 
-            lineLower.includes('quinta') || 
-            lineLower.includes('sexta') || 
-            lineLower.includes('sábado') || 
-            lineLower.includes('domingo')
-          ) {
-            days = line.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
-            if (!days.startsWith('📅')) days = '📅 ' + days;
+          
+          if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
+            days = line;
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
-            itemTxt = itemTxt.replace(/[CARBO]|[PROT]/gi, '').trim();
-
-            if (lineLower.includes('carbo')) {
-              trocasCarbo.push(itemTxt);
-            } else if (lineLower.includes('prot')) {
-              trocasProt.push(itemTxt);
+            if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
+              trocasCarbo.push(itemTxt.replace(/[CARBO]/gi, '').trim());
+            } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
+              trocasProt.push(itemTxt.replace(/[PROT]/gi, '').trim());
             } else {
               trocasCarbo.push(itemTxt);
             }
           } else {
-            baseItems.push(line);
+            const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
+            if (cleanItem) baseItems.push(cleanItem);
           }
         });
 
-        meals.push({
-          mealTitle: title,
-          days: days,
-          baseItems: baseItems,
-          trocasCarbo: trocasCarbo,
-          trocasProt: trocasProt
+        meals.push({ 
+          mealTitle: title, 
+          days: days, 
+          baseItems: baseItems, 
+          trocasCarbo: trocasCarbo, 
+          trocasProt: trocasProt 
         });
       });
 
       if (meals.length > 0) {
-        abas.push({
-          abaNome: abaNome,
-          meals: meals
-        });
+        abas.push({ abaNome: abaNome, abaDias: abaDias, meals: meals });
       }
     });
 
     return abas;
   }
 
+  // --- RENDERIZAÇÃO DE PRÉ-VISUALIZAÇÃO CORRIGIDA ---
   function atualizarPreviewDietaAoVivo() {
     const raw = document.getElementById('dietTextarea').value;
     const filtersEl = document.getElementById('dietPreviewFilters');
@@ -2180,47 +2166,56 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     });
 
     const currentAba = abas[activeDietAbaIndex];
-    (currentAba.meals || []).forEach((block, idx) => {
-      const card = document.createElement('div');
-      card.style.cssText = 'margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid var(--border);';
+    if (currentAba) {
+      if (currentAba.abaDias) {
+        const diasDiv = document.createElement('div');
+        diasDiv.style.cssText = "font-size:11px; color:var(--blue); font-weight:700; margin-bottom:10px; background:#100305; padding:6px 10px; border-radius:6px; border:1px solid var(--border);";
+        diasDiv.textContent = `📅 ${currentAba.abaDias}`;
+        listEl.appendChild(diasDiv);
+      }
 
-      let html = `
-        <div class="day-accordion-header" onclick="toggleResumoAccordion('preview_ref_${idx}')" style="margin-bottom:0;">
-          <div>
-            <b style="color:var(--gold); font-size:14px;">🍽️ ${escapeHtml(block.mealTitle)}</b>
-            ${block.days ? `<div style="font-size:11px; color:var(--blue); font-weight:700; margin-top:2px;">${escapeHtml(block.days)}</div>` : ''}
-          </div>
-          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Base & Trocas ▾</span>
-        </div>
-        <div id="preview_ref_${idx}" class="hidden" style="background:#0d0204; padding:12px; font-size:12px;">
-      `;
+      (currentAba.meals || []).forEach((block, idx) => {
+        const card = document.createElement('div');
+        card.style.cssText = 'margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid var(--border);';
 
-      block.baseItems.forEach(item => {
-        html += `
-          <div class="meal-item-base">
-            <span style="color:#fff; font-weight:700;">${escapeHtml(item)}</span>
+        let html = `
+          <div class="day-accordion-header" onclick="toggleResumoAccordion('preview_ref_${idx}')" style="margin-bottom:0;">
+            <div>
+              <b style="color:var(--gold); font-size:14px;">🍽️ ${escapeHtml(block.mealTitle)}</b>
+              ${block.days ? `<div style="font-size:11px; color:var(--blue); font-weight:700; margin-top:2px;">${escapeHtml(block.days)}</div>` : ''}
+            </div>
+            <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Base & Trocas ▾</span>
           </div>
+          <div id="preview_ref_${idx}" class="hidden" style="background:#0d0204; padding:12px; font-size:12px;">
         `;
+
+        block.baseItems.forEach(item => {
+          html += `
+            <div class="meal-item-base">
+              <span style="color:#fff; font-weight:700;">• ${escapeHtml(item)}</span>
+            </div>
+          `;
+        });
+
+        if (block.trocasCarbo.length > 0) {
+          html += `<div style="font-size:11px; color:#60a5fa; font-weight:800; margin-top:8px;">🌾 OPÇÕES DE TROCA DE CARBOIDRATOS:</div>`;
+          block.trocasCarbo.forEach(subC => {
+            html += `<div class="sub-item-box carbo"><span style="color:#60a5fa; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subC)}</div>`;
+          });
+        }
+
+        if (block.trocasProt.length > 0) {
+          html += `<div style="font-size:11px; color:#25d366; font-weight:800; margin-top:8px;">🥩 OPÇÕES DE TROCA DE PROTEÍNA/GORDURA:</div>`;
+          block.trocasProt.forEach(subP => {
+            html += `<div class="sub-item-box prot"><span style="color:#25d366; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subP)}</div>`;
+          });
+        }
+
+        html += `</div>`;
+        card.innerHTML = html;
+        listEl.appendChild(card);
       });
-
-      if (block.trocasCarbo.length > 0) {
-        html += `<div style="font-size:11px; color:#60a5fa; font-weight:800; margin-top:8px;">🌾 OPÇÕES DE TROCA DE CARBOIDRATOS:</div>`;
-        block.trocasCarbo.forEach(subC => {
-          html += `<div class="sub-item-box carbo"><span style="color:#60a5fa; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subC)}</div>`;
-        });
-      }
-
-      if (block.trocasProt.length > 0) {
-        html += `<div style="font-size:11px; color:#25d366; font-weight:800; margin-top:8px;">🥩 OPÇÕES DE TROCA DE PROTEÍNA/GORDURA:</div>`;
-        block.trocasProt.forEach(subP => {
-          html += `<div class="sub-item-box prot"><span style="color:#25d366; font-weight:700;">🔄 Troca:</span> ${escapeHtml(subP)}</div>`;
-        });
-      }
-
-      html += `</div>`;
-      card.innerHTML = html;
-      listEl.appendChild(card);
-    });
+    }
   }
 
   function salvarDieta() {
