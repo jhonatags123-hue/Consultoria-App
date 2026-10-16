@@ -300,13 +300,15 @@
 
   .diet-container { display:flex; flex-direction:column; gap:12px; }
 
-  .diet-aba-btn {
-    background: var(--panel-2); border: 1px solid var(--line); color: var(--ink-dim);
-    padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700;
-    cursor: pointer; white-space: nowrap; transition: all .15s ease;
-  }
-  .diet-aba-btn.active {
-    background: var(--mark); color: #100305; border-color: var(--mark); font-weight: 800;
+  .diet-top-selector {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .sub-item-box {
@@ -774,7 +776,15 @@
       </div>
 
       <div id="dietListView">
-        <div id="dietFiltersContainer" style="display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling: touch;"></div>
+        <!-- SELETOR DISCRETO NO TOPO DA DIETA -->
+        <div class="diet-top-selector">
+          <div style="font-size:12px; font-weight:700; color:var(--ink);" id="dietCurrentDayLabel">📅 Hoje</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <select id="dietAbaSelect" class="mode-select" onchange="trocarAbaDieta(this.value)" style="font-size:11px; padding:4px 8px;">
+            </select>
+          </div>
+        </div>
+
         <div id="dietCategoryList" class="diet-container"></div>
       </div>
     </div>
@@ -944,6 +954,11 @@
 
   function obterDiaSemanaNormalizado() {
     const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+    return dias[new Date().getDay()];
+  }
+
+  function obterNomeDiaSemanaFormatado() {
+    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     return dias[new Date().getDay()];
   }
 
@@ -2234,6 +2249,7 @@
     }
   }
 
+  /* --- RENDERIZADOR DE EXERCÍCIOS ORIGINAL PRESERVADO --- */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -2275,7 +2291,9 @@
 
       const activeMode = isStrict1x ? 'convencional' : (savedUserMode || defaultMode);
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-      let numSeriesPrescritas = isStrict1x ? 1 : (parseInt(seriesStr) || 3);
+      
+      // Quantidade exata de séries definida pelo personal
+      let numSeriesPrescritas = parseInt(seriesStr) || 3;
 
       const div = document.createElement('div');
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
@@ -2308,7 +2326,7 @@
         } else {
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>3 Séries Convencionais</option>
+              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} Séries Convencionais</option>
               <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
               <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
               <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
@@ -2514,6 +2532,7 @@
           </div>
         `;
       } else {
+        // Exibição padrão das séries prescritas pelo personal
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
@@ -2688,19 +2707,18 @@
     }
   }
 
-  // --- PARSER E RENDERIZADOR DE DIETA REVISADO ---
+  /* --- SISTEMA DE DIETA COM IDENTIFICAÇÃO DE DIA E MENU DISCRETO NO TOPO --- */
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
     const abas = [];
     const rawAbas = rawText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
-    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
     rawAbas.forEach((rawAba, abaIdx) => {
       const cleanAba = rawAba.trim();
       if (!cleanAba || cleanAba === '---') return;
 
-      let abaNome = "PLANO ALIMENTAR";
+      let abaNome = `Ciclo ${abaIdx + 1}`;
       let textContent = cleanAba;
 
       if (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
@@ -2714,6 +2732,7 @@
         textContent = linesAba.slice(startIdx).join('\n').trim();
       }
 
+      const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
       const rawMeals = textContent.split(regexTitulosRefeicao);
       const meals = [];
 
@@ -2724,11 +2743,11 @@
         const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
         if (lines.length === 0) return;
 
-        let title = lines[0].replace(/^\[.*?\]\s*/, '');
+        let title = lines[0].replace(/^\[.*?\]\s*/, '').trim();
 
         if (title.toLowerCase() === 'plano alimentar') {
           if (lines.length > 1) {
-            title = lines[1].replace(/^\[.*?\]\s*/, '');
+            title = lines[1].replace(/^\[.*?\]\s*/, '').trim();
             lines.splice(0, 1);
           } else {
             return;
@@ -2746,16 +2765,17 @@
           if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
             days = line.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
             if (!days.startsWith('📅')) days = '📅 ' + days;
-          } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
-            let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
+          } else if (line.includes('(Opção de troca)') || line.includes('(Troca)')) {
+            let itemTxt = line.replace(/\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
             
-            // Tratamento preciso sem truncar textos dos alimentos
-            if (itemTxt.includes('[CARBO]')) {
-              trocasCarbo.push(itemTxt.replace(/[CARBO]/gi, '').replace(/^[-•*]\s*/, '').trim());
-            } else if (itemTxt.includes('[PROT]')) {
-              trocasProt.push(itemTxt.replace(/[PROT]/gi, '').replace(/^[-•*]\s*/, '').trim());
+            if (line.toUpperCase().includes('[CARBO]')) {
+              itemTxt = itemTxt.replace(/[CARBO]/gi, '').trim();
+              trocasCarbo.push(itemTxt);
+            } else if (line.toUpperCase().includes('[PROT]')) {
+              itemTxt = itemTxt.replace(/[PROT]/gi, '').trim();
+              trocasProt.push(itemTxt);
             } else {
-              trocasCarbo.push(itemTxt.replace(/^[-•*]\s*/, '').trim());
+              trocasCarbo.push(itemTxt);
             }
           } else {
             const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
@@ -2782,13 +2802,17 @@
     return abas;
   }
 
+  function trocarAbaDieta(valIndex) {
+    activeAlunoDietAbaIndex = parseInt(valIndex) || 0;
+    renderDietaAluno(currentData.refeicoes || []);
+  }
+
   function renderDietaAluno(refeicoesData) {
-    const filtersContainer = document.getElementById('dietFiltersContainer');
     const categoryList = document.getElementById('dietCategoryList');
+    const selectAba = document.getElementById('dietAbaSelect');
+    const dayLabel = document.getElementById('dietCurrentDayLabel');
 
     if (!categoryList) return;
-
-    if (filtersContainer) filtersContainer.innerHTML = "";
     categoryList.innerHTML = "";
 
     let rawText = "";
@@ -2818,39 +2842,44 @@
       return;
     }
 
-    const diaHoje = obtainingDiaSemanaNormalizado();
-    let abaIndexHoje = 0;
+    const diaHojeKey = obtainingDiaSemanaNormalizado();
+    const nomeHojeFmt = obterNomeDiaSemanaFormatado();
+    let abaIndexHoje = -1;
 
+    // Tenta encontrar a aba que corresponde ao dia atual
     abas.forEach((aba, idx) => {
       const nomeAbaClean = (aba.abaNome || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const temDiaHoje = (aba.meals || []).some(m => {
         const diasTexto = (m.days || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return diasTexto.includes(diaHoje);
+        return diasTexto.includes(diaHojeKey);
       });
 
-      if (nomeAbaClean.includes(diaHoje) || temDiaHoje) {
+      if (nomeAbaClean.includes(diaHojeKey) || temDiaHoje) {
         abaIndexHoje = idx;
       }
     });
 
-    if (typeof activeAlunoDietAbaIndex === 'undefined' || activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex >= abas.length) {
+    if (abaIndexHoje === -1) abaIndexHoje = 0;
+
+    // Na primeira carga, seleciona a aba do dia de hoje
+    if (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
       activeAlunoDietAbaIndex = abaIndexHoje;
     }
 
-    if (filtersContainer && abas.length > 1) {
+    if (dayLabel) {
+      dayLabel.innerHTML = `📅 <b>${nomeHojeFmt}</b>`;
+    }
+
+    // Preenche o menu suspenso discreto no topo
+    if (selectAba) {
+      selectAba.innerHTML = "";
       abas.forEach((aba, idx) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `diet-aba-btn ${idx === activeAlunoDietAbaIndex ? 'active' : ''}`;
-        
+        const option = document.createElement('option');
+        option.value = idx;
         const ehHoje = (idx === abaIndexHoje);
-        btn.innerHTML = `${escapeHtml(aba.abaNome || 'Plano ' + (idx + 1))} ${ehHoje ? '📌 <small style="font-size:9px;">(Hoje)</small>' : ''}`;
-        
-        btn.onclick = () => {
-          activeAlunoDietAbaIndex = idx;
-          renderDietaAluno(refeicoesData);
-        };
-        filtersContainer.appendChild(btn);
+        option.textContent = `${aba.abaNome || 'Ciclo ' + (idx + 1)} ${ehHoje ? '📌 (Hoje)' : ''}`;
+        if (idx === activeAlunoDietAbaIndex) option.selected = true;
+        selectAba.appendChild(option);
       });
     }
 
