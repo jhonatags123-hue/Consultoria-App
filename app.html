@@ -91,8 +91,6 @@
   .btn-indique-header:hover { background:var(--mark); color:#000; }
   .error-msg { color:var(--signal-light); font-size:12.5px; text-align:center; margin-top:10px; font-weight:600; }
 
-  .btn-sm-copy { padding: 8px 12px; font-size: 11.5px; min-height: 34px; font-weight: 700; border-radius: 6px; }
-
   .progress-bar-bg { width:100%; background:var(--bg); border:1px solid var(--line); height:4px; border-radius:2px; margin:16px 0 6px; overflow:hidden; }
   .progress-bar-fill { width:10%; background:var(--signal-light); height:100%; transition:width 0.25s ease; }
   .step-counter { font-size:11px; color:var(--ink-dim); font-family:var(--font-mono); text-align:right; margin-bottom:10px; }
@@ -880,7 +878,7 @@
   let loggedUserCode = "";
   let autoSaveTimer = null;
   let currentTreinoDayIdx = 0;
-  let activeAlunoDietAbaIndex = 0;
+  let activeAlunoDietAbaIndex = null;
   let isApenasTreinoMode = false;
   let isConvidadoDuplaMode = false;
 
@@ -2249,7 +2247,7 @@
     }
   }
 
-  /* --- RENDERIZADOR DE EXERCÍCIOS ORIGINAL PRESERVADO --- */
+  /* --- RENDERIZADOR DE EXERCÍCIOS: RESPEITO RÍGIDO À PRESCRÇÃO DO TREINADOR --- */
   function renderExercisesForDay(day, dayIdx, container) {
     (day.exercicios || []).forEach((ex, exIdx) => {
       const modeKey = `${dayIdx}_${exIdx}`;
@@ -2261,51 +2259,45 @@
       const exName = ex.nome || '';
       const exMeta = ex.reps || '';
       const metaText = (exName + ' ' + exMeta).toLowerCase();
-      const seriesStr = String(ex.series || '').toLowerCase();
+      const seriesStr = String(ex.series || '').toLowerCase().trim();
 
-      let isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
-      let isStrict2x = seriesStr.includes('2x') || seriesStr.trim() === '2';
-      let isStrict3x = seriesStr.includes('3x') || seriesStr.trim() === '3';
-
-      const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff');
+      // Identifica prescrições específicas vindas do painel admin
+      const temBackoff = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off');
       const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster');
       const temMyo = metaText.includes('myo') || seriesStr.includes('myo');
 
+      let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
+      let isStrict2x = seriesStr.includes('2x') || seriesStr === '2';
+
+      // Identifica se o treinador fixou uma técnica específica
       let tecnicaAdminFixa = null;
-      if (isStrict1x) {
-        tecnicaAdminFixa = 'convencional';
-      } else if (temBackoff && temCluster) {
+      if (temBackoff && (temCluster || seriesStr.includes('cluster'))) {
         tecnicaAdminFixa = 'cluster_backoff';
       } else if (temBackoff) {
         tecnicaAdminFixa = 'backoff_2x';
       } else if (temCluster) {
-        tecnicaAdminFixa = isStrict3x ? 'cluster_backoff' : 'cluster';
+        tecnicaAdminFixa = 'cluster';
       } else if (temMyo) {
         tecnicaAdminFixa = 'myoreps';
+      } else if (isStrict1x) {
+        tecnicaAdminFixa = 'convencional';
       }
 
-      let defaultMode = 'convencional';
-      if (tecnicaAdminFixa) {
-        defaultMode = tecnicaAdminFixa;
-      }
+      // Permite a troca do aluno APENAS se a prescrição for livre/3x convencional e o admin liberar
+      const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa;
 
-      const activeMode = isStrict1x ? 'convencional' : (savedUserMode || defaultMode);
+      const activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
       let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-      
-      // Quantidade exata de séries definida pelo personal
       let numSeriesPrescritas = parseInt(seriesStr) || 3;
 
       const div = document.createElement('div');
       div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
       let selectHtml = '';
-      const podeAlterarTecnica = currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true;
 
-      if (isStrict1x) {
-        selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">1 Série Única</span>`;
-      } else if (tecnicaAdminFixa || !podeAlterarTecnica) {
+      if (tecnicaAdminFixa) {
         const nomesExibicao = {
-          'convencional': '',
+          'convencional': isStrict1x ? '1 Série Única' : 'Série Convencional',
           'backoff_2x': '⚙️ 2x + Back-Off',
           'cluster': '⚙ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
@@ -2315,24 +2307,15 @@
         if (rotulo) {
           selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
         }
-      } else {
-        if (isStrict2x) {
-          selectHtml = `
-            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2 Séries Convencionais</option>
-              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set (2x)</option>
-            </select>
-          `;
-        } else {
-          selectHtml = `
-            <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-              <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} Séries Convencionais</option>
-              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
-              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-              <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-            </select>
-          `;
-        }
+      } else if (podeAlterarTecnica) {
+        selectHtml = `
+          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
+            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas} Séries Convencionais</option>
+            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off</option>
+            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
+            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
+          </select>
+        `;
       }
 
       const exKeySanitized = sanitizeExKey(cleanName);
@@ -2365,7 +2348,7 @@
         <div class="series-container">
       `;
 
-      if (activeMode === 'myoreps' && !isStrict1x) {
+      if (activeMode === 'myoreps') {
         const keyAtivC = `log_c_${exKeySanitized}_ativ`;
         const keyAtivR = `log_r_${exKeySanitized}_ativ`;
         const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
@@ -2395,7 +2378,7 @@
             <span class="unit">reps</span>
           </div>
         `;
-      } else if (activeMode === 'cluster' && !isStrict1x) {
+      } else if (activeMode === 'cluster') {
         const keyClC = `log_c_${exKeySanitized}_cl_peso`;
         const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
         const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
@@ -2415,7 +2398,7 @@
             <span class="unit">reps</span>
           </div>
         `;
-      } else if (activeMode === 'cluster_backoff' && !isStrict1x) {
+      } else if (activeMode === 'cluster_backoff') {
         const keyClC = `log_c_${exKeySanitized}_cl_peso`;
         const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
         const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
@@ -2467,7 +2450,7 @@
             </div>
           </div>
         `;
-      } else if (activeMode === 'backoff_2x' && !isStrict1x) {
+      } else if (activeMode === 'backoff_2x') {
         const keyS1C = `log_c_${exKeySanitized}_s1`;
         const keyS1R = `log_r_${exKeySanitized}_s1`;
         const keyS2C = `log_c_${exKeySanitized}_s2`;
@@ -2532,7 +2515,7 @@
           </div>
         `;
       } else {
-        // Exibição padrão das séries prescritas pelo personal
+        // Exibição convencional do número de séries prescritas
         for (let s = 1; s <= numSeriesPrescritas; s++) {
           const keyLoad = `log_c_${exKeySanitized}_s${s}`;
           const keyReps = `log_r_${exKeySanitized}_s${s}`;
@@ -2707,7 +2690,7 @@
     }
   }
 
-  /* --- SISTEMA DE DIETA COM IDENTIFICAÇÃO DE DIA E MENU DISCRETO NO TOPO --- */
+  /* --- SISTEMA DE DIETA COM IDENTIFICAÇÃO EXATA DE DIA DA SEMANA --- */
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -2795,7 +2778,7 @@
       });
 
       if (meals.length > 0) {
-        abas.push({ abaNome: abaNome || `Opção ${abaIdx + 1}`, meals: meals });
+        abas.push({ abaNome: abaNome || `Opção ${abaIdx + 1}`, meals: meals, fullText: cleanAba.toLowerCase() });
       }
     });
 
@@ -2846,31 +2829,26 @@
     const nomeHojeFmt = obterNomeDiaSemanaFormatado();
     let abaIndexHoje = -1;
 
-    // Tenta encontrar a aba que corresponde ao dia atual
+    // Procura exata do dia de hoje (ex: "sexta" ou "sexta-feira") no texto do ciclo
     abas.forEach((aba, idx) => {
-      const nomeAbaClean = (aba.abaNome || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const temDiaHoje = (aba.meals || []).some(m => {
-        const diasTexto = (m.days || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        return diasTexto.includes(diaHojeKey);
-      });
-
-      if (nomeAbaClean.includes(diaHojeKey) || temDiaHoje) {
+      const textoAbaNorm = (aba.fullText || (aba.abaNome + " " + JSON.stringify(aba.meals))).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      
+      if (textoAbaNorm.includes(diaHojeKey)) {
         abaIndexHoje = idx;
       }
     });
 
     if (abaIndexHoje === -1) abaIndexHoje = 0;
 
-    // Na primeira carga, seleciona a aba do dia de hoje
+    // Seleciona a aba do dia automaticamente
     if (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
       activeAlunoDietAbaIndex = abaIndexHoje;
     }
 
     if (dayLabel) {
-      dayLabel.innerHTML = `📅 <b>${nomeHojeFmt}</b>`;
+      dayLabel.innerHTML = `📅 Hoje (${nomeHojeFmt})`;
     }
 
-    // Preenche o menu suspenso discreto no topo
     if (selectAba) {
       selectAba.innerHTML = "";
       abas.forEach((aba, idx) => {
