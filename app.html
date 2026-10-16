@@ -907,16 +907,10 @@
   function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
   function fecharModalSenha() { document.getElementById('modalSenha').classList.add('hidden'); }
 
-  function copiarMensagemConvidadoDupla(tipoTreino = false) {
-    const link = tipoTreino 
-      ? "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino"
-      : "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado";
-
-    const textoConsultoria = tipoTreino ? "o treino" : "o treino e a alimentação";
-    const mensagemPronta = `Olá, tudo bem? Sou o Jhonata Personal! Sua dupla me contratou para acompanharmos ${textoConsultoria} de vocês. Clica no link abaixo, preenche a anamnese e bora juntos buscar o resultado! 🚀🚀\n\n${link}`;
-
-    navigator.clipboard.writeText(mensagemPronta);
-    alert("✅ Mensagem e link para a 2ª pessoa copiados com sucesso!");
+  function compartilharIndicaoWpp() {
+    const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+    const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação do aluno: ${nome}_`;
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
   }
 
   async function alterarSenhaAlunoModal() {
@@ -1253,12 +1247,6 @@
     alert("Chave Pix copiada: jhonatags123@gmail.com");
   }
 
-  function compartilharIndicaoWpp() {
-    const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-    const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação do aluno: ${nome}_`;
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
-  }
-
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('btnLoginSubmit');
@@ -1388,25 +1376,6 @@
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
-        const isPlanoDupla = tipoConsultoria.includes('DUPLA');
-        let boxDuplaHtml = '';
-
-        if (isPlanoDupla && !isConvidadoDuplaMode) {
-          boxDuplaHtml = `
-            <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:8px; padding:14px; margin-top:16px; text-align:left;">
-              <div style="font-size:13px; font-weight:700; color:var(--ink); margin-bottom:6px;">
-                👥 Envie a Anamnese para a sua dupla!
-              </div>
-              <p style="font-size:12px; color:var(--ink-dim); line-height:1.4; margin-bottom:10px;">
-                Clique no botão abaixo para copiar a mensagem pronta com o link e envie para quem vai treinar com você.
-              </p>
-              <button type="button" class="btn-login btn-gold btn-sm-copy" onclick="copiarMensagemConvidadoDupla(${isApenasTreinoMode})">
-                📋 Copiar Mensagem da Dupla
-              </button>
-            </div>
-          `;
-        }
-
         document.getElementById('anamneseScreen').innerHTML = `
           <div style="text-align:center; padding:24px 10px;">
             <div style="font-size:48px; margin-bottom:12px;">✅</div>
@@ -1416,9 +1385,6 @@
             <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
               Anamnese recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
             </p>
-
-            ${boxDuplaHtml}
-
             <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
               <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
                 ⏳ Prazo de liberação e início
@@ -1427,7 +1393,6 @@
                 O protocolo personalizado e o <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
               </p>
             </div>
-
             <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
                Falar com o personal no WhatsApp
             </a>
@@ -1448,23 +1413,6 @@
     document.body.classList.add('app-mode');
 
     currentData = data;
-
-    if (data.data_vigencia) {
-      const hojeStr = new Date().toISOString().split('T')[0];
-      
-      if (hojeStr < data.data_vigencia) {
-        const parts = data.data_vigencia.split('-');
-        const dataFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
-        
-        const headerCard = document.querySelector('#mainContent .card');
-        if (headerCard) {
-          const alertVigencia = document.createElement('div');
-          alertVigencia.style.cssText = "background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:10px 12px; margin-top:10px; font-size:12px; color:var(--mark); text-align:center; font-weight:600;";
-          alertVigencia.innerHTML = `⏳ Seu novo protocolo de Treino, Dieta e Cardio entrará em vigor no dia <b>${dataFmt}</b>!`;
-          headerCard.appendChild(alertVigencia);
-        }
-      }
-    }
 
     const localLogs = localStorage.getItem(`draft_student_logs_${loggedUserCode}`);
     if (localLogs) {
@@ -1489,9 +1437,6 @@
       const parts = expStr.split('-');
       if (parts.length === 3) {
         dataExp = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999);
-      } else {
-        const dtParsed = new Date(expStr.replace(/-/g, '/'));
-        if (!isNaN(dtParsed.getTime())) dataExp = dtParsed;
       }
     }
 
@@ -1499,20 +1444,13 @@
       const diaVenc = parseInt(data.dia_vencimento) || 7;
       let ano = hoje.getFullYear();
       let mes = hoje.getMonth();
-      if (hoje.getDate() > diaVenc) {
-        mes += 1;
-      }
+      if (hoje.getDate() > diaVenc) mes += 1;
       dataExp = new Date(ano, mes, diaVenc, 23, 59, 59, 999);
-    } else {
-      dataExp.setHours(23, 59, 59, 999);
     }
 
     const diffTempo = dataExp.getTime() - hoje.getTime();
     diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-
-    if (diasRestantes <= 0) {
-      estaVencido = true;
-    }
+    if (diasRestantes <= 0) estaVencido = true;
 
     const diaFmt = String(dataExp.getDate()).padStart(2, '0');
     const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
@@ -1594,7 +1532,6 @@
     const ultima = ultimasMensagens[ultimasMensagens.length - 1];
     const keyVisto = `fb_last_seen_${loggedUserCode}`;
     const vistoId = localStorage.getItem(keyVisto);
-
     const msgId = ultima.data || ultima.mensagem;
 
     if (vistoId !== msgId) {
@@ -2139,7 +2076,6 @@
       if (proximoTreino === 0) {
         let semanaAtual = currentData.semana_rotacao || 1;
         currentData.semana_rotacao = (semanaAtual % 5) + 1;
-        
         await resetCardioSemanal();
       }
     }
@@ -2752,7 +2688,7 @@
     }
   }
 
-  // --- PARSER E RENDERIZADOR DE DIETA ROBUSTO PARA O APP ---
+  // --- PARSER E RENDERIZADOR DE DIETA REVISADO ---
   function parseDietaAluno(rawText) {
     if (!rawText || !rawText.trim()) return [];
 
@@ -2812,12 +2748,14 @@
             if (!days.startsWith('📅')) days = '📅 ' + days;
           } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
             let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
-            if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
-              trocasCarbo.push(itemTxt.replace(/[CARBO]/gi, '').trim());
-            } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
-              trocasProt.push(itemTxt.replace(/[PROT]/gi, '').trim());
+            
+            // Tratamento preciso sem truncar textos dos alimentos
+            if (itemTxt.includes('[CARBO]')) {
+              trocasCarbo.push(itemTxt.replace(/[CARBO]/gi, '').replace(/^[-•*]\s*/, '').trim());
+            } else if (itemTxt.includes('[PROT]')) {
+              trocasProt.push(itemTxt.replace(/[PROT]/gi, '').replace(/^[-•*]\s*/, '').trim());
             } else {
-              trocasCarbo.push(itemTxt);
+              trocasCarbo.push(itemTxt.replace(/^[-•*]\s*/, '').trim());
             }
           } else {
             const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
@@ -2880,7 +2818,7 @@
       return;
     }
 
-    const diaHoje = obterDiaSemanaNormalizado();
+    const diaHoje = obtainingDiaSemanaNormalizado();
     let abaIndexHoje = 0;
 
     abas.forEach((aba, idx) => {
@@ -2972,6 +2910,10 @@
         categoryList.appendChild(card);
       });
     }
+  }
+
+  function obtainingDiaSemanaNormalizado() {
+    return obterDiaSemanaNormalizado();
   }
 
   const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback'];
