@@ -1989,6 +1989,15 @@
           if (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
         }
 
+        const cBo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_bo`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_bo`]);
+        const rBo = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_bo`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_bo`]);
+        if (!isNaN(cBo) && cBo > cMax) cMax = cBo;
+        if (!isNaN(rBo)) { 
+          rTotal += rBo; 
+          seriesCount++; 
+          if (!isNaN(cBo)) volumeToneladoTotal += (cBo * rBo);
+        }
+
         const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
 
         if (cMax > 0 || rMed > 0) {
@@ -2272,12 +2281,6 @@
       const tem3x = seriesStr.includes('3x') || seriesStr === '3';
       const temPuraSeries = /^(\d+)x?$/i.test(seriesStr);
 
-      const explicitBackoffWord = metaText.includes('back-off') || metaText.includes('backoff') || seriesStr.includes('backoff') || seriesStr.includes('back-off') || tecnicaPrescrita.includes('backoff') || tecnicaPrescrita.includes('back-off');
-      const temBackoff = explicitBackoffWord;
-
-      const temCluster = metaText.includes('cluster') || seriesStr.includes('cluster') || tecnicaPrescrita.includes('cluster');
-      const temMyo = metaText.includes('myo') || seriesStr.includes('myo') || tecnicaPrescrita.includes('myo');
-
       let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
 
       // Lê o que o Admin digitou na técnica para fixar
@@ -2312,8 +2315,8 @@
 
       if (tecnicaAdminFixa) {
         const nomesExibicao = {
-          'convencional': isStrict1x ? '1 Série Única' : 'Série Convencional',
-          'backoff_2x': '⚙️ 2x + Back-Off',
+          'convencional': isStrict1x ? '1 Série Única' : `${numSeriesPrescritas}x Convencional`,
+          'backoff_2x': '⚙️ 2x + Back-Off Set',
           'cluster': '⚙ Cluster Set',
           'cluster_backoff': '⚙️ Cluster + Back-Off',
           'myoreps': '⚙ Myo-Reps'
@@ -2325,6 +2328,7 @@
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
+              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
               <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
             </select>
           `;
@@ -2333,8 +2337,6 @@
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
               <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
-              <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-              <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
               <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
             </select>
           `;
@@ -2500,30 +2502,43 @@
       } else if (activeMode === 'backoff_2x') {
         const keyS1C = `log_c_${exKeySanitized}_s1`;
         const keyS1R = `log_r_${exKeySanitized}_s1`;
+        const keyS2C = `log_c_${exKeySanitized}_s2`;
+        const keyS2R = `log_r_${exKeySanitized}_s2`;
         const keyBoC = `log_c_${exKeySanitized}_bo`;
         const keyBoR = `log_r_${exKeySanitized}_bo`;
 
         const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
         const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+        const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
+        const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
         const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
         const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
         const nS1 = parseFloat(valS1C) || 0;
-        let c20 = nS1 > 0 ? Math.round(nS1 * 0.80) : 0;
-        let c30 = nS1 > 0 ? Math.round(nS1 * 0.70) : 0;
+        const nS2 = parseFloat(valS2C) || 0;
+        const maiorCarga = Math.max(nS1, nS2);
+        let c20 = maiorCarga > 0 ? Math.round(maiorCarga * 0.80) : 0;
+        let c30 = maiorCarga > 0 ? Math.round(maiorCarga * 0.70) : 0;
 
         html += `
           <div class="series-row">
-            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série Principal</button>
+            <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
             <input id="input_log_c_${exKeySanitized}_s1" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">kg</span>
             <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
             <span class="unit">reps</span>
           </div>
+          <div class="series-row">
+            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
+            <input id="input_log_c_${exKeySanitized}_s2" ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">kg</span>
+            <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
+            <span class="unit">reps</span>
+          </div>
           <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
             <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
             <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-              ${nS1 > 0 ? `
+              ${maiorCarga > 0 ? `
                 <div style="display:flex; gap:4px; width:100%;">
                   <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
                     onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
@@ -2534,10 +2549,10 @@
                     -30% (${c30}kg)
                   </button>
                 </div>
-              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga da Série Principal para calcular o Back-off</span>`}
+              ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`}
             </div>
             <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-              <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
+              <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
               <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
               <span class="unit">kg</span>
               <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
@@ -2599,7 +2614,7 @@
         </div>
       `;
     } else {
-      box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries acima para calcular o Back-off</span>`;
+      box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`;
     }
   }
 
@@ -2720,6 +2735,11 @@
     if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
     if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
 
+    const cBo = parseFloat(currentData.logs[`log_c_${exKeySanitized}_bo`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]);
+    const rBo = parseFloat(currentData.logs[`log_r_${exKeySanitized}_bo`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]);
+    if (!isNaN(cBo) && cBo > maxCarga) maxCarga = cBo;
+    if (!isNaN(rBo)) { totalReps += rBo; seriesPreenchidas++; }
+
     if (maxCarga > 0) {
       const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
       const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
@@ -2803,7 +2823,6 @@
             let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
             if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
             
-            // CORREÇÃO DA DIETA - APENAS REMOVE AS TAGS SEM COMER LETRAS
             itemTxt = itemTxt.replace(/\[\s*CARBO\s*\]/gi, '').replace(/\[\s*PROT\s*\]/gi, '').replace(/\[\s*\]/g, '').trim();
 
             if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
