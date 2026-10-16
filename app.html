@@ -954,7 +954,7 @@
   }
 
   function obterNomeDiaSemanaFormatado() {
-    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
     return dias[new Date().getDay()];
   }
 
@@ -1740,7 +1740,7 @@
     const dias = [
       { key: 'seg', nome: 'Segunda-Feira' },
       { key: 'ter', nome: 'Terça-Feira' },
-      { key: 'qua', nome: 'Quinta-Feira' },
+      { key: 'qua', nome: 'Quarta-Feira' },
       { key: 'qui', nome: 'Quinta-Feira' },
       { key: 'sex', nome: 'Sexta-Feira' },
       { key: 'sab', nome: 'Sábado' },
@@ -2326,7 +2326,6 @@
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
-              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
               <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
             </select>
           `;
@@ -2334,6 +2333,7 @@
           selectHtml = `
             <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
               <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
+              <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
               <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
               <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
             </select>
