@@ -1,13 +1,13 @@
-const BACKEND_URL = "[https://consultoria-backend-kbqi.onrender.com](https://consultoria-backend-kbqi.onrender.com)";
+const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 
 const ASAAS_LINKS = {
-  'COMPLETA_ANUAL': "[https://www.asaas.com/c/5gd9tb7c0szjdwbd](https://www.asaas.com/c/5gd9tb7c0szjdwbd)",
-  'COMPLETA_SEMESTRAL': "[https://www.asaas.com/c/oky8it88u28d4vat](https://www.asaas.com/c/oky8it88u28d4vat)",
-  'COMPLETA_TRIMESTRAL': "[https://www.asaas.com/c/lvfk6qle0ufq0t57](https://www.asaas.com/c/lvfk6qle0ufq0t57)",
-  'COMPLETA_MENSAL': "[https://www.asaas.com/c/5gd9tb7c0szjdwbd](https://www.asaas.com/c/5gd9tb7c0szjdwbd)",
-  'COMPLETA_DUPLA_ANUAL': "[https://www.asaas.com/000/c/z4zlsoe009fz8tgu](https://www.asaas.com/000/c/z4zlsoe009fz8tgu)",
-  'TREINO_ANUAL': "[https://www.asaas.com/c/v36oz63i4jg0cg2u](https://www.asaas.com/c/v36oz63i4jg0cg2u)",
-  'TREINO_DUPLA_ANUAL': "[https://www.asaas.com/c/omsltaq25btnizvo](https://www.asaas.com/c/omsltaq25btnizvo)"
+  'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+  'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/oky8it88u28d4vat",
+  'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/lvfk6qle0ufq0t57",
+  'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
+  'COMPLETA_DUPLA_ANUAL': "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
+  'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
+  'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
 };
 
 const DETALHES_PLANOS = {
@@ -76,8 +76,8 @@ function fecharModalSenha() { document.getElementById('modalSenha').classList.ad
 
 function compartilharIndicaoWpp() {
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0A[https://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação](https://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação) do aluno: ${nome}_`;
-  window.open(`[https://wa.me/?text=$](https://wa.me/?text=$){msg}`, '_blank');
+  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação do aluno: ${nome}_`;
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
 }
 
 async function alterarSenhaAlunoModal() {
@@ -262,8 +262,6 @@ function updateWorkoutTimerDisplay() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
-
   const params = new URLSearchParams(window.location.search);
   const paramAluno = params.get('aluno');
   if (paramAluno && document.getElementById('loginUser')) {
@@ -767,7 +765,7 @@ function renderLockNotice() {
         Identificamos que o seu plano mensal venceu.<br>
         Envie o comprovante no WhatsApp para reativar seu acesso na hora!
       </div>
-      <a href="[https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o](https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o):" 
+      <a href="https://wa.me/5551990169026?text=Olá%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renovação:" 
          target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
          Enviar comprovante no WhatsApp
       </a>
@@ -1317,7 +1315,6 @@ function renderDietaAluno(refeicoesData) {
   `;
 }
 
-// ABAS DO APLICATIVO DO ALUNO (Sem a aba de IA, focadas em Treino, Dieta, Corrida e Feedbacks)
 const TAB_ORDER = ['treino', 'dieta', 'corrida', 'feedback'];
 
 function showTab(tab) {
@@ -1487,7 +1484,7 @@ function sendWhatsAppFeedback() {
   const text = input ? input.value.trim() : "";
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
   const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata!')}`;
-  window.open(`[https://wa.me/5551990169026?text=$](https://wa.me/5551990169026?text=$){msg}`, '_blank');
+  window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
 }
 
 function logout() {
