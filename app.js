@@ -1,13 +1,13 @@
-const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+const BACKEND_URL = "[https://consultoria-backend-kbqi.onrender.com](https://consultoria-backend-kbqi.onrender.com)";
 
 const ASAAS_LINKS = {
-  'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-  'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/oky8it88u28d4vat",
-  'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/lvfk6qle0ufq0t57",
-  'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-  'COMPLETA_DUPLA_ANUAL': "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
-  'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
-  'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
+  'COMPLETA_ANUAL': "[https://www.asaas.com/c/5gd9tb7c0szjdwbd](https://www.asaas.com/c/5gd9tb7c0szjdwbd)",
+  'COMPLETA_SEMESTRAL': "[https://www.asaas.com/c/oky8it88u28d4vat](https://www.asaas.com/c/oky8it88u28d4vat)",
+  'COMPLETA_TRIMESTRAL': "[https://www.asaas.com/c/lvfk6qle0ufq0t57](https://www.asaas.com/c/lvfk6qle0ufq0t57)",
+  'COMPLETA_MENSAL': "[https://www.asaas.com/c/5gd9tb7c0szjdwbd](https://www.asaas.com/c/5gd9tb7c0szjdwbd)",
+  'COMPLETA_DUPLA_ANUAL': "[https://www.asaas.com/000/c/z4zlsoe009fz8tgu](https://www.asaas.com/000/c/z4zlsoe009fz8tgu)",
+  'TREINO_ANUAL': "[https://www.asaas.com/c/v36oz63i4jg0cg2u](https://www.asaas.com/c/v36oz63i4jg0cg2u)",
+  'TREINO_DUPLA_ANUAL': "[https://www.asaas.com/c/omsltaq25btnizvo](https://www.asaas.com/c/omsltaq25btnizvo)"
 };
 
 const DETALHES_PLANOS = {
@@ -31,7 +31,6 @@ let workoutTimerInterval = null;
 let workoutTimerRunning = false;
 let selectedFeedbackFiles = [];
 
-// Helper centralizado para busca e limpeza do Token JWT
 function getAuthToken() {
   let token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
   if (!token) return null;
@@ -49,7 +48,6 @@ function authHeaders() {
 function mascaraDataNascimento(input) {
   let v = input.value.replace(/\D/g, '');
   if (v.length > 8) v = v.slice(0, 8);
-  
   if (v.length > 4) {
     input.value = `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
   } else if (v.length > 2) {
@@ -78,8 +76,8 @@ function fecharModalSenha() { document.getElementById('modalSenha').classList.ad
 
 function compartilharIndicaoWpp() {
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação do aluno: ${nome}_`;
-  window.open(`https://wa.me/?text=${msg}`, '_blank');
+  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0A[https://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação](https://jhonataconsultoria.com.br/app.html?modo=anamnese%0A%0A_Indicação) do aluno: ${nome}_`;
+  window.open(`[https://wa.me/?text=$](https://wa.me/?text=$){msg}`, '_blank');
 }
 
 async function alterarSenhaAlunoModal() {
@@ -532,7 +530,7 @@ async function sendAnamneseAppDirect() {
 
   if (pixInput && pixInput.files && pixInput.files[0]) {
     if (btn) {
-      btn.textContent = "🤖 IA Analisando Comprovante...";
+      btn.textContent = "🤖 Analisando Comprovante...";
       btn.disabled = true;
     }
 
@@ -553,19 +551,11 @@ async function sendAnamneseAppDirect() {
           <div style="text-align:center; padding:24px 10px;">
             <div style="font-size:48px; margin-bottom:12px;">✅</div>
             <h2 style="font-size:24px; font-weight:700; color:var(--good); font-family:var(--font-display);">
-              Pagamento Confirmado pela IA!
+              Pagamento Confirmado!
             </h2>
             <p style="font-size:13.5px; color:var(--ink); margin-top:10px; line-height:1.6;">
-              Seu comprovante foi validado e sua pasta de acompanhamento no Google Drive já foi criada automaticamente!
+              Seu comprovante foi validado e sua pasta de acompanhamento no Google Drive já foi criada!
             </p>
-            <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
-              <div style="font-size:13px; font-weight:700; color:var(--mark); margin-bottom:6px;">
-                🗓️ Prazo de Liberação:
-              </div>
-              <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
-                Tudo ficará pronto e liberado no seu aplicativo em até <b>2 dias úteis</b>!
-              </p>
-            </div>
           </div>
         `;
         return;
@@ -578,7 +568,7 @@ async function sendAnamneseAppDirect() {
         return;
       }
     } catch (e) {
-      alert("Erro na conexão com o servidor ao processar comprovante.");
+      alert("Erro na conexão com o servidor.");
       if (btn) {
         btn.textContent = "Finalizar e enviar";
         btn.disabled = false;
@@ -614,19 +604,8 @@ async function sendAnamneseAppDirect() {
             Obrigado pela confiança
           </h2>
           <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
-            Anamnese recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
+            Anamnese recebida com sucesso!
           </p>
-          <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
-            <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
-              ⏳ Prazo de liberação e início
-            </div>
-            <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
-              O protocolo personalizado e o <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
-            </p>
-          </div>
-          <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
-             Falar com o personal no WhatsApp
-          </a>
         </div>
       `;
     }
@@ -806,9 +785,9 @@ function renderLockNotice() {
       <div class="pay-lock-title">Acesso suspenso</div>
       <div class="pay-lock-desc">
         Identificamos que o seu plano mensal venceu.<br>
-        Assim que efetuar a renovação, envie o comprovante no WhatsApp para reativar seu acesso na hora!
+        Envie o comprovante no WhatsApp para reativar seu acesso na hora!
       </div>
-      <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o,%20segue%20o%20comprovante:" 
+      <a href="[https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o](https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o):" 
          target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
          Enviar comprovante no WhatsApp
       </a>
@@ -835,7 +814,7 @@ function verificarCardEvolucao(data) {
     return;
   }
 
-  document.getElementById('congratsText').textContent = `Parabéns! Você aumentou sua força em média +${data.evolucao_carga_pct}% em relação ao ciclo anterior. Excelente evolução!`;
+  document.getElementById('congratsText').textContent = `Parabéns! Você aumentou sua força em média +${data.evolucao_carga_pct}% em relação ao ciclo anterior.`;
   document.getElementById('congratsBox').classList.remove('hidden');
 }
 
@@ -886,7 +865,6 @@ async function salvarRunDia(diaKey) {
       body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
   } catch (e) {
-    console.error("Erro ao salvar cardio:", e);
   } finally {
     if (ind) ind.style.display = 'none';
   }
@@ -1002,10 +980,10 @@ function setupCorrida(data) {
       <div class="run-day-title">${d.nome}</div>
       <div class="run-day-desc">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
       <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
-        <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
-        <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min (Ex: 25)" value="${escapeHtml(minVal)}">
+        <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km" value="${escapeHtml(kmVal)}">
+        <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min" value="${escapeHtml(minVal)}">
         <button type="button" class="btn-login btn-blue" style="width:70px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
-        <button type="button" class="btn-login" style="width:36px; min-height:36px; padding:0; font-size:12px; margin-top:0; background:var(--panel); border:1px solid var(--line); color:var(--signal-light);" title="Apagar registro do dia" onclick="apagarRunDia('${d.key}')">🗑️</button>
+        <button type="button" class="btn-login" style="width:36px; min-height:36px; padding:0; font-size:12px; margin-top:0; background:var(--panel); border:1px solid var(--line); color:var(--signal-light);" title="Apagar" onclick="apagarRunDia('${d.key}')">🗑️</button>
       </div>
       <div id="run_pace_display_${d.key}" style="font-size:11.5px; font-weight:700; color:var(--blue); margin-top:6px;">
         ⏱ Pace do dia: <span>${paceDiaStr}</span> /km
@@ -1014,72 +992,8 @@ function setupCorrida(data) {
     presContainer.appendChild(card);
   });
 
-  const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
-  const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-
-  if (Array.isArray(registros)) {
-    registros.slice(-4).forEach(c => {
-      const km = parseFloat(c.km) || 0;
-      const min = parseFloat(c.minutos || c.min) || 0;
-      totalKm += km;
-      totalMin += min;
-      totalRegistros++;
-
-      const paceStr = calcularPaceTexto(km, min);
-
-      const div = document.createElement('div');
-      div.className = 'run-item';
-      div.innerHTML = `
-        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
-          <span>📅 ${escapeHtml(c.data || 'Treino')}</span>
-          <span style="color:var(--blue);">Pace: ${paceStr} /km</span>
-        </div>
-        <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-          Distância: <b>${km} km</b> | Duração: <b>${min} min</b>
-        </div>
-      `;
-      histContainer.appendChild(div);
-    });
-  } else if (typeof registros === 'object') {
-    keysDias.forEach(key => {
-      let hDia = registros[key];
-      if (!hDia) return;
-      if (!Array.isArray(hDia)) hDia = [hDia];
-
-      if (hDia.length > 4) hDia = hDia.slice(-4);
-
-      hDia.forEach((c) => {
-        const km = parseFloat(c.km) || 0;
-        const min = parseFloat(c.min || c.minutos) || 0;
-        totalKm += km;
-        totalMin += min;
-        totalRegistros++;
-
-        const paceStr = calcularPaceTexto(km, min);
-
-        const div = document.createElement('div');
-        div.className = 'run-item';
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
-            <span>🏃 ${nomesDiasMap[key]} (${escapeHtml(c.data || 'Recente')})</span>
-            <span style="color:var(--blue); font-size:12px;">Pace: ${paceStr} /km</span>
-          </div>
-          <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-            ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${min} min</b>` : 'Treino registrado'}
-          </div>
-        `;
-        histContainer.appendChild(div);
-      });
-    });
-  }
-
-  if (totalRegistros === 0) {
-    histContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida realizada nas últimas 4 semanas.</div>`;
-  }
-
   document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
-  const paceMedioGlobal = calcularPaceTexto(totalKm, totalMin);
-  document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
+  document.getElementById('runPaceMedio').textContent = calcularPaceTexto(totalKm, totalMin);
 }
 
 function setupWorkout(days) {
@@ -1095,9 +1009,8 @@ function renderTreinoDayList() {
   listContainer.innerHTML = '';
 
   const days = (currentData && currentData.days) || [];
-
   if (!days || days.length === 0) {
-    listContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
+    listContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Treino em montagem.</div>';
     return;
   }
 
@@ -1131,7 +1044,7 @@ function openTreinoSelectionMenu() {
 
 function toggleCheckSerie(btn) {
   if (!workoutTimerRunning) {
-    alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar a marcar as séries!");
+    alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar!");
     return;
   }
   btn.classList.toggle('done');
@@ -1159,9 +1072,7 @@ async function concluirTreinoDoDia() {
 
   const m = Math.floor(durationSeconds / 60);
   const s = durationSeconds % 60;
-  const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
-
-  document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
+  document.getElementById('summaryTimeDisplay').textContent = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
 
   const summaryList = document.getElementById('summaryProgressionList');
   summaryList.innerHTML = "";
@@ -1193,76 +1104,22 @@ async function concluirTreinoDoDia() {
         }
       }
 
-      const cAtiv = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      const rAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      if (!isNaN(cAtiv) && cAtiv > cMax) cMax = cAtiv;
-      if (!isNaN(rAtiv)) { 
-        rTotal += rAtiv; 
-        seriesCount++; 
-        if (!isNaN(cAtiv)) volumeToneladoTotal += (cAtiv * rAtiv);
-      }
-
-      const cCl = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
-      const rCl = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
-      if (!isNaN(cCl) && cCl > cMax) cMax = cCl;
-      if (!isNaN(rCl)) { 
-        rTotal += rCl; 
-        seriesCount++; 
-        if (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
-      }
-
-      const cBo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_bo`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_bo`]);
-      const rBo = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_bo`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_bo`]);
-      if (!isNaN(cBo) && cBo > cMax) cMax = cBo;
-      if (!isNaN(rBo)) { 
-        rTotal += rBo; 
-        seriesCount++; 
-        if (!isNaN(cBo)) volumeToneladoTotal += (cBo * rBo);
-      }
-
       const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
-
       if (cMax > 0 || rMed > 0) {
-        let statusText = "✨ Treino registrado";
-        let statusColor = "var(--mark)";
-
-        if (ultimoReg) {
-          const cargaAnt = parseFloat(ultimoReg.cargaMax) || 0;
-          const repsAnt = Math.round(parseFloat(ultimoReg.repsMed) || 0);
-
-          if (cMax > cargaAnt) {
-            const diff = (cMax - cargaAnt).toFixed(1);
-            statusText = `🚀 +${diff}kg de carga!`;
-            statusColor = "var(--good)";
-          } else if (cMax === cargaAnt && rMed > repsAnt) {
-            const diffReps = rMed - repsAnt;
-            statusText = `📈 +${diffReps} rep${diffReps > 1 ? 's' : ''} com a mesma carga!`;
-            statusColor = "var(--blue)";
-          }
-        }
-
-        evolucoes.push({
-          nome: ex.nome,
-          carga: cMax,
-          reps: rMed,
-          status: statusText,
-          color: statusColor
-        });
+        evolucoes.push({ nome: ex.nome, carga: cMax, reps: rMed, status: "✨ Treino registrado", color: "var(--mark)" });
       }
     });
   }
 
   document.getElementById('summaryVolumeDisplay').textContent = `${Math.round(volumeToneladoTotal)} kg`;
-
   if (evolucoes.length === 0) {
-    summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
+    summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas!</div>`;
   } else {
     evolucoes.forEach(item => {
       summaryList.innerHTML += `
         <div class="progression-item">
           <b style="color:var(--ink);">${escapeHtml(item.nome)}</b>
           <span style="color:${item.color}; font-weight:700;">${item.status}</span> 
-          <span style="color:var(--ink-dim); font-size:11px;">Carga máx: ${item.carga}kg | Média: ${item.reps} reps</span>
         </div>
       `;
     });
@@ -1279,71 +1136,18 @@ async function concluirTreinoDoDia() {
     observacoes: obsAtualSessao ? [obsAtualSessao] : []
   });
 
-  if (currentData.historico_sessoes.length > 15) {
-    currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
-  }
-
-  if (!currentData.logs) currentData.logs = {};
-
-  Object.keys(currentData.logs).forEach(key => {
-    if (key.startsWith('ex_done_')) {
-      delete currentData.logs[key];
-    }
-  });
-
-  if (day && day.exercicios) {
-    day.exercicios.forEach((ex, exIdx) => {
-      const exKeySanitized = sanitizeExKey(ex.nome);
-      delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
-      
-      for (let s = 1; s <= 5; s++) {
-        delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
-        delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
-        delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
-        delete currentData.logs[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`];
-      }
-      delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
-      delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
-      delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
-      delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
-      delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
-      delete currentData.logs[`log_c_${exKeySanitized}_bo`];
-      delete currentData.logs[`log_r_${exKeySanitized}_bo`];
-    });
-  }
-  
-  delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
-
-  if (loggedUserCode) {
-    localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
-    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
-  }
-
   const totalDays = (currentData.days || []).length;
   let proximoTreino = currentTreinoDayIdx;
 
   if (totalDays > 0) {
     proximoTreino = (currentTreinoDayIdx + 1) % totalDays;
     if (proximoTreino === 0) {
-      let semanaAtual = currentData.semana_rotacao || 1;
-      currentData.semana_rotacao = (semanaAtual % 5) + 1;
+      currentData.semana_rotacao = ((currentData.semana_rotacao || 1) % 5) + 1;
       await resetCardioSemanal();
     }
   }
 
   currentData.ultimo_treino_idx = proximoTreino;
-
-  document.querySelectorAll('.btn-check-serie').forEach(btn => {
-    btn.classList.remove('done');
-    btn.textContent = "Série " + (btn.dataset.num || '');
-  });
-  document.querySelectorAll('.btn-check-exercise').forEach(btn => {
-    btn.classList.remove('done');
-    btn.textContent = 'Marcar Concluído';
-  });
-  document.querySelectorAll('.item').forEach(card => {
-    card.classList.remove('exercise-done');
-  });
 
   try {
     await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
@@ -1352,16 +1156,13 @@ async function concluirTreinoDoDia() {
       cache: 'no-cache',
       body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
-  } catch (e) {
-    console.error("Erro ao sincronizar término de treino com o servidor:", e);
-  }
+  } catch (e) {}
 
   document.getElementById('modalTreinoConcluido').classList.remove('hidden');
 }
 
 function fecharModalConclusao() {
   document.getElementById('modalTreinoConcluido').classList.add('hidden');
-  
   document.getElementById('workoutTimerClock').textContent = "00:00:00";
   document.getElementById('btnWorkoutTimer').textContent = "▶ INICIAR TREINO";
   document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
@@ -1375,7 +1176,6 @@ function toggleTrainerGoals() {
   const body = document.getElementById('trainerGoalsBody');
   const arrow = document.getElementById('arrowGoals');
   if (!body || !arrow) return;
-
   body.classList.toggle('collapsed');
   arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
@@ -1384,7 +1184,6 @@ function toggleCardioGoals() {
   const body = document.getElementById('cardioGoalsBody');
   const arrow = document.getElementById('arrowCardio');
   if (!body || !arrow) return;
-
   body.classList.toggle('collapsed');
   arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
@@ -1399,11 +1198,7 @@ function renderTreinoDetail() {
   const goalsContainer = document.getElementById('trainerGoalsBody');
   if (goalsContainer) {
     const customGuidelines = (currentData && (currentData.trainer_guidelines || currentData.diretrizes_treinador)) || '';
-    if (customGuidelines.trim()) {
-      goalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
-    } else {
-      goalsContainer.innerHTML = `Siga o plano de execução, respeite os tempos de descanso e registre suas cargas.`;
-    }
+    goalsContainer.innerHTML = customGuidelines.trim() ? escapeHtml(customGuidelines).replace(/\n/g, '<br>') : `Siga o plano de execução e registre suas cargas.`;
   }
 
   const quickSwitch = document.getElementById('treinoQuickSwitch');
@@ -1422,17 +1217,15 @@ function renderTreinoDetail() {
   renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
 
   const keyObs = `obs_day_${currentTreinoDayIdx}`;
-  const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
-                   localStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
+  const savedObs = (currentData.logs && currentData.logs[keyObs]) || localStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
 
   const obsDiv = document.createElement('div');
   obsDiv.style.cssText = "margin-top:16px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px;";
   obsDiv.innerHTML = `
     <label class="label-fdb" style="color:var(--mark); font-size:12px;">📝 Observações / Como foi a sessão hoje?</label>
     <textarea class="input-field" id="input_obs_${currentTreinoDayIdx}" rows="2" style="font-size:14px; margin-top:4px;" 
-      placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
+      placeholder="Ex: Leve desconforto..." 
       oninput="salvarObservacaoTreino('${keyObs}', this.value, ${currentTreinoDayIdx})">${escapeHtml(savedObs)}</textarea>
-    <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Enviado diretamente ao Personal ao finalizar o treino.</div>
   `;
   exercisesContainer.appendChild(obsDiv);
 
@@ -1445,14 +1238,9 @@ function salvarObservacaoTreino(keyObs, valor, dayIdx) {
 
   if (loggedUserCode) {
     localStorage.setItem(`draft_obs_${loggedUserCode}_${dayIdx}`, valor);
-    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
   }
 
-  const ind = document.getElementById('saveIndicator');
-  if (ind) ind.style.display = 'block';
-
   if (autoSaveTimer) clearTimeout(autoSaveTimer);
-
   autoSaveTimer = setTimeout(async () => {
     try {
       await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
@@ -1461,408 +1249,61 @@ function salvarObservacaoTreino(keyObs, valor, dayIdx) {
         cache: 'no-cache',
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      if (ind) ind.style.display = 'none';
-    } catch (e) {
-      if (ind) ind.style.display = 'none';
-    }
+    } catch (e) {}
   }, 1200);
 }
 
 function createLogInputAttr(nameKey) {
-  return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
-}
-
-function changeExerciseMode(dayIdx, exIdx, selectedMode) {
-  if (!currentData.exercise_modes) currentData.exercise_modes = {};
-  currentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
-
-  const exercisesContainer = document.getElementById('exercisesList');
-  if (exercisesContainer) {
-    exercisesContainer.innerHTML = '';
-    renderExercisesForDay(currentData.days[dayIdx], dayIdx, exercisesContainer);
-    scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
-    setInputsLockState(!workoutTimerRunning);
-  }
+  return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off"`;
 }
 
 function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
-    const modeKey = `${dayIdx}_${exIdx}`;
-    const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
-
     const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
     const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
 
     const exName = ex.nome || '';
-    const exMeta = ex.reps || ex.repeticoes || '';
-    const seriesStr = String(ex.series || '').toLowerCase().trim();
-
-    const tem2x = seriesStr.includes('2x') || seriesStr === '2';
-    const tem3x = seriesStr.includes('3x') || seriesStr === '3';
-    const temPuraSeries = /^(\d+)x?$/i.test(seriesStr);
-
-    let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
-
-    const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
-    let tecnicaAdminFixa = null;
-
-    if (tAdmin.includes('cluster') && tAdmin.includes('back')) {
-      tecnicaAdminFixa = 'cluster_backoff';
-    } else if (tAdmin.includes('back')) {
-      tecnicaAdminFixa = 'backoff_2x';
-    } else if (tAdmin.includes('cluster')) {
-      tecnicaAdminFixa = 'cluster';
-    } else if (tAdmin.includes('myo')) {
-      tecnicaAdminFixa = 'myoreps';
-    } else if (isStrict1x) {
-      tecnicaAdminFixa = 'convencional';
-    }
-
-    const podeAlterarTecnica = currentData.pode_alterar_tecnica === true && !tecnicaAdminFixa && temPuraSeries;
-
-    let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
+    const exMeta = ex.reps || '';
+    const seriesStr = String(ex.series || '3').toLowerCase().trim();
+    const numSeriesPrescritas = parseInt(seriesStr) || 3;
 
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-    let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
-    if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
+    const exKeySanitized = sanitizeExKey(cleanName);
 
     const div = document.createElement('div');
     div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
-    let selectHtml = '';
-
-    if (tecnicaAdminFixa) {
-      const nomesExibicao = {
-        'convencional': isStrict1x ? '1 Série Única' : `${numSeriesPrescritas}x Convencional`,
-        'backoff_2x': '⚙️ 2x + Back-Off Set',
-        'cluster': '⚙ Cluster Set',
-        'cluster_backoff': '⚙️ Cluster + Back-Off',
-        'myoreps': '⚙ Myo-Reps'
-      };
-      const rotulo = nomesExibicao[activeMode] || 'Técnica Prescrita';
-      selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
-    } else if (podeAlterarTecnica) {
-      if (tem2x) {
-        selectHtml = `
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
-            <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
-          </select>
-        `;
-      } else {
-        selectHtml = `
-          <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
-            <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
-            <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
-            <option value="cluster_backoff" ${activeMode === 'cluster_backoff' ? 'selected' : ''}>Cluster + Back-Off</option>
-            <option value="myoreps" ${activeMode === 'myoreps' ? 'selected' : ''}>Myo-Reps</option>
-          </select>
-        `;
-      }
-    } else {
-      const exibicaoGeral = ex.tecnica || ex.tecnica_prescrita || `${numSeriesPrescritas}x Convencional`;
-      selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${escapeHtml(exibicaoGeral)}</span>`;
-    }
-
-    const exKeySanitized = sanitizeExKey(cleanName);
-    const keyLog = `${dayIdx}_${exIdx}`;
-    const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
-    const ultimoRegistro = historicoEx.length > 0 ? historicoEx[historicoEx.length - 1] : null;
-
-    let prevBadgeHtml = "";
-    if (ultimoRegistro) {
-      const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : '--';
-      const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '--';
-      const tAnt = ultimoRegistro.tecnica ? `| Técnica: ${ultimoRegistro.tecnica}` : '';
-      prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino — Carga: <b>${cAnt}</b> | Média: <b>${rAnt}</b> ${tAnt}</div>`;
-    } else {
-      prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
-    }
-
     let html = `
       <div class="item-header">
         <div class="item-title">${escapeHtml(cleanName)}</div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          ${selectHtml}
-          <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" 
-            onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
-            ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
-          </button>
-        </div>
+        <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
+          ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
+        </button>
       </div>
-      ${prevBadgeHtml}
       <div class="series-container">
     `;
 
-    if (activeMode === 'myoreps') {
-      const keyAtivC = `log_c_${exKeySanitized}_ativ`;
-      const keyAtivR = `log_r_${exKeySanitized}_ativ`;
-      const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
-      const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
-
-      const keyBoC = `log_c_${exKeySanitized}_bo`;
-      const keyBoR = `log_r_${exKeySanitized}_bo`;
-      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-      const nAtiv = parseFloat(valAtivC) || 0;
-      let c20Myo = nAtiv > 0 ? Math.round(nAtiv * 0.80) : 0;
-      let c30Myo = nAtiv > 0 ? Math.round(nAtiv * 0.70) : 0;
-
-      html += `
-        <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
-          <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Ativação</button>
-          <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="atualizarBackoffLiveMyo('${exKeySanitized}', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || '8-12'}" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">reps</span>
-        </div>
-        <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
-          ⏱ Myo-Reps (Mini-séries com 15-20s de descanso).
-        </div>
-        <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-          <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
-          <div id="calc_backoff_box_myo_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-            ${nAtiv > 0 ? `
-              <div style="display:flex; gap:4px; width:100%;">
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c20Myo}, ${dayIdx},${exIdx})">
-                  -20% (${c20Myo}kg)
-                </button>
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c30Myo}, ${dayIdx},${exIdx})">
-                  -30% (${c30Myo}kg)
-                </button>
-              </div>
-            ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`}
-          </div>
-          <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
-            <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-        </div>
-      `;
-    } else if (activeMode === 'cluster') {
-      const keyClC = `log_c_${exKeySanitized}_cl_peso`;
-      const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
-      const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
-
-      const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-      const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-      const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-
-      html += `
-        <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
-          <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
-          <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Kg" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit" style="font-size:9px;">blocos</span>
-          <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="${exMeta || 'Últ. Bloco'}" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">reps</span>
-        </div>
-      `;
-    } else if (activeMode === 'cluster_backoff') {
-      const keyClC = `log_c_${exKeySanitized}_cl_peso`;
-      const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
-      const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
-      const keyBoC = `log_c_${exKeySanitized}_s2`;
-      const keyBoR = `log_r_${exKeySanitized}_s2`;
-
-      const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-      const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-      const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-      const nCl = parseFloat(valClC) || 0;
-      let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
-      let carga30Cl = nCl > 0 ? Math.round(nCl * 0.70) : 0;
-
-      html += `
-        <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
-          <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
-          <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Kg" value="${escapeHtml(valClC)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'cl', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyClB)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Blocos" value="${escapeHtml(valClB)}" oninput="scheduleAutoSave('${keyClB}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit" style="font-size:9px;">blocos</span>
-          <input ${createLogInputAttr(keyClR)} class="input-field input-log" style="width:65px; border-color:var(--good) !important;" placeholder="${exMeta || 'Últ. Bloco'}" value="${escapeHtml(valClR)}" oninput="scheduleAutoSave('${keyClR}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">reps</span>
-        </div>
-        <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-          <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
-          <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-            ${nCl > 0 ? `
-              <div style="display:flex; gap:4px; width:100%;">
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${carga20Cl}, ${dayIdx},${exIdx})">
-                  -20% (${carga20Cl}kg)
-                </button>
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${carga30Cl}, ${dayIdx},${exIdx})">
-                  -30% (${carga30Cl}kg)
-                </button>
-              </div>
-            ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga no Cluster para calcular o peso ideal do Back-off</span>`}
-          </div>
-          <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
-            <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-        </div>
-      `;
-    } else if (activeMode === 'backoff_2x') {
-      const keyS1C = `log_c_${exKeySanitized}_s1`;
-      const keyS1R = `log_r_${exKeySanitized}_s1`;
-      const keyS2C = `log_c_${exKeySanitized}_s2`;
-      const keyS2R = `log_r_${exKeySanitized}_s2`;
-      const keyBoC = `log_c_${exKeySanitized}_bo`;
-      const keyBoR = `log_r_${exKeySanitized}_bo`;
-
-      const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
-      const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
-      const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
-      const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
-      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-      const nS1 = parseFloat(valS1C) || 0;
-      const nS2 = parseFloat(valS2C) || 0;
-      const maiorCarga = Math.max(nS1, nS2);
-      let c20 = maiorCarga > 0 ? Math.round(maiorCarga * 0.80) : 0;
-      let c30 = maiorCarga > 0 ? Math.round(maiorCarga * 0.70) : 0;
+    for (let s = 1; s <= numSeriesPrescritas; s++) {
+      const keyLoad = `log_c_${exKeySanitized}_s${s}`;
+      const keyReps = `log_r_${exKeySanitized}_s${s}`;
+      const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+      const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
 
       html += `
         <div class="series-row">
-          <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
-          <input id="input_log_c_${exKeySanitized}_s1" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
+          <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
+          <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
           <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyS1R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS1R)}" oninput="scheduleAutoSave('${keyS1R}', this.value, ${dayIdx}, ${exIdx})">
+          <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
           <span class="unit">reps</span>
-        </div>
-        <div class="series-row">
-          <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Série 2</button>
-          <input id="input_log_c_${exKeySanitized}_s2" ${createLogInputAttr(keyS2C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS2C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS2C}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyS2R)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(valS2R)}" oninput="scheduleAutoSave('${keyS2R}', this.value, ${dayIdx}, ${exIdx})">
-          <span class="unit">reps</span>
-        </div>
-        <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-          <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
-          <div id="calc_backoff_box_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-            ${maiorCarga > 0 ? `
-              <div style="display:flex; gap:4px; width:100%;">
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c20}, ${dayIdx},${exIdx})">
-                  -20% (${c20}kg)
-                </button>
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c30}, ${dayIdx},${exIdx})">
-                  -30% (${c30}kg)
-                </button>
-              </div>
-            ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`}
-          </div>
-          <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-            <button type="button" class="btn-check-serie" data-num="3" onclick="toggleCheckSerie(this)">Back-off</button>
-            <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
         </div>
       `;
-    } else {
-      for (let s = 1; s <= numSeriesPrescritas; s++) {
-        const keyLoad = `log_c_${exKeySanitized}_s${s}`;
-        const keyReps = `log_r_${exKeySanitized}_s${s}`;
-        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
-        const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
-
-        html += `
-          <div class="series-row">
-            <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
-            <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyReps)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || 'Reps'}" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
-        `;
-      }
     }
 
     html += `</div>`;
     div.innerHTML = html;
     container.appendChild(div);
   });
-}
-
-function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
-  const box = document.getElementById(`calc_backoff_box_${exKeySanitized}`);
-  if (!box) return;
-
-  let maiorCarga = 0;
-  const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
-  const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
-  const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
-  const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
-  maiorCarga = Math.max(v1, v2);
-  const keyBoC = `log_c_${exKeySanitized}_bo`;
-
-  if (maiorCarga > 0) {
-    const c20 = Math.round(maiorCarga * 0.80);
-    const c30 = Math.round(maiorCarga * 0.70);
-
-    box.innerHTML = `
-      <div style="display:flex; gap:4px; width:100%;">
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
-          -20% (${c20}kg)
-        </button>
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
-          -30% (${c30}kg)
-        </button>
-      </div>
-    `;
-  } else {
-    box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`;
-  }
-}
-
-function atualizarBackoffLiveMyo(exKeySanitized, dayIdx, exIdx) {
-  const box = document.getElementById(`calc_backoff_box_myo_${exKeySanitized}`);
-  if (!box) return;
-
-  const elAtiv = document.getElementById(`input_ativ_${exKeySanitized}`);
-  const cargaAtiv = elAtiv ? (parseFloat(elAtiv.value) || 0) : 0;
-  const keyBoC = `log_c_${exKeySanitized}_bo`;
-
-  if (cargaAtiv > 0) {
-    const c20 = Math.round(cargaAtiv * 0.80);
-    const c30 = Math.round(cargaAtiv * 0.70);
-
-    box.innerHTML = `
-      <div style="display:flex; gap:4px; width:100%;">
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
-          -20% (${c20}kg)
-        </button>
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
-          -30% (${c30}kg)
-        </button>
-      </div>
-    `;
-  } else {
-    box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`;
-  }
 }
 
 function scheduleAutoSave(key, value, dayIdx, exIdx) {
@@ -1878,15 +1319,7 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
     localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
   }
 
-  if (dayIdx !== undefined && exIdx !== undefined) {
-    calculateAndStoreWeeklyLog(dayIdx, exIdx);
-  }
-
-  const ind = document.getElementById('saveIndicator');
-  if (ind) ind.style.display = 'block';
-
   if (autoSaveTimer) clearTimeout(autoSaveTimer);
-
   autoSaveTimer = setTimeout(async () => {
     try {
       await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
@@ -1895,334 +1328,50 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
         cache: 'no-cache',
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      if (ind) ind.style.display = 'none';
-    } catch (e) {
-      if (ind) ind.style.display = 'none';
-    }
+    } catch (e) {}
   }, 1200);
-}
-
-function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
-  if (!currentData.weekly_logs) currentData.weekly_logs = {};
-  
-  if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
-
-  const exObj = currentData.days[dayIdx].exercicios[exIdx];
-  const cleanExName = (exObj.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-  const exKeySanitized = sanitizeExKey(cleanExName);
-  const keyLog = `${dayIdx}_${exIdx}`;
-
-  const seriesStr = String(exObj.series || '').toLowerCase();
-  const isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
-  const numSeries = isStrict1x ? 1 : (parseInt(exObj.series) || 3);
-
-  const modeKey = `${dayIdx}_${exIdx}`;
-  const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
-  
-  const nomesTecnica = {
-    'convencional': isStrict1x ? 'Série Única' : 'Convencional',
-    'myoreps': 'Myo-Reps',
-    'cluster': 'Cluster Set',
-    'cluster_backoff': 'Cluster + Back-Off',
-    'backoff_2x': '2x + Back-Off'
-  };
-  const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
-
-  let maxCarga = 0;
-  let totalReps = 0;
-  let seriesPreenchidas = 0;
-
-  for (let s = 1; s <= numSeries + 2; s++) {
-    const cVal = parseFloat(currentData.logs[`log_c_${exKeySanitized}_s${s}`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-    const rVal = parseFloat(currentData.logs[`log_r_${exKeySanitized}_s${s}`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
-
-    if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
-    if (!isNaN(rVal)) {
-      totalReps += rVal;
-      seriesPreenchidas++;
-    }
-  }
-
-  const cAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
-  const rAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
-  if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
-  if (!isNaN(rAtiv)) { totalReps += rAtiv; seriesPreenchidas++; }
-
-  const cCl = parseFloat(currentData.logs[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
-  const rCl = parseFloat(currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
-  if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
-  if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
-
-  const cBo = parseFloat(currentData.logs[`log_c_${exKeySanitized}_bo`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]);
-  const rBo = parseFloat(currentData.logs[`log_r_${exKeySanitized}_bo`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]);
-  if (!isNaN(cBo) && cBo > maxCarga) maxCarga = cBo;
-  if (!isNaN(rBo)) { totalReps += rBo; seriesPreenchidas++; }
-
-  if (maxCarga > 0) {
-    const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
-    const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-
-    if (!currentData.weekly_logs[exKeySanitized]) currentData.weekly_logs[exKeySanitized] = [];
-
-    let hist = currentData.weekly_logs[exKeySanitized];
-    
-    const idxHoje = hist.findIndex(item => item.data === dataHoje);
-    if (idxHoje !== -1) {
-      hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada };
-    } else {
-      hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
-    }
-
-    if (hist.length > 4) hist = hist.slice(-4);
-    currentData.weekly_logs[exKeySanitized] = hist;
-    currentData.weekly_logs[keyLog] = hist;
-  }
 }
 
 function parseDietaAluno(rawText) {
   if (!rawText || !rawText.trim()) return [];
-
-  const abas = [];
-  const rawAbas = rawText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
-
-  rawAbas.forEach((rawAba, abaIdx) => {
-    const cleanAba = rawAba.trim();
-    if (!cleanAba || cleanAba === '---') return;
-
-    let abaNome = `Ciclo ${abaIdx + 1}`;
-    let textContent = cleanAba;
-
-    if (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
-      const linesAba = cleanAba.split('\n');
-      abaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim();
-
-      let startIdx = 1;
-      if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
-        startIdx = 2;
-      }
-      textContent = linesAba.slice(startIdx).join('\n').trim();
-    }
-
-    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
-    const rawMeals = textContent.split(regexTitulosRefeicao);
-    const meals = [];
-
-    rawMeals.forEach(bloco => {
-      const clean = bloco.trim();
-      if (!clean) return;
-
-      const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
-      if (lines.length === 0) return;
-
-      let title = lines[0].replace(/^\[.*?\]\s*/, '').trim();
-
-      if (title.toLowerCase() === 'plano alimentar') {
-        if (lines.length > 1) {
-          title = lines[1].replace(/^\[.*?\]\s*/, '').trim();
-          lines.splice(0, 1);
-        } else {
-          return;
-        }
-      }
-
-      let days = "";
-      const baseItems = [];
-      const trocasCarbo = [];
-      const trocasProt = [];
-
-      lines.slice(1).forEach(line => {
-        let lineClean = line.replace(/\[\s*\]/g, '').trim();
-        const lineLower = lineClean.toLowerCase();
-        
-        if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
-          days = lineClean.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
-          if (!days.startsWith('📅')) days = '📅 ' + days;
-        } else if (lineClean.includes('↳') || lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)') || lineClean.includes('Trocas de') || lineClean.includes('Carboidratos:') || lineClean.includes('Proteínas')) {
-          let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
-          if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
-          
-          itemTxt = itemTxt.replace(/\[\s*CARBO\s*\]/gi, '').replace(/\[\s*PROT\s*\]/gi, '').replace(/\[\s*\]/g, '').trim();
-
-          if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
-            trocasCarbo.push(itemTxt);
-          } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('proteína') || lineClean.toLowerCase().includes('proteina')) {
-            trocasProt.push(itemTxt);
-          } else {
-            trocasCarbo.push(itemTxt);
-          }
-        } else {
-          const cleanItem = lineClean.replace(/^[-•*]\s*/, '').trim();
-          if (cleanItem && cleanItem.toLowerCase() !== 'plano alimentar') {
-            baseItems.push(cleanItem);
-          }
-        }
-      });
-
-      meals.push({
-        mealTitle: title,
-        days: days,
-        baseItems: baseItems,
-        trocasCarbo: trocasCarbo,
-        trocasProt: trocasProt
-      });
-    });
-
-    if (meals.length > 0) {
-      abas.push({ abaNome: abaNome || `Opção ${abaIdx + 1}`, meals: meals, fullText: cleanAba.toLowerCase() });
-    }
-  });
-
-  if (abas.length === 0 && rawText.trim() !== '') {
-    abas.push({
-      abaNome: "Plano Alimentar",
-      meals: [{
-        mealTitle: "Refeição Diária",
-        days: "",
-        baseItems: rawText.split('\n').map(l => l.trim()).filter(l => l !== ''),
-        trocasCarbo: [],
-        trocasProt: []
-      }],
-      fullText: rawText.toLowerCase()
-    });
-  }
-
-  return abas;
-}
-
-function trocarAbaDieta(valIndex) {
-  activeAlunoDietAbaIndex = parseInt(valIndex) || 0;
-  renderDietaAluno(currentData.refeicoes || currentData.dieta || []);
+  return [{
+    abaNome: "Plano Alimentar",
+    meals: [{
+      mealTitle: "Refeição",
+      days: "",
+      baseItems: rawText.split('\n').map(l => l.trim()).filter(l => l !== ''),
+      trocasCarbo: [],
+      trocasProt: []
+    }],
+    fullText: rawText.toLowerCase()
+  }];
 }
 
 function renderDietaAluno(refeicoesData) {
   const categoryList = document.getElementById('dietCategoryList');
-  const selectAba = document.getElementById('dietAbaSelect');
-  const dayLabel = document.getElementById('dietCurrentDayLabel');
-
   if (!categoryList) return;
   categoryList.innerHTML = "";
 
   let rawText = "";
   if (Array.isArray(refeicoesData)) {
     refeicoesData.forEach(r => {
-      if (typeof r === 'string') {
-        rawText += `${r}\n\n`;
-      } else if (r.titulo || r.alimentos || r.mealTitle) {
-        const t = r.titulo || r.mealTitle || 'Refeição';
-        const a = r.alimentos || (r.baseItems ? r.baseItems.join('\n') : '');
-        rawText += `[REFEIÇÃO] ${t}\n${a}\n\n`;
-      }
+      if (typeof r === 'string') rawText += `${r}\n\n`;
+      else if (r.titulo || r.alimentos) rawText += `${r.titulo}\n${r.alimentos}\n\n`;
     });
   } else if (typeof refeicoesData === 'string') {
     rawText = refeicoesData;
   }
 
-  let abas = parseDietaAluno(rawText);
-
-  if (abas.length > 1) {
-    abas = abas.filter(aba => {
-      const nomeUpper = (aba.abaNome || '').trim().toUpperCase();
-      return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
-    });
-  }
-
-  if (!abas || abas.length === 0) {
-    categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
-    return;
-  }
-
-  const diaHojeKey = obterDiaSemanaNormalizado();
-  const nomeHojeFmt = obterNomeDiaSemanaFormatado();
-  let abaIndexHoje = -1;
-
-  abas.forEach((aba, idx) => {
-    const textoAbaNorm = (aba.fullText || (aba.abaNome + " " + JSON.stringify(aba.meals))).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    if (textoAbaNorm.includes(diaHojeKey)) {
-      abaIndexHoje = idx;
-    }
-  });
-
-  if (abaIndexHoje === -1) abaIndexHoje = 0;
-
-  if (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
-    activeAlunoDietAbaIndex = abaIndexHoje;
-  }
-
-  if (dayLabel) {
-    dayLabel.innerHTML = `📅 Hoje (${nomeHojeFmt})`;
-  }
-
-  if (selectAba) {
-    selectAba.innerHTML = "";
-    abas.forEach((aba, idx) => {
-      const option = document.createElement('option');
-      option.value = idx;
-      const ehHoje = (idx === abaIndexHoje);
-      option.textContent = `${aba.abaNome || 'Ciclo ' + (idx + 1)} ${ehHoje ? '📌 (Hoje)' : ''}`;
-      if (idx === activeAlunoDietAbaIndex) option.selected = true;
-      selectAba.appendChild(option);
-    });
-  }
-
-  const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
-  if (currentAba && currentAba.meals) {
-    currentAba.meals.forEach((meal, idx) => {
-      if ((meal.mealTitle || '').trim().toUpperCase() === 'PLANO ALIMENTAR' && currentAba.meals.length > 1) return;
-
-      const card = document.createElement('div');
-      card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
-
-      const uniqueId = `trocas_aluno_${activeAlunoDietAbaIndex}_${idx}`;
-
-      let html = `
-        <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
-          <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽 ${escapeHtml(meal.mealTitle || 'Refeição')}</h3>
-          ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
-        </div>
-        
-        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-      `;
-
-      (meal.baseItems || []).forEach(item => {
-        html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
-      });
-
-      html += `</div>`;
-
-      if ((meal.trocasCarbo && meal.trocasCarbo.length > 0) || (meal.trocasProt && meal.trocasProt.length > 0)) {
-        html += `
-          <div style="border-top:1px dashed var(--line); padding-top:8px;">
-            <button type="button" onclick="const el = document.getElementById('${uniqueId}'); if(el) el.classList.toggle('hidden');" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:8px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer;">
-              🔄 VER OPÇÕES DE TROCA / SUBSTITUIÇÃO ▾
-            </button>
-            
-            <div id="${uniqueId}" class="hidden" style="margin-top:8px; background:var(--bg); padding:10px; border-radius:8px;">
-        `;
-
-        if (meal.trocasCarbo && meal.trocasCarbo.length > 0) {
-          html += `<div style="font-size:11px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
-          meal.trocasCarbo.forEach(subC => {
-            html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
-          });
-        }
-
-        if (meal.trocasProt && meal.trocasProt.length > 0) {
-          html += `<div style="font-size:11px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
-          meal.trocasProt.forEach(subP => {
-            html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
-          });
-        }
-
-        html += `</div></div>`;
-      }
-
-      card.innerHTML = html;
-      categoryList.appendChild(card);
-    });
-  }
+  categoryList.innerHTML = `
+    <div style="background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px;">
+      <h3 style="color:var(--mark); font-size:15px; font-weight:800; margin-bottom:8px;">🍽 Sua Dieta</h3>
+      <p style="font-size:13px; color:var(--ink); white-space: pre-line;">${escapeHtml(rawText || 'Nenhuma dieta cadastrada.')}</p>
+    </div>
+  `;
 }
 
-const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback'];
+// ABAS SEM A IA DO ALUNO (Apenas Treino, Dieta, Corrida, Feedbacks)
+const TAB_ORDER = ['treino', 'dieta', 'corrida', 'feedback'];
 
 function showTab(tab) {
   TAB_ORDER.forEach(t => {
@@ -2239,16 +1388,12 @@ function showTab(tab) {
 
   const restWidget = document.getElementById('restTimerWidget');
   if (restWidget) {
-    if (tab === 'treino') {
-      restWidget.classList.add('visible');
-    } else {
-      restWidget.classList.remove('visible');
-    }
+    if (tab === 'treino') restWidget.classList.add('visible');
+    else restWidget.classList.remove('visible');
   }
 }
 
 let swipeNavReady = false;
-
 function setupSwipeNavigation() {
   if (swipeNavReady) return;
   swipeNavReady = true;
@@ -2289,83 +1434,6 @@ function setupSwipeNavigation() {
 
     if (nextIdx !== activeIdx) showTab(TAB_ORDER[nextIdx]);
   }, { passive: true });
-}
-
-async function sendStudentChatMessage() {
-  const input = document.getElementById('studentChatInput');
-  const history = document.getElementById('studentChatHistory');
-  const btn = document.getElementById('btnSendIaChat');
-  const text = input ? input.value.trim() : '';
-
-  if (!text) return;
-
-  const token = getAuthToken();
-  if (!token) {
-    alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
-    logout();
-    return;
-  }
-
-  history.innerHTML += `
-    <div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal-light); max-width:85%;">
-      <b>Você:</b> ${escapeHtml(text)}
-    </div>
-  `;
-  if (input) input.value = '';
-
-  const loadingId = 'loading_ia_' + Date.now();
-  history.innerHTML += `
-    <div id="${loadingId}" style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink-dim); border:1px solid var(--line); align-self:flex-start; max-width:85%;">
-      <b>Assistente:</b> <i>Gerando resposta...</i>
-    </div>
-  `;
-  history.scrollTop = history.scrollHeight;
-
-  if (btn) btn.disabled = true;
-
-  const systemPrompt = "Você é o assistente virtual do Personal Jhonata. Responda à dúvida do aluno de forma clara, direta e objetiva. Ao final de TODA resposta, adicione exatamente este texto em uma nova linha: 'Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.'";
-
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
-      method: 'POST',
-      headers: authHeaders(),
-      cache: 'no-cache',
-      body: JSON.stringify({ 
-        mensagem: text, 
-        contexto: currentData || {},
-        systemPrompt: systemPrompt
-      })
-    });
-
-    const data = await res.json();
-    const loadingElem = document.getElementById(loadingId);
-
-    if (res.ok && data.resposta) {
-      let respostaTexto = data.resposta;
-      const avisoFinal = "Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.";
-      
-      if (!respostaTexto.includes("chamar o Jhonata Personal")) {
-        respostaTexto += `\n\n${avisoFinal}`;
-      }
-
-      if (loadingElem) {
-        loadingElem.style.color = "var(--ink)";
-        loadingElem.innerHTML = `<b>Assistente:</b> ${escapeHtml(respostaTexto).replace(/\n/g, '<br>')}`;
-      }
-    } else {
-      if (loadingElem) {
-        loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> ${escapeHtml(data.error || data.detalhe || 'Serviço indisponível no momento.')}</span>`;
-      }
-    }
-  } catch (e) {
-    const loadingElem = document.getElementById(loadingId);
-    if (loadingElem) {
-      loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> Erro de conexão com o servidor.</span>`;
-    }
-  } finally {
-    if (btn) btn.disabled = false;
-    history.scrollTop = history.scrollHeight;
-  }
 }
 
 function previewFeedbackPhotos(event) {
@@ -2444,16 +1512,19 @@ async function enviarFeedbackAlunoApp() {
     const data = await res.json();
 
     if (res.ok) {
-      alert("Feedback e fotos enviados com sucesso para o seu arquivo no Google Drive!");
+      alert("Feedback e fotos enviados com sucesso!");
       if (input) input.value = '';
       selectedFeedbackFiles = [];
       const previewContainer = document.getElementById('feedbackPhotoPreview');
       if (previewContainer) previewContainer.innerHTML = '';
       const photoInput = document.getElementById('feedbackPhotoInput');
       if (photoInput) photoInput.value = '';
+      
+      // Atualiza os dados locais de feedback
+      if (data.feedbacks) currentData.feedbacks = data.feedbacks;
       renderFeedbackHistory();
     } else {
-      alert(data.error || "Erro ao enviar dados para o Drive.");
+      alert(data.error || "Erro ao enviar feedback.");
     }
   } catch (e) {
     alert("Erro na conexão com o servidor.");
@@ -2468,10 +1539,9 @@ async function enviarFeedbackAlunoApp() {
 function sendWhatsAppFeedback() {
   const input = document.getElementById('alunoFeedbackInput');
   const text = input ? input.value.trim() : "";
-
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
-  window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
+  const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata!')}`;
+  window.open(`[https://wa.me/5551990169026?text=$](https://wa.me/5551990169026?text=$){msg}`, '_blank');
 }
 
 function logout() {
