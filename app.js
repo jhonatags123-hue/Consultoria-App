@@ -31,6 +31,21 @@ let workoutTimerInterval = null;
 let workoutTimerRunning = false;
 let selectedFeedbackFiles = [];
 
+// Helper centralizado para busca e limpeza do Token JWT
+function getAuthToken() {
+  let token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+  if (!token) return null;
+  token = token.trim().replace(/^"|"$/g, '');
+  return token || null;
+}
+
+function authHeaders() {
+  const token = getAuthToken();
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
+}
+
 function mascaraDataNascimento(input) {
   let v = input.value.replace(/\D/g, '');
   if (v.length > 8) v = v.slice(0, 8);
@@ -268,13 +283,6 @@ function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
   scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
 }
 
-function authHeaders() {
-  const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  return headers;
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
   fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
 
@@ -345,7 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const loggedUser = localStorage.getItem('logged_user');
-  const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+  const alunoToken = getAuthToken();
 
   if (loggedUser && alunoToken) {
     try {
@@ -436,10 +444,12 @@ async function handleLogin(e) {
         return;
       }
 
+      const rawToken = String(result.token || '').trim();
+
       localStorage.setItem('logged_user', user);
-      localStorage.setItem('aluno_token', result.token);
-      localStorage.setItem('token', result.token);
-      localStorage.setItem('tokenAluno', result.token);
+      localStorage.setItem('aluno_token', rawToken);
+      localStorage.setItem('token', rawToken);
+      localStorage.setItem('tokenAluno', rawToken);
       loggedUserCode = user;
 
       if (window.history.replaceState) {
@@ -1873,7 +1883,7 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
   }
 
   const ind = document.getElementById('saveIndicator');
-  ind.style.display = 'block';
+  if (ind) ind.style.display = 'block';
 
   if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
@@ -1885,9 +1895,9 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
         cache: 'no-cache',
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     } catch (e) {
-      ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     }
   }, 1200);
 }
@@ -2289,8 +2299,8 @@ async function sendStudentChatMessage() {
 
   if (!text) return;
 
-  const headers = authHeaders();
-  if (!headers['Authorization']) {
+  const token = getAuthToken();
+  if (!token) {
     alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
     return;
   }
@@ -2317,7 +2327,7 @@ async function sendStudentChatMessage() {
   try {
     const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
       method: 'POST',
-      headers: headers,
+      headers: authHeaders(),
       cache: 'no-cache',
       body: JSON.stringify({ 
         mensagem: text, 
@@ -2420,7 +2430,7 @@ async function enviarFeedbackAlunoApp() {
   selectedFeedbackFiles.forEach(f => formData.append('fotos', f));
 
   try {
-    const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+    const token = getAuthToken();
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
