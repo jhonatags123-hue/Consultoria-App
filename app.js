@@ -109,16 +109,6 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-function obterDiaSemanaNormalizado() {
-  const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-  return dias[new Date().getDay()];
-}
-
-function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
-  return dias[new Date().getDay()];
-}
-
 function calcularPaceTexto(kmNum, minNum) {
   const km = parseFloat(kmNum) || 0;
   const min = parseFloat(minNum) || 0;
@@ -269,16 +259,6 @@ function updateWorkoutTimerDisplay() {
 
   const fmt = n => String(n).padStart(2, '0');
   document.getElementById('workoutTimerClock').textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
-}
-
-function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
-  if (!workoutTimerRunning) {
-    alert("⚠️ Clique em '▶ INICIAR TREINO' para registrar cargas!");
-    return;
-  }
-  const el = document.getElementById(`input_${keyInput}`);
-  if (el) el.value = valorCarga;
-  scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -949,7 +929,6 @@ function setupCorrida(data) {
 
   let totalKm = 0;
   let totalMin = 0;
-  let totalRegistros = 0;
 
   dias.forEach(d => {
     const pData = prescricao[d.key] || {};
@@ -1086,7 +1065,6 @@ async function concluirTreinoDoDia() {
       const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
       const exKeySanitized = sanitizeExKey(ex.nome);
       const historico = currentData.weekly_logs?.[exKeySanitized] || currentData.weekly_logs?.[keyLog] || [];
-      const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
 
       let cMax = 0;
       let rTotal = 0;
@@ -1170,22 +1148,6 @@ function fecharModalConclusao() {
 
   const proximoIdx = currentData.ultimo_treino_idx !== undefined ? currentData.ultimo_treino_idx : 0;
   selectTreinoDay(proximoIdx);
-}
-
-function toggleTrainerGoals() {
-  const body = document.getElementById('trainerGoalsBody');
-  const arrow = document.getElementById('arrowGoals');
-  if (!body || !arrow) return;
-  body.classList.toggle('collapsed');
-  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
-}
-
-function toggleCardioGoals() {
-  const body = document.getElementById('cardioGoalsBody');
-  const arrow = document.getElementById('arrowCardio');
-  if (!body || !arrow) return;
-  body.classList.toggle('collapsed');
-  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
 
 function renderTreinoDetail() {
@@ -1332,21 +1294,6 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
   }, 1200);
 }
 
-function parseDietaAluno(rawText) {
-  if (!rawText || !rawText.trim()) return [];
-  return [{
-    abaNome: "Plano Alimentar",
-    meals: [{
-      mealTitle: "Refeição",
-      days: "",
-      baseItems: rawText.split('\n').map(l => l.trim()).filter(l => l !== ''),
-      trocasCarbo: [],
-      trocasProt: []
-    }],
-    fullText: rawText.toLowerCase()
-  }];
-}
-
 function renderDietaAluno(refeicoesData) {
   const categoryList = document.getElementById('dietCategoryList');
   if (!categoryList) return;
@@ -1370,7 +1317,7 @@ function renderDietaAluno(refeicoesData) {
   `;
 }
 
-// ABAS SEM A IA DO ALUNO (Apenas Treino, Dieta, Corrida, Feedbacks)
+// ABAS DO APLICATIVO DO ALUNO (Sem a aba de IA, focadas em Treino, Dieta, Corrida e Feedbacks)
 const TAB_ORDER = ['treino', 'dieta', 'corrida', 'feedback'];
 
 function showTab(tab) {
@@ -1520,7 +1467,6 @@ async function enviarFeedbackAlunoApp() {
       const photoInput = document.getElementById('feedbackPhotoInput');
       if (photoInput) photoInput.value = '';
       
-      // Atualiza os dados locais de feedback
       if (data.feedbacks) currentData.feedbacks = data.feedbacks;
       renderFeedbackHistory();
     } else {
