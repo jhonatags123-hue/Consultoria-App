@@ -2302,6 +2302,7 @@ async function sendStudentChatMessage() {
   const token = getAuthToken();
   if (!token) {
     alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
+    logout();
     return;
   }
 
@@ -2353,7 +2354,7 @@ async function sendStudentChatMessage() {
       }
     } else {
       if (loadingElem) {
-        loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> ${escapeHtml(data.error || 'Serviço indisponível no momento.')}</span>`;
+        loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> ${escapeHtml(data.error || data.detalhe || 'Serviço indisponível no momento.')}</span>`;
       }
     }
   } catch (e) {
