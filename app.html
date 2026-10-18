@@ -31,7 +31,7 @@
       <ol style="font-size:12px; color:var(--ink-dim); padding-left:16px; line-height:1.6;">
         <li>Envie o link do aplicativo ou indique pelo WhatsApp.</li>
         <li>Seu amigo preenche a anamnese informando que veio por você.</li>
-        <li>Assim que o plano for confirmed, seu benefício é liberado!</li>
+        <li>Assim que o plano for confirmado, seu benefício é liberado!</li>
       </ol>
     </div>
 
@@ -368,11 +368,11 @@
     <div id="congratsText" class="congrats-desc">Você teve uma evolução fantástica nas suas cargas de treino neste ciclo. Continue focado!</div>
   </div>
 
+  <!-- MENU DE ABAS ATUALIZADO (IA REMOVIDA, APENAS TREINO, DIETA, CARDIO E FEEDBACKS) -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">Treino</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">Dieta</button>
     <button class="menu-btn hidden" id="btnCorrida" onclick="showTab('corrida')">Cardio</button>
-    <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">Assistente</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">Feedback</button>
   </div>
   <div class="swipe-hint">Arraste para o lado para trocar de aba</div>
@@ -470,20 +470,6 @@
 
       <div class="label-fdb" style="margin-top:14px;">Histórico de Treinos Registrados (Últimas 4 Semanas):</div>
       <div id="corridaHistoryList">Nenhuma corrida registrada nas últimas 4 semanas.</div>
-    </div>
-
-    <div id="tabIaChat" class="card hidden">
-      <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 Assistente Virtual do Personal</div>
-      <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
-
-      <div id="studentChatHistory" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:280px; padding:12px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;">
-        <div style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); border:1px solid var(--line);"><b>Assistente:</b> Olá! Como posso te ajudar com o seu treino ou dieta hoje?</div>
-      </div>
-
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="studentChatInput" class="input-field" placeholder="Digite sua dúvida aqui..." style="font-size:12px;" onkeypress="if(event.key==='Enter') sendStudentChatMessage()">
-        <button id="btnSendIaChat" class="btn-login btn-gold" style="width:80px; margin-top:0; font-size:12px;" onclick="sendStudentChatMessage()">Enviar</button>
-      </div>
     </div>
 
     <div id="tabFeedback" class="card hidden">
