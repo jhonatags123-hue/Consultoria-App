@@ -1132,8 +1132,9 @@
     scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
   }
 
+  // --- FUNÇÃO DE CABEÇALHOS DE AUTENTICAÇÃO ATUALIZADA ---
   function authHeaders() {
-    const token = localStorage.getItem('aluno_token');
+    const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     return headers;
@@ -1209,7 +1210,7 @@
     }
 
     const loggedUser = localStorage.getItem('logged_user');
-    const alunoToken = localStorage.getItem('aluno_token');
+    const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
 
     if (loggedUser && alunoToken) {
       try {
@@ -1270,6 +1271,7 @@
     alert("Chave Pix copiada: jhonatags123@gmail.com");
   }
 
+  // --- LOGIN DO ALUNO ATUALIZADO ---
   async function handleLogin(e) {
     e.preventDefault();
     const btn = document.getElementById('btnLoginSubmit');
@@ -1300,8 +1302,11 @@
           return;
         }
 
+        // Salva o token em todas as chaves possíveis para evitar incompatibilidade
         localStorage.setItem('logged_user', user);
         localStorage.setItem('aluno_token', result.token);
+        localStorage.setItem('token', result.token);
+        localStorage.setItem('tokenAluno', result.token);
         loggedUserCode = user;
 
         if (window.history.replaceState) {
@@ -3152,6 +3157,13 @@
 
     if (!text) return;
 
+    // Resgata os cabeçalhos de autenticação completos com o token
+    const headers = authHeaders();
+    if (!headers['Authorization']) {
+      alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
+      return;
+    }
+
     history.innerHTML += `
       <div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal-light); max-width:85%;">
         <b>Você:</b> ${escapeHtml(text)}
@@ -3174,7 +3186,7 @@
     try {
       const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: headers, // Passa o objeto authHeaders() incluindo o token
         cache: 'no-cache',
         body: JSON.stringify({ 
           mensagem: text, 
@@ -3279,7 +3291,7 @@
     selectedFeedbackFiles.forEach(f => formData.append('fotos', f));
 
     try {
-      const token = localStorage.getItem('aluno_token');
+      const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -3325,6 +3337,8 @@
   function logout() {
     localStorage.removeItem('logged_user');
     localStorage.removeItem('aluno_token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('tokenAluno');
     
     currentData = null;
     loggedUserCode = "";
