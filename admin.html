@@ -53,7 +53,7 @@
   .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
   .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
 
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-space-between; align-items:center; }
+  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
   h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
   .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
 
@@ -138,13 +138,11 @@
     background: linear-gradient(135deg, #1f060c, #120306);
     border: 1px solid var(--gold);
     border-radius: 12px;
-    padding: 12px;
+    padding: 14px;
     margin-bottom: 14px;
   }
-  .admin-nutrition-header h4 { color: var(--gold); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; }
-  .admin-macro-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; font-size: 11px; }
-  .admin-macro-card { background: #0a0204; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; text-align: center; }
-  .admin-macro-card b { display: block; font-size: 13px; color: #fff; margin-top: 2px; }
+  .admin-nutrition-header h4 { color: var(--gold); font-size: 12px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .admin-nutrition-lines { font-size: 12px; color: #fff; line-height: 1.6; white-space: pre-line; }
 
   .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
@@ -348,7 +346,7 @@
             🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
           </label>
           <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A IA vai gerar os cálculos técnicos do Personal e criar opções de substituição em cada refeição do aluno!
+            A IA vai gerar o Resumo Nutricional e criar de 3-4 trocas de Carbos e 2-3 de Proteínas/Gorduras por refeição!
           </p>
 
           <div style="display:flex; gap:8px; flex-direction:column;">
@@ -362,7 +360,7 @@
         <div class="editor-grid">
           <div>
             <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[ABA] CARBO ALTO&#10;Dias: Sábado e Domingo&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Pão de forma integral | 3 fatias (75g)&#10;- Ovos mexidos | 3 unidades (150g)&#10;(Opção de troca) [CARBO] Tapioca | 60g&#10;(Opção de troca) [PROT] Whey Protein | 30g&#10;&#10;---&#10;&#10;[ABA] CARBO BAIXO&#10;Dias: Segunda, Terça e Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Ovos mexidos | 3 unidades (150g)"></textarea>
+            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[RESUMO NUTRICIONAL - Rosinei Brito Bueno]&#10;🎯 Meta Calórica Diária: 2800 kcal (Gasto Estimado: 2750 kcal)&#10;🥩 Proteínas: 180g (2.0g/kg)&#10;🍞 Carboidratos: 350g (3.8g/kg)&#10;🥑 Gorduras: 75g (0.8g/kg)&#10;💧 Meta Hídrica: 3.5 Litros/dia&#10;&#10;---&#10;&#10;[ABA] CARBO ALTO&#10;Dias: Sábado e Domingo&#10;&#10;REF 1 - CAFÉ DA MANHÃ (07:00)&#10;- Ovos inteiros mexidos | 3 unidades (150g)&#10;- Aveia em flocos | 60g&#10;(Opção de troca) [CARBO] Tapioca | 70g&#10;(Opção de troca) [CARBO] Cuscuz cozido | 140g&#10;(Opção de troca) [CARBO] Pão integral | 3 fatias (75g)&#10;(Opção de troca) [PROT] Whey Protein | 30g&#10;(Opção de troca) [PROT] Queijo cottage | 120g"></textarea>
             
             <div style="margin-top:12px;">
               <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
@@ -1678,7 +1676,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
   }
 
   async function responderFeedbackAdmin() {
-    const input = document.getElementById('adminFeedbackInput');
+    const input = document.getElementById('adminAdminInput');
     const msg = input.value.trim();
     if (!msg || !currentStudentCode) return;
 
@@ -2068,85 +2066,20 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
-  // --- PARSER DE DIETA INTELIGENTE (EXCLUSIVIDADE DOS CÁLCULOS NO ADMIN) ---
+  // --- PARSER ESTRUTURADO COM SUPORTE A [RESUMO NUTRICIONAL] EXCLUSIVO DO ADMIN ---
   function parseDietaEstruturada(rawText) {
-    if (!rawText || !rawText.trim()) return [];
+    if (!rawText || !rawText.trim()) return { resumoAdminText: "", abas: [] };
 
     let cleanText = rawText.trim();
+    let resumoAdminText = "";
 
-    // 1. PROCESSA JSON VINDO DA IA
-    if (cleanText.startsWith('{') || cleanText.startsWith('[')) {
-      try {
-        let jsonStr = cleanText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-        const data = JSON.parse(jsonStr);
-
-        const abas = [];
-        const plano = data.plano_alimentar || data.refeicoes || [];
-
-        const meals = [];
-        plano.forEach(ref => {
-          const title = ref.refeicao || ref.titulo || "Refeição";
-          const horario = ref.horario ? ` (${ref.horario})` : "";
-          const baseItems = [];
-          const trocasCarbo = [];
-          const trocasProt = [];
-
-          const alimentos = ref.alimentos || [];
-          if (Array.isArray(alimentos)) {
-            alimentos.forEach(itemObj => {
-              if (typeof itemObj === 'string') {
-                baseItems.push(itemObj);
-              } else if (typeof itemObj === 'object') {
-                const itemNome = itemObj.item || itemObj.nome || '';
-                const itemQtd = itemObj.quantidade || itemObj.qtd || '';
-                if (itemNome) {
-                  baseItems.push(`${itemNome} ${itemQtd ? '| ' + itemQtd : ''}`);
-                }
-              }
-            });
-          }
-
-          if (ref.substituicoes || ref.trocas) {
-            (ref.substituicoes || ref.trocas).forEach(t => {
-              if (typeof t === 'string') trocasCarbo.push(t);
-              else if (t.item) trocasCarbo.push(`${t.item} ${t.quantidade ? '| ' + t.quantidade : ''}`);
-            });
-          }
-
-          meals.push({
-            mealTitle: `${title}${horario}`,
-            days: "",
-            baseItems: baseItems,
-            trocasCarbo: trocasCarbo,
-            trocasProt: trocasProt
-          });
-        });
-
-        if (data.suplementacao && Array.isArray(data.suplementacao)) {
-          const supItems = data.suplementacao.map(s => `${s.nome || s.item || 'Suplemento'} ${s.dosagem ? '(' + s.dosagem + ')' : ''}: ${s.instrucoes || s.instrucao || ''}`);
-          meals.push({
-            mealTitle: "💊 SUPLEMENTAÇÃO & ORIENTAÇÕES",
-            days: "",
-            baseItems: supItems,
-            trocasCarbo: [],
-            trocasProt: []
-          });
-        }
-
-        abas.push({
-          abaNome: `PLANO PRINCIPAL`,
-          abaDias: "",
-          dadosTecnicosAdmin: data.resumo_nutricional || null,
-          meals: meals
-        });
-
-        return abas;
-      } catch (e) {
-        console.warn("Não é um JSON. Processando formato texto simples...", e);
-      }
+    // Captura e separa o bloco [RESUMO NUTRICIONAL]
+    const matchResumo = cleanText.match(/\[\s*RESUMO NUTRICIONAL[^\n\]]*\]([\s\S]*?)(?=(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---|\nREF\s*\d+|$))/i);
+    if (matchResumo) {
+      resumoAdminText = matchResumo[1].trim();
+      cleanText = cleanText.replace(matchResumo[0], '').trim();
     }
 
-    // 2. PARSER DE TEXTO TRADICIONAL
     const abas = [];
     const rawAbas = cleanText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
     const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
@@ -2221,7 +2154,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       }
     });
 
-    return abas;
+    return { resumoAdminText, abas };
   }
 
   function atualizarPreviewDietaAoVivo() {
@@ -2229,12 +2162,23 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     const filtersEl = document.getElementById('dietPreviewFilters');
     const listEl = document.getElementById('dietPreviewList');
 
-    const abas = parseDietaEstruturada(raw);
+    const { resumoAdminText, abas } = parseDietaEstruturada(raw);
     filtersEl.innerHTML = '';
     listEl.innerHTML = '';
 
+    // 1. RENDERIZA BLOCO DOURADO DO RESUMO NUTRICIONAL EXCLUSIVO DO ADMIN
+    if (resumoAdminText) {
+      const resCard = document.createElement('div');
+      resCard.className = 'admin-nutrition-header';
+      resCard.innerHTML = `
+        <h4>📊 Resumo Nutricional & Parâmetros (Visível apenas para o Treinador):</h4>
+        <div class="admin-nutrition-lines">${escapeHtml(resumoAdminText)}</div>
+      `;
+      listEl.appendChild(resCard);
+    }
+
     if (abas.length === 0) {
-      listEl.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite ou gere o plano no editor.</div>`;
+      listEl.innerHTML += `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhuma refeição reconhecida. Digite ou gere a dieta no editor.</div>`;
       return;
     }
 
@@ -2253,30 +2197,13 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
 
     const currentAba = abas[activeDietAbaIndex];
     if (currentAba) {
-      // 1. DADOS TÉCNICOS VISÍVEIS EXCLUSIVAMENTE NO SEU ADMIN
-      if (currentAba.dadosTecnicosAdmin) {
-        const res = currentAba.dadosTecnicosAdmin;
-        const adminBox = document.createElement('div');
-        adminBox.className = 'admin-nutrition-header';
-        adminBox.innerHTML = `
-          <h4>📊 Cálculos Nutricionais (Exclusivo do Treinador):</h4>
-          <div class="admin-macro-grid">
-            <div class="admin-macro-card">🔥 Basal/Total<b>${res.calorias_totais_kcal || 0} kcal</b></div>
-            <div class="admin-macro-card">🥩 Proteínas<b>${res.proteinas_g || 0}g</b></div>
-            <div class="admin-macro-card">🍞 Carboidratos<b>${res.carboidratos_g || 0}g</b></div>
-            <div class="admin-macro-card">🥑 Gorduras<b>${res.gorduras_g || 0}g</b></div>
-            <div class="admin-macro-card">💧 Água<b>${res.meta_hidricadd_litros || 3.5}L</b></div>
-          </div>
-        `;
-        listEl.appendChild(adminBox);
-      } else if (currentAba.abaDias) {
+      if (currentAba.abaDias) {
         const diasDiv = document.createElement('div');
         diasDiv.style.cssText = "font-size:11px; color:var(--gold); font-weight:700; margin-bottom:10px; background:#100305; padding:8px 12px; border-radius:8px; border:1px solid var(--gold);";
         diasDiv.textContent = currentAba.abaDias;
         listEl.appendChild(diasDiv);
       }
 
-      // 2. EXIBIÇÃO PRÁTICA DO PLANO QUE O ALUNO RECEBE
       (currentAba.meals || []).forEach((block, idx) => {
         const card = document.createElement('div');
         card.style.cssText = 'margin-bottom:10px; border-radius:12px; overflow:hidden; border:1px solid var(--border);';
