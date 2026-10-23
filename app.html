@@ -11,7 +11,90 @@
 <meta name="apple-mobile-web-app-title" content="Jhonata Personal">
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2964/2964514.png">
 
-<link rel="stylesheet" href="style.css">
+<style>
+  :root {
+    --bg: #090204;
+    --panel: #150508;
+    --panel-2: #1c070c;
+    --line: #330b13;
+    --mark: #dcaa3a;
+    --mark-soft: #eac267;
+    --good: #25d366;
+    --signal-light: #ff6b7f;
+    --blue: #3b82f6;
+    --ink: #f8efec;
+    --ink-dim: #a08086;
+    --font-display: 'Big Shoulders Display', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body { background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; min-height:100vh; padding:12px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:14px; }
+  h1 { font-family:var(--font-display); font-size:26px; letter-spacing:0.5px; color:#fff; text-transform:uppercase; }
+  .sub { font-size:12px; color:var(--ink-dim); margin-top:2px; }
+  .hidden { display:none !important; }
+  
+  .btn-login { background:linear-gradient(135deg, var(--mark-soft), var(--mark)); color:#1a0307; font-weight:800; border:none; padding:12px 18px; border-radius:10px; font-size:12px; cursor:pointer; width:100%; text-transform:uppercase; letter-spacing:0.03em; transition:all .15s ease; min-height:44px; display:flex; align-items:center; justify-content:center; }
+  .btn-login:active { transform:scale(0.98); }
+  .btn-gold { background:linear-gradient(135deg, var(--mark-soft), var(--mark)); color:#100305; font-weight:800; }
+  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; }
+  .input-field { width:100%; background:#0d0204; border:1px solid var(--line); color:#fff; padding:12px 14px; border-radius:10px; font-size:14px; margin-top:4px; margin-bottom:8px; }
+  .input-field:focus { outline:none; border-color:var(--mark); }
+  .label-fdb { font-size:11px; font-weight:800; color:var(--mark); text-transform:uppercase; display:block; margin-top:8px; }
+
+  .header-app { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:12px; }
+  .header-actions { display:flex; gap:6px; }
+  .btn-header { background:var(--panel-2); border:1px solid var(--line); color:var(--ink); padding:6px 10px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; }
+  .btn-indique-header { border-color:var(--mark); color:var(--mark); }
+
+  .menu { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px; }
+  .menu-btn { flex:1; min-width:70px; background:var(--panel); border:1px solid var(--line); color:var(--ink-dim); padding:10px 12px; border-radius:10px; font-weight:800; font-size:12px; cursor:pointer; text-align:center; transition:all .18s; }
+  .menu-btn.active { background:var(--mark); color:#100305; border-color:var(--mark); }
+  .swipe-hint { font-size:10px; color:var(--ink-dim); text-align:center; margin-top:-6px; margin-bottom:12px; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; padding:16px; }
+  .modal-card-finish { background:var(--panel); border:1px solid var(--line); border-top:2px solid var(--mark); padding:20px; border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+
+  .rest-timer-widget { position:fixed; bottom:20px; right:20px; z-index:9000; background:var(--panel-2); border:1px solid var(--mark); padding:10px 14px; border-radius:12px; display:none; align-items:center; gap:14px; box-shadow:0 10px 25px rgba(0,0,0,0.8); }
+  .rest-timer-display { font-family:var(--font-mono); font-size:18px; font-weight:700; color:var(--mark); }
+  .rest-timer-btn { background:var(--panel); border:1px solid var(--line); color:#fff; font-size:10px; font-weight:700; padding:6px 8px; border-radius:6px; cursor:pointer; }
+
+  .save-indicator { position:fixed; top:12px; right:12px; z-index:100000; background:var(--mark); color:#000; font-weight:800; font-size:10px; padding:4px 10px; border-radius:20px; display:none; text-transform:uppercase; }
+  .feedback-notify-card { background:linear-gradient(135deg, #20060d, #120306); border:1px solid var(--mark); border-radius:12px; padding:12px 14px; margin-bottom:12px; }
+  .congrats-card { background:linear-gradient(135deg, #0f2015, #051008); border:1px solid var(--good); border-radius:12px; padding:14px; margin-bottom:12px; position:relative; }
+  .congrats-title { font-weight:800; color:var(--good); font-size:14px; margin-bottom:4px; }
+  .congrats-desc { font-size:12px; color:#fff; line-height:1.4; }
+  .btn-close-congrats { position:absolute; top:8px; right:10px; background:none; border:none; color:var(--ink-dim); font-size:16px; cursor:pointer; }
+
+  .workout-timer-card { background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+  .workout-timer-clock { font-family:var(--font-mono); font-size:20px; font-weight:700; color:var(--mark); margin-top:2px; }
+  
+  .trainer-goals-card, .cardio-goals-card { background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:12px; cursor:pointer; }
+  .trainer-goals-title, .cardio-goals-title { font-size:12px; font-weight:800; color:var(--mark); display:flex; justify-content:space-between; align-items:center; }
+  .trainer-goals-body, .cardio-goals-body { font-size:12px; color:#fff; margin-top:8px; line-height:1.5; white-space:pre-line; }
+  .collapsed { display:none; }
+
+  .detail-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .btn-back { background:var(--panel-2); border:1px solid var(--line); color:var(--mark); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer; }
+  .detail-title { font-family:var(--font-display); font-size:20px; color:#fff; }
+
+  .select-list { display:flex; flex-direction:column; gap:8px; }
+  .select-item { background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:12px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
+  .select-item:hover { border-color:var(--mark); }
+  .select-item b { font-size:14px; color:#fff; }
+
+  .quick-switch-row { display:flex; gap:6px; overflow-x:auto; margin-bottom:12px; padding-bottom:4px; }
+  .quick-switch-btn { background:var(--panel-2); border:1px solid var(--line); color:var(--ink-dim); padding:6px 12px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; white-space:nowrap; }
+  .quick-switch-btn.active { border-color:var(--mark); color:var(--mark); background:var(--panel); }
+
+  .progress-bar-bg { background:#100305; border:1px solid var(--line); border-radius:10px; height:8px; width:100%; margin:10px 0 4px 0; overflow:hidden; }
+  .progress-bar-fill { background:linear-gradient(90deg, var(--mark-soft), var(--mark)); height:100%; width:10%; transition:width .3s ease; }
+  .step-counter { font-size:11px; color:var(--ink-dim); font-weight:700; text-align:right; margin-bottom:12px; }
+
+  .diet-top-selector { display:flex; justify-content:space-between; align-items:center; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:12px; }
+  .diet-container { display:flex; flex-direction:column; gap:10px; }
+  .mode-select { background:#0d0204; border:1px solid var(--line); color:var(--mark); font-weight:700; border-radius:6px; }
+</style>
 </head>
 <body>
 
@@ -419,7 +502,7 @@
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
         <div style="font-weight:700; color:var(--ink); font-size:15px;">Seu plano atual é focado em Treino</div>
         <p style="font-size:12px; color:var(--ink-dim); margin-top:6px; line-height:1.5;">
-          Quer acelerar seus resultados combinando uma dieta adjusted ao seu objetivo?
+          Quer acelerar seus resultados combinando uma dieta ajustada ao seu objetivo?
         </p>
         <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Gostaria%20de%20adicionar%20o%20plano%20alimentar%20%C3%A0%20minha%20consultoria." target="_blank" class="btn-login btn-gold" style="margin-top:12px; display:inline-block; text-decoration:none;">
           Adicionar Dieta com o Personal
