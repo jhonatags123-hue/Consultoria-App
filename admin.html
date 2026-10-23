@@ -11,7 +11,6 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Admin Jhonata">
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2548/2548537.png">
-<link rel="manifest" href="manifest-admin.json">
 
 <style>
   :root {
@@ -1676,7 +1675,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
   }
 
   async function responderFeedbackAdmin() {
-    const input = document.getElementById('adminAdminInput');
+    const input = document.getElementById('adminFeedbackInput');
     const msg = input.value.trim();
     if (!msg || !currentStudentCode) return;
 
@@ -2066,14 +2065,12 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     atualizarPreviewDietaAoVivo();
   }
 
-  // --- PARSER ESTRUTURADO COM SUPORTE A [RESUMO NUTRICIONAL] EXCLUSIVO DO ADMIN ---
   function parseDietaEstruturada(rawText) {
     if (!rawText || !rawText.trim()) return { resumoAdminText: "", abas: [] };
 
     let cleanText = rawText.trim();
     let resumoAdminText = "";
 
-    // Captura e separa o bloco [RESUMO NUTRICIONAL]
     const matchResumo = cleanText.match(/\[\s*RESUMO NUTRICIONAL[^\n\]]*\]([\s\S]*?)(?=(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---|\nREF\s*\d+|$))/i);
     if (matchResumo) {
       resumoAdminText = matchResumo[1].trim();
@@ -2166,7 +2163,6 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     filtersEl.innerHTML = '';
     listEl.innerHTML = '';
 
-    // 1. RENDERIZA BLOCO DOURADO DO RESUMO NUTRICIONAL EXCLUSIVO DO ADMIN
     if (resumoAdminText) {
       const resCard = document.createElement('div');
       resCard.className = 'admin-nutrition-header';
@@ -2546,7 +2542,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       cache: 'no-cache'
     });
     currentStudentCode = "";
-    showToast("Aluno excluído com sucesso.", "success");
+    showToast("Aluno excluído com sucesso.", "error");
     fetchAlunos();
     switchTab('resumo');
   }
