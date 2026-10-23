@@ -12,10 +12,9 @@
   --signal-dim: rgba(132,22,40,0.2);
   --mark: #dcaa3a;
   --mark-dim: rgba(220,170,58,0.12);
-  --good: #4F9C6E;
-  --good-dim: rgba(79,156,110,0.12);
+  --good: #388e3c;
+  --good-dim: rgba(56,142,60,0.18);
   --blue: #3b82f6;
-  --blue-dim: rgba(59,130,246,0.15);
   --font-display: 'Big Shoulders Display', sans-serif;
   --font-body: 'Inter', sans-serif;
   --font-mono: 'Space Mono', monospace;
@@ -185,11 +184,7 @@ textarea.input-field {
 
 .btn-wpp { 
   background: var(--good); 
-  color: #08160F; 
-}
-
-.btn-wpp:hover { 
-  background: #458A61; 
+  color: #FFFFFF; 
 }
 
 .btn-gold { 
@@ -197,17 +192,9 @@ textarea.input-field {
   color: #1A1408; 
 }
 
-.btn-gold:hover { 
-  background: #A0813F; 
-}
-
 .btn-blue { 
   background: var(--blue); 
   color: #FFFFFF; 
-}
-
-.btn-blue:hover { 
-  background: #2563eb; 
 }
 
 .btn-header { 
@@ -228,15 +215,10 @@ textarea.input-field {
 }
 
 .btn-indique-header { 
-  background: var(--mark-dim); 
-  border: 1px solid var(--mark); 
-  color: var(--mark); 
-  font-weight: 700; 
-}
-
-.btn-indique-header:hover { 
-  background: var(--mark); 
-  color: #000; 
+  background: var(--panel-2); 
+  border: 1px solid var(--line); 
+  color: var(--ink-dim); 
+  font-weight: 600; 
 }
 
 .error-msg { 
@@ -369,7 +351,7 @@ textarea.input-field {
 }
 
 .select-card:hover { 
-  border-color: var(--signal-light); 
+  border-color: var(--line); 
   background: var(--panel-2); 
 }
 
@@ -381,9 +363,9 @@ textarea.input-field {
 
 .select-card .select-card-sub { 
   font-size: 11.5px; 
-  color: var(--mark); 
+  color: var(--ink-dim); 
   margin-top: 3px; 
-  font-weight: 600; 
+  font-weight: 500; 
 }
 
 .select-card .select-card-arrow { 
@@ -418,8 +400,7 @@ textarea.input-field {
 }
 
 .btn-back:hover { 
-  border-color: var(--signal-light); 
-  color: var(--signal-light); 
+  border-color: var(--line); 
 }
 
 .detail-title { 
@@ -454,7 +435,7 @@ textarea.input-field {
 }
 
 .quick-switch-chip.active { 
-  background: var(--signal-dim); 
+  background: var(--panel-2); 
   border-color: var(--signal-light); 
   color: var(--ink); 
 }
@@ -465,15 +446,15 @@ textarea.input-field {
 .item { 
   background: var(--panel-2); 
   border: 1px solid var(--line); 
-  border-radius: 12px; 
-  padding: 16px; 
-  margin-bottom: 14px; 
+  border-radius: 8px; 
+  padding: 14px; 
+  margin-bottom: 12px; 
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .item.exercise-done {
-  border-color: var(--good) !important;
-  background: rgba(79, 156, 110, 0.08) !important;
+  border-color: var(--line) !important;
+  background: var(--panel) !important;
 }
 
 .item-header { 
@@ -486,33 +467,34 @@ textarea.input-field {
 
 .item-title { 
   font-weight: 700; 
-  font-size: 15.5px; 
+  font-size: 15px; 
   color: var(--ink); 
   flex: 1; 
 }
 
 .previous-log-badge {
   display: block;
-  background: rgba(220, 170, 58, 0.1);
-  border: 1px solid var(--mark-dim);
-  color: var(--mark);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
   padding: 6px 10px;
   border-radius: 6px;
   font-size: 11.5px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-weight: 500;
+  margin-bottom: 10px;
   font-family: var(--font-mono);
   line-height: 1.4;
 }
 
+/* BOTÃO CONCLUIR - TONS SÓBRIOS DO TEMA */
 .btn-check-exercise {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  color: var(--ink-dim);
+  background: var(--signal-dim);
+  border: 1px solid var(--signal-light);
+  color: var(--ink);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -521,7 +503,7 @@ textarea.input-field {
 .btn-check-exercise.done {
   background: var(--good-dim);
   border-color: var(--good);
-  color: var(--good);
+  color: #72D58E;
 }
 
 .btn-check-exercise:disabled { 
@@ -532,9 +514,9 @@ textarea.input-field {
 .mode-select {
   background: var(--bg); 
   border: 1px solid var(--line); 
-  color: var(--mark);
+  color: var(--ink-dim);
   font-size: 11.5px; 
-  font-weight: 600; 
+  font-weight: 500; 
   font-family: var(--font-body); 
   padding: 5px 8px; 
   border-radius: 6px; 
@@ -543,7 +525,7 @@ textarea.input-field {
 
 .mode-select:focus { 
   outline: none; 
-  border-color: var(--mark); 
+  border-color: var(--signal-light); 
 }
 
 .series-container { 
@@ -583,9 +565,9 @@ textarea.input-field {
 .input-log { 
   background: var(--panel) !important; 
   border: 1px solid var(--line) !important; 
-  color: var(--mark) !important; 
+  color: var(--ink) !important; 
   text-align: center; 
-  font-weight: 700; 
+  font-weight: 600; 
   font-family: var(--font-mono) !important; 
   padding: 7px 4px !important; 
   margin-bottom: 0 !important; 
@@ -600,7 +582,7 @@ textarea.input-field {
   padding: 6px 10px; 
   border-radius: 6px; 
   font-size: 11px; 
-  font-weight: 700; 
+  font-weight: 600; 
   cursor: pointer;
   transition: all 0.2s ease; 
   margin-left: 2px; 
@@ -610,7 +592,7 @@ textarea.input-field {
 .btn-check-serie.done {
   background: var(--good-dim); 
   border-color: var(--good); 
-  color: var(--good);
+  color: #72D58E;
 }
 
 .btn-check-serie:disabled { 
@@ -624,7 +606,7 @@ textarea.input-field {
 .workout-timer-card {
   background: var(--panel-2); 
   border: 1px solid var(--line); 
-  border-left: 3px solid var(--mark);
+  border-left: 3px solid var(--signal-light);
   border-radius: 8px; 
   padding: 12px 16px; 
   margin-bottom: 14px;
@@ -637,7 +619,7 @@ textarea.input-field {
   font-family: var(--font-mono); 
   font-size: 20px; 
   font-weight: 700; 
-  color: var(--mark); 
+  color: var(--ink); 
   letter-spacing: 1px;
 }
 
@@ -668,7 +650,7 @@ textarea.input-field {
   font-family: var(--font-mono); 
   font-size: 18px; 
   font-weight: 700; 
-  color: var(--mark); 
+  color: var(--ink); 
   min-width: 55px; 
   text-align: center; 
 }
@@ -680,7 +662,7 @@ textarea.input-field {
   padding: 6px 12px; 
   border-radius: 16px; 
   font-size: 12px; 
-  font-weight: 700; 
+  font-weight: 600; 
   cursor: pointer; 
   transition: background-color 0.15s ease; 
 }
@@ -692,16 +674,16 @@ textarea.input-field {
 
 .timer-finished-glow { 
   animation: glowPulse 0.8s infinite alternate; 
-  border-color: var(--mark) !important; 
+  border-color: var(--signal-light) !important; 
 }
 
 @keyframes glowPulse { 
-  0% { box-shadow: 0 0 5px var(--mark); } 
-  100% { box-shadow: 0 0 22px var(--mark); } 
+  0% { box-shadow: 0 0 4px var(--signal-light); } 
+  100% { box-shadow: 0 0 14px var(--signal-light); } 
 }
 
 /* =========================================================================
-   DIET & CARDIO
+   DIET & CARDIO (SÓBRIO E LIMPO)
    ========================================================================= */
 .diet-container { 
   display: flex; 
@@ -722,7 +704,7 @@ textarea.input-field {
 
 .sub-item-box {
   background: var(--bg); 
-  border-left: 3px solid var(--mark); 
+  border-left: 3px solid var(--line); 
   padding: 8px 10px;
   margin-top: 6px; 
   border-radius: 6px; 
@@ -731,25 +713,25 @@ textarea.input-field {
 }
 
 .sub-item-box.carbo { 
-  border-left-color: var(--blue); 
+  border-left-color: var(--line); 
 }
 
 .sub-item-box.prot { 
-  border-left-color: var(--good); 
+  border-left-color: var(--line); 
 }
 
 .run-item { 
   background: var(--panel-2); 
   border: 1px solid var(--line); 
-  border-left: 3px solid var(--blue); 
+  border-left: 3px solid var(--line); 
   border-radius: 8px; 
   padding: 12px; 
   margin-bottom: 10px; 
 }
 
 .run-day-title { 
-  font-weight: 800; 
-  color: var(--blue); 
+  font-weight: 700; 
+  color: var(--ink); 
   font-size: 13px; 
   text-transform: uppercase; 
   margin-bottom: 4px; 
@@ -757,7 +739,7 @@ textarea.input-field {
 
 .run-day-desc { 
   font-size: 12px; 
-  color: var(--ink); 
+  color: var(--ink-dim); 
   margin-bottom: 8px; 
   line-height: 1.4; 
 }
@@ -766,8 +748,8 @@ textarea.input-field {
    GOALS, NOTIFICATIONS & OVERLAYS
    ========================================================================= */
 .trainer-goals-card {
-  background: linear-gradient(135deg, rgba(132,22,40,0.25), rgba(21,24,29,0.95));
-  border: 1px solid var(--signal-light); 
+  background: var(--panel-2);
+  border: 1px solid var(--line); 
   border-radius: 8px; 
   padding: 12px 16px; 
   margin-bottom: 10px;
@@ -777,8 +759,8 @@ textarea.input-field {
 
 .trainer-goals-title {
   font-size: 12px; 
-  font-weight: 800; 
-  color: var(--mark); 
+  font-weight: 700; 
+  color: var(--ink-dim); 
   letter-spacing: 0.04em; 
   text-transform: uppercase;
   display: flex; 
@@ -793,7 +775,7 @@ textarea.input-field {
   line-height: 1.5; 
   font-weight: 500; 
   margin-top: 8px;
-  border-top: 1px solid rgba(220,170,58,0.2); 
+  border-top: 1px solid var(--line); 
   padding-top: 8px;
   transition: all 0.3s ease;
 }
@@ -803,8 +785,8 @@ textarea.input-field {
 }
 
 .cardio-goals-card {
-  background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(21,24,29,0.95));
-  border: 1px solid var(--blue); 
+  background: var(--panel-2);
+  border: 1px solid var(--line); 
   border-radius: 8px; 
   padding: 12px 16px; 
   margin-bottom: 14px;
@@ -814,8 +796,8 @@ textarea.input-field {
 
 .cardio-goals-title {
   font-size: 12px; 
-  font-weight: 800; 
-  color: var(--blue); 
+  font-weight: 700; 
+  color: var(--ink-dim); 
   letter-spacing: 0.04em; 
   text-transform: uppercase;
   display: flex; 
@@ -830,7 +812,7 @@ textarea.input-field {
   line-height: 1.5; 
   font-weight: 500; 
   margin-top: 8px;
-  border-top: 1px solid rgba(59,130,246,0.3); 
+  border-top: 1px solid var(--line); 
   padding-top: 8px;
   transition: all 0.3s ease;
 }
@@ -840,8 +822,8 @@ textarea.input-field {
 }
 
 .feedback-notify-card {
-  background: linear-gradient(135deg, rgba(220,170,58,0.2), rgba(21,24,29,0.95));
-  border: 1px solid var(--mark); 
+  background: var(--panel-2);
+  border: 1px solid var(--line); 
   border-radius: 10px; 
   padding: 14px 16px; 
   margin-bottom: 14px;
@@ -855,8 +837,8 @@ textarea.input-field {
 }
 
 .congrats-card {
-  background: linear-gradient(135deg, rgba(132,22,40,0.3), rgba(21,24,29,0.95));
-  border: 1px solid var(--signal-light); 
+  background: var(--panel-2);
+  border: 1px solid var(--line); 
   border-radius: 10px; 
   padding: 16px; 
   margin-bottom: 14px;
@@ -867,13 +849,13 @@ textarea.input-field {
   font-family: var(--font-display); 
   font-size: 20px; 
   font-weight: 700; 
-  color: var(--mark); 
+  color: var(--ink); 
   margin-bottom: 4px; 
 }
 
 .congrats-desc { 
   font-size: 12.5px; 
-  color: var(--ink); 
+  color: var(--ink-dim); 
   line-height: 1.4; 
 }
 
@@ -944,7 +926,6 @@ textarea.input-field {
 .progression-item { 
   background: var(--panel-2); 
   border: 1px solid var(--line); 
-  border-left: 3px solid var(--mark);
   border-radius: 8px; 
   padding: 12px 14px; 
   margin-bottom: 8px; 
