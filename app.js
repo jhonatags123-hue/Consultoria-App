@@ -729,7 +729,6 @@ function loadStudentData(data) {
 
   showTab('treino');
 }
-
 function toggleCheckExercise(btn, dayIdx, exIdx) {
   if (!workoutTimerRunning) {
     alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
@@ -1475,6 +1474,9 @@ function changeExerciseMode(dayIdx, exIdx, selectedMode) {
   }
 }
 
+// =========================================================================
+// RENDERIZAÇÃO DE EXERCÍCIOS E SELEÇÃO DE TÉCNICAS (ESTRITO 2X E 3X)
+// =========================================================================
 function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
     const modeKey = `${dayIdx}_${exIdx}`;
@@ -1512,6 +1514,11 @@ function renderExercisesForDay(day, dayIdx, container) {
 
     let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
+    // Validação estrita para evitar seleções incompatíveis de 3x em treinos de 2x
+    if (tem2x && activeMode !== 'convencional' && activeMode !== 'cluster') {
+      activeMode = 'convencional';
+    }
+
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
     let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
     if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
@@ -1533,6 +1540,7 @@ function renderExercisesForDay(day, dayIdx, container) {
       selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
     } else if (podeAlterarTecnica) {
       if (tem2x) {
+        // Regra Estrita 2x: Apenas Convencional e Cluster Set
         selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
@@ -1540,6 +1548,7 @@ function renderExercisesForDay(day, dayIdx, container) {
           </select>
         `;
       } else {
+        // Regra Estrita 3x: Convencional, 2x + Back-Off, Cluster + Back-Off e Myo-Reps
         selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
