@@ -697,9 +697,13 @@
     }, 4000);
   }
 
+  // CORREÇÃO: Garante a busca do token tanto por 'admin_token' como por 'adminToken'
   function authHeaders() {
-    const token = localStorage.getItem('admin_token');
-    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('adminToken') || '';
+    return { 
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${token}` 
+    };
   }
 
   function escapeHtml(value) {
@@ -828,7 +832,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
 
-    const token = localStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('adminToken');
     if (token) {
       document.getElementById('loginScreen').classList.add('hidden');
       document.getElementById('adminApp').classList.remove('hidden');
@@ -857,6 +861,7 @@
       const data = await res.json();
       if (res.ok && data.token) {
         localStorage.setItem('admin_token', data.token);
+        localStorage.setItem('adminToken', data.token);
         document.getElementById('loginScreen').classList.add('hidden');
         document.getElementById('adminApp').classList.remove('hidden');
         showToast("Login realizado com sucesso!", "success");
@@ -877,6 +882,7 @@
 
   function logoutAdmin() {
     localStorage.removeItem('admin_token');
+    localStorage.removeItem('adminToken');
     location.reload();
   }
 
@@ -1063,10 +1069,10 @@
   }
 
   async function analisarIncomodosIA() {
-    if (!currentStudentData) return;
+    if (!currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
     const sessoes = currentStudentData.historico_sessoes || [];
-    const ultimasObs = sessoes.length > 0 ? sessoes[sessoes.length - 1].observacoes || [] : [];
+    const ultimasObs = sessoes.length > 0 ? (sessoes[sessoes.length - 1].observacoes || []) : [];
 
     const box = document.getElementById('resumoIncomodosIA');
     box.classList.remove('hidden');
@@ -2043,7 +2049,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
       return;
     }
 
-    if (!currentStudentData.refeicoes) {
+    if (!currentStudentData || !currentStudentData.refeicoes) {
       tx.value = "";
       atualizarPreviewDietaAoVivo();
       return;
@@ -2708,6 +2714,7 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
     modal.classList.remove('hidden');
   }
 
+  // CORREÇÃO: Função do Chat com fallback de proteção para não estourar erro
   async function sendAdminChatMessage() {
     const input = document.getElementById('adminChatInput');
     const history = document.getElementById('adminChatHistory');
@@ -2726,15 +2733,18 @@ Siga o passo a passo do vídeo correspondente para adicionar o ícone do app à 
         cache: 'no-cache',
         body: JSON.stringify({ 
           mensagem: text, 
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
+          contexto: currentStudentData || {}
         })
       });
 
       const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta || 'Resposta indisponível.').replace(/\n/g, '<br>')}</div>`;
+      if (res.ok && data.resposta) {
+        history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:start;"><b>Assistente IA:</b> ${escapeHtml(data.resposta).replace(/\n/g, '<br>')}</div>`;
+      } else {
+        history.innerHTML += `<div style="color:var(--accent); font-size:12px;"><b>Assistente IA:</b> ${escapeHtml(data.error || 'Assistente indisponível no momento.')}</div>`;
+      }
     } catch(e) {
-      history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
+      history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA. Verifique sua conexão.</div>`;
     }
     history.scrollTop = history.scrollHeight;
   }
