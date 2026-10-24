@@ -1,22 +1,51 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 
-const ASAAS_LINKS = {
-  'COMPLETA_ANUAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-  'COMPLETA_SEMESTRAL': "https://www.asaas.com/c/oky8it88u28d4vat",
-  'COMPLETA_TRIMESTRAL': "https://www.asaas.com/c/lvfk6qle0ufq0t57",
-  'COMPLETA_MENSAL': "https://www.asaas.com/c/5gd9tb7c0szjdwbd",
-  'COMPLETA_DUPLA_ANUAL': "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
-  'TREINO_ANUAL': "https://www.asaas.com/c/v36oz63i4jg0cg2u",
-  'TREINO_DUPLA_ANUAL': "https://www.asaas.com/c/omsltaq25btnizvo"
+// Mapeamento dos 12 Links de Checkout do Asaas (Divididos entre PIX e Cartão Recorrente)
+const CHECKOUT_LINKS = {
+  // 1. Consultoria Completa (3 Meses)
+  COMPLETA_TRIMESTRAL: {
+    cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57", // R$ 120/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"  // R$ 330 à vista
+  },
+
+  // 2. Consultoria Completa (6 Meses)
+  COMPLETA_SEMESTRAL: {
+    cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat", // R$ 110/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"  // R$ 600 à vista
+  },
+
+  // 3. Consultoria Completa (Anual)
+  COMPLETA_ANUAL: {
+    cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd", // R$ 85/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"  // R$ 900 à vista
+  },
+
+  // 4. Apenas Treino (Anual)
+  TREINO_ANUAL: {
+    cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u", // R$ 55/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"  // R$ 540 à vista
+  },
+
+  // 5. Consultoria Completa Dupla (Anual)
+  COMPLETA_DUPLA: {
+    cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu", // R$ 140/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"  // R$ 1.560 à vista
+  },
+
+  // 6. Consultoria Apenas Treino Dupla (Anual)
+  TREINO_DUPLA: {
+    cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo", // R$ 90/mês Recorrente
+    pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"  // R$ 960 à vista
+  }
 };
 
 const DETALHES_PLANOS = {
-  'COMPLETA_ANUAL': { valor: '12x R$ 85,00/mês', sub: 'Acompanhamento completo individual com treino + dieta.' },
-  'COMPLETA_SEMESTRAL': { valor: '6x R$ 110,00/mês', sub: 'Protocolo completo semestral com suporte contínuo.' },
-  'COMPLETA_TRIMESTRAL': { valor: '3x R$ 130,00/mês', sub: 'Acompanhamento trimestral focado em metas rápidas.' },
-  'COMPLETA_DUPLA_ANUAL': { valor: '12x R$ 140,00/mês', sub: 'Plano em Dupla: apenas R$ 70,00 por mês para cada pessoa.' },
-  'TREINO_ANUAL': { valor: '12x R$ 55,00/mês', sub: 'Ficha de treino contínua individual com ajuste de cargas.' },
-  'TREINO_DUPLA_ANUAL': { valor: '12x R$ 80,00/mês', sub: 'Apenas R$ 40,00 por mês por pessoa para treinar em dupla.' }
+  'COMPLETA_ANUAL': { valor: 'R$ 85,00/mês no Cartão Recorrente ou R$ 900,00 no PIX', sub: 'Acompanhamento completo individual com treino + dieta.' },
+  'COMPLETA_SEMESTRAL': { valor: 'R$ 110,00/mês no Cartão Recorrente ou R$ 600,00 no PIX', sub: 'Protocolo completo semestral com suporte contínuo.' },
+  'COMPLETA_TRIMESTRAL': { valor: 'R$ 120,00/mês no Cartão Recorrente ou R$ 330,00 no PIX', sub: 'Acompanhamento trimestral focado em metas rápidas.' },
+  'COMPLETA_DUPLA': { valor: 'R$ 140,00/mês no Cartão Recorrente ou R$ 1.560,00 no PIX', sub: 'Plano em Dupla: apenas R$ 70,00 por mês para cada pessoa.' },
+  'TREINO_ANUAL': { valor: 'R$ 55,00/mês no Cartão Recorrente ou R$ 540,00 no PIX', sub: 'Ficha de treino contínua individual com ajuste de cargas.' },
+  'TREINO_DUPLA': { valor: 'R$ 90,00/mês no Cartão Recorrente ou R$ 960,00 no PIX', sub: 'Apenas R$ 45,00 por mês por pessoa para treinar em dupla.' }
 };
 
 let currentData = null;
@@ -52,8 +81,10 @@ function sanitizeExKey(nome) {
 function atualizarResumoPrecoAnamnese() {
   const plano = document.getElementById('anamTipoConsultoria').value;
   const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
-  document.getElementById('resumoPlanoValor').textContent = info.valor;
-  document.getElementById('resumoPlanoSub').textContent = info.sub;
+  const elValor = document.getElementById('resumoPlanoValor');
+  const elSub = document.getElementById('resumoPlanoSub');
+  if (elValor) elValor.textContent = info.valor;
+  if (elSub) elSub.textContent = info.sub;
 }
 
 function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
@@ -102,7 +133,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -150,7 +181,7 @@ function startRestTimer(seconds) {
   restSecondsLeft = seconds;
 
   const widget = document.getElementById('restTimerWidget');
-  widget.classList.remove('timer-finished-glow');
+  if (widget) widget.classList.remove('timer-finished-glow');
 
   updateTimerDisplay();
 
@@ -160,12 +191,12 @@ function startRestTimer(seconds) {
 
     if (restSecondsLeft <= 0) {
       clearInterval(restTimerInterval);
-      widget.classList.add('timer-finished-glow');
+      if (widget) widget.classList.add('timer-finished-glow');
       playBipSound();
       if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
       setTimeout(() => {
-        widget.classList.remove('timer-finished-glow');
+        if (widget) widget.classList.remove('timer-finished-glow');
       }, 5000);
     }
   }, 1000);
@@ -173,6 +204,7 @@ function startRestTimer(seconds) {
 
 function updateTimerDisplay() {
   const display = document.getElementById('timerDisplay');
+  if (!display) return;
   const m = Math.floor(restSecondsLeft / 60);
   const s = restSecondsLeft % 60;
   display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -201,7 +233,8 @@ function checkAndRestoreWorkoutTimer() {
       btn.style.background = "var(--good)";
     }
     setInputsLockState(true);
-    document.getElementById('workoutTimerClock').textContent = "00:00:00";
+    const clock = document.getElementById('workoutTimerClock');
+    if (clock) clock.textContent = "00:00:00";
   }
 }
 
@@ -220,8 +253,10 @@ function toggleWorkoutTimer() {
     const startTime = Date.now();
     localStorage.setItem(keyStart, startTime.toString());
 
-    btn.textContent = "⏹️ PAUSAR";
-    btn.style.background = "var(--signal-light)";
+    if (btn) {
+      btn.textContent = "⏹️ PAUSAR";
+      btn.style.background = "var(--signal-light)";
+    }
 
     setInputsLockState(false);
 
@@ -233,8 +268,10 @@ function toggleWorkoutTimer() {
     localStorage.removeItem(keyStart);
     if (workoutTimerInterval) clearInterval(workoutTimerInterval);
 
-    btn.textContent = "▶ INICIAR TREINO";
-    btn.style.background = "var(--good)";
+    if (btn) {
+      btn.textContent = "▶ INICIAR TREINO";
+      btn.style.background = "var(--good)";
+    }
 
     setInputsLockState(true);
   }
@@ -243,9 +280,10 @@ function toggleWorkoutTimer() {
 function updateWorkoutTimerDisplay() {
   const keyStart = `workout_start_time_${loggedUserCode}`;
   const startTimeStr = localStorage.getItem(keyStart);
+  const clock = document.getElementById('workoutTimerClock');
 
   if (!startTimeStr) {
-    document.getElementById('workoutTimerClock').textContent = "00:00:00";
+    if (clock) clock.textContent = "00:00:00";
     return;
   }
 
@@ -255,7 +293,7 @@ function updateWorkoutTimerDisplay() {
   const s = elapsedSeconds % 60;
 
   const fmt = n => String(n).padStart(2, '0');
-  document.getElementById('workoutTimerClock').textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+  if (clock) clock.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
 }
 
 function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
@@ -303,14 +341,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (restWidget) restWidget.classList.remove('visible');
 
     if (isApenasTreinoMode) {
-      document.getElementById('anamMainTitle').textContent = "Anamnese de Treino";
-      document.getElementById('anamMainSub').textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
+      const anamTitle = document.getElementById('anamMainTitle');
+      const anamSub = document.getElementById('anamMainSub');
+      if (anamTitle) anamTitle.textContent = "Anamnese de Treino";
+      if (anamSub) anamSub.textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
       
       const selectPlano = document.getElementById('anamTipoConsultoria');
       if (selectPlano && !isConvidadoDuplaMode) {
         selectPlano.innerHTML = `
-          <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — 12x R$ 55,00/mês</option>
-          <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
+          <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — R$ 55/mês ou R$ 540 no PIX</option>
+          <option value="TREINO_DUPLA">Promocional Treino em Dupla (Anual) — R$ 90/mês ou R$ 960 no PIX</option>
         `;
       }
     }
@@ -380,11 +420,17 @@ function nextAnamStep(step) {
     }
   }
 
-  for (let i = 1; i <= 10; i++) document.getElementById(`anamStep${i}`).classList.add('hidden');
-  document.getElementById(`anamStep${step}`).classList.remove('hidden');
+  for (let i = 1; i <= 10; i++) {
+    const elStep = document.getElementById(`anamStep${i}`);
+    if (elStep) elStep.classList.add('hidden');
+  }
+  const currentStepEl = document.getElementById(`anamStep${step}`);
+  if (currentStepEl) currentStepEl.classList.remove('hidden');
   
-  document.getElementById('progressBar').style.width = `${(step/10)*100}%`;
-  document.getElementById('stepCounter').textContent = `Etapa ${step} de 10`;
+  const progressBar = document.getElementById('progressBar');
+  const stepCounter = document.getElementById('stepCounter');
+  if (progressBar) progressBar.style.width = `${(step/10)*100}%`;
+  if (stepCounter) stepCounter.textContent = `Etapa ${step} de 10`;
   
   const btnVoltarStep10 = document.getElementById('btnVoltarStep10');
   if (btnVoltarStep10) {
@@ -397,8 +443,10 @@ function nextAnamStep(step) {
 function togglePaymentView() {
   const option = document.getElementById('anamFormaPagamento').value;
   const pixBox = document.getElementById('pixDiretoBox');
-  if (option === 'PIX_DIRETO') pixBox.classList.remove('hidden');
-  else pixBox.classList.add('hidden');
+  if (pixBox) {
+    if (option === 'PIX_DIRETO') pixBox.classList.remove('hidden');
+    else pixBox.classList.add('hidden');
+  }
 }
 
 function copiarChavePix() {
@@ -461,6 +509,41 @@ async function handleLogin(e) {
   };
 
   tentarConexao(3);
+}
+
+// Renderiza a opção de pagamento exclusiva do plano selecionado na anamnese
+function renderizarCheckoutFinalPlano(tipoConsultoria) {
+  const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
+
+  return `
+    <div style="text-align:center; padding:24px 10px;">
+      <div style="font-size:48px; margin-bottom:12px;">✅</div>
+      <h2 style="font-size:24px; font-weight:700; color:var(--ink,#fff); font-family:var(--font-display);">
+        Anamnese Concluída com Sucesso!
+      </h2>
+      <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
+        Escolha abaixo como deseja realizar o pagamento da sua assinatura:
+      </p>
+
+      <div style="background:var(--panel-2,#150508); border:1px solid var(--line,rgba(220,170,58,.25)); border-radius:18px; padding:20px; margin-top:20px; text-align:center;">
+        
+        <a href="${checkoutInfo.cartao}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:linear-gradient(135deg,#c4324f,#841628); color:#fff; text-decoration:none; padding:14px; border-radius:12px; margin-bottom:12px; font-weight:800; border:0;">
+          <span>💳 Pagar no Cartão Recorrente</span>
+          <small style="font-size:11px; opacity:.9; font-weight:400;">✓ Débito mensal sem ocupar o limite total do cartão</small>
+        </a>
+
+        <a href="${checkoutInfo.pix}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:#dcaa3a; color:#1a0b02; text-decoration:none; padding:14px; border-radius:12px; font-weight:800; border:0;">
+          <span>⚡ Pagar via PIX À Vista</span>
+          <small style="font-size:11px; opacity:.9; font-weight:400;">✓ Liberação e início imediato do seu acompanhamento</small>
+        </a>
+
+      </div>
+
+      <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
+         Falar com o personal no WhatsApp
+      </a>
+    </div>
+  `;
 }
 
 async function sendAnamneseAppDirect() {
@@ -590,33 +673,18 @@ async function sendAnamneseAppDirect() {
       body: JSON.stringify(anamneseData)
     });
 
-    const redirectUrl = (formaPagamento === 'ASAAS_LINK' && !isConvidadoDuplaMode) 
-      ? ASAAS_LINKS[tipoConsultoria] 
-      : null;
-
-    if (redirectUrl) {
-      window.location.href = redirectUrl;
+    if (!isConvidadoDuplaMode) {
+      document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
     } else {
       document.getElementById('anamneseScreen').innerHTML = `
         <div style="text-align:center; padding:24px 10px;">
           <div style="font-size:48px; margin-bottom:12px;">✅</div>
           <h2 style="font-size:26px; font-weight:700; color:var(--ink); font-family:var(--font-display);">
-            Obrigado pela confiança
+            Anamnese Recebida
           </h2>
           <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
-            Anamnese recebida com sucesso! Estou muito feliz em ter você no time e dar o primeiro passo na sua evolução.
+            Seu cadastro em dupla foi vinculado com sucesso!
           </p>
-          <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
-            <div style="font-size:12.5px; font-weight:600; color:var(--mark); margin-bottom:6px;">
-              ⏳ Prazo de liberação e início
-            </div>
-            <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
-              O protocolo personalizado e o <b>Acesso Exclusivo ao Aplicativo</b> serão enviados diretamente no seu WhatsApp dentro de <b>24 a 48 horas úteis</b>.
-            </p>
-          </div>
-          <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Acabei%20de%20preencher%20minha%20Anamnese!" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:18px; text-decoration:none;">
-             Falar com o personal no WhatsApp
-          </a>
         </div>
       `;
     }
@@ -1873,7 +1941,7 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
   }
 
   const ind = document.getElementById('saveIndicator');
-  ind.style.display = 'block';
+  if (ind) ind.style.display = 'block';
 
   if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
@@ -1885,9 +1953,9 @@ function scheduleAutoSave(key, value, dayIdx, exIdx) {
         cache: 'no-cache',
         body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     } catch (e) {
-      ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     }
   }, 1200);
 }
