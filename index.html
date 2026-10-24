@@ -91,7 +91,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
   <p>Personal Trainer | Consultoria Esportiva</p>
 </header>
 
-<!-- 1. HERO -->
+<!-- HERO -->
 <section class="hero">
   <h2>Treino e plano alimentar ajustados à sua rotina</h2>
   <p>Para quem quer ganhar massa, perder gordura ou voltar a treinar direito, sem planilha genérica. Eu acompanho de perto e ajusto o plano conforme você evolui.</p>
@@ -104,7 +104,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
   <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Vim pelo seu link e quero tirar dúvidas sobre a consultoria." data-ev="whatsapp_hero">Tirar dúvidas no WhatsApp</a>
 </section>
 
-<!-- 2. PROVA SOCIAL -->
+<!-- PROVA SOCIAL -->
 <h2>O que dizem meus alunos</h2>
 <p class="sub">Mensagens reais, enviadas por eles.</p>
 <div class="carousel" aria-label="Depoimentos de alunos">
@@ -129,7 +129,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 </div>
 <p class="hint">Deslize para ver mais</p>
 
-<!-- 3. COMO FUNCIONA -->
+<!-- COMO FUNCIONA -->
 <h2>Como funciona</h2>
 <p class="sub">Do cadastro inicial ao acompanhamento diário.</p>
 <div class="steps">
@@ -138,7 +138,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
   <div class="step"><i>3</i><div><b>Recebe seu plano no App</b><span>Treino e plano alimentar personalizados direto na sua conta.</span></div></div>
 </div>
 
-<!-- 4. PLANOS -->
+<!-- PLANOS -->
 <h2 id="planos">Escolha seu plano</h2>
 <p class="sub">Selecione a opção ideal para o seu objetivo:</p>
 <div class="tabs" role="tablist">
@@ -148,7 +148,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 </div>
 <div id="planList" role="tabpanel"></div>
 
-<!-- 5. CAPTURA DE LEAD -->
+<!-- CAPTURA DE LEAD -->
 <section class="lead" style="margin-top:34px">
   <h2>Ainda com dúvida? Me avise!</h2>
   <p class="sub" style="margin-bottom:0">Deixe seu nome e WhatsApp que eu te chamo pessoalmente para conversar.</p>
@@ -170,7 +170,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
   </form>
 </section>
 
-<!-- 6. FAQ -->
+<!-- FAQ -->
 <h2>Perguntas frequentes</h2>
 <div class="faq" style="margin-top:14px">
   <details><summary>O que inclui a Consultoria Completa?</summary><p>A Consultoria Completa inclui o treino 100% individualizado para o seu local de treino + o seu plano alimentar personalizado ajustado à sua rotina, além de acompanhamento no aplicativo.</p></details>
@@ -179,7 +179,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
   <details><summary>Como funcionam os planos em dupla?</summary><p>Cada um da dupla recebe seu próprio plano individualizado no app, porém com um desconto especial no valor total do pacote!</p></details>
 </div>
 
-<!-- 7. CTA FINAL -->
+<!-- CTA FINAL -->
 <section class="final">
   <h2 style="margin-top:0">Pronto para começar?</h2>
   <p class="sub">Escolha seu plano ou me chame no WhatsApp.</p>
@@ -204,15 +204,16 @@ const CFG = {
   leadEndpoint: "https://consultoria-backend-kbqi.onrender.com/api/leads",
   planos: {
     completa: [
-      { id: "COMPLETA_MENSAL", nome: "Consultoria Completa (Mensal)", pix: 75, cartao: 85, url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | R$ 85/mês no Cartão Recorrente ou R$ 75 no PIX", destaque: true },
-      { id: "COMPLETA_TRIMESTRAL", nome: "Consultoria Completa (Trimestral)", pix: 300, cartao: 85, url: "https://www.asaas.com/000/c/k9pnu5cry59ts60b", desc: "Incluso: Treino Personalizado + Plano Alimentar | R$ 300 à vista no PIX (3 Meses de Acesso)", destaque: false }
+      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", pix: 330, pixEquiv: 110, cartao: 120, url: "https://www.asaas.com/000/c/k9pnu5cry59ts60b", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 120/mês Recorrente ou R$ 330 total no PIX (R$ 110/mês)", destaque: false },
+      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)",  pix: 600, pixEquiv: 100, cartao: 110, url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 110/mês Recorrente ou R$ 600 total no PIX (R$ 100/mês)", destaque: true },
+      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",      pix: 900, pixEquiv: 75,  cartao: 85,  url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 85/mês Recorrente ou R$ 900 total no PIX (R$ 75/mês)", destaque: false }
     ],
     treino: [
-      { id: "TREINO_MENSAL", nome: "Apenas Treino", pix: 45, cartao: 55, url: "https://www.asaas.com/000/c/3rzicld44lby9g6b", desc: "Incluso: Ficha de Treino Personalizada | R$ 55/mês no Cartão Recorrente ou R$ 45 no PIX", destaque: true, tipo: "treino" }
+      { id: "TREINO_ANUAL", nome: "Anual (Apenas Treino)", pix: 540, pixEquiv: 45, cartao: 55, url: "https://www.asaas.com/000/c/3rzicld44lby9g6b", desc: "Incluso: Ficha de Treino Personalizada | Cartão: R$ 55/mês Recorrente ou R$ 540 total no PIX (R$ 45/mês)", destaque: true, tipo: "treino" }
     ],
     dupla: [
-      { id: "COMPLETA_DUPLA", nome: "Consultoria em Dupla (Completa)", pix: 130, cartao: 140, url: "https://www.asaas.com/000/c/52mqr2awi4hzl61n", desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês (R$ 70 cada) ou PIX: R$ 130 à vista (R$ 65 cada)", destaque: true, dupla: true },
-      { id: "TREINO_DUPLA", nome: "Consultoria em Dupla (Só Treino)", pix: 80, cartao: 90, url: "https://www.asaas.com/000/c/ke2r2emle6sfnmif", desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês (R$ 45 cada) ou PIX: R$ 80 à vista (R$ 40 cada)", dupla: true, tipo: "treino" }
+      { id: "COMPLETA_DUPLA", nome: "Anual em Dupla (Completa)", pix: 1560, pixEquiv: 130, cartao: 140, url: "https://www.asaas.com/000/c/52mqr2awi4hzl61n", desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês Recorrente ou R$ 1.560 total no PIX (R$ 130/mês)", destaque: true, dupla: true },
+      { id: "TREINO_DUPLA",   nome: "Anual em Dupla (Só Treino)", pix: 960,  pixEquiv: 80,  cartao: 90,  url: "https://www.asaas.com/000/c/ke2r2emle6sfnmif", desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês Recorrente ou R$ 960 total no PIX (R$ 80/mês)", dupla: true, tipo: "treino" }
     ]
   }
 };
@@ -231,7 +232,7 @@ const planHTML = p => {
   return `<div class="plan${rec}">${tag}<h3>${p.nome}</h3>
     <div class="price">R$ ${brl(p.cartao)}<small>/mês no Cartão Recorrente</small></div>
     <div><span class="tag-no-limit">✓ Não ocupa o limite total do cartão</span></div>
-    <p class="d" style="margin:8px 0 10px">Ou <b>R$ ${brl(p.pix)}</b> no PIX à vista</p>
+    <p class="d" style="margin:8px 0 10px">Ou <b>R$ ${brl(p.pix)}</b> no PIX total à vista (equivale a R$ ${brl(p.pixEquiv)}/mês)</p>
     <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${p.url}" target="_blank" rel="noopener" data-plan="${p.id}">Inscrever-se pelo site</a>
     <a class="btn btn-wa" href="${waLink(msgWa)}" target="_blank" rel="noopener">Falar sobre esse plano no WhatsApp</a>
   </div>`;
