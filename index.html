@@ -55,13 +55,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .plan{background:var(--card);border:1px solid var(--soft);border-radius:18px;padding:18px;margin-bottom:12px}
 .plan.rec{border:1px solid var(--gold);box-shadow:0 10px 30px rgba(220,170,58,.15);background:linear-gradient(160deg,rgba(220,170,58,.1),var(--card))}
 .tag{display:inline-block;background:var(--gold);color:#1a0b02;font:800 12px 'Inter';padding:2px 8px;border-radius:6px;margin-bottom:8px}
+.tag-no-limit{display:inline-block;background:rgba(37,211,102,.15);color:var(--green);border:1px solid var(--green);font:700 11px 'Inter';padding:2px 8px;border-radius:6px;margin-top:6px}
 .plan h3{font-size:17px}
 .plan .d{font-size:14px;color:var(--muted);margin:2px 0 10px}
 .price{font:34px 'Bebas Neue';letter-spacing:1px;color:var(--gold2);line-height:1}
-.price small{font:500 13px 'Inter';color:var(--muted);letter-spacing:0;margin-left:6px}
+.price small{font:500 13px 'Inter';color:var(--muted);letter-spacing:0;margin-left:4px}
 .plan .btn{margin-top:10px}
-details.more{margin-bottom:12px}
-details.more summary{cursor:pointer;text-align:center;color:var(--gold2);font-weight:700;font-size:14px;padding:12px;list-style:none;border:1px dashed var(--line);border-radius:12px;margin-bottom:12px}
 .lead{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
 .lead h2{margin-top:0;font-size:26px}
 .lead label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px;color:#eadadd}
@@ -175,8 +174,8 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <h2>Perguntas frequentes</h2>
 <div class="faq" style="margin-top:14px">
   <details><summary>O que inclui a Consultoria Completa?</summary><p>A Consultoria Completa inclui o treino 100% individualizado para o seu local de treino + o seu plano alimentar personalizado ajustado à sua rotina, além de acompanhamento no aplicativo.</p></details>
+  <details><summary>A cobrança no cartão consome meu limite total?</summary><p>Não! A assinatura funciona de forma recorrente (mês a mês). Você só precisa ter liberado o valor da mensalidade do mês, sem comprometer o limite total do seu cartão.</p></details>
   <details><summary>Já tentei antes e não deu certo. Vai funcionar?</summary><p>O plano é feito para a sua rotina e revisado conforme você evolui, em vez de repetir uma ficha pronta. Quando algo não encaixa, a gente ajusta.</p></details>
-  <details><summary>Não consigo seguir 100% do plano alimentar. Tudo bem?</summary><p>Ninguém segue 100% o tempo todo. O objetivo é ter flexibilidade para você manter a constância sem neuras.</p></details>
   <details><summary>Como funcionam os planos em dupla?</summary><p>Cada um da dupla recebe seu próprio plano individualizado no app, porém com um desconto especial no valor total do pacote!</p></details>
 </div>
 
@@ -199,23 +198,21 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <div id="lb" role="dialog" aria-label="Print do depoimento"><img alt="Print original do depoimento"></div>
 
 <script>
-/* ===== CONFIGURAÇÃO DE PREÇOS E PLANOS ===== */
+/* ===== CONFIGURAÇÃO DE PREÇOS E LINKS DO ASAAS ===== */
 const CFG = {
   whats: "5551990169026",
   leadEndpoint: "https://consultoria-backend-kbqi.onrender.com/api/leads",
-  destino: "app.html",
   planos: {
     completa: [
-      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", meses: 3, parcela: 110, desc: "Incluso: Treino + Plano Alimentar | R$ 300 à vista no PIX ou 3x R$ 110 no Cartão", destaque: false },
-      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)", meses: 6, parcela: 100, desc: "Incluso: Treino + Plano Alimentar | R$ 540 à vista no PIX ou 6x R$ 100 no Cartão", destaque: true },
-      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",     meses: 12, parcela: 80, desc: "Incluso: Treino + Plano Alimentar | R$ 840 à vista no PIX ou 12x R$ 80 no Cartão", destaque: false }
+      { id: "COMPLETA_MENSAL", nome: "Consultoria Completa (Mensal)", pix: 75, cartao: 85, url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | R$ 85/mês no Cartão Recorrente ou R$ 75 no PIX", destaque: true },
+      { id: "COMPLETA_TRIMESTRAL", nome: "Consultoria Completa (Trimestral)", pix: 300, cartao: 85, url: "https://www.asaas.com/000/c/k9pnu5cry59ts60b", desc: "Incluso: Treino Personalizado + Plano Alimentar | R$ 300 à vista no PIX (3 Meses de Acesso)", destaque: false }
     ],
     treino: [
-      { id: "TREINO_ANUAL",        nome: "Anual (Apenas Treino)", meses: 12, parcela: 55, desc: "Incluso: Ficha de Treino Personalizada | R$ 540 à vista no PIX ou 12x R$ 55 no Cartão", destaque: true, tipo: "treino" }
+      { id: "TREINO_MENSAL", nome: "Apenas Treino", pix: 45, cartao: 55, url: "https://www.asaas.com/000/c/3rzicld44lby9g6b", desc: "Incluso: Ficha de Treino Personalizada | R$ 55/mês no Cartão Recorrente ou R$ 45 no PIX", destaque: true, tipo: "treino" }
     ],
     dupla: [
-      { id: "COMPLETA_DUPLA_ANUAL",nome: "Anual em Dupla (Completa)", meses: 12, parcela: 130, desc: "Treino + Plano Alimentar para os dois | PIX R$ 660 cada ou R$ 65/mês no cartão cada", destaque: true, dupla: true },
-      { id: "TREINO_DUPLA_ANUAL",  nome: "Anual em Dupla (Só Treino)", meses: 12, parcela: 80, desc: "Ficha de Treino para os dois | PIX R$ 420 cada ou R$ 40/mês no cartão cada", dupla: true, tipo: "treino" }
+      { id: "COMPLETA_DUPLA", nome: "Consultoria em Dupla (Completa)", pix: 130, cartao: 140, url: "https://www.asaas.com/000/c/52mqr2awi4hzl61n", desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês (R$ 70 cada) ou PIX: R$ 130 à vista (R$ 65 cada)", destaque: true, dupla: true },
+      { id: "TREINO_DUPLA", nome: "Consultoria em Dupla (Só Treino)", pix: 80, cartao: 90, url: "https://www.asaas.com/000/c/ke2r2emle6sfnmif", desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês (R$ 45 cada) ou PIX: R$ 80 à vista (R$ 40 cada)", dupla: true, tipo: "treino" }
     ]
   }
 };
@@ -225,18 +222,17 @@ const waLink = msg => `https://wa.me/${CFG.whats}?text=${encodeURIComponent(msg)
 
 /* ===== RENDERIZAÇÃO DE PLANOS ===== */
 const brl = n => n.toLocaleString('pt-BR');
-const utm = location.search ? '&' + location.search.slice(1) : '';
 
 const planHTML = p => {
-  const href = `${CFG.destino}?modo=anamnese${p.tipo ? '&tipo=' + p.tipo : ''}&plano=${p.id}${utm}`;
   const msgWa = `Olá Jhonata! Tenho interesse no plano ${p.nome} e quero conversar com você antes de fechar.`;
   const rec = p.destaque ? ' rec' : '';
-  const tag = p.destaque ? '<span class="tag">Recomendado</span>' : p.dupla ? '<span class="tag">Oferta em Dupla</span>' : '';
+  const tag = p.destaque ? '<span class="tag">Mais Vendido</span>' : p.dupla ? '<span class="tag">Oferta em Dupla</span>' : '';
   
   return `<div class="plan${rec}">${tag}<h3>${p.nome}</h3>
-    <div class="price">${p.meses}x R$ ${brl(p.parcela)}<small>${p.dupla ? 'total da dupla' : '/mês no cartão'}</small></div>
-    <p class="d" style="margin:6px 0 0">${p.desc}</p>
-    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${p.id}">Inscrever-se pelo site</a>
+    <div class="price">R$ ${brl(p.cartao)}<small>/mês no Cartão Recorrente</small></div>
+    <div><span class="tag-no-limit">✓ Não ocupa o limite total do cartão</span></div>
+    <p class="d" style="margin:8px 0 10px">Ou <b>R$ ${brl(p.pix)}</b> no PIX à vista</p>
+    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${p.url}" target="_blank" rel="noopener" data-plan="${p.id}">Inscrever-se pelo site</a>
     <a class="btn btn-wa" href="${waLink(msgWa)}" target="_blank" rel="noopener">Falar sobre esse plano no WhatsApp</a>
   </div>`;
 };
