@@ -198,22 +198,23 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <div id="lb" role="dialog" aria-label="Print do depoimento"><img alt="Print original do depoimento"></div>
 
 <script>
-/* ===== CONFIGURAÇÃO DE PREÇOS E LINKS DO ASAAS ===== */
+/* ===== CONFIGURAÇÃO DE PREÇOS E DESTINO ===== */
 const CFG = {
   whats: "5551990169026",
   leadEndpoint: "https://consultoria-backend-kbqi.onrender.com/api/leads",
+  destino: "app.html",
   planos: {
     completa: [
-      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", pix: 330, pixEquiv: 110, cartao: 120, url: "https://www.asaas.com/000/c/k9pnu5cry59ts60b", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 120/mês Recorrente ou R$ 330 total no PIX (R$ 110/mês)", destaque: false },
-      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)",  pix: 600, pixEquiv: 100, cartao: 110, url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 110/mês Recorrente ou R$ 600 total no PIX (R$ 100/mês)", destaque: true },
-      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",      pix: 900, pixEquiv: 75,  cartao: 85,  url: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam", desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 85/mês Recorrente ou R$ 900 total no PIX (R$ 75/mês)", destaque: false }
+      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", pix: 330, pixEquiv: 110, cartao: 120, desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 120/mês Recorrente ou R$ 330 total no PIX (R$ 110/mês)", destaque: false },
+      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)",  pix: 600, pixEquiv: 100, cartao: 110, desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 110/mês Recorrente ou R$ 600 total no PIX (R$ 100/mês)", destaque: true },
+      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",      pix: 900, pixEquiv: 75,  cartao: 85,  desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 85/mês Recorrente ou R$ 900 total no PIX (R$ 75/mês)", destaque: false }
     ],
     treino: [
-      { id: "TREINO_ANUAL", nome: "Anual (Apenas Treino)", pix: 540, pixEquiv: 45, cartao: 55, url: "https://www.asaas.com/000/c/3rzicld44lby9g6b", desc: "Incluso: Ficha de Treino Personalizada | Cartão: R$ 55/mês Recorrente ou R$ 540 total no PIX (R$ 45/mês)", destaque: true, tipo: "treino" }
+      { id: "TREINO_ANUAL", nome: "Anual (Apenas Treino)", pix: 540, pixEquiv: 45, cartao: 55, desc: "Incluso: Ficha de Treino Personalizada | Cartão: R$ 55/mês Recorrente ou R$ 540 total no PIX (R$ 45/mês)", destaque: true, tipo: "treino" }
     ],
     dupla: [
-      { id: "COMPLETA_DUPLA", nome: "Anual em Dupla (Completa)", pix: 1560, pixEquiv: 130, cartao: 140, url: "https://www.asaas.com/000/c/52mqr2awi4hzl61n", desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês Recorrente ou R$ 1.560 total no PIX (R$ 130/mês)", destaque: true, dupla: true },
-      { id: "TREINO_DUPLA",   nome: "Anual em Dupla (Só Treino)", pix: 960,  pixEquiv: 80,  cartao: 90,  url: "https://www.asaas.com/000/c/ke2r2emle6sfnmif", desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês Recorrente ou R$ 960 total no PIX (R$ 80/mês)", dupla: true, tipo: "treino" }
+      { id: "COMPLETA_DUPLA", nome: "Anual em Dupla (Completa)", pix: 1560, pixEquiv: 130, cartao: 140, desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês Recorrente ou R$ 1.560 total no PIX (R$ 130/mês)", destaque: true, dupla: true },
+      { id: "TREINO_DUPLA",   nome: "Anual em Dupla (Só Treino)", pix: 960,  pixEquiv: 80,  cartao: 90,  desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês Recorrente ou R$ 960 total no PIX (R$ 80/mês)", dupla: true, tipo: "treino" }
     ]
   }
 };
@@ -221,10 +222,12 @@ const CFG = {
 /* ===== WHATSAPP LINK GENERATOR ===== */
 const waLink = msg => `https://wa.me/${CFG.whats}?text=${encodeURIComponent(msg)}`;
 
-/* ===== RENDERIZAÇÃO DE PLANOS ===== */
+/* ===== RENDERIZAÇÃO DE PLANOS (LEVA PARA A ANAMNESE) ===== */
 const brl = n => n.toLocaleString('pt-BR');
+const utm = location.search ? '&' + location.search.slice(1) : '';
 
 const planHTML = p => {
+  const href = `${CFG.destino}?modo=anamnese${p.tipo ? '&tipo=' + p.tipo : ''}&plano=${p.id}${utm}`;
   const msgWa = `Olá Jhonata! Tenho interesse no plano ${p.nome} e quero conversar com você antes de fechar.`;
   const rec = p.destaque ? ' rec' : '';
   const tag = p.destaque ? '<span class="tag">Mais Vendido</span>' : p.dupla ? '<span class="tag">Oferta em Dupla</span>' : '';
@@ -233,7 +236,7 @@ const planHTML = p => {
     <div class="price">R$ ${brl(p.cartao)}<small>/mês no Cartão Recorrente</small></div>
     <div><span class="tag-no-limit">✓ Não ocupa o limite total do cartão</span></div>
     <p class="d" style="margin:8px 0 10px">Ou <b>R$ ${brl(p.pix)}</b> no PIX total à vista (equivale a R$ ${brl(p.pixEquiv)}/mês)</p>
-    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${p.url}" target="_blank" rel="noopener" data-plan="${p.id}">Inscrever-se pelo site</a>
+    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${p.id}">Preencher Avaliação e Começar</a>
     <a class="btn btn-wa" href="${waLink(msgWa)}" target="_blank" rel="noopener">Falar sobre esse plano no WhatsApp</a>
   </div>`;
 };
