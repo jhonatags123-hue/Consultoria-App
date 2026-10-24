@@ -7,7 +7,7 @@
 <meta name="description" content="Treino e plano alimentar ajustados à sua rotina, com acompanhamento direto no WhatsApp.">
 <meta property="og:title" content="Jhonata Cavalcante | Consultoria Esportiva">
 <meta property="og:description" content="Treino e plano alimentar ajustados à sua rotina, com acompanhamento direto no WhatsApp.">
-<meta property="og:image" content="https://raw.githubusercontent.com/jhonatags123-hue/Consultoria-Backend/main/5.jpg">
+<meta property="og:image" content="https://github.com/jhonatags123-hue/Consultoria-Backend/blob/main/5.jpg?raw=true">
 <meta property="og:url" content="https://consultoria-backend-kbqi.onrender.com/">
 <meta property="og:type" content="website">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -36,7 +36,6 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .stats div{background:rgba(10,2,5,.7);border:1px solid var(--soft);border-radius:12px;padding:10px 4px;font-size:12.5px;line-height:1.3;color:#eadadd}
 .stats b{display:block;font:28px 'Bebas Neue';color:var(--gold2);letter-spacing:1px}
 .hero .btn+.btn{margin-top:10px}
-.vagas{margin-top:12px;font-size:13px;color:var(--gold2);font-weight:700}
 .carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;-webkit-overflow-scrolling:touch}
 .t{flex:0 0 86%;scroll-snap-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}
 .t .q{font-size:15.5px;line-height:1.55;color:#fff}
@@ -50,8 +49,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .step i{flex:0 0 34px;height:34px;border-radius:50%;background:var(--gold);color:#1a0b02;font:700 15px/34px 'Inter';text-align:center;font-style:normal}
 .step b{display:block;font-size:15px}
 .step span{font-size:14px;color:var(--muted)}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card);border:1px solid var(--soft);border-radius:14px;padding:5px;margin-bottom:14px}
-.tabs button{min-height:44px;border:0;border-radius:10px;background:none;color:var(--muted);font:700 14px 'Inter';cursor:pointer}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--card);border:1px solid var(--soft);border-radius:14px;padding:4px;margin-bottom:14px}
+.tabs button{min-height:44px;border:0;border-radius:10px;background:none;color:var(--muted);font:700 12px 'Inter';cursor:pointer;padding:0 4px}
 .tabs button[aria-selected=true]{background:var(--gold);color:#1a0b02}
 .plan{background:var(--card);border:1px solid var(--soft);border-radius:18px;padding:18px;margin-bottom:12px}
 .plan.rec{border:1px solid var(--gold);box-shadow:0 10px 30px rgba(220,170,58,.15);background:linear-gradient(160deg,rgba(220,170,58,.1),var(--card))}
@@ -60,7 +59,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,su
 .plan .d{font-size:14px;color:var(--muted);margin:2px 0 10px}
 .price{font:34px 'Bebas Neue';letter-spacing:1px;color:var(--gold2);line-height:1}
 .price small{font:500 13px 'Inter';color:var(--muted);letter-spacing:0;margin-left:6px}
-.plan .btn{margin-top:14px}
+.plan .btn{margin-top:10px}
 details.more{margin-bottom:12px}
 details.more summary{cursor:pointer;text-align:center;color:var(--gold2);font-weight:700;font-size:14px;padding:12px;list-style:none;border:1px dashed var(--line);border-radius:12px;margin-bottom:12px}
 .lead{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
@@ -81,13 +80,14 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 #lb{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
 #lb.on{display:flex}
 #lb img{max-width:100%;max-height:100%;border-radius:10px}
+.alert-success{display:none;background:rgba(37,211,102,.15);border:1px solid #25d366;color:#25d366;padding:12px;border-radius:12px;text-align:center;font-weight:700;margin-top:12px}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.bar{transition:none}}
 </style>
 </head>
 <body>
 
 <header class="profile">
-  <div class="avatar"><img src="https://raw.githubusercontent.com/jhonatags123-hue/Consultoria-Backend/main/5.jpg" alt="Jhonata Cavalcante" onerror="this.remove();this.parentNode.textContent='JC'"></div>
+  <div class="avatar"><img src="https://github.com/jhonatags123-hue/Consultoria-Backend/blob/main/5.jpg?raw=true" alt="Jhonata Cavalcante" onerror="this.style.display='none';this.parentNode.textContent='JC'"></div>
   <h1>JHONATA CAVALCANTE</h1>
   <p>Personal Trainer | Consultoria Esportiva</p>
 </header>
@@ -101,12 +101,11 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
     <div><b>1:1</b>direto comigo no WhatsApp</div>
     <div><b>App</b>para acompanhar sua evolução</div>
   </div>
-  <a href="#planos" class="btn btn-main" id="heroCta" data-ev="hero_cta">Ver planos</a>
-  <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Vim pelo seu link e quero saber mais sobre a consultoria." data-ev="whatsapp_hero">Tirar dúvidas no WhatsApp</a>
-  <div class="vagas" id="vagas" hidden></div>
+  <a href="#planos" class="btn btn-main" id="heroCta" data-ev="hero_cta">Ver planos disponíveis</a>
+  <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Vim pelo seu link e quero tirar dúvidas sobre a consultoria." data-ev="whatsapp_hero">Tirar dúvidas no WhatsApp</a>
 </section>
 
-<!-- 2. PROVA SOCIAL (Prints do GitHub) -->
+<!-- 2. PROVA SOCIAL -->
 <h2>O que dizem meus alunos</h2>
 <p class="sub">Mensagens reais, enviadas por eles.</p>
 <div class="carousel" aria-label="Depoimentos de alunos">
@@ -114,51 +113,52 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
     <p class="q">“Sinto que tô ganhando massa magra e ao mesmo tempo diminuindo o percentual de gordura. Mesmo aumentando o carboidrato pra ter mais energia nas corridas, os resultados continuam aparecendo.”</p>
     <p class="q2">“O acompanhamento também tem sido muito bom, principalmente por ter esse suporte e ajuste conforme vou evoluindo.”</p>
     <footer><b>Aluno</b><span>Mais massa magra, menos gordura</span></footer>
-    <button class="lnk" data-print="https://raw.githubusercontent.com/jhonatags123-hue/Consultoria-Backend/main/1.jpg">Ver print original</button>
+    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-Backend/blob/main/1.jpg?raw=true">Ver print original</button>
   </article>
   <article class="t">
     <p class="q">“Minha vida melhorou bastante desde que voltei a treinar direito e me alimentar corretamente.”</p>
     <p class="q2">“Meu peso abaixou, a recomposição corporal foi bem notória depois de quase 6 meses sem atividade física, e tive um ganho de força absurdo.”</p>
     <footer><b>Aluno</b><span>3 meses de acompanhamento</span></footer>
-    <button class="lnk" data-print="https://raw.githubusercontent.com/jhonatags123-hue/Consultoria-Backend/main/2.jpg">Ver print original</button>
+    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-Backend/blob/main/2.jpg?raw=true">Ver print original</button>
   </article>
   <article class="t">
     <p class="q">“Treinava de qualquer forma, sem foco em aprender a execução com excelência.”</p>
     <p class="q2">“Esse método que tu me passou … começou a fazer meus treinos renderem mais, tanto em progressão das cargas quanto em focar nos meus pontos fracos.”</p>
     <footer><b>Otávio</b><span>Aluno desde agosto</span></footer>
-    <button class="lnk" data-print="https://raw.githubusercontent.com/jhonatags123-hue/Consultoria-Backend/main/3.jpg">Ver print original</button>
+    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-Backend/blob/main/3.jpg?raw=true">Ver print original</button>
   </article>
 </div>
 <p class="hint">Deslize para ver mais</p>
 
 <!-- 3. COMO FUNCIONA -->
 <h2>Como funciona</h2>
-<p class="sub">Do primeiro contato ao acompanhamento.</p>
+<p class="sub">Do cadastro inicial ao acompanhamento diário.</p>
 <div class="steps">
-  <div class="step"><i>1</i><div><b>Você preenche a avaliação</b><span>Conto com seu objetivo, rotina, local de treino e preferências.</span></div></div>
-  <div class="step"><i>2</i><div><b>Recebe seu plano personalizado</b><span>Treino e plano alimentar montados para você, no app.</span></div></div>
-  <div class="step"><i>3</i><div><b>Acompanho e ajusto</b><span>Suporte direto no WhatsApp e ajustes conforme você evolui.</span></div></div>
+  <div class="step"><i>1</i><div><b>Escolha seu plano ou fale comigo</b><span>Compre direto pelo site ou me chame no WhatsApp para tirar dúvidas.</span></div></div>
+  <div class="step"><i>2</i><div><b>Preencha sua avaliação</b><span>Informa seu objetivo, rotina, local de treino e preferências.</span></div></div>
+  <div class="step"><i>3</i><div><b>Recebe seu plano no App</b><span>Treino e plano alimentar personalizados direto na sua conta.</span></div></div>
 </div>
 
 <!-- 4. PLANOS -->
 <h2 id="planos">Escolha seu plano</h2>
-<p class="sub">Comece pelo recomendado ou compare as outras opções.</p>
+<p class="sub">Selecione a opção ideal para o seu objetivo:</p>
 <div class="tabs" role="tablist">
-  <button role="tab" id="tab-completa" aria-selected="true" data-g="completa">Treino + Plano Alimentar</button>
+  <button role="tab" id="tab-completa" aria-selected="true" data-g="completa">Consultoria Completa</button>
   <button role="tab" id="tab-treino" aria-selected="false" data-g="treino">Só Treino</button>
+  <button role="tab" id="tab-dupla" aria-selected="false" data-g="dupla">Planos em Dupla</button>
 </div>
 <div id="planList" role="tabpanel"></div>
 
 <!-- 5. CAPTURA DE LEAD -->
 <section class="lead" style="margin-top:34px">
-  <h2>Ainda com dúvida?</h2>
-  <p class="sub" style="margin-bottom:0">Me diga seu objetivo e eu continuo a conversa no WhatsApp.</p>
+  <h2>Ainda com dúvida? Me avise!</h2>
+  <p class="sub" style="margin-bottom:0">Deixe seu nome e WhatsApp que eu te chamo pessoalmente para conversar.</p>
   <form id="leadForm">
     <label for="nome">Seu nome</label>
     <input id="nome" name="nome" required autocomplete="given-name">
     <label for="zap">Seu WhatsApp</label>
     <input id="zap" name="whatsapp" type="tel" inputmode="tel" placeholder="(51) 90000-0000" required autocomplete="tel">
-    <label for="obj">Seu objetivo</label>
+    <label for="obj">Seu objetivo principal</label>
     <select id="obj" name="objetivo" required>
       <option value="">Selecione</option>
       <option>Perder gordura</option>
@@ -166,26 +166,26 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
       <option>Melhorar performance e corrida</option>
       <option>Voltar a treinar e ter mais saúde</option>
     </select>
-    <button class="btn btn-main" type="submit">Conversar no WhatsApp</button>
+    <button class="btn btn-main" type="submit">Enviar dados para contato</button>
+    <div id="leadSuccess" class="alert-success">✓ Recebido! Entrarei em contato no seu WhatsApp em breve.</div>
   </form>
 </section>
 
 <!-- 6. FAQ -->
 <h2>Perguntas frequentes</h2>
 <div class="faq" style="margin-top:14px">
+  <details><summary>O que inclui a Consultoria Completa?</summary><p>A Consultoria Completa inclui o treino 100% individualizado para o seu local de treino + o seu plano alimentar personalizado ajustado à sua rotina, além de acompanhamento no aplicativo.</p></details>
   <details><summary>Já tentei antes e não deu certo. Vai funcionar?</summary><p>O plano é feito para a sua rotina e revisado conforme você evolui, em vez de repetir uma ficha pronta. Quando algo não encaixa, a gente ajusta.</p></details>
   <details><summary>Não consigo seguir 100% do plano alimentar. Tudo bem?</summary><p>Ninguém segue 100% o tempo todo. O objetivo é ter flexibilidade para você manter a constância sem neuras.</p></details>
-  <details><summary>Preciso treinar na academia?</summary><p>O treino é montado conforme o local e o tempo que você tem. Essas informações entram na avaliação inicial.</p></details>
-  <details><summary>Como funciona o suporte?</summary><p>Você fala direto comigo no WhatsApp e acompanha tudo pelo app. Os ajustes acontecem conforme sua evolução.</p></details>
-  <details><summary>Posso treinar com um amigo?</summary><p>Pode! Os planos em dupla têm valor reduzido por pessoa, e cada um recebe o próprio plano individualizado.</p></details>
+  <details><summary>Como funcionam os planos em dupla?</summary><p>Cada um da dupla recebe seu próprio plano individualizado no app, porém com um desconto especial no valor total do pacote!</p></details>
 </div>
 
 <!-- 7. CTA FINAL -->
 <section class="final">
   <h2 style="margin-top:0">Pronto para começar?</h2>
-  <p class="sub">Escolha seu plano ou fale comigo antes.</p>
-  <a href="#planos" class="btn btn-main" data-ev="final_cta">Ver planos</a>
-  <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Vim pelo seu link e quero saber mais sobre a consultoria." data-ev="whatsapp_final">Falar no WhatsApp</a>
+  <p class="sub">Escolha seu plano ou me chame no WhatsApp.</p>
+  <a href="#planos" class="btn btn-main" data-ev="final_cta">Escolher meu plano</a>
+  <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Quero tirar umas dúvidas no WhatsApp antes de fechar a consultoria." data-ev="whatsapp_final">Falar no WhatsApp</a>
 </section>
 
 <footer class="f">© Jhonata Cavalcante | Consultoria Esportiva<br>Os resultados variam de pessoa para pessoa.</footer>
@@ -193,7 +193,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <!-- BARRA FIXA -->
 <div class="bar" id="bar">
   <a href="#planos" class="btn btn-main" data-ev="bar_cta">Ver planos</a>
-  <a class="btn btn-wa js-wa" aria-label="Falar no WhatsApp" data-msg="Olá Jhonata! Vim pelo seu link e quero saber mais sobre a consultoria." data-ev="whatsapp_bar">💬</a>
+  <a class="btn btn-wa js-wa" aria-label="Falar no WhatsApp" data-msg="Olá Jhonata! Vim pelo site e quero falar sobre a consultoria." data-ev="whatsapp_bar">💬</a>
 </div>
 
 <div id="lb" role="dialog" aria-label="Print do depoimento"><img alt="Print original do depoimento"></div>
@@ -202,101 +202,91 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 /* ===== CONFIGURAÇÃO DE PREÇOS E PLANOS ===== */
 const CFG = {
   whats: "5551990169026",
-  vagas: null,
-  pixelId: "",
-  ga4Id: "",
-  leadEndpoint: "",
+  leadEndpoint: "https://consultoria-backend-kbqi.onrender.com/api/leads",
   destino: "app.html",
   planos: {
     completa: [
-      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral", meses: 3, parcela: 110, desc: "PIX à vista R$ 300 | Cartão 3x R$ 110 | Boleto R$ 120/mês", destaque: false },
-      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral",  meses: 6, parcela: 100, desc: "PIX à vista R$ 540 | Cartão 6x R$ 100 | Boleto R$ 110/mês", destaque: true },
-      { id: "COMPLETA_ANUAL",      nome: "Anual",      meses: 12, parcela: 80, desc: "PIX à vista R$ 840 (R$ 70/mês) | Cartão 12x R$ 80 | Boleto R$ 90/mês", destaque: false },
-      { id: "COMPLETA_DUPLA_ANUAL",nome: "Anual em Dupla", meses: 12, parcela: 130, desc: "PIX R$ 660/pess. | Cartão R$ 65/mês cada | Boleto R$ 75/mês cada", dupla: true }
+      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", meses: 3, parcela: 110, desc: "Incluso: Treino + Plano Alimentar | R$ 300 à vista no PIX ou 3x R$ 110 no Cartão", destaque: false },
+      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)", meses: 6, parcela: 100, desc: "Incluso: Treino + Plano Alimentar | R$ 540 à vista no PIX ou 6x R$ 100 no Cartão", destaque: true },
+      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",     meses: 12, parcela: 80, desc: "Incluso: Treino + Plano Alimentar | R$ 840 à vista no PIX ou 12x R$ 80 no Cartão", destaque: false }
     ],
     treino: [
-      { id: "TREINO_ANUAL",        nome: "Anual (Apenas Treino)", meses: 12, parcela: 55, desc: "PIX à vista R$ 540 (R$ 45/mês) | Cartão 12x R$ 55 | Boleto R$ 65/mês", destaque: true, tipo: "treino" },
-      { id: "TREINO_DUPLA_ANUAL",  nome: "Anual em Dupla (Apenas Treino)", meses: 12, parcela: 80, desc: "PIX R$ 420/pess. | Cartão R$ 40/mês cada | Boleto R$ 50/mês cada", dupla: true, tipo: "treino" }
+      { id: "TREINO_ANUAL",        nome: "Anual (Apenas Treino)", meses: 12, parcela: 55, desc: "Incluso: Ficha de Treino Personalizada | R$ 540 à vista no PIX ou 12x R$ 55 no Cartão", destaque: true, tipo: "treino" }
+    ],
+    dupla: [
+      { id: "COMPLETA_DUPLA_ANUAL",nome: "Anual em Dupla (Completa)", meses: 12, parcela: 130, desc: "Treino + Plano Alimentar para os dois | PIX R$ 660 cada ou R$ 65/mês no cartão cada", destaque: true, dupla: true },
+      { id: "TREINO_DUPLA_ANUAL",  nome: "Anual em Dupla (Só Treino)", meses: 12, parcela: 80, desc: "Ficha de Treino para os dois | PIX R$ 420 cada ou R$ 40/mês no cartão cada", dupla: true, tipo: "treino" }
     ]
   }
 };
 
-/* ===== RASTREAMENTO ===== */
-if (CFG.pixelId) {
-  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', CFG.pixelId); fbq('track', 'PageView');
-}
-if (CFG.ga4Id) {
-  const s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + CFG.ga4Id; document.head.appendChild(s);
-  window.dataLayer = window.dataLayer || []; window.gtag = function(){ dataLayer.push(arguments); };
-  gtag('js', new Date()); gtag('config', CFG.ga4Id);
-}
-function track(meta, ev, params) {
-  try { if (window.fbq && meta) fbq('track', meta, params || {}); } catch (_) {}
-  try { if (window.gtag) gtag('event', ev, params || {}); } catch (_) {}
-}
+/* ===== WHATSAPP LINK GENERATOR ===== */
+const waLink = msg => `https://wa.me/${CFG.whats}?text=${encodeURIComponent(msg)}`;
 
 /* ===== RENDERIZAÇÃO DE PLANOS ===== */
 const brl = n => n.toLocaleString('pt-BR');
 const utm = location.search ? '&' + location.search.slice(1) : '';
+
 const planHTML = p => {
   const href = `${CFG.destino}?modo=anamnese${p.tipo ? '&tipo=' + p.tipo : ''}&plano=${p.id}${utm}`;
+  const msgWa = `Olá Jhonata! Tenho interesse no plano ${p.nome} e quero conversar com você antes de fechar.`;
   const rec = p.destaque ? ' rec' : '';
-  const tag = p.destaque ? '<span class="tag">Recomendado</span>' : p.dupla ? '<span class="tag">Oferta em dupla</span>' : '';
-  const sub = p.dupla
-    ? `R$ ${brl(p.parcela / 2)} por pessoa, por mês no cartão`
-    : p.desc;
+  const tag = p.destaque ? '<span class="tag">Recomendado</span>' : p.dupla ? '<span class="tag">Oferta em Dupla</span>' : '';
+  
   return `<div class="plan${rec}">${tag}<h3>${p.nome}</h3>
     <div class="price">${p.meses}x R$ ${brl(p.parcela)}<small>${p.dupla ? 'total da dupla' : '/mês no cartão'}</small></div>
-    <p class="d" style="margin:6px 0 0">${sub}</p>
-    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${p.id}">Quero este plano</a></div>`;
+    <p class="d" style="margin:6px 0 0">${p.desc}</p>
+    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${p.id}">Inscrever-se pelo site</a>
+    <a class="btn btn-wa" href="${waLink(msgWa)}" target="_blank" rel="noopener">Falar sobre esse plano no WhatsApp</a>
+  </div>`;
 };
+
 function renderPlans(g) {
   const list = CFG.planos[g];
-  const shown = list.filter(p => p.destaque || p.dupla);
-  const hidden = list.filter(p => !(p.destaque || p.dupla));
-  let html = shown.map(planHTML).join('');
-  if (hidden.length) html += `<details class="more"><summary>Ver outros planos</summary>${hidden.map(planHTML).join('')}</details>`;
+  let html = list.map(planHTML).join('');
   document.getElementById('planList').innerHTML = html;
   document.getElementById('planList').setAttribute('aria-labelledby', 'tab-' + g);
 }
+
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
   renderPlans(b.dataset.g);
-  track(null, 'trocar_modalidade', { modalidade: b.dataset.g });
 }));
 renderPlans('completa');
-document.getElementById('planList').addEventListener('click', e => {
-  const a = e.target.closest('[data-plan]');
-  if (a) track('InitiateCheckout', 'plano_click', { plano: a.dataset.plan });
-});
 
-/* ===== WHATSAPP ===== */
-const wa = msg => `https://wa.me/${CFG.whats}?text=${encodeURIComponent(msg)}`;
+/* ===== WHATSAPP DIRETO ===== */
 document.querySelectorAll('.js-wa').forEach(a => {
-  a.href = wa(a.dataset.msg); a.target = '_blank'; a.rel = 'noopener';
-  a.addEventListener('click', () => track('Contact', a.dataset.ev));
+  a.href = waLink(a.dataset.msg);
+  a.target = '_blank';
+  a.rel = 'noopener';
 });
-document.querySelectorAll('[data-ev]:not(.js-wa)').forEach(a => a.addEventListener('click', () => track(null, a.dataset.ev)));
 
-/* ===== FORMULÁRIO DE LEAD ===== */
+/* ===== CAPTURA DE LEAD AUTOMÁTICA ===== */
 document.getElementById('leadForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const d = Object.fromEntries(new FormData(e.target));
-  track('Lead', 'lead_form', { objetivo: d.objetivo });
-  if (CFG.leadEndpoint) {
-    try { await fetch(CFG.leadEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true, body: JSON.stringify({ ...d, origem: 'link-bio', params: location.search }) }); } catch (_) {}
-  }
-  location.href = wa(`Olá Jhonata! Meu nome é ${d.nome}. Meu objetivo é: ${d.objetivo}. Quero saber como funciona a consultoria.`);
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form));
+  
+  try {
+    if (CFG.leadEndpoint) {
+      await fetch(CFG.leadEndpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, origem: 'funil_landing_page', data: new Date().toISOString() })
+      });
+    }
+  } catch (_) {}
+
+  document.getElementById('leadSuccess').style.display = 'block';
+  form.reset();
 });
 
 /* ===== INTERACTION OBSERVER & LIGHTBOX ===== */
-if (CFG.vagas) { const v = document.getElementById('vagas'); v.hidden = false; v.textContent = `Vagas abertas este mês: ${CFG.vagas}`; }
 new IntersectionObserver(([en]) => document.getElementById('bar').classList.toggle('on', !en.isIntersecting && en.boundingClientRect.top < 0))
   .observe(document.getElementById('heroCta'));
 const lb = document.getElementById('lb');
 document.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => {
-  lb.querySelector('img').src = b.dataset.print; lb.classList.add('on'); track(null, 'ver_print');
+  lb.querySelector('img').src = b.dataset.print; lb.classList.add('on');
 }));
 lb.addEventListener('click', () => lb.classList.remove('on'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
