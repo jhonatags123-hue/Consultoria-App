@@ -729,6 +729,7 @@ function loadStudentData(data) {
 
   showTab('treino');
 }
+
 function toggleCheckExercise(btn, dayIdx, exIdx) {
   if (!workoutTimerRunning) {
     alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
@@ -1474,9 +1475,6 @@ function changeExerciseMode(dayIdx, exIdx, selectedMode) {
   }
 }
 
-// =========================================================================
-// RENDERIZAÇÃO DE EXERCÍCIOS E SELEÇÃO DE TÉCNICAS (ESTRITO 2X E 3X)
-// =========================================================================
 function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
     const modeKey = `${dayIdx}_${exIdx}`;
@@ -1514,11 +1512,6 @@ function renderExercisesForDay(day, dayIdx, container) {
 
     let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
-    // Validação estrita para evitar seleções incompatíveis de 3x em treinos de 2x
-    if (tem2x && activeMode !== 'convencional' && activeMode !== 'cluster') {
-      activeMode = 'convencional';
-    }
-
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
     let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
     if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
@@ -1540,7 +1533,6 @@ function renderExercisesForDay(day, dayIdx, container) {
       selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
     } else if (podeAlterarTecnica) {
       if (tem2x) {
-        // Regra Estrita 2x: Apenas Convencional e Cluster Set
         selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
@@ -1548,7 +1540,6 @@ function renderExercisesForDay(day, dayIdx, container) {
           </select>
         `;
       } else {
-        // Regra Estrita 3x: Convencional, 2x + Back-Off, Cluster + Back-Off e Myo-Reps
         selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
@@ -1758,11 +1749,11 @@ function renderExercisesForDay(day, dayIdx, container) {
             ${maiorCarga > 0 ? `
               <div style="display:flex; gap:4px; width:100%;">
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c20}, ${dayIdx},${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
                   -20% (${c20}kg)
                 </button>
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c30}, ${dayIdx},${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
                   -30% (${c30}kg)
                 </button>
               </div>
@@ -2221,7 +2212,7 @@ function renderDietaAluno(refeicoesData) {
   }
 }
 
-const TAB_ORDER = ['treino', 'dieta', 'corrida', 'feedback'];
+const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback'];
 
 function showTab(tab) {
   TAB_ORDER.forEach(t => {
@@ -2288,6 +2279,82 @@ function setupSwipeNavigation() {
 
     if (nextIdx !== activeIdx) showTab(TAB_ORDER[nextIdx]);
   }, { passive: true });
+}
+
+async function sendStudentChatMessage() {
+  const input = document.getElementById('studentChatInput');
+  const history = document.getElementById('studentChatHistory');
+  const btn = document.getElementById('btnSendIaChat');
+  const text = input ? input.value.trim() : '';
+
+  if (!text) return;
+
+  const headers = authHeaders();
+  if (!headers['Authorization']) {
+    alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
+    return;
+  }
+
+  history.innerHTML += `
+    <div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal-light); max-width:85%;">
+      <b>Você:</b> ${escapeHtml(text)}
+    </div>
+  `;
+  if (input) input.value = '';
+
+  const loadingId = 'loading_ia_' + Date.now();
+  history.innerHTML += `
+    <div id="${loadingId}" style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink-dim); border:1px solid var(--line); align-self:flex-start; max-width:85%;">
+      <b>Assistente:</b> <i>Gerando resposta...</i>
+    </div>
+  `;
+  history.scrollTop = history.scrollHeight;
+
+  if (btn) btn.disabled = true;
+
+  const systemPrompt = "Você é o assistente virtual do Personal Jhonata. Responda à dúvida do aluno de forma clara, direta e objetiva. Ao final de TODA resposta, adicione exatamente este texto em uma nova linha: 'Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.'";
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
+      method: 'POST',
+      headers: headers,
+      cache: 'no-cache',
+      body: JSON.stringify({ 
+        mensagem: text, 
+        contexto: currentData || {},
+        systemPrompt: systemPrompt
+      })
+    });
+
+    const data = await res.json();
+    const loadingElem = document.getElementById(loadingId);
+
+    if (res.ok && data.resposta) {
+      let respostaTexto = data.resposta;
+      const avisoFinal = "Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.";
+      
+      if (!respostaTexto.includes("chamar o Jhonata Personal")) {
+        respostaTexto += `\n\n${avisoFinal}`;
+      }
+
+      if (loadingElem) {
+        loadingElem.style.color = "var(--ink)";
+        loadingElem.innerHTML = `<b>Assistente:</b> ${escapeHtml(respostaTexto).replace(/\n/g, '<br>')}`;
+      }
+    } else {
+      if (loadingElem) {
+        loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> ${escapeHtml(data.error || 'Serviço indisponível no momento.')}</span>`;
+      }
+    }
+  } catch (e) {
+    const loadingElem = document.getElementById(loadingId);
+    if (loadingElem) {
+      loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> Erro de conexão com o servidor.</span>`;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    history.scrollTop = history.scrollHeight;
+  }
 }
 
 function previewFeedbackPhotos(event) {
