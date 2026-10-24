@@ -17,6 +17,7 @@
 
 <div id="saveIndicator" class="save-indicator">Salvando alterações…</div>
 
+<!-- MODAL INDIQUE E GANHE -->
 <div id="modalIndique" class="modal-overlay hidden">
   <div class="modal-card-finish" style="text-align:center;">
     <div style="font-size:36px; margin-bottom:6px;">🎁</div>
@@ -41,6 +42,7 @@
   </div>
 </div>
 
+<!-- MODAL SENHA -->
 <div id="modalSenha" class="modal-overlay hidden">
   <div class="modal-card-finish">
     <div style="font-size:14px; font-weight:800; color:var(--mark); text-align:center; margin-bottom:12px;">🔑 ALTERAR SENHA DE ACESSO</div>
@@ -53,6 +55,7 @@
   </div>
 </div>
 
+<!-- MODAL TREINO CONCLUÍDO -->
 <div id="modalTreinoConcluido" class="modal-overlay hidden">
   <div class="modal-card-finish">
     <div style="text-align:center; margin-bottom:16px;">
@@ -81,6 +84,7 @@
   </div>
 </div>
 
+<!-- CRONÔMETRO DE DESCANSO -->
 <div id="restTimerWidget" class="rest-timer-widget">
   <div>
     <span style="font-size:10px; color:var(--ink-dim); display:block; text-transform:uppercase; font-weight:700;">Descanso</span>
@@ -93,6 +97,7 @@
   </div>
 </div>
 
+<!-- TELA DE ANAMNESE -->
 <div id="anamneseScreen" class="card hidden">
   <h1 id="anamMainTitle">Anamnese de treino e nutrição</h1>
   <div class="sub" id="anamMainSub">Preencha com atenção para a montagem do seu protocolo personalizado</div>
@@ -150,9 +155,6 @@
       <label class="label-fdb" style="margin-top:10px;">3. Quanto tempo você treina musculação?</label>
       <input type="text" id="anamTempoTreino" class="input-field" placeholder="Ex: 1 ano e 6 meses, Iniciante, etc.">
 
-      <label class="label-fdb" style="margin-top:10px;">4. Faz uso ou já fez uso de recursos ergogênicos (anabolizantes)?</label>
-      <input type="text" id="anamAnabolizantes" class="input-field" placeholder="Ex: Nunca usei / Sim, relato...">
-
       <div style="display:flex; gap:8px; margin-top:14px;">
         <button type="button" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(1)">Voltar</button>
         <button type="button" class="btn-login" onclick="nextAnamStep(3)">Avançar</button>
@@ -160,16 +162,16 @@
     </div>
 
     <div id="anamStep3" class="hidden">
-      <label class="label-fdb">5. Quantos dias por semana você tem disponibilidade para treinar?</label>
+      <label class="label-fdb">4. Quantos dias por semana você tem disponibilidade para treinar?</label>
       <input type="text" id="anamDiasSemana" class="input-field" placeholder="Ex: 5 dias por semana">
 
-      <label class="label-fdb" style="margin-top:10px;">6. Quais dias da semana prefere treinar?</label>
+      <label class="label-fdb" style="margin-top:10px;">5. Quais dias da semana prefere treinar?</label>
       <input type="text" id="anamPreferenciaDias" class="input-field" placeholder="Ex: Segunda a Sexta">
 
-      <label class="label-fdb" style="margin-top:10px;">7. Quanto tempo você tem disponível por sessão de treino?</label>
+      <label class="label-fdb" style="margin-top:10px;">6. Quanto tempo você tem disponível por sessão de treino?</label>
       <input type="text" id="anamTempoTreinoMin" class="input-field" placeholder="Ex: 1 hora a 1h15m">
 
-      <label class="label-fdb" style="margin-top:10px;">8. Quanto tempo você costuma descansar entre as séries?</label>
+      <label class="label-fdb" style="margin-top:10px;">7. Quanto tempo você costuma descansar entre as séries?</label>
       <select id="anamTempoDescanso" class="input-field" required>
         <option value="45s a 60s (Curto / Metabólico)">45s a 60s (Descanso Curto)</option>
         <option value="90s a 2min (Moderado / Padrão)" selected>90s a 2min (Descanso Moderado / Padrão)</option>
@@ -183,13 +185,13 @@
     </div>
 
     <div id="anamStep4" class="hidden">
-      <label class="label-fdb">9. Pratica alguma outra atividade física além da musculação?</label>
+      <label class="label-fdb">8. Pratica alguma outra atividade física além da musculação?</label>
       <input type="text" id="anamOutrasAtividades" class="input-field" placeholder="Ex: Corrida 2x na semana, Nenhuma...">
 
-      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">10. Possui alguma lesão, dor articular ou restrição médica?</label>
+      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">9. Possui alguma lesão, dor articular ou restrição médica?</label>
       <textarea id="anamLesoes" class="input-field" rows="2" placeholder="Ex: Dor lombar crônica, tendinite no ombro direito..."></textarea>
 
-      <label class="label-fdb" style="margin-top:10px;">11. Possui alguma doença crônica (pressão alta, diabetes, tireoide, etc.)?</label>
+      <label class="label-fdb" style="margin-top:10px;">10. Possui alguma doença crônica (pressão alta, diabetes, tireoide, etc.)?</label>
       <input type="text" id="anamDoencas" class="input-field" placeholder="Ex: Nenhuma / Hipertensão controlada">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -199,7 +201,7 @@
     </div>
 
     <div id="anamStep5" class="hidden">
-      <label class="label-fdb">12. Como é a sua rotina diária (trabalho, estudos, nível de esforço)?</label>
+      <label class="label-fdb">11. Como é a sua rotina diária (trabalho, estudos, nível de esforço)?</label>
       <textarea id="anamRotina" class="input-field" rows="2" placeholder="Ex: Trabalho sentado o dia todo / Trabalho em pé movimentando peso..."></textarea>
 
       <div style="display:flex; gap:8px; margin-top:10px;">
@@ -220,10 +222,10 @@
     </div>
 
     <div id="anamStep6" class="hidden">
-      <label class="label-fdb">13. Consome bebida alcoólica com que frequência?</label>
+      <label class="label-fdb">12. Consome bebida alcoólica com que frequência?</label>
       <input type="text" id="anamAlcool" class="input-field" placeholder="Ex: Socialmente no fim de semana / Não consumo">
 
-      <label class="label-fdb" style="margin-top:10px;">14. Fuma ou utiliza cigarros eletrônicos (vape)?</label>
+      <label class="label-fdb" style="margin-top:10px;">13. Fuma ou utiliza cigarros eletrônicos (vape)?</label>
       <input type="text" id="anamTabagismo" class="input-field" placeholder="Ex: Não / Sim">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -233,13 +235,13 @@
     </div>
 
     <div id="anamStep7" class="hidden">
-      <label class="label-fdb">15. Quantas refeições você consegue fazer por dia?</label>
+      <label class="label-fdb">14. Quantas refeições você consegue fazer por dia?</label>
       <input type="text" id="anamNumRefeicoes" class="input-field" placeholder="Ex: 4 refeições">
 
-      <label class="label-fdb" style="margin-top:10px;">16. Possui alguma alergia ou intolerância alimentar (lactose, glúten)?</label>
+      <label class="label-fdb" style="margin-top:10px;">15. Possui alguma alergia ou intolerância alimentar (lactose, glúten)?</label>
       <input type="text" id="anamAlergias" class="input-field" placeholder="Ex: Nenhuma / Intolerância leve a lactose">
 
-      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">17. Cite alimentos que você NÃO come de jeito nenhum (aversões/odiados):</label>
+      <label class="label-fdb" style="margin-top:10px; color:var(--signal-light);">16. Cite alimentos que você NÃO come de jeito nenhum (aversões/odiados):</label>
       <input type="text" id="anamAlimentosOdiados" class="input-field" placeholder="Ex: Peixe, brócolis, fígado...">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -249,13 +251,13 @@
     </div>
 
     <div id="anamStep8" class="hidden">
-      <label class="label-fdb">18. Quais fontes de carboidratos você mais gosta?</label>
+      <label class="label-fdb">17. Quais fontes de carboidratos você mais gosta?</label>
       <input type="text" id="anamGostaCarbos" class="input-field" placeholder="Ex: Arroz, batata doce, aveia, macarrão">
 
-      <label class="label-fdb" style="margin-top:10px;">19. Quais fontes de proteínas você mais consome?</label>
+      <label class="label-fdb" style="margin-top:10px;">18. Quais fontes de proteínas você mais consome?</label>
       <input type="text" id="anamGostaProteinas" class="input-field" placeholder="Ex: Frango, patinho, ovos, peixe">
 
-      <label class="label-fdb" style="margin-top:10px;">20. Quais legumes, verduras e frutas prefere?</label>
+      <label class="label-fdb" style="margin-top:10px;">19. Quais legumes, verduras e frutas prefere?</label>
       <input type="text" id="anamGostaLegumes" class="input-field" placeholder="Ex: Alface, tomate, banana, maçã">
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -265,13 +267,13 @@
     </div>
 
     <div id="anamStep9" class="hidden">
-      <label class="label-fdb">21. Como é o seu orçamento para a dieta?</label>
+      <label class="label-fdb">20. Como é o seu orçamento para a dieta e suplementos?</label>
       <input type="text" id="anamOrcamento" class="input-field" placeholder="Ex: Flexível / Preciso de opções econômicas">
 
-      <label class="label-fdb" style="margin-top:10px;">22. Utiliza ou tem interesse em utilizar suplementos?</label>
-      <input type="text" id="anamSuplementos" class="input-field" placeholder="Ex: Whey, creatina, multivitamínico">
+      <label class="label-fdb" style="margin-top:10px;">21. Utiliza ou tem interesse em utilizar suplementação?</label>
+      <input type="text" id="anamSuplementos" class="input-field" placeholder="Ex: Whey, Creatina, Pré-treino, Multivitamínico...">
 
-      <label class="label-fdb" style="margin-top:10px;">23. Como é a sua flexibilidade alimentar no fim de semana?</label>
+      <label class="label-fdb" style="margin-top:10px;">22. Como é a sua flexibilidade alimentar no fim de semana?</label>
       <textarea id="anamFimDeSemana" class="input-field" rows="2" placeholder="Ex: Mantenho 80% da dieta / Saio da dieta no sábado à noite..."></textarea>
 
       <div style="display:flex; gap:8px; margin-top:14px;">
@@ -281,48 +283,31 @@
     </div>
 
     <div id="anamStep10" class="hidden">
-      <label class="label-fdb">24. Plano de Consultoria Selecionado:</label>
+      <label class="label-fdb">23. Plano Selecionado:</label>
       <select id="anamTipoConsultoria" class="input-field" onchange="atualizarResumoPrecoAnamnese()" required>
-        <option value="COMPLETA_ANUAL">Consultoria Completa Anual — 12x R$ 85,00/mês</option>
-        <option value="COMPLETA_SEMESTRAL">6 Meses Consultoria Completa — 6x R$ 110,00/mês</option>
-        <option value="COMPLETA_TRIMESTRAL">3 Meses Consultoria Completa — 3x R$ 130,00/mês</option>
-        <option value="COMPLETA_DUPLA_ANUAL">Consultoria Completa em DUPLA (Anual) — 12x R$ 140,00/mês (R$ 70/pessoa)</option>
-        <option value="TREINO_ANUAL">Consultoria de Treino Anual — 12x R$ 55,00/mês</option>
-        <option value="TREINO_DUPLA_ANUAL">Promocional Treino para 2 Pessoas (Anual) — 12x R$ 80,00/mês</option>
+        <option value="COMPLETA_TRIMESTRAL">Consultoria Completa Trimestral</option>
+        <option value="COMPLETA_SEMESTRAL" selected>Consultoria Completa Semestral</option>
+        <option value="COMPLETA_ANUAL">Consultoria Completa Anual</option>
+        <option value="TREINO_ANUAL">Apenas Treino (Anual)</option>
+        <option value="COMPLETA_DUPLA">Consultoria Completa em Dupla (Anual)</option>
+        <option value="TREINO_DUPLA">Apenas Treino em Dupla (Anual)</option>
       </select>
 
       <div id="resumoPlanoBox" style="background:var(--panel-2); border:1px solid var(--mark); border-radius:10px; padding:14px; margin-top:12px; text-align:center;">
         <div style="font-size:11px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">💳 Resumo do Investimento:</div>
-        <div id="resumoPlanoValor" style="font-size:22px; font-weight:800; color:var(--mark); margin-top:4px;">12x R$ 85,00/mês</div>
-        <div id="resumoPlanoSub" style="font-size:11.5px; color:var(--ink-dim); margin-top:2px;">Acesso completo individual ao protocolo personalizado</div>
+        <div id="resumoPlanoValor" style="font-size:20px; font-weight:800; color:var(--mark); margin-top:4px;">R$ 110,00/mês no Cartão ou R$ 600,00 no PIX</div>
+        <div id="resumoPlanoSub" style="font-size:11.5px; color:var(--ink-dim); margin-top:2px;">Protocolo completo semestral com suporte contínuo.</div>
       </div>
 
-      <label class="label-fdb" style="margin-top:12px;">25. Forma de Pagamento:</label>
-      <select id="anamFormaPagamento" class="input-field" onchange="togglePaymentView()" required>
-        <option value="PIX_DIRETO">PIX Direto (Chave de E-mail)</option>
-        <option value="ASAAS_LINK">Cartão de Crédito / Pix via Asaas</option>
-      </select>
-
-      <div id="pixDiretoBox" style="background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:12px; margin-top:10px; text-align:center;">
-        <div style="font-size:11px; color:var(--ink-dim); font-weight:600; letter-spacing:0.02em;">Chave Pix (e-mail)</div>
-        <div style="font-size:14px; font-weight:700; color:var(--ink); margin:6px 0; word-break:break-all; font-family:var(--font-mono);">jhonatags123@gmail.com</div>
-        <div style="font-size:11px; color:var(--ink-dim); margin-bottom:10px;">Titular: Jhonata (Consultoria Esportiva)</div>
-        <button type="button" class="btn-login" style="margin-top:6px; background:var(--mark); color:#000; font-size:12px;" onclick="copiarChavePix()">Copiar chave Pix</button>
-        
-        <div style="margin-top:14px; text-align:left; border-top:1px solid var(--line); padding-top:10px;">
-          <label class="label-fdb" style="color:var(--good);">🤖 Anexar Comprovante do PIX (Análise por IA):</label>
-          <input type="file" id="pixReceiptInput" accept="image/*,application/pdf" class="input-field" style="font-size:12px; padding:8px;">
-        </div>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-top:14px;">
+      <div style="display:flex; gap:8px; margin-top:16px;">
         <button type="button" id="btnVoltarStep10" class="btn-login" style="background:var(--panel); border:1px solid var(--line);" onclick="nextAnamStep(9)">Voltar</button>
-        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">Finalizar e enviar</button>
+        <button type="button" id="btnSubmitAnam" class="btn-login btn-gold" onclick="sendAnamneseAppDirect()">Finalizar e Avançar para o Pagamento</button>
       </div>
     </div>
   </form>
 </div>
 
+<!-- TELA DE LOGIN -->
 <div id="loginScreen" class="card">
   <h1>Jhonata Consultoria</h1>
   <div class="sub">Acesse sua área exclusiva de aluno</div>
@@ -339,6 +324,7 @@
   </div>
 </div>
 
+<!-- CONTEÚDO PRINCIPAL DO ALUNO -->
 <div id="mainContent" class="hidden">
   <div class="card" style="padding-bottom:16px;">
     <div class="header-app">
@@ -367,10 +353,11 @@
     <div id="congratsText" class="congrats-desc">Você teve uma evolução fantástica nas suas cargas de treino neste ciclo. Continue focado!</div>
   </div>
 
+  <!-- MENU DE NAVEGAÇÃO SUPERIOR -->
   <div class="menu">
     <button class="menu-btn active" id="btnTreino" onclick="showTab('treino')">Treino</button>
     <button class="menu-btn" id="btnDieta" onclick="showTab('dieta')">Dieta</button>
-    <button class="menu-btn hidden" id="btnCorrida" onclick="showTab('corrida')">Cardio</button>
+    <button class="menu-btn" id="btnCorrida" onclick="showTab('corrida')">Cardio</button>
     <button class="menu-btn" id="btnIaChat" onclick="showTab('iaChat')">Assistente</button>
     <button class="menu-btn" id="btnFeedback" onclick="showTab('feedback')">Feedback</button>
   </div>
@@ -378,6 +365,7 @@
 
   <div id="swipeViewport" class="swipe-viewport">
 
+    <!-- ABA 1: TREINO -->
     <div id="tabTreino">
       <div id="treinoListView" class="hidden">
         <div id="treinoDayList" class="select-list"></div>
@@ -415,6 +403,7 @@
       </div>
     </div>
 
+    <!-- ABA 2: DIETA -->
     <div id="tabDieta" class="hidden">
       <div id="noDietBanner" class="card hidden" style="text-align:center; border-color:var(--mark);">
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
@@ -440,6 +429,7 @@
       </div>
     </div>
 
+    <!-- ABA 3: CARDIO / CORRIDA -->
     <div id="tabCorrida" class="card hidden">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
         <div class="label-fdb" style="font-size:14px; margin-bottom:0; color:var(--blue);">🏃 Prescrição Semanal & Pace</div>
@@ -471,6 +461,7 @@
       <div id="corridaHistoryList">Nenhuma corrida registrada nas últimas 4 semanas.</div>
     </div>
 
+    <!-- ABA 4: ASSISTENTE IA -->
     <div id="tabIaChat" class="card hidden">
       <div class="label-fdb" style="font-size:13px; text-align:center; margin-bottom:8px;">🤖 Assistente Virtual do Personal</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Tire dúvidas rápidas sobre execução de exercícios, descanso e nutrição.</div>
@@ -485,6 +476,7 @@
       </div>
     </div>
 
+    <!-- ABA 5: FEEDBACK & EVOLUÇÃO FÍSICA -->
     <div id="tabFeedback" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:6px;">💬 Central de Feedback & Evolução Física</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Converse com o Personal ou envie fotos do físico para salvar direto no Google Drive.</div>
