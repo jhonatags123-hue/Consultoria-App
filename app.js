@@ -160,7 +160,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -2074,6 +2074,7 @@ function renderDietaAluno(refeicoesData) {
     rawText = refeicoesData;
   }
 
+  // Extração única e limpa de Metas e Suplementação
   let cleanText = rawText.trim();
   let metasTexto = "";
   let suplementosList = [];
@@ -2105,46 +2106,10 @@ function renderDietaAluno(refeicoesData) {
     });
   }
 
-  // 1. CARD SANFONA DOURADO (METAS DIÁRIAS)
-  if (metasTexto.trim()) {
-    const cardMetas = document.createElement('div');
-    cardMetas.style.cssText = "background: linear-gradient(135deg, #1f1402, #0d0204); border:1px solid var(--mark, #dcaa3a); border-radius:14px; margin-bottom:12px; overflow:hidden;";
-    cardMetas.innerHTML = `
-      <div onclick="const el = document.getElementById('app_sec_metas'); if(el) el.classList.toggle('hidden');" style="padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-        <b style="color:var(--mark, #dcaa3a); font-size:14px;">🎯 METAS DIÁRIAS (CALORIAS & ÁGUA)</b>
-        <span style="color:var(--mark, #dcaa3a); font-size:12px; font-weight:700;">Ver Metas ▾</span>
-      </div>
-      <div id="app_sec_metas" class="hidden" style="padding:14px; border-top:1px solid rgba(220,170,58,0.2); font-size:12.5px; color:#fff; line-height:1.6; white-space:pre-line;">
-        ${escapeHtml(metasTexto.trim())}
-      </div>
-    `;
-    categoryList.appendChild(cardMetas);
-  }
-
-  // 2. CARD SANFONA AZUL (SUPLEMENTAÇÃO DIÁRIA)
-  if (suplementosList.length > 0) {
-    const cardSuplementos = document.createElement('div');
-    cardSuplementos.style.cssText = "background: linear-gradient(135deg, #08172e, #050d1a); border:1px solid var(--blue, #3b82f6); border-radius:14px; margin-bottom:12px; overflow:hidden;";
-    cardSuplementos.innerHTML = `
-      <div onclick="const el = document.getElementById('app_sec_suplementos'); if(el) el.classList.toggle('hidden');" style="padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
-        <b style="color:#60a5fa; font-size:14px;">💊 SUPLEMENTAÇÃO DIÁRIA</b>
-        <span style="color:#60a5fa; font-size:12px; font-weight:700;">Ver Suplementos ▾</span>
-      </div>
-      <div id="app_sec_suplementos" class="hidden" style="padding:14px; border-top:1px solid rgba(59,130,246,0.2); font-size:12.5px; color:#fff;">
-        <ul style="padding-left:18px; margin:0;">
-          ${suplementosList.map(s => `<li style="margin-bottom:6px;">${escapeHtml(s)}</li>`).join('')}
-        </ul>
-      </div>
-    `;
-    categoryList.appendChild(cardSuplementos);
-  }
-
   let abas = parseDietaAluno(cleanText);
 
   if (!abas || abas.length === 0) {
-    if (!metasTexto && suplementosList.length === 0) {
-      categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
-    }
+    categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
     return;
   }
 
@@ -2181,49 +2146,90 @@ function renderDietaAluno(refeicoesData) {
     });
   }
 
-  // 3. REFEIÇÕES
+  // CONTAINER CONECTADO E COMPACTO DE METAS + SUPLEMENTOS
+  if (metasTexto.trim() || suplementosList.length > 0) {
+    const boxConectado = document.createElement('div');
+    boxConectado.style.cssText = "background: #0d0204; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;";
+
+    let innerHtml = "";
+
+    if (metasTexto.trim()) {
+      innerHtml += `
+        <div style="border-bottom: 1px solid rgba(220,170,58,0.15); padding-bottom: 6px;">
+          <div onclick="const el = document.getElementById('sub_metas_app'); if(el) el.classList.toggle('hidden');" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--mark); font-size:12px; font-weight:800;">📊 METAS DIÁRIAS (CALORIAS & ÁGUA)</span>
+            <span style="color:var(--mark); font-size:11px; font-weight:700;">Ver ▾</span>
+          </div>
+          <div id="sub_metas_app" class="hidden" style="margin-top:6px; font-size:11.5px; color:#fff; line-height:1.5; white-space:pre-line;">
+            ${escapeHtml(metasTexto.trim())}
+          </div>
+        </div>
+      `;
+    }
+
+    if (suplementosList.length > 0) {
+      innerHtml += `
+        <div>
+          <div onclick="const el = document.getElementById('sub_suple_app'); if(el) el.classList.toggle('hidden');" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:#60a5fa; font-size:12px; font-weight:800;">💊 SUPLEMENTAÇÃO DIÁRIA</span>
+            <span style="color:#60a5fa; font-size:11px; font-weight:700;">Ver ▾</span>
+          </div>
+          <div id="sub_suple_app" class="hidden" style="margin-top:6px; font-size:11.5px; color:#fff;">
+            <ul style="padding-left:16px; margin:0;">
+              ${suplementosList.map(s => `<li style="margin-bottom:3px;">${escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+    }
+
+    boxConectado.innerHTML = innerHtml;
+    categoryList.appendChild(boxConectado);
+  }
+
+  // REFEIÇÕES DO DIA
   const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
   if (currentAba && currentAba.meals) {
     currentAba.meals.forEach((meal, idx) => {
       const card = document.createElement('div');
-      card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
+      card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;";
 
       const uniqueId = `trocas_aluno_${activeAlunoDietAbaIndex}_${idx}`;
 
       let html = `
-        <div style="border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:10px;">
-          <h3 style="color:var(--mark); font-size:15px; font-weight:800;">🍽 ${escapeHtml(meal.mealTitle || 'Refeição')}</h3>
-          ${meal.days ? `<span style="font-size:11px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
+        <div style="border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:8px;">
+          <h3 style="color:var(--mark); font-size:14px; font-weight:800; margin:0;">🍽 ${escapeHtml(meal.mealTitle || 'Refeição')}</h3>
+          ${meal.days ? `<span style="font-size:10.5px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
         </div>
         
-        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+        <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
       `;
 
       (meal.baseItems || []).forEach(item => {
-        html += `<div style="font-size:13px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
+        html += `<div style="font-size:12.5px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
       });
 
       html += `</div>`;
 
       if ((meal.trocasCarbo && meal.trocasCarbo.length > 0) || (meal.trocasProt && meal.trocasProt.length > 0)) {
         html += `
-          <div style="border-top:1px dashed var(--line); padding-top:8px;">
-            <button type="button" onclick="const el = document.getElementById('${uniqueId}'); if(el) el.classList.toggle('hidden');" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:8px; border-radius:8px; font-size:11px; font-weight:800; cursor:pointer;">
-              🔄 VER OPÇÕES DE TROCA / SUBSTITUIÇÃO ▾
+          <div style="border-top:1px dashed var(--line); padding-top:6px;">
+            <button type="button" onclick="const el = document.getElementById('${uniqueId}'); if(el) el.classList.toggle('hidden');" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:6px; border-radius:6px; font-size:10.5px; font-weight:800; cursor:pointer;">
+              🔄 VER OPÇÕES DE TROCA ▾
             </button>
             
-            <div id="${uniqueId}" class="hidden" style="margin-top:8px; background:var(--bg); padding:10px; border-radius:8px;">
+            <div id="${uniqueId}" class="hidden" style="margin-top:6px; background:var(--bg); padding:8px; border-radius:6px;">
         `;
 
         if (meal.trocasCarbo && meal.trocasCarbo.length > 0) {
-          html += `<div style="font-size:11px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
+          html += `<div style="font-size:10.5px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
           meal.trocasCarbo.forEach(subC => {
             html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
           });
         }
 
         if (meal.trocasProt && meal.trocasProt.length > 0) {
-          html += `<div style="font-size:11px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
+          html += `<div style="font-size:10.5px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
           meal.trocasProt.forEach(subP => {
             html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
           });
@@ -2311,16 +2317,32 @@ function previewFeedbackPhotos(event) {
   const files = Array.from(event.target.files);
   const previewContainer = document.getElementById('feedbackPhotoPreview');
   if (!previewContainer) return;
-  previewContainer.innerHTML = '';
-  selectedFeedbackFiles = files;
 
-  files.forEach((file) => {
+  selectedFeedbackFiles = selectedFeedbackFiles.concat(files);
+  previewContainer.innerHTML = '';
+
+  selectedFeedbackFiles.forEach((file, index) => {
     const reader = new FileReader();
     reader.onload = (e) => {
+      const box = document.createElement('div');
+      box.style.cssText = 'position:relative; display:inline-block; margin:3px;';
+
       const img = document.createElement('img');
       img.src = e.target.result;
-      img.style.cssText = 'width: 55px; height: 55px; object-fit: cover; border-radius: 6px; border: 1px solid var(--mark);';
-      previewContainer.appendChild(img);
+      img.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--mark);';
+
+      const btnRemove = document.createElement('button');
+      btnRemove.textContent = '✕';
+      btnRemove.type = 'button';
+      btnRemove.style.cssText = 'position:absolute; top:-5px; right:-5px; background:red; color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; cursor:pointer; font-weight:bold;';
+      btnRemove.onclick = () => {
+        selectedFeedbackFiles.splice(index, 1);
+        previewFeedbackPhotos({ target: { files: [] } });
+      };
+
+      box.appendChild(img);
+      box.appendChild(btnRemove);
+      previewContainer.appendChild(box);
     };
     reader.readAsDataURL(file);
   });
@@ -2361,7 +2383,7 @@ async function enviarFeedbackAlunoApp() {
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Enviando para o Drive...";
+    btn.textContent = "Enviando fotos ao Drive...";
   }
 
   let driveUrls = [];
@@ -2408,7 +2430,7 @@ async function enviarFeedbackAlunoApp() {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "Enviar";
+      btn.textContent = "Enviar Feedback";
     }
   }
 }
