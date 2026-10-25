@@ -50,9 +50,6 @@ let workoutTimerInterval = null;
 let workoutTimerRunning = false;
 let selectedFeedbackFiles = [];
 
-// ==========================================
-// FUNÇÃO DE INTEGRAÇÃO COM GOOGLE DRIVE
-// ==========================================
 async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
   return new Promise((resolve, reject) => {
     if (!file) return resolve(null);
@@ -163,7 +160,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -240,9 +237,6 @@ function updateTimerDisplay() {
   display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-// ==========================================
-// CRONÔMETRO DE TREINO (SEM ZERAR NO PAUSE)
-// ==========================================
 function checkAndRestoreWorkoutTimer() {
   const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   const keyStart = `workout_start_time_${loggedUserCode}`;
@@ -269,7 +263,6 @@ function checkAndRestoreWorkoutTimer() {
     }
     setInputsLockState(true);
     
-    // Atualiza com o tempo acumulado no pause, se houver
     const elapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
     renderClockTime(elapsed);
   }
@@ -287,7 +280,6 @@ function toggleWorkoutTimer() {
   const keyElapsed = `workout_elapsed_${loggedUserCode}`;
 
   if (!workoutTimerRunning) {
-    // INICIAR OU RETOMAR (sem zerar)
     workoutTimerRunning = true;
     localStorage.setItem(keyStart, Date.now().toString());
 
@@ -302,7 +294,6 @@ function toggleWorkoutTimer() {
     workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
     updateWorkoutTimerDisplay();
   } else {
-    // PAUSAR (salva o tempo decorrido acumulado)
     workoutTimerRunning = false;
     
     const startTimeStr = localStorage.getItem(keyStart);
@@ -679,9 +670,6 @@ async function sendAnamneseAppDirect() {
   }
 }
 
-// ==========================================
-// CARREGAMENTO DOS DADOS DO ALUNO E MENU
-// ==========================================
 function loadStudentData(data) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('anamneseScreen').classList.add('hidden');
@@ -709,7 +697,6 @@ function loadStudentData(data) {
 
   document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
-  // CONTROLE DINÂMICO DE ABAS DO MENU
   const btnDieta = document.getElementById('btnDieta');
   const btnErgogenicos = document.getElementById('btnErgogenicos');
 
@@ -823,9 +810,6 @@ function fecharCardEvolucao() {
   localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
 }
 
-// ==========================================
-// REGISTRO DE CARDIO E CORRIDA
-// ==========================================
 async function salvarRunDia(diaKey) {
   if (!currentData) return;
 
@@ -1049,9 +1033,6 @@ function renderErgogenicosAluno(textoProtocolo) {
   }
 }
 
-// ==========================================
-// RENDERIZAÇÃO DOS TREINOS E SÉRIES
-// ==========================================
 function setupWorkout(days) {
   currentData.days = days;
   renderTreinoDayList();
@@ -1476,9 +1457,6 @@ function changeExerciseMode(dayIdx, exIdx, selectedMode) {
   }
 }
 
-// ==========================================
-// RENDERIZAÇÃO LIMPA DOS EXERCÍCIOS & MYO-REPS
-// ==========================================
 function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
     const modeKey = `${dayIdx}_${exIdx}`;
@@ -1490,7 +1468,6 @@ function renderExercisesForDay(day, dayIdx, container) {
     const exName = ex.nome || '';
     const exMeta = ex.reps || ex.repeticoes || '';
     
-    // Normalização flexível das séries
     const rawSeries = String(ex.series || ex.num_series || '3').toLowerCase().trim();
     const matchDigits = rawSeries.match(/\d+/);
     let numSeriesPrescritas = matchDigits ? parseInt(matchDigits[0]) : 3;
@@ -1514,12 +1491,10 @@ function renderExercisesForDay(day, dayIdx, container) {
       tecnicaAdminFixa = 'convencional';
     }
 
-    // Leitura garantida da permissão vinda do Admin
     const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && !isStrict1x;
 
     let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
-    // Limpeza completa do nome do exercício
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
     const div = document.createElement('div');
@@ -1975,9 +1950,6 @@ function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
   }
 }
 
-// ==========================================
-// MÓDULO DE DIETA (RESUMO, SUPLEMENTOS E REFEIÇÕES)
-// ==========================================
 function parseDietaAluno(rawText) {
   if (!rawText || !rawText.trim()) return [];
 
@@ -2044,7 +2016,7 @@ function parseDietaAluno(rawText) {
 
           if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
             trocasCarbo.push(itemTxt);
-          } else if (lineClean.toUpperCase().includes('[PROT]') || lineClean.toLowerCase().includes('prot') || lineClean.toLowerCase().includes('proteína') || lineClean.toLowerCase().includes('proteina')) {
+          } else if (lineClean.toUpperCase().includes('[PROT]') || lineLower.includes('prot') || lineLower.includes('proteína') || lineLower.includes('proteina')) {
             trocasProt.push(itemTxt);
           } else {
             trocasCarbo.push(itemTxt);
@@ -2087,54 +2059,6 @@ function renderDietaAluno(refeicoesData) {
   if (!categoryList) return;
   categoryList.innerHTML = "";
 
-  // RENDERIZAÇÃO DAS SANFONAS SUPERIORES (RESUMO NUTRICIONAL E SUPLEMENTAÇÃO)
-  const nutriContent = document.getElementById('nutriGoalsContent');
-  const suppContent = document.getElementById('supplementsContent');
-
-  if (nutriContent) {
-    const kcal = currentData.calorias_dieta || currentData.meta_kcal || currentData.gasto_basal || '--';
-    const prot = currentData.meta_proteinas || currentData.proteinas_g || '--';
-    const carbo = currentData.meta_carbo || currentData.carboidratos_g || '--';
-    const gord = currentData.meta_gordura || currentData.gorduras_g || '--';
-    const agua = currentData.meta_agua || currentData.agua_litros || '3 a 4 Litros';
-
-    nutriContent.innerHTML = `
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
-        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px;">
-          <div style="font-size:10px; color:var(--ink-dim); text-transform:uppercase; font-weight:700;">🔥 Gasto / Meta Kcal</div>
-          <div style="font-size:15px; font-weight:800; color:var(--mark); margin-top:2px;">${kcal} kcal</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px;">
-          <div style="font-size:10px; color:var(--ink-dim); text-transform:uppercase; font-weight:700;">💧 Meta Hídrica</div>
-          <div style="font-size:15px; font-weight:800; color:var(--blue); margin-top:2px;">${agua}</div>
-        </div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:8px; text-align:center;">
-        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
-          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🥩 Proteínas</div>
-          <div style="font-size:13px; font-weight:800; color:var(--good);">${prot}g</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
-          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🌾 Carbos</div>
-          <div style="font-size:13px; font-weight:800; color:var(--mark);">${carbo}g</div>
-        </div>
-        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
-          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🥑 Gorduras</div>
-          <div style="font-size:13px; font-weight:800; color:var(--purple);">${gord}g</div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (suppContent) {
-    const rawSuplementos = currentData.suplementos || currentData.suplementacao || currentData.prescricao_suplementos || '';
-    if (rawSuplementos.trim()) {
-      suppContent.innerHTML = escapeHtml(rawSuplementos).replace(/\n/g, '<br>');
-    } else {
-      suppContent.innerHTML = `<span style="color:var(--ink-dim);">Nenhum suplemento cadastrado para este plano.</span>`;
-    }
-  }
-
   let rawText = "";
   if (Array.isArray(refeicoesData)) {
     refeicoesData.forEach(r => {
@@ -2150,10 +2074,77 @@ function renderDietaAluno(refeicoesData) {
     rawText = refeicoesData;
   }
 
-  let abas = parseDietaAluno(rawText);
+  let cleanText = rawText.trim();
+  let metasTexto = "";
+  let suplementosList = [];
+
+  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
+  const matchMetas = cleanText.match(regexMetas);
+
+  if (matchMetas) {
+    const blocoMetas = matchMetas[0].trim();
+    cleanText = cleanText.replace(blocoMetas, '').trim();
+
+    const linhas = blocoMetas.split('\n').map(l => l.trim()).filter(l => l !== '');
+    let emSuplementos = false;
+
+    linhas.forEach(linha => {
+      if (linha.includes('[SUPLEMENTAÇÃO DIÁRIA]') || linha.toLowerCase().includes('suplementação')) {
+        emSuplementos = true;
+        return;
+      }
+      if (emSuplementos) {
+        if (linha.startsWith('-') || linha.startsWith('•')) {
+          suplementosList.push(linha.replace(/^[-•*]\s*/, '').trim());
+        }
+      } else {
+        if (!linha.startsWith('🍽 Refeição')) {
+          metasTexto += linha + '\n';
+        }
+      }
+    });
+  }
+
+  // 1. CARD SANFONA DOURADO (METAS DIÁRIAS)
+  if (metasTexto.trim()) {
+    const cardMetas = document.createElement('div');
+    cardMetas.style.cssText = "background: linear-gradient(135deg, #1f1402, #0d0204); border:1px solid var(--mark, #dcaa3a); border-radius:14px; margin-bottom:12px; overflow:hidden;";
+    cardMetas.innerHTML = `
+      <div onclick="const el = document.getElementById('app_sec_metas'); if(el) el.classList.toggle('hidden');" style="padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+        <b style="color:var(--mark, #dcaa3a); font-size:14px;">🎯 METAS DIÁRIAS (CALORIAS & ÁGUA)</b>
+        <span style="color:var(--mark, #dcaa3a); font-size:12px; font-weight:700;">Ver Metas ▾</span>
+      </div>
+      <div id="app_sec_metas" class="hidden" style="padding:14px; border-top:1px solid rgba(220,170,58,0.2); font-size:12.5px; color:#fff; line-height:1.6; white-space:pre-line;">
+        ${escapeHtml(metasTexto.trim())}
+      </div>
+    `;
+    categoryList.appendChild(cardMetas);
+  }
+
+  // 2. CARD SANFONA AZUL (SUPLEMENTAÇÃO DIÁRIA)
+  if (suplementosList.length > 0) {
+    const cardSuplementos = document.createElement('div');
+    cardSuplementos.style.cssText = "background: linear-gradient(135deg, #08172e, #050d1a); border:1px solid var(--blue, #3b82f6); border-radius:14px; margin-bottom:12px; overflow:hidden;";
+    cardSuplementos.innerHTML = `
+      <div onclick="const el = document.getElementById('app_sec_suplementos'); if(el) el.classList.toggle('hidden');" style="padding:14px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
+        <b style="color:#60a5fa; font-size:14px;">💊 SUPLEMENTAÇÃO DIÁRIA</b>
+        <span style="color:#60a5fa; font-size:12px; font-weight:700;">Ver Suplementos ▾</span>
+      </div>
+      <div id="app_sec_suplementos" class="hidden" style="padding:14px; border-top:1px solid rgba(59,130,246,0.2); font-size:12.5px; color:#fff;">
+        <ul style="padding-left:18px; margin:0;">
+          ${suplementosList.map(s => `<li style="margin-bottom:6px;">${escapeHtml(s)}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+    categoryList.appendChild(cardSuplementos);
+  }
+
+  let abas = parseDietaAluno(cleanText);
 
   if (!abas || abas.length === 0) {
-    categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
+    if (!metasTexto && suplementosList.length === 0) {
+      categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
+    }
     return;
   }
 
@@ -2190,6 +2181,7 @@ function renderDietaAluno(refeicoesData) {
     });
   }
 
+  // 3. REFEIÇÕES
   const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
   if (currentAba && currentAba.meals) {
     currentAba.meals.forEach((meal, idx) => {
@@ -2246,7 +2238,6 @@ function renderDietaAluno(refeicoesData) {
   }
 }
 
-// ORDEM DAS ABAS LIBERADAS NO NAVEGADOR
 const TAB_ORDER = ['treino', 'dieta', 'corrida', 'ergogenicos', 'feedback'];
 
 function showTab(tab) {
@@ -2373,7 +2364,6 @@ async function enviarFeedbackAlunoApp() {
     btn.textContent = "Enviando para o Drive...";
   }
 
-  // UPLOAD DAS FOTOS DIRETAMENTE PARA O GOOGLE DRIVE
   let driveUrls = [];
   if (selectedFeedbackFiles.length > 0) {
     for (let i = 0; i < selectedFeedbackFiles.length; i++) {
