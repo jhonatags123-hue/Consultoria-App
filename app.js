@@ -1,42 +1,31 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
-// Mapeamento dos 12 Links de Checkout do Asaas (Divididos entre PIX e Cartão Recorrente)
+// Mapeamento dos Links de Checkout do Asaas
 const CHECKOUT_LINKS = {
-  // 1. Consultoria Completa (3 Meses)
   COMPLETA_TRIMESTRAL: {
-    cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57", // R$ 120/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"  // R$ 330 à vista
+    cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57",
+    pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"
   },
-
-  // 2. Consultoria Completa (6 Meses)
   COMPLETA_SEMESTRAL: {
-    cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat", // R$ 110/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"  // R$ 600 à vista
+    cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat",
+    pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"
   },
-
-  // 3. Consultoria Completa (Anual)
   COMPLETA_ANUAL: {
-    cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd", // R$ 85/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"  // R$ 900 à vista
+    cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd",
+    pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"
   },
-
-  // 4. Apenas Treino (Anual)
   TREINO_ANUAL: {
-    cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u", // R$ 55/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"  // R$ 540 à vista
+    cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u",
+    pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"
   },
-
-  // 5. Consultoria Completa Dupla (Anual)
   COMPLETA_DUPLA: {
-    cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu", // R$ 140/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"  // R$ 1.560 à vista
+    cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
+    pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"
   },
-
-  // 6. Consultoria Apenas Treino Dupla (Anual)
   TREINO_DUPLA: {
-    cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo", // R$ 90/mês Recorrente
-    pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"  // R$ 960 à vista
+    cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo",
+    pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"
   }
 };
 
@@ -251,8 +240,13 @@ function updateTimerDisplay() {
   display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
+// ==========================================
+// CRONÔMETRO DE TREINO (SEM ZERAR NO PAUSE)
+// ==========================================
 function checkAndRestoreWorkoutTimer() {
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   const keyStart = `workout_start_time_${loggedUserCode}`;
+  
   const startTimeStr = localStorage.getItem(keyStart);
   const btn = document.getElementById('btnWorkoutTimer');
 
@@ -274,8 +268,10 @@ function checkAndRestoreWorkoutTimer() {
       btn.style.background = "var(--good)";
     }
     setInputsLockState(true);
-    const clock = document.getElementById('workoutTimerClock');
-    if (clock) clock.textContent = "00:00:00";
+    
+    // Atualiza com o tempo acumulado no pause, se houver
+    const elapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+    renderClockTime(elapsed);
   }
 }
 
@@ -288,11 +284,12 @@ function setInputsLockState(locked) {
 function toggleWorkoutTimer() {
   const btn = document.getElementById('btnWorkoutTimer');
   const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
 
   if (!workoutTimerRunning) {
+    // INICIAR OU RETOMAR (sem zerar)
     workoutTimerRunning = true;
-    const startTime = Date.now();
-    localStorage.setItem(keyStart, startTime.toString());
+    localStorage.setItem(keyStart, Date.now().toString());
 
     if (btn) {
       btn.textContent = "⏹️ PAUSAR";
@@ -305,12 +302,21 @@ function toggleWorkoutTimer() {
     workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
     updateWorkoutTimerDisplay();
   } else {
+    // PAUSAR (salva o tempo decorrido acumulado)
     workoutTimerRunning = false;
+    
+    const startTimeStr = localStorage.getItem(keyStart);
+    if (startTimeStr) {
+      const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+      const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+      localStorage.setItem(keyElapsed, (prevElapsed + currentRun).toString());
+    }
+
     localStorage.removeItem(keyStart);
     if (workoutTimerInterval) clearInterval(workoutTimerInterval);
 
     if (btn) {
-      btn.textContent = "▶ INICIAR TREINO";
+      btn.textContent = "▶ RETOMAR TREINO";
       btn.style.background = "var(--good)";
     }
 
@@ -320,21 +326,32 @@ function toggleWorkoutTimer() {
 
 function updateWorkoutTimerDisplay() {
   const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+  
   const startTimeStr = localStorage.getItem(keyStart);
-  const clock = document.getElementById('workoutTimerClock');
+  const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
 
   if (!startTimeStr) {
-    if (clock) clock.textContent = "00:00:00";
+    renderClockTime(prevElapsed);
     return;
   }
 
-  const elapsedSeconds = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
-  const h = Math.floor(elapsedSeconds / 3600);
-  const m = Math.floor((elapsedSeconds % 3600) / 60);
-  const s = elapsedSeconds % 60;
+  const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+  const totalElapsed = prevElapsed + currentRun;
+  
+  renderClockTime(totalElapsed);
+}
+
+function renderClockTime(totalSeconds) {
+  const clock = document.getElementById('workoutTimerClock');
+  if (!clock) return;
+
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
 
   const fmt = n => String(n).padStart(2, '0');
-  if (clock) clock.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+  clock.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
 }
 
 function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
@@ -481,20 +498,6 @@ function nextAnamStep(step) {
   if (step === 10) atualizarResumoPrecoAnamnese();
 }
 
-function togglePaymentView() {
-  const option = document.getElementById('anamFormaPagamento').value;
-  const pixBox = document.getElementById('pixDiretoBox');
-  if (pixBox) {
-    if (option === 'PIX_DIRETO') pixBox.classList.remove('hidden');
-    else pixBox.classList.add('hidden');
-  }
-}
-
-function copiarChavePix() {
-  navigator.clipboard.writeText("jhonatags123@gmail.com");
-  alert("Chave Pix copiada: jhonatags123@gmail.com");
-}
-
 async function handleLogin(e) {
   e.preventDefault();
   const btn = document.getElementById('btnLoginSubmit');
@@ -593,8 +596,6 @@ async function sendAnamneseAppDirect() {
   const email = document.getElementById('anamEmail').value.trim();
   const cpf = document.getElementById('anamCpf').value.trim();
   const telefone = document.getElementById('anamTelefone').value.trim();
-  const pixInput = document.getElementById('pixReceiptInput');
-  const formaPagamento = document.getElementById('anamFormaPagamento').value;
   const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
   const btn = document.getElementById('btnSubmitAnam');
 
@@ -617,7 +618,6 @@ async function sendAnamneseAppDirect() {
     altura: document.getElementById('anamAltura').value.trim(),
     objetivo: document.getElementById('anamObjetivo').value,
     tempoTreino: document.getElementById('anamTempoTreino').value.trim(),
-    anabolizantes: document.getElementById('anamAnabolizantes').value.trim(),
     diasSemana: document.getElementById('anamDiasSemana').value.trim(),
     preferenciaDias: document.getElementById('anamPreferenciaDias').value.trim(),
     tempoTreinoMin: document.getElementById('anamTempoTreinoMin').value.trim(),
@@ -639,23 +639,12 @@ async function sendAnamneseAppDirect() {
     orcamento: isApenasTreinoMode ? "" : document.getElementById('anamOrcamento').value.trim(),
     suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
     fimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
-    formaPagamento: formaPagamento,
     apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
   };
 
   if (btn) {
     btn.textContent = "Processando...";
     btn.disabled = true;
-  }
-
-  // Upload do comprovante no Drive se anexado
-  if (pixInput && pixInput.files && pixInput.files[0]) {
-    btn.textContent = "Salvando Comprovante no Drive...";
-    const comprovanteFile = pixInput.files[0];
-    const driveUrl = await enviarArquivoParaGoogleDrive(nome, comprovanteFile, `Comprovante_Anamnese_${nome}`);
-    if (driveUrl) {
-      anamneseData.comprovanteUrl = driveUrl;
-    }
   }
 
   try {
@@ -690,6 +679,9 @@ async function sendAnamneseAppDirect() {
   }
 }
 
+// ==========================================
+// CARREGAMENTO DOS DADOS DO ALUNO E MENU
+// ==========================================
 function loadStudentData(data) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('anamneseScreen').classList.add('hidden');
@@ -717,62 +709,22 @@ function loadStudentData(data) {
 
   document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
+  // CONTROLE DINÂMICO DE ABAS DO MENU
+  const btnDieta = document.getElementById('btnDieta');
+  const btnErgogenicos = document.getElementById('btnErgogenicos');
 
-  let estaVencido = data.status_pagamento === 'pendente' || data.ativo === false;
-  let diasRestantes = 0;
-  let textoVencimento = "";
-  let dataExp = null;
-
-  if (data.data_expiracao) {
-    const expStr = String(data.data_expiracao).split('T')[0];
-    const parts = expStr.split('-');
-    if (parts.length === 3) {
-      dataExp = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]), 23, 59, 59, 999);
-    }
-  }
-
-  if (!dataExp) {
-    const diaVenc = parseInt(data.dia_vencimento) || 7;
-    let ano = hoje.getFullYear();
-    let mes = hoje.getMonth();
-    if (hoje.getDate() > diaVenc) mes += 1;
-    dataExp = new Date(ano, mes, diaVenc, 23, 59, 59, 999);
-  }
-
-  const diffTempo = dataExp.getTime() - hoje.getTime();
-  diasRestantes = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-  if (diasRestantes <= 0) estaVencido = true;
-
-  const diaFmt = String(dataExp.getDate()).padStart(2, '0');
-  const mesFmt = String(dataExp.getMonth() + 1).padStart(2, '0');
-
-  if (diasRestantes <= 0) {
-    textoVencimento = `📅 Vencido em ${diaFmt}/${mesFmt} (Acesso Suspenso)`;
+  if (data.apenasTreino === true || data.liberarDieta === false) {
+    if (btnDieta) btnDieta.classList.add('hidden');
   } else {
-    textoVencimento = `📅 Vencimento em ${diaFmt}/${mesFmt} (${diasRestantes} dias restantes)`;
-  }
-
-  if (estaVencido) {
-    renderLockNotice();
-    return;
-  }
-
-  let corBadge = '#4F9C6E';
-  if (diasRestantes <= 5) corBadge = '#C1402C';
-  else if (diasRestantes <= 15) corBadge = '#B4924F';
-
-  document.getElementById('billingInfo').innerHTML = `<span style="display:inline-block; padding:3px 8px; border-radius:4px; background:rgba(0,0,0,0.4); color:${corBadge}; font-weight:700; font-size:11px;">${textoVencimento}</span>`;
-
-  if (data.apenasTreino === true) {
-    document.getElementById('btnDieta').style.display = 'none';
-    document.getElementById('noDietBanner').classList.remove('hidden');
-    document.getElementById('dietListView').classList.add('hidden');
-  } else {
-    document.getElementById('btnDieta').style.display = 'block';
-    document.getElementById('noDietBanner').classList.add('hidden');
+    if (btnDieta) btnDieta.classList.remove('hidden');
     renderDietaAluno(data.refeicoes || data.dieta || []);
+  }
+
+  if (data.liberarErgogenicos === true) {
+    if (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
+    renderErgogenicosAluno(data.ergogenicos || data.protocolo_ergogenico || '');
+  } else {
+    if (btnErgogenicos) btnErgogenicos.classList.add('hidden');
   }
 
   if (data.corredor === true) {
@@ -850,30 +802,6 @@ function irParaFeedbackChat() {
   showTab('feedback');
 }
 
-function renderLockNotice() {
-  const lockHtml = `
-    <div class="pay-lock-overlay">
-      <div style="font-size:42px; margin-bottom:8px;">🔒</div>
-      <div class="pay-lock-title">Acesso suspenso</div>
-      <div class="pay-lock-desc">
-        Identificamos que o seu plano mensal venceu.<br>
-        Assim que efetuar a renovação, envie o comprovante no WhatsApp para reativar seu acesso na hora!
-      </div>
-      <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Efetuei%20o%20pagamento%20da%20minha%20renova%C3%A7%C3%A3o,%20segue%20o%20comprovante:" 
-         target="_blank" class="btn-login btn-wpp" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
-         Enviar comprovante no WhatsApp
-      </a>
-    </div>
-  `;
-
-  document.getElementById('treinoListView').classList.remove('hidden');
-  document.getElementById('treinoDetailView').classList.add('hidden');
-  document.getElementById('treinoDayList').innerHTML = lockHtml;
-
-  document.getElementById('dietListView').classList.remove('hidden');
-  document.getElementById('dietCategoryList').innerHTML = lockHtml;
-}
-
 function verificarCardEvolucao(data) {
   if (!data.evolucao_carga_pct || data.evolucao_carga_pct <= 0) return;
 
@@ -895,6 +823,9 @@ function fecharCardEvolucao() {
   localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
 }
 
+// ==========================================
+// REGISTRO DE CARDIO E CORRIDA
+// ==========================================
 async function salvarRunDia(diaKey) {
   if (!currentData) return;
 
@@ -1065,39 +996,14 @@ function setupCorrida(data) {
     presContainer.appendChild(card);
   });
 
-  const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
   const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
 
-  if (Array.isArray(registros)) {
-    registros.slice(-4).forEach(c => {
-      const km = parseFloat(c.km) || 0;
-      const min = parseFloat(c.minutos || c.min) || 0;
-      totalKm += km;
-      totalMin += min;
-      totalRegistros++;
-
-      const paceStr = calcularPaceTexto(km, min);
-
-      const div = document.createElement('div');
-      div.className = 'run-item';
-      div.innerHTML = `
-        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
-          <span>📅 ${escapeHtml(c.data || 'Treino')}</span>
-          <span style="color:var(--blue);">Pace: ${paceStr} /km</span>
-        </div>
-        <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-          Distância: <b>${km} km</b> | Duração: <b>${min} min</b>
-        </div>
-      `;
-      histContainer.appendChild(div);
-    });
-  } else if (typeof registros === 'object') {
+  if (typeof registros === 'object') {
     keysDias.forEach(key => {
       let hDia = registros[key];
       if (!hDia) return;
       if (!Array.isArray(hDia)) hDia = [hDia];
-
-      if (hDia.length > 4) hDia = hDia.slice(-4);
 
       hDia.forEach((c) => {
         const km = parseFloat(c.km) || 0;
@@ -1133,6 +1039,19 @@ function setupCorrida(data) {
   document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
 }
 
+function renderErgogenicosAluno(textoProtocolo) {
+  const container = document.getElementById('ergogenicosBody');
+  if (!container) return;
+  if (textoProtocolo && textoProtocolo.trim()) {
+    container.innerHTML = escapeHtml(textoProtocolo).replace(/\n/g, '<br>');
+  } else {
+    container.innerHTML = `Nenhum protocolo ou orientação cadastrada no momento.`;
+  }
+}
+
+// ==========================================
+// RENDERIZAÇÃO DOS TREINOS E SÉRIES
+// ==========================================
 function setupWorkout(days) {
   currentData.days = days;
   renderTreinoDayList();
@@ -1197,13 +1116,18 @@ async function concluirTreinoDoDia() {
   if (!currentData) return;
 
   const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+  
   const startTimeStr = localStorage.getItem(keyStart);
-  let durationSeconds = 0;
+  const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+  let durationSeconds = prevElapsed;
 
   if (startTimeStr) {
-    durationSeconds = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
-    localStorage.removeItem(keyStart);
+    durationSeconds += Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
   }
+
+  localStorage.removeItem(keyStart);
+  localStorage.removeItem(keyElapsed);
 
   if (workoutTimerInterval) clearInterval(workoutTimerInterval);
   workoutTimerRunning = false;
@@ -1223,8 +1147,8 @@ async function concluirTreinoDoDia() {
 
   if (day && day.exercicios) {
     day.exercicios.forEach((ex, exIdx) => {
-      const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
       const exKeySanitized = sanitizeExKey(ex.nome);
+      const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
       const historico = currentData.weekly_logs?.[exKeySanitized] || currentData.weekly_logs?.[keyLog] || [];
       const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
 
@@ -1337,9 +1261,7 @@ async function concluirTreinoDoDia() {
   if (!currentData.logs) currentData.logs = {};
 
   Object.keys(currentData.logs).forEach(key => {
-    if (key.startsWith('ex_done_')) {
-      delete currentData.logs[key];
-    }
+    if (key.startsWith('ex_done_')) delete currentData.logs[key];
   });
 
   if (day && day.exercicios) {
@@ -1434,6 +1356,24 @@ function toggleTrainerGoals() {
 function toggleCardioGoals() {
   const body = document.getElementById('cardioGoalsBody');
   const arrow = document.getElementById('arrowCardio');
+  if (!body || !arrow) return;
+
+  body.classList.toggle('collapsed');
+  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+}
+
+function toggleNutritionalGoals() {
+  const body = document.getElementById('nutriGoalsBody');
+  const arrow = document.getElementById('arrowNutriGoals');
+  if (!body || !arrow) return;
+
+  body.classList.toggle('collapsed');
+  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+}
+
+function toggleSupplements() {
+  const body = document.getElementById('supplementsBody');
+  const arrow = document.getElementById('arrowSupplements');
   if (!body || !arrow) return;
 
   body.classList.toggle('collapsed');
@@ -1536,6 +1476,9 @@ function changeExerciseMode(dayIdx, exIdx, selectedMode) {
   }
 }
 
+// ==========================================
+// RENDERIZAÇÃO LIMPA DOS EXERCÍCIOS & MYO-REPS
+// ==========================================
 function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
     const modeKey = `${dayIdx}_${exIdx}`;
@@ -1573,6 +1516,7 @@ function renderExercisesForDay(day, dayIdx, container) {
 
     let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
+    // LIMPEZA COMPLETA DO NOME DO EXERCÍCIO
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
     let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
     if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
@@ -2030,6 +1974,9 @@ function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
   }
 }
 
+// ==========================================
+// MÓDULO DE DIETA (RESUMO, SUPLEMENTOS E REFEIÇÕES)
+// ==========================================
 function parseDietaAluno(rawText) {
   if (!rawText || !rawText.trim()) return [];
 
@@ -2123,20 +2070,6 @@ function parseDietaAluno(rawText) {
     }
   });
 
-  if (abas.length === 0 && rawText.trim() !== '') {
-    abas.push({
-      abaNome: "Plano Alimentar",
-      meals: [{
-        mealTitle: "Refeição Diária",
-        days: "",
-        baseItems: rawText.split('\n').map(l => l.trim()).filter(l => l !== ''),
-        trocasCarbo: [],
-        trocasProt: []
-      }],
-      fullText: rawText.toLowerCase()
-    });
-  }
-
   return abas;
 }
 
@@ -2152,6 +2085,54 @@ function renderDietaAluno(refeicoesData) {
 
   if (!categoryList) return;
   categoryList.innerHTML = "";
+
+  // RENDERIZAÇÃO DAS SANFONAS SUPERIORES (RESUMO NUTRICIONAL E SUPLEMENTAÇÃO)
+  const nutriContent = document.getElementById('nutriGoalsContent');
+  const suppContent = document.getElementById('supplementsContent');
+
+  if (nutriContent) {
+    const kcal = currentData.calorias_dieta || currentData.meta_kcal || currentData.gasto_basal || '--';
+    const prot = currentData.meta_proteinas || currentData.proteinas_g || '--';
+    const carbo = currentData.meta_carbo || currentData.carboidratos_g || '--';
+    const gord = currentData.meta_gordura || currentData.gorduras_g || '--';
+    const agua = currentData.meta_agua || currentData.agua_litros || '3 a 4 Litros';
+
+    nutriContent.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; text-align:center;">
+        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px;">
+          <div style="font-size:10px; color:var(--ink-dim); text-transform:uppercase; font-weight:700;">🔥 Gasto / Meta Kcal</div>
+          <div style="font-size:15px; font-weight:800; color:var(--mark); margin-top:2px;">${kcal} kcal</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:8px;">
+          <div style="font-size:10px; color:var(--ink-dim); text-transform:uppercase; font-weight:700;">💧 Meta Hídrica</div>
+          <div style="font-size:15px; font-weight:800; color:var(--blue); margin-top:2px;">${agua}</div>
+        </div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:8px; text-align:center;">
+        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
+          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🥩 Proteínas</div>
+          <div style="font-size:13px; font-weight:800; color:var(--good);">${prot}g</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
+          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🌾 Carbos</div>
+          <div style="font-size:13px; font-weight:800; color:var(--mark);">${carbo}g</div>
+        </div>
+        <div style="background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:6px;">
+          <div style="font-size:9.5px; color:var(--ink-dim); font-weight:700;">🥑 Gorduras</div>
+          <div style="font-size:13px; font-weight:800; color:var(--purple);">${gord}g</div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (suppContent) {
+    const rawSuplementos = currentData.suplementos || currentData.suplementacao || currentData.prescricao_suplementos || '';
+    if (rawSuplementos.trim()) {
+      suppContent.innerHTML = escapeHtml(rawSuplementos).replace(/\n/g, '<br>');
+    } else {
+      suppContent.innerHTML = `<span style="color:var(--ink-dim);">Nenhum suplemento cadastrado para este plano.</span>`;
+    }
+  }
 
   let rawText = "";
   if (Array.isArray(refeicoesData)) {
@@ -2169,13 +2150,6 @@ function renderDietaAluno(refeicoesData) {
   }
 
   let abas = parseDietaAluno(rawText);
-
-  if (abas.length > 1) {
-    abas = abas.filter(aba => {
-      const nomeUpper = (aba.abaNome || '').trim().toUpperCase();
-      return nomeUpper !== 'PLANO ALIMENTAR' && nomeUpper !== 'PLANO PRINCIPAL';
-    });
-  }
 
   if (!abas || abas.length === 0) {
     categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
@@ -2218,8 +2192,6 @@ function renderDietaAluno(refeicoesData) {
   const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
   if (currentAba && currentAba.meals) {
     currentAba.meals.forEach((meal, idx) => {
-      if ((meal.mealTitle || '').trim().toUpperCase() === 'PLANO ALIMENTAR' && currentAba.meals.length > 1) return;
-
       const card = document.createElement('div');
       card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px;";
 
@@ -2273,7 +2245,8 @@ function renderDietaAluno(refeicoesData) {
   }
 }
 
-const TAB_ORDER = ['treino', 'dieta', 'corrida', 'iaChat', 'feedback'];
+// ORDEM DAS ABAS LIBERADAS NO NAVEGADOR
+const TAB_ORDER = ['treino', 'dieta', 'corrida', 'ergogenicos', 'feedback'];
 
 function showTab(tab) {
   TAB_ORDER.forEach(t => {
@@ -2342,82 +2315,6 @@ function setupSwipeNavigation() {
   }, { passive: true });
 }
 
-async function sendStudentChatMessage() {
-  const input = document.getElementById('studentChatInput');
-  const history = document.getElementById('studentChatHistory');
-  const btn = document.getElementById('btnSendIaChat');
-  const text = input ? input.value.trim() : '';
-
-  if (!text) return;
-
-  const headers = authHeaders();
-  if (!headers['Authorization']) {
-    alert("Sua sessão expirou ou o token de acesso é inválido. Faça login novamente no aplicativo.");
-    return;
-  }
-
-  history.innerHTML += `
-    <div style="background:var(--signal-dim); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink); align-self:flex-end; border:1px solid var(--signal-light); max-width:85%;">
-      <b>Você:</b> ${escapeHtml(text)}
-    </div>
-  `;
-  if (input) input.value = '';
-
-  const loadingId = 'loading_ia_' + Date.now();
-  history.innerHTML += `
-    <div id="${loadingId}" style="background:var(--panel-2); padding:10px; border-radius:6px; font-size:12.5px; color:var(--ink-dim); border:1px solid var(--line); align-self:flex-start; max-width:85%;">
-      <b>Assistente:</b> <i>Gerando resposta...</i>
-    </div>
-  `;
-  history.scrollTop = history.scrollHeight;
-
-  if (btn) btn.disabled = true;
-
-  const systemPrompt = "Você é o assistente virtual do Personal Jhonata. Responda à dúvida do aluno de forma clara, direta e objetiva. Ao final de TODA resposta, adicione exatamente este texto em uma nova linha: 'Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.'";
-
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/aluno/chat-ia`, {
-      method: 'POST',
-      headers: headers,
-      cache: 'no-cache',
-      body: JSON.stringify({ 
-        mensagem: text, 
-        contexto: currentData || {},
-        systemPrompt: systemPrompt
-      })
-    });
-
-    const data = await res.json();
-    const loadingElem = document.getElementById(loadingId);
-
-    if (res.ok && data.resposta) {
-      let respostaTexto = data.resposta;
-      const avisoFinal = "Mas caso ainda esteja com alguma dúvida em relação a isso é só chamar o Jhonata Personal no Wpp ou pela própria aba Feedbacks aqui do aplicativo.";
-      
-      if (!respostaTexto.includes("chamar o Jhonata Personal")) {
-        respostaTexto += `\n\n${avisoFinal}`;
-      }
-
-      if (loadingElem) {
-        loadingElem.style.color = "var(--ink)";
-        loadingElem.innerHTML = `<b>Assistente:</b> ${escapeHtml(respostaTexto).replace(/\n/g, '<br>')}`;
-      }
-    } else {
-      if (loadingElem) {
-        loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> ${escapeHtml(data.error || 'Serviço indisponível no momento.')}</span>`;
-      }
-    }
-  } catch (e) {
-    const loadingElem = document.getElementById(loadingId);
-    if (loadingElem) {
-      loadingElem.innerHTML = `<span style="color:var(--signal-light);"><b>Assistente:</b> Erro de conexão com o servidor.</span>`;
-    }
-  } finally {
-    if (btn) btn.disabled = false;
-    history.scrollTop = history.scrollHeight;
-  }
-}
-
 function previewFeedbackPhotos(event) {
   const files = Array.from(event.target.files);
   const previewContainer = document.getElementById('feedbackPhotoPreview');
@@ -2475,7 +2372,7 @@ async function enviarFeedbackAlunoApp() {
     btn.textContent = "Enviando para o Drive...";
   }
 
-  // Upload das fotos diretamente para o Google Drive
+  // UPLOAD DAS FOTOS DIRETAMENTE PARA O GOOGLE DRIVE
   let driveUrls = [];
   if (selectedFeedbackFiles.length > 0) {
     for (let i = 0; i < selectedFeedbackFiles.length; i++) {
