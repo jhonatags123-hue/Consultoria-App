@@ -417,30 +417,8 @@
       </div>
 
       <div id="dietListView">
-        <!-- SANFONA 1: RESUMO NUTRICIONAL E METAS DO ALUNO -->
-        <div class="trainer-goals-card" onclick="toggleNutritionalGoals()" style="margin-bottom:10px; border-color:var(--mark);">
-          <div class="trainer-goals-title">
-            <span style="color:var(--mark);">📊 Resumo Nutricional & Metas Diárias</span>
-            <span id="arrowNutriGoals">▼</span>
-          </div>
-          <div class="trainer-goals-body collapsed" id="nutriGoalsBody" style="font-size:12.5px; line-height:1.6;">
-            <div id="nutriGoalsContent">Carregando metas nutricionais...</div>
-          </div>
-        </div>
-
-        <!-- SANFONA 2: SUPLEMENTAÇÃO PRECRITA -->
-        <div class="trainer-goals-card" onclick="toggleSupplements()" style="margin-bottom:14px; border-color:var(--blue);">
-          <div class="trainer-goals-title">
-            <span style="color:var(--blue);">💊 Suplementação Prescrita & Horários</span>
-            <span id="arrowSupplements">▼</span>
-          </div>
-          <div class="trainer-goals-body collapsed" id="supplementsBody" style="font-size:12.5px; line-height:1.6;">
-            <div id="supplementsContent">Nenhum suplemento cadastrado para este plano.</div>
-          </div>
-        </div>
-
         <!-- SELEÇÃO DE ABAS DA DIETA & REFEIÇÕES -->
-        <div class="diet-top-selector">
+        <div class="diet-top-selector" style="margin-bottom: 12px;">
           <div style="font-size:12px; font-weight:700; color:var(--ink);" id="dietCurrentDayLabel">📅 Hoje</div>
           <div style="display:flex; align-items:center; gap:6px;">
             <select id="dietAbaSelect" class="mode-select" onchange="trocarAbaDieta(this.value)" style="font-size:11px; padding:4px 8px;">
@@ -448,6 +426,7 @@
           </div>
         </div>
 
+        <!-- CONTAINER DAS REFEIÇÕES + BOX CONECTADO DE METAS/SUPLEMENTOS -->
         <div id="dietCategoryList" class="diet-container"></div>
       </div>
     </div>
@@ -499,18 +478,24 @@
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:6px;">💬 Central de Feedback & Evolução Física</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Converse com o Personal ou envie fotos do físico para salvar direto no Google Drive.</div>
 
-      <div style="background:var(--bg); border:1px dashed var(--line); border-radius:8px; padding:10px; margin-bottom:12px;">
-        <label class="label-fdb" style="color:var(--mark);">📸 Anexar Fotos do Físico (Frente, Costas, Lado):</label>
-        <input type="file" id="feedbackPhotoInput" accept="image/*" capture="environment" multiple class="input-field" style="font-size:12px; padding:6px;" onchange="previewFeedbackPhotos(event)">
-        <div id="feedbackPhotoPreview" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
-      </div>
-
+      <!-- Histórico de Chat -->
       <div id="alunoFeedbackHistory" style="background:var(--bg); border:1px solid var(--line); border-radius:8px; height:200px; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; margin-bottom:10px;">
       </div>
 
+      <!-- Upload de Múltiplas Fotos da Galeria -->
+      <div style="background:var(--bg); border:1px dashed var(--line); border-radius:8px; padding:10px; margin-bottom:12px;">
+        <label for="feedbackPhotoInput" class="btn-login" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); cursor:pointer; display:block; text-align:center; padding:10px; border-radius:8px; font-weight:700; font-size:12px; margin-top:0;">
+          🖼️ Selecionar Fotos da Galeria (Múltiplas)
+        </label>
+        <input type="file" id="feedbackPhotoInput" accept="image/*" multiple style="display:none;" onchange="previewFeedbackPhotos(event)">
+        
+        <div id="feedbackPhotoPreview" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
+      </div>
+
+      <!-- Envio de Mensagem -->
       <div style="display:flex; gap:6px;">
         <input type="text" id="alunoFeedbackInput" class="input-field" placeholder="Escreva como foi sua semana..." style="font-size:12px;" onkeypress="if(event.key==='Enter') enviarFeedbackAlunoApp()">
-        <button id="btnSendFeedbackPhotos" class="btn-login btn-gold" style="width:80px; margin-top:0; font-size:12px;" onclick="enviarFeedbackAlunoApp()">Enviar</button>
+        <button id="btnSendFeedbackPhotos" class="btn-login btn-gold" style="width:90px; margin-top:0; font-size:12px; font-weight:800;" onclick="enviarFeedbackAlunoApp()">Enviar</button>
       </div>
 
       <button class="btn-login btn-wpp" style="margin-top:12px;" onclick="sendWhatsAppFeedback()">
