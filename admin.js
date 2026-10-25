@@ -966,16 +966,12 @@ function renderCorridaAdmin() {
   }
 }
 
-// =========================================================================
-// RENDERIZAÇÃO COMPLETA DA ANAMNESE NO PAINEL ADMIN
-// =========================================================================
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
   if (!div) return;
 
   const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
 
-  // Verifica se há pelo menos um dado relevante salvo
   if (!a.nome && !a.clientName && !a.objetivo && !a.telefone && !a.email && !a.peso) {
     div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Nenhuma resposta de anamnese detalhada encontrada para este perfil.</p>`;
     return;
@@ -1452,15 +1448,37 @@ function loadDietView() {
 }
 
 function parseDietaEstruturada(rawText) {
-  if (!rawText || !rawText.trim()) return { resumoAdminText: "", abas: [] };
+  if (!rawText || !rawText.trim()) return { resumoAdminText: "", suplementos: [], abas: [] };
 
   let cleanText = rawText.trim();
   let resumoAdminText = "";
+  let suplementos = [];
 
-  const matchResumo = cleanText.match(/\[\s*RESUMO NUTRICIONAL[^\n\]]*\]([\s\S]*?)(?=(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---|\nREF\s*\d+|$))/i);
-  if (matchResumo) {
-    resumoAdminText = matchResumo[1].trim();
-    cleanText = cleanText.replace(matchResumo[0], '').trim();
+  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
+  const matchMetas = cleanText.match(regexMetas);
+
+  if (matchMetas) {
+    const blocoMetas = matchMetas[0].trim();
+    cleanText = cleanText.replace(blocoMetas, '').trim();
+
+    const linhas = blocoMetas.split('\n').map(l => l.trim()).filter(l => l !== '');
+    let emSuplementos = false;
+
+    linhas.forEach(linha => {
+      if (linha.includes('[SUPLEMENTAÇÃO DIÁRIA]') || linha.toLowerCase().includes('suplementação')) {
+        emSuplementos = true;
+        return;
+      }
+      if (emSuplementos) {
+        if (linha.startsWith('-') || linha.startsWith('•')) {
+          suplementos.push(linha.replace(/^[-•*]\s*/, '').trim());
+        }
+      } else {
+        if (!linha.startsWith('🍽 Refeição')) {
+          resumoAdminText += linha + '\n';
+        }
+      }
+    });
   }
 
   const abas = [];
@@ -1537,7 +1555,7 @@ function parseDietaEstruturada(rawText) {
     }
   });
 
-  return { resumoAdminText, abas };
+  return { resumoAdminText: resumoAdminText.trim(), suplementos, abas };
 }
 
 function atualizarPreviewDietaAoVivo() {
@@ -1545,18 +1563,28 @@ function atualizarPreviewDietaAoVivo() {
   const filtersEl = document.getElementById('dietPreviewFilters');
   const listEl = document.getElementById('dietPreviewList');
 
-  const { resumoAdminText, abas } = parseDietaEstruturada(raw);
+  const { resumoAdminText, suplementos, abas } = parseDietaEstruturada(raw);
   filtersEl.innerHTML = '';
   listEl.innerHTML = '';
 
   if (resumoAdminText) {
     const resCard = document.createElement('div');
-    resCard.className = 'admin-nutrition-header';
+    resCard.style.cssText = "background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff;";
     resCard.innerHTML = `
-      <h4>📊 Resumo Nutricional & Parâmetros (Visível apenas para o Treinador):</h4>
-      <div class="admin-nutrition-lines">${escapeHtml(resumoAdminText)}</div>
+      <b style="color:var(--gold); font-size:13px;">📊 RESUMO NUTRICIONAL & METAS:</b>
+      <div style="margin-top:6px; white-space:pre-line;">${escapeHtml(resumoAdminText)}</div>
     `;
     listEl.appendChild(resCard);
+  }
+
+  if (suplementos.length > 0) {
+    const supCard = document.createElement('div');
+    supCard.style.cssText = "background:#050d1a; border:1px solid #60a5fa; border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff;";
+    let supHtml = `<b style="color:#60a5fa; font-size:13px;">💊 SUPLEMENTAÇÃO DIÁRIA CADASTRADA:</b><ul style="margin-top:6px; margin-left:16px;">`;
+    suplementos.forEach(s => supHtml += `<li>${escapeHtml(s)}</li>`);
+    supHtml += `</ul>`;
+    supCard.innerHTML = supHtml;
+    listEl.appendChild(supCard);
   }
 
   if (abas.length === 0) {
@@ -1670,7 +1698,6 @@ async function salvarConfiguracoesConta() {
 
   currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
 
-  // Chaves de Liberação Individuais
   const libDieta = document.getElementById('editLiberarDieta').checked;
   currentStudentData.liberarDieta = libDieta;
   currentStudentData.apenasTreino = !libDieta;
