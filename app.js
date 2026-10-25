@@ -1,4 +1,5 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
 // Mapeamento dos 12 Links de Checkout do Asaas (Divididos entre PIX e Cartão Recorrente)
 const CHECKOUT_LINKS = {
@@ -59,6 +60,46 @@ let isConvidadoDuplaMode = false;
 let workoutTimerInterval = null;
 let workoutTimerRunning = false;
 let selectedFeedbackFiles = [];
+
+// ==========================================
+// FUNÇÃO DE INTEGRAÇÃO COM GOOGLE DRIVE
+// ==========================================
+async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
+
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const base64String = reader.result.split(',')[1];
+
+      const payload = {
+        nome: nomeAluno,
+        fileName: customFileName || file.name,
+        mimeType: file.type,
+        fileData: base64String
+      };
+
+      try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (result.success) {
+          resolve(result.url);
+        } else {
+          console.error("Erro no Apps Script:", result.error);
+          resolve(null);
+        }
+      } catch (err) {
+        console.error("Erro ao enviar arquivo para o Drive:", err);
+        resolve(null);
+      }
+    };
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
 
 function mascaraDataNascimento(input) {
   let v = input.value.replace(/\D/g, '');
@@ -511,7 +552,6 @@ async function handleLogin(e) {
   tentarConexao(3);
 }
 
-// Renderiza a opção de pagamento exclusiva do plano selecionado na anamnese
 function renderizarCheckoutFinalPlano(tipoConsultoria) {
   const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
 
@@ -603,66 +643,19 @@ async function sendAnamneseAppDirect() {
     apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
   };
 
-  if (pixInput && pixInput.files && pixInput.files[0]) {
-    if (btn) {
-      btn.textContent = "🤖 IA Analisando Comprovante...";
-      btn.disabled = true;
-    }
-
-    const formData = new FormData();
-    formData.append('comprovante', pixInput.files[0]);
-    formData.append('dadosAnamnese', JSON.stringify(anamneseData));
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/anamnese/processar-comprovante`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        document.getElementById('anamneseScreen').innerHTML = `
-          <div style="text-align:center; padding:24px 10px;">
-            <div style="font-size:48px; margin-bottom:12px;">✅</div>
-            <h2 style="font-size:24px; font-weight:700; color:var(--good); font-family:var(--font-display);">
-              Pagamento Confirmado pela IA!
-            </h2>
-            <p style="font-size:13.5px; color:var(--ink); margin-top:10px; line-height:1.6;">
-              Seu comprovante foi validado e sua pasta de acompanhamento no Google Drive já foi criada automaticamente!
-            </p>
-            <div style="background:var(--mark-dim); border:1px solid var(--mark); border-radius:8px; padding:16px; margin-top:16px; text-align:left;">
-              <div style="font-size:13px; font-weight:700; color:var(--mark); margin-bottom:6px;">
-                🗓️ Prazo de Liberação:
-              </div>
-              <p style="font-size:12.5px; color:var(--ink); line-height:1.5;">
-                Tudo ficará pronto e liberado no seu aplicativo em até <b>2 dias úteis</b>!
-              </p>
-            </div>
-          </div>
-        `;
-        return;
-      } else {
-        alert(data.error || "Não foi possível validar o comprovante.");
-        if (btn) {
-          btn.textContent = "Finalizar e enviar";
-          btn.disabled = false;
-        }
-        return;
-      }
-    } catch (e) {
-      alert("Erro na conexão com o servidor ao processar comprovante.");
-      if (btn) {
-        btn.textContent = "Finalizar e enviar";
-        btn.disabled = false;
-      }
-      return;
-    }
-  }
-
   if (btn) {
     btn.textContent = "Processando...";
     btn.disabled = true;
+  }
+
+  // Upload do comprovante no Drive se anexado
+  if (pixInput && pixInput.files && pixInput.files[0]) {
+    btn.textContent = "Salvando Comprovante no Drive...";
+    const comprovanteFile = pixInput.files[0];
+    const driveUrl = await enviarArquivoParaGoogleDrive(nome, comprovanteFile, `Comprovante_Anamnese_${nome}`);
+    if (driveUrl) {
+      anamneseData.comprovanteUrl = driveUrl;
+    }
   }
 
   try {
@@ -2471,6 +2464,7 @@ async function enviarFeedbackAlunoApp() {
   const input = document.getElementById('alunoFeedbackInput');
   const msg = input ? input.value.trim() : '';
   const btn = document.getElementById('btnSendFeedbackPhotos');
+  const nomeAluno = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
 
   if (!msg && selectedFeedbackFiles.length === 0) {
     return alert("Escreva um relato ou selecione ao menos uma foto.");
@@ -2478,27 +2472,33 @@ async function enviarFeedbackAlunoApp() {
 
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "...";
+    btn.textContent = "Enviando para o Drive...";
   }
 
-  const formData = new FormData();
-  formData.append('codigo', loggedUserCode);
-  formData.append('texto', msg);
-
-  selectedFeedbackFiles.forEach(f => formData.append('fotos', f));
+  // Upload das fotos diretamente para o Google Drive
+  let driveUrls = [];
+  if (selectedFeedbackFiles.length > 0) {
+    for (let i = 0; i < selectedFeedbackFiles.length; i++) {
+      const file = selectedFeedbackFiles[i];
+      const driveUrl = await enviarArquivoParaGoogleDrive(nomeAluno, file, `Feedback_${new Date().toISOString().split('T')[0]}_Foto_${i + 1}`);
+      if (driveUrl) driveUrls.push(driveUrl);
+    }
+  }
 
   try {
     const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
-    const headers = {};
+    const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`${BACKEND_URL}/api/feedback/drive`, {
+    const res = await fetch(`${BACKEND_URL}/api/aluno/salvar-feedback`, {
       method: 'POST',
       headers: headers,
-      body: formData
+      body: JSON.stringify({
+        codigo: loggedUserCode,
+        mensagem: msg,
+        fotosDrive: driveUrls
+      })
     });
-
-    const data = await res.json();
 
     if (res.ok) {
       alert("Feedback e fotos enviados com sucesso para o seu arquivo no Google Drive!");
@@ -2508,12 +2508,15 @@ async function enviarFeedbackAlunoApp() {
       if (previewContainer) previewContainer.innerHTML = '';
       const photoInput = document.getElementById('feedbackPhotoInput');
       if (photoInput) photoInput.value = '';
+      
+      if (!currentData.feedbacks) currentData.feedbacks = [];
+      currentData.feedbacks.push({ autor: "ALUNO", mensagem: msg + (driveUrls.length > 0 ? " (Fotos anexadas no Drive)" : ""), data: new Date().toISOString() });
       renderFeedbackHistory();
     } else {
-      alert(data.error || "Erro ao enviar dados para o Drive.");
+      alert("Feedback enviado, mas falhou ao sincronizar histórico.");
     }
   } catch (e) {
-    alert("Erro na conexão com o servidor.");
+    alert("Erro na conexão com o servidor ao salvar o feedback.");
   } finally {
     if (btn) {
       btn.disabled = false;
