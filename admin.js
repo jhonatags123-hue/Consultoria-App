@@ -966,23 +966,69 @@ function renderCorridaAdmin() {
   }
 }
 
+// =========================================================================
+// RENDERIZAÇÃO COMPLETA DA ANAMNESE NO PAINEL ADMIN
+// =========================================================================
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
+  if (!div) return;
+
   const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
 
-  if (!a.nome && !a.clientName && !a.objetivo) {
+  // Verifica se há pelo menos um dado relevante salvo
+  if (!a.nome && !a.clientName && !a.objetivo && !a.telefone && !a.email && !a.peso) {
     div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Nenhuma resposta de anamnese detalhada encontrada para este perfil.</p>`;
     return;
   }
 
   div.innerHTML = `
-    <div class="anamnese-grid">
-      <div class="anamnese-box"><div class="anamnese-label">👤 Nome Completo</div><div class="anamnese-val">${escapeHtml(a.nome || a.clientName) || '-'}</div></div>
-      <div class="anamnese-box"><div class="anamnese-label">📞 Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(a.telefone) || '-'}</div></div>
-      <div class="anamnese-box"><div class="anamnese-label">📧 E-mail</div><div class="anamnese-val">${escapeHtml(a.email) || '-'}</div></div>
-      <div class="anamnese-box"><div class="anamnese-label">🆔 CPF</div><div class="anamnese-val">${escapeHtml(a.cpf) || '-'}</div></div>
-      <div class="anamnese-box"><div class="anamnese-label">⚖️ Peso</div><div class="anamnese-val">${a.peso ? escapeHtml(a.peso) + ' kg' : '-'}</div></div>
-      <div class="anamnese-box"><div class="anamnese-label">📏 Altura</div><div class="anamnese-val">${a.altura ? escapeHtml(a.altura) + ' m' : '-'}</div></div>
+    <!-- BLOCO 1: DADOS PESSOAIS -->
+    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">👤 Dados Pessoais</h4>
+      <div class="anamnese-grid">
+        <div class="anamnese-box"><div class="anamnese-label">Nome Completo</div><div class="anamnese-val">${escapeHtml(a.nome || a.clientName) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(a.telefone) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">E-mail</div><div class="anamnese-val">${escapeHtml(a.email) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">CPF</div><div class="anamnese-val">${escapeHtml(a.cpf) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Data Nasc. / Idade</div><div class="anamnese-val">${escapeHtml(a.nascimento || a.idade) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Gênero</div><div class="anamnese-val">${escapeHtml(a.genero) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Peso Corporal</div><div class="anamnese-val">${a.peso ? escapeHtml(a.peso) + ' kg' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Altura</div><div class="anamnese-val">${a.altura ? escapeHtml(a.altura) + ' m' : '-'}</div></div>
+      </div>
+    </div>
+
+    <!-- BLOCO 2: OBJETIVOS E HISTÓRICO DE TREINO -->
+    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🎯 Objetivo e Condição Física</h4>
+      <div class="anamnese-grid">
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Objetivo Principal</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(a.objetivo) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Tempo Praticando Musculação</div><div class="anamnese-val">${escapeHtml(a.tempoTreino || a.experiencia) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Dias Disponíveis por Semana</div><div class="anamnese-val">${escapeHtml(a.diasDisponiveis || a.diasSemana) || '-'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Lesões, Dores ou Incômodos</div><div class="anamnese-val" style="color:#ff6b7f;">${escapeHtml(a.lesoes || a.dores) || 'Nenhuma declarada.'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Problemas de Saúde / Medicamentos</div><div class="anamnese-val">${escapeHtml(a.medicamentos || a.patologias) || 'Nenhum declarado.'}</div></div>
+      </div>
+    </div>
+
+    <!-- BLOCO 3: ROTINA & HÁBITOS -->
+    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🌙 Rotina e Sono</h4>
+      <div class="anamnese-grid">
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Profissão / Rotina Diária</div><div class="anamnese-val">${escapeHtml(a.rotina || a.trabalho) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Média de Sono / Noite</div><div class="anamnese-val">${escapeHtml(a.sono || a.horasSono) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Nível de Estresse</div><div class="anamnese-val">${escapeHtml(a.estresse) || '-'}</div></div>
+      </div>
+    </div>
+
+    <!-- BLOCO 4: ALIMENTAÇÃO E DIETA -->
+    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px;">
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🥗 Hábitos Alimentares & Preferências</h4>
+      <div class="anamnese-grid">
+        <div class="anamnese-box"><div class="anamnese-label">Refeições por Dia</div><div class="anamnese-val">${escapeHtml(a.numRefeicoes) || '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Consumo Diário de Água</div><div class="anamnese-val">${escapeHtml(a.agua) || '-'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos que NÃO Gosta / Alergias</div><div class="anamnese-val" style="color:#ff6b7f; font-weight:700;">${escapeHtml(a.alimentosOdiados || a.restricoes) || 'Nenhum declarado.'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos Preferidos / Indispensáveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(a.alimentosGosta || a.preferencias) || 'Nenhum declarado.'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Suplementos e Ergogênicos em Uso</div><div class="anamnese-val">${escapeHtml(a.suplementos || a.ergogenicos) || 'Nenhum informado.'}</div></div>
+      </div>
     </div>
   `;
 }
