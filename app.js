@@ -1489,13 +1489,15 @@ function renderExercisesForDay(day, dayIdx, container) {
 
     const exName = ex.nome || '';
     const exMeta = ex.reps || ex.repeticoes || '';
-    const seriesStr = String(ex.series || '').toLowerCase().trim();
+    
+    // Normalização flexível das séries
+    const rawSeries = String(ex.series || ex.num_series || '3').toLowerCase().trim();
+    const matchDigits = rawSeries.match(/\d+/);
+    let numSeriesPrescritas = matchDigits ? parseInt(matchDigits[0]) : 3;
+    if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
 
-    const tem2x = seriesStr.includes('2x') || seriesStr === '2';
-    const tem3x = seriesStr.includes('3x') || seriesStr === '3';
-    const temPuraSeries = /^(\d+)x?$/i.test(seriesStr);
-
-    let isStrict1x = seriesStr.includes('1x') || seriesStr === '1';
+    const tem2x = numSeriesPrescritas === 2 || rawSeries.includes('2x');
+    const isStrict1x = numSeriesPrescritas === 1 || rawSeries.includes('1x');
 
     const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
     let tecnicaAdminFixa = null;
@@ -1512,14 +1514,13 @@ function renderExercisesForDay(day, dayIdx, container) {
       tecnicaAdminFixa = 'convencional';
     }
 
-    const podeAlterarTecnica = currentData.pode_alterar_tecnica === true && !tecnicaAdminFixa && temPuraSeries;
+    // Leitura garantida da permissão vinda do Admin
+    const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && !isStrict1x;
 
     let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
-    // LIMPEZA COMPLETA DO NOME DO EXERCÍCIO
+    // Limpeza completa do nome do exercício
     let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-    let numSeriesPrescritas = tem3x ? 3 : (tem2x ? 2 : (parseInt(seriesStr) || 3));
-    if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
 
     const div = document.createElement('div');
     div.className = `item ${isExDone ? 'exercise-done' : ''}`;
@@ -2387,18 +2388,18 @@ async function enviarFeedbackAlunoApp() {
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`${BACKEND_URL}/api/aluno/salvar-feedback`, {
+    const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
       method: 'POST',
       headers: headers,
       body: JSON.stringify({
         codigo: loggedUserCode,
-        mensagem: msg,
-        fotosDrive: driveUrls
+        autor: 'ALUNO',
+        mensagem: msg + (driveUrls.length > 0 ? `\n\n📷 Fotos no Drive:\n${driveUrls.join('\n')}` : '')
       })
     });
 
     if (res.ok) {
-      alert("Feedback e fotos enviados com sucesso para o seu arquivo no Google Drive!");
+      alert("Feedback e fotos enviados com sucesso!");
       if (input) input.value = '';
       selectedFeedbackFiles = [];
       const previewContainer = document.getElementById('feedbackPhotoPreview');
