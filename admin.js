@@ -141,7 +141,14 @@ async function salvarNotasTreinadorSozinhas() {
   showToast("Bloco de notas do treinador salvo!", "success");
 }
 
-function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7) {
+function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isento = false, statusPagamento = '') {
+  if (isento === true || statusPagamento === 'isento') {
+    return {
+      dias: 9999,
+      dataFormatada: "Livre (VIP)"
+    };
+  }
+
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
@@ -289,7 +296,7 @@ function renderStudentsList(list) {
   }
 
   list.forEach((aluno, i) => {
-    const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento);
+    const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
     let statusClass = "status-pago";
     let statusText = aluno.status_pagamento || "pago";
 
@@ -348,7 +355,7 @@ async function carregarAluno(code) {
     document.getElementById('studentCodeDisplay').textContent = `@${code}`;
     document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
-    const infoCalculada = calcularDiasRestantes(currentStudentData.data_expiracao, currentStudentData.dia_vencimento);
+    const infoCalculada = calcularDiasRestantes(currentStudentData.data_expiracao, currentStudentData.dia_vencimento, currentStudentData.isento, currentStudentData.status_pagamento);
     document.getElementById('studentVencimentoDisplay').textContent = `📅 Vencimento: ${infoCalculada.dataFormatada}`;
 
     const stPill = document.getElementById('studentStatusPill');
@@ -384,7 +391,7 @@ async function carregarAluno(code) {
     document.getElementById('editStatus').value = stVal;
     document.getElementById('editIsentoCheckbox').checked = currentStudentData.isento === true;
     document.getElementById('editPassword').value = '';
-    document.getElementById('editDiaVencimento').value = currentStudentData.dia_vencimento || 7;
+    document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
     document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
 
@@ -1737,34 +1744,41 @@ function salvarDieta() {
 
 async function salvarConfiguracoesConta() {
   currentStudentData.clientName = document.getElementById('editName').value.trim();
-  currentStudentData.status_pagamento = document.getElementById('editStatus').value;
   
   const isentoVal = document.getElementById('editIsentoCheckbox').checked;
   currentStudentData.isento = isentoVal;
-  if (isentoVal) currentStudentData.status_pagamento = 'isento';
 
-  const novoDia = parseInt(document.getElementById('editDiaVencimento').value) || 7;
-  currentStudentData.dia_vencimento = novoDia;
+  if (isentoVal) {
+    currentStudentData.status_pagamento = 'pago'; 
+    currentStudentData.dia_vencimento = null;
+    currentStudentData.data_expiracao = '2099-12-31';
+  } else {
+    currentStudentData.status_pagamento = document.getElementById('editStatus').value;
+    
+    const campoDia = document.getElementById('editDiaVencimento').value.trim();
+    const novoDia = campoDia ? parseInt(campoDia) : 7;
+    currentStudentData.dia_vencimento = novoDia;
 
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
 
-  let ano = hoje.getFullYear();
-  let mes = hoje.getMonth();
-  
-  let novaDataExp = new Date(ano, mes, novoDia, 23, 59, 59);
-  if (novaDataExp < hoje) {
-    novaDataExp = new Date(ano, mes + 1, novoDia, 23, 59, 59);
+    let ano = hoje.getFullYear();
+    let mes = hoje.getMonth();
+    
+    let novaDataExp = new Date(ano, mes, novoDia, 23, 59, 59);
+    if (novaDataExp < hoje) {
+      novaDataExp = new Date(ano, mes + 1, novoDia, 23, 59, 59);
+    }
+
+    const anoFmt = novaDataExp.getFullYear();
+    const mesFmt = String(novaDataExp.getMonth() + 1).padStart(2, '0');
+    const diaFmt = String(novaDataExp.getDate()).padStart(2, '0');
+
+    currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
   }
 
-  const anoFmt = novaDataExp.getFullYear();
-  const mesFmt = String(novaDataExp.getMonth() + 1).padStart(2, '0');
-  const diaFmt = String(novaDataExp.getDate()).padStart(2, '0');
-
-  currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
   currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
   currentStudentData.semanas_rotacao = parseInt(document.getElementById('editSemanasRotacao').value) || 5;
-
   currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
 
   const libDieta = document.getElementById('editLiberarDieta').checked;
