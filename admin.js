@@ -9,6 +9,7 @@ let gifsDatabase = [];
 
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
+const CHAVE_PIX_DEFAULT = "5551990169026";
 
 function sanitizeExKey(nome) {
   if (!nome) return "ex";
@@ -312,8 +313,8 @@ function renderStudentsList(list) {
         <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
       </div>
       <div style="text-align:right;">
-        <span class="status-pill ${statusClass}">${escapeHtml(statusText)}</span>
-        <div style="font-size:10px; color:var(--muted); margin-top:3px;">${aluno.isento ? 'Livre' : (infoCalculada.dias <= 0 ? 'Vencido' : infoCalculada.dias + 'd restantes')}</div>
+        <span class="status-pill ${statusClass}">${escapeHtml(statusText.toUpperCase())}</span>
+        <div style="font-size:10px; color:var(--muted); margin-top:3px;">${(aluno.isento === true || statusText === 'isento') ? 'Livre' : (infoCalculada.dias <= 0 ? 'Vencido' : infoCalculada.dias + 'd restantes')}</div>
       </div>
     `;
     div.onclick = () => {
@@ -1454,42 +1455,14 @@ function parseDietaEstruturada(rawText) {
   let resumoAdminText = "";
   let suplementos = [];
 
-  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
-  const matchMetas = cleanText.match(regexMetas);
-
-  if (matchMetas) {
-    const blocoMetas = matchMetas[0].trim();
-    cleanText = cleanText.replace(blocoMetas, '').trim();
-
-    const linhas = blocoMetas.split('\n').map(l => l.trim()).filter(l => l !== '');
-    let emSuplementos = false;
-
-    linhas.forEach(linha => {
-      if (linha.includes('[SUPLEMENTAÇÃO DIÁRIA]') || linha.toLowerCase().includes('suplementação')) {
-        emSuplementos = true;
-        return;
-      }
-      if (emSuplementos) {
-        if (linha.startsWith('-') || linha.startsWith('•')) {
-          suplementos.push(linha.replace(/^[-•*]\s*/, '').trim());
-        }
-      } else {
-        if (!linha.startsWith('🍽 Refeição')) {
-          resumoAdminText += linha + '\n';
-        }
-      }
-    });
-  }
-
   const abas = [];
   const rawAbas = cleanText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
-  const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
 
-  rawAbas.forEach(rawAba => {
+  rawAbas.forEach((rawAba, abaIdx) => {
     const cleanAba = rawAba.trim();
     if (!cleanAba || cleanAba === '---') return;
 
-    let abaNome = "PLANO PRINCIPAL";
+    let abaNome = `Ciclo ${abaIdx + 1}`;
     let abaDias = "";
     let textContent = cleanAba;
 
@@ -1505,49 +1478,101 @@ function parseDietaEstruturada(rawText) {
       textContent = linesAba.slice(startIdx).join('\n').trim();
     }
 
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|🍽|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
     const rawMeals = textContent.split(regexTitulosRefeicao);
     const meals = [];
 
     rawMeals.forEach(bloco => {
-      const clean = bloco.trim();
+      let clean = bloco.trim();
       if (!clean) return;
+
+      clean = clean.replace(/^\[\s*REFEIÇÃO\s*\]\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
 
       const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
       if (lines.length === 0) return;
 
-      let title = lines[0];
+      let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
+      const titleLower = title.toLowerCase();
+
+      // FILTRO INTELIGENTE: Reconhece e separa 'Meta Diaria' e 'Suplementos' sem colchetes
+      if (
+        titleLower.includes('plano alimentar') || 
+        titleLower.includes('resumo nutricional') ||
+        titleLower.includes('meta diaria') ||
+        titleLower.includes('metas diarias') ||
+        titleLower.includes('meta diária') ||
+        titleLower.includes('metas diárias') ||
+        titleLower.includes('suplemento') ||
+        titleLower.includes('suplementos') ||
+        titleLower.includes('suplementação') ||
+        titleLower.includes('suplementacao')
+      ) {
+        // Armazena no resumo/suplementos do topo em vez de transformar em prato
+        lines.forEach(l => {
+          const lLower = l.toLowerCase();
+          if (lLower.includes('meta') || lLower.includes('calórica') || lLower.includes('água') || lLower.includes('gasto')) {
+            resumoAdminText += l + '\n';
+          } else if (l.startsWith('-') || l.startsWith('•')) {
+            suplementos.push(l.replace(/^[-•*]\s*/, '').trim());
+          }
+        });
+
+        if (lines.length > 1) {
+          lines.shift();
+          title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
+        } else {
+          return;
+        }
+      }
+
+      const checkTitle = title.toLowerCase();
+      if (
+        !title || 
+        checkTitle.includes('plano alimentar') ||
+        checkTitle.includes('resumo nutricional') ||
+        checkTitle.includes('meta diaria') ||
+        checkTitle.includes('suplemento')
+      ) {
+        return;
+      }
+
       let days = "";
       const baseItems = [];
       const trocasCarbo = [];
       const trocasProt = [];
 
       lines.slice(1).forEach(line => {
-        const lineLower = line.toLowerCase();
+        let lineClean = line.replace(/\[\s*\]/g, '').trim();
+        const lineLower = lineClean.toLowerCase();
         
         if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
-          days = line;
-        } else if (line.startsWith('(Opção de troca)') || line.startsWith('(Troca)')) {
-          let itemTxt = line.replace(/^\(Opção de troca\)|\(Troca\)/i, '').trim();
-          if (itemTxt.includes('[CARBO]') || itemTxt.toLowerCase().includes('carbo')) {
-            trocasCarbo.push(itemTxt.replace(/\[CARBO\]/gi, '').trim());
-          } else if (itemTxt.includes('[PROT]') || itemTxt.toLowerCase().includes('prot')) {
-            trocasProt.push(itemTxt.replace(/\[PROT\]/gi, '').trim());
+          days = lineClean;
+        } else if (lineClean.includes('↳') || lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)')) {
+          let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
+          if (!itemTxt) return;
+
+          if (lineClean.toUpperCase().includes('[CARBO]') || lineLower.includes('carbo')) {
+            trocasCarbo.push(itemTxt);
+          } else if (lineClean.toUpperCase().includes('[PROT]') || lineLower.includes('prot')) {
+            trocasProt.push(itemTxt);
           } else {
             trocasCarbo.push(itemTxt);
           }
         } else {
-          const cleanItem = line.replace(/^[-•*]\s*/, '').trim();
+          const cleanItem = lineClean.replace(/^[-•*]\s*/, '').trim();
           if (cleanItem) baseItems.push(cleanItem);
         }
       });
 
-      meals.push({ 
-        mealTitle: title, 
-        days: days, 
-        baseItems: baseItems, 
-        trocasCarbo: trocasCarbo, 
-        trocasProt: trocasProt 
-      });
+      if (title && (baseItems.length > 0 || trocasCarbo.length > 0 || trocasProt.length > 0)) {
+        meals.push({ 
+          mealTitle: title, 
+          days: days, 
+          baseItems: baseItems, 
+          trocasCarbo: trocasCarbo, 
+          trocasProt: trocasProt 
+        });
+      }
     });
 
     if (meals.length > 0) {
@@ -1571,7 +1596,7 @@ function atualizarPreviewDietaAoVivo() {
     const resCard = document.createElement('div');
     resCard.style.cssText = "background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff;";
     resCard.innerHTML = `
-      <b style="color:var(--gold); font-size:13px;">📊 RESUMO NUTRICIONAL & METAS:</b>
+      <b style="color:var(--gold); font-size:13px;">📊 METAS DIÁRIAS (CALORIAS & ÁGUA):</b>
       <div style="margin-top:6px; white-space:pre-line;">${escapeHtml(resumoAdminText)}</div>
     `;
     listEl.appendChild(resCard);
