@@ -1990,6 +1990,7 @@ function parseDietaAluno(rawText) {
       let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
       const titleLower = title.toLowerCase();
 
+      // Ignora blocos inteiros que pertencem ao resumo de metas ou suplementos
       if (
         titleLower.includes('plano alimentar') || 
         titleLower.includes('resumo nutricional') ||
@@ -2000,23 +2001,8 @@ function parseDietaAluno(rawText) {
         titleLower.includes('suplemento') ||
         titleLower.includes('suplementos') ||
         titleLower.includes('suplementação') ||
-        titleLower.includes('suplementacao')
-      ) {
-        if (lines.length > 1) {
-          lines.shift();
-          title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
-        } else {
-          return;
-        }
-      }
-
-      const checkTitle = title.toLowerCase();
-      if (
-        !title || 
-        checkTitle.includes('plano alimentar') ||
-        checkTitle.includes('resumo nutricional') ||
-        checkTitle.includes('meta diaria') ||
-        checkTitle.includes('suplemento')
+        titleLower.includes('suplementacao') ||
+        titleLower.includes('gasto estimado')
       ) {
         return;
       }
