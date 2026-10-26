@@ -1462,13 +1462,13 @@ function parseDietaEstruturada(rawText) {
     const cleanAba = rawAba.trim();
     if (!cleanAba || cleanAba === '---') return;
 
-    let abaNome = `Ciclo ${abaIdx + 1}`;
+    let abaNome = "DIETA BASE";
     let abaDias = "";
     let textContent = cleanAba;
 
     if (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
       const linesAba = cleanAba.split('\n');
-      abaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim();
+      abaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim() || `Ciclo ${abaIdx + 1}`;
 
       let startIdx = 1;
       if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
@@ -1486,7 +1486,7 @@ function parseDietaEstruturada(rawText) {
       let clean = bloco.trim();
       if (!clean) return;
 
-      clean = clean.replace(/^\[\s*REFEIÇÃO\s*\]\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
+      clean = clean.replace(/^\[?\s*REFEIÇÃO\s*\]?\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
 
       const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '');
       if (lines.length === 0) return;
@@ -1494,7 +1494,7 @@ function parseDietaEstruturada(rawText) {
       let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
       const titleLower = title.toLowerCase();
 
-      // FILTRO INTELIGENTE: Reconhece e separa 'Meta Diaria' e 'Suplementos' sem colchetes
+      // FILTRO DE CABEÇALHOS GERAIS
       if (
         titleLower.includes('plano alimentar') || 
         titleLower.includes('resumo nutricional') ||
@@ -1507,7 +1507,6 @@ function parseDietaEstruturada(rawText) {
         titleLower.includes('suplementação') ||
         titleLower.includes('suplementacao')
       ) {
-        // Armazena no resumo/suplementos do topo em vez de transformar em prato
         lines.forEach(l => {
           const lLower = l.toLowerCase();
           if (lLower.includes('meta') || lLower.includes('calórica') || lLower.includes('água') || lLower.includes('gasto')) {
