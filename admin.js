@@ -732,7 +732,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-2. Série de Reconhecimento (Feeder Set)
+​2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
@@ -1494,7 +1494,7 @@ function parseDietaEstruturada(rawText) {
       let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
       const titleLower = title.toLowerCase();
 
-      // FILTRO DE CABEÇALHOS GERAIS
+      // FILTRO DE CABEÇALHOS GERAIS DE RESUMO/SUPLEMENTAÇÃO
       if (
         titleLower.includes('plano alimentar') || 
         titleLower.includes('resumo nutricional') ||
@@ -1505,34 +1505,19 @@ function parseDietaEstruturada(rawText) {
         titleLower.includes('suplemento') ||
         titleLower.includes('suplementos') ||
         titleLower.includes('suplementação') ||
-        titleLower.includes('suplementacao')
+        titleLower.includes('suplementacao') ||
+        titleLower.includes('gasto estimado')
       ) {
         lines.forEach(l => {
           const lLower = l.toLowerCase();
-          if (lLower.includes('meta') || lLower.includes('calórica') || lLower.includes('água') || lLower.includes('gasto')) {
+          if (lLower.includes('meta') || lLower.includes('calórica') || lLower.includes('água') || lLower.includes('gasto') || lLower.includes('proteínas') || lLower.includes('carboidratos') || lLower.includes('gorduras')) {
             resumoAdminText += l + '\n';
           } else if (l.startsWith('-') || l.startsWith('•')) {
             suplementos.push(l.replace(/^[-•*]\s*/, '').trim());
           }
         });
 
-        if (lines.length > 1) {
-          lines.shift();
-          title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
-        } else {
-          return;
-        }
-      }
-
-      const checkTitle = title.toLowerCase();
-      if (
-        !title || 
-        checkTitle.includes('plano alimentar') ||
-        checkTitle.includes('resumo nutricional') ||
-        checkTitle.includes('meta diaria') ||
-        checkTitle.includes('suplemento')
-      ) {
-        return;
+        return; // Pula este bloco para não gerar cartão fantasma
       }
 
       let days = "";
