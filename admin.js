@@ -390,7 +390,6 @@ async function carregarAluno(code) {
 
     document.getElementById('editDataVigencia').value = currentStudentData.data_vigencia || '';
 
-    // Módulos e Permissões
     document.getElementById('editLiberarDieta').checked = currentStudentData.liberarDieta !== false && !currentStudentData.apenasTreino;
     document.getElementById('editLiberarErgogenicos').checked = currentStudentData.liberarErgogenicos === true;
 
@@ -542,24 +541,86 @@ function renderResumoVisaoGeral() {
   }
 
   htmlContent += `<div class="section-subtitle">🥗 PLANO ALIMENTAR / DIETA</div>`;
-  const refeicoes = currentStudentData.refeicoes || [];
-
-  if (refeicoes.length === 0 || currentStudentData.liberarDieta === false) {
-    htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">${currentStudentData.liberarDieta === false ? 'Aba Dieta bloqueada para o aluno.' : 'Nenhuma dieta cadastrada.'}</p>`;
+  
+  if (currentStudentData.liberarDieta === false) {
+    htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Aba Dieta bloqueada para o aluno.</p>`;
   } else {
-    refeicoes.forEach((ref, refIdx) => {
-      htmlContent += `
-        <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_ref_${refIdx}')">
-          <div>
-            <b style="color:var(--gold)">🍽 ${escapeHtml(ref.titulo || 'Refeição')}</b>
+    let textoDietaRaw = "";
+    const refeicoes = currentStudentData.refeicoes || [];
+    
+    if (typeof refeicoes === 'string') {
+      textoDietaRaw = refeicoes;
+    } else if (Array.isArray(refeicoes)) {
+      refeicoes.forEach(ref => {
+        if (typeof ref === 'string') {
+          textoDietaRaw += `${ref}\n\n`;
+        } else {
+          textoDietaRaw += `${ref.titulo ? ref.titulo + '\n' : ''}${ref.alimentos || ''}\n\n`;
+        }
+      });
+    }
+
+    const { resumoAdminText, suplementos, abas } = parseDietaEstruturada(textoDietaRaw);
+
+    if (!resumoAdminText && suplementos.length === 0 && abas.length === 0) {
+      htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhuma dieta cadastrada.</p>`;
+    } else {
+      if (resumoAdminText) {
+        htmlContent += `
+          <div style="background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:10px; font-size:12px; color:#fff;">
+            <b style="color:var(--gold); font-size:13px;">📊 METAS DIÁRIAS (CALORIAS & ÁGUA):</b>
+            <div style="margin-top:6px; white-space:pre-line;">${escapeHtml(resumoAdminText)}</div>
           </div>
-          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Alimentos ▾</span>
-        </div>
-        <div id="resumo_ref_${refIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff; white-space:pre-line;">
-          ${escapeHtml(ref.alimentos || 'Nenhum alimento cadastrado.')}
-        </div>
-      `;
-    });
+        `;
+      }
+
+      if (suplementos.length > 0) {
+        htmlContent += `
+          <div style="background:#050d1a; border:1px solid #60a5fa; border-radius:10px; padding:12px; margin-bottom:10px; font-size:12px; color:#fff;">
+            <b style="color:#60a5fa; font-size:13px;">💊 SUPLEMENTAÇÃO DIÁRIA:</b>
+            <ul style="margin-top:6px; margin-left:16px;">
+              ${suplementos.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (abas.length > 0) {
+        abas.forEach((abaObj, abaIdx) => {
+          htmlContent += `
+            <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_aba_${abaIdx}')" style="border-left: 3px solid var(--gold);">
+              <div>
+                <b style="color:var(--gold)">📋 ${escapeHtml(abaObj.abaNome || 'CICLO / DIETA BASE')}</b>
+                ${abaObj.abaDias ? `<div style="font-size:11px; color:var(--blue); font-weight:700; margin-top:2px;">${escapeHtml(abaObj.abaDias)}</div>` : ''}
+              </div>
+              <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Refeições ▾</span>
+            </div>
+            <div id="resumo_aba_${abaIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff;">
+          `;
+
+          (abaObj.meals || []).forEach((ref) => {
+            htmlContent += `
+              <div style="margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #1f080e;">
+                <b style="color:var(--gold)">🍽 ${escapeHtml(ref.mealTitle || 'Refeição')}</b>
+                <div style="margin-top:4px;">
+                  ${ref.baseItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
+                </div>
+                ${ref.trocasCarbo.length > 0 ? `
+                  <div style="margin-top:4px; color:#60a5fa; font-weight:700; font-size:11px;">🌾 Trocas Carbo:</div>
+                  ${ref.trocasCarbo.map(sub => `<div style="font-size:11px; color:#93c5fd;">🔄 ${escapeHtml(sub)}</div>`).join('')}
+                ` : ''}
+                ${ref.trocasProt.length > 0 ? `
+                  <div style="margin-top:4px; color:#25d366; font-weight:700; font-size:11px;">🥩 Trocas Prot/Gord:</div>
+                  ${ref.trocasProt.map(sub => `<div style="font-size:11px; color:#86efac;">🔄 ${escapeHtml(sub)}</div>`).join('')}
+                ` : ''}
+              </div>
+            `;
+          });
+
+          htmlContent += `</div>`;
+        });
+      }
+    }
   }
 
   htmlContent += `<div class="section-subtitle">🏃 AERÓBICO & CORRIDA</div>`;
@@ -1494,7 +1555,6 @@ function parseDietaEstruturada(rawText) {
       let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
       const titleLower = title.toLowerCase();
 
-      // FILTRO DE CABEÇALHOS GERAIS DE RESUMO/SUPLEMENTAÇÃO
       if (
         titleLower.includes('plano alimentar') || 
         titleLower.includes('resumo nutricional') ||
@@ -1517,7 +1577,7 @@ function parseDietaEstruturada(rawText) {
           }
         });
 
-        return; // Pula este bloco para não gerar cartão fantasma
+        return;
       }
 
       let days = "";
