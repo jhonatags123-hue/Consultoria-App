@@ -1974,27 +1974,31 @@ function parseDietaAluno(rawText) {
       textContent = linesAba.slice(startIdx).join('\n').trim();
     }
 
-    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|🍽|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
     const rawMeals = textContent.split(regexTitulosRefeicao);
     const meals = [];
 
     rawMeals.forEach(bloco => {
-      const clean = bloco.trim();
+      let clean = bloco.trim();
       if (!clean) return;
+
+      clean = clean.replace(/^\[\s*REFEIÇÃO\s*\]\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
 
       const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
       if (lines.length === 0) return;
 
-      let title = lines[0].replace(/^\[.*?\]\s*/, '').trim();
+      let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
 
-      if (title.toLowerCase() === 'plano alimentar') {
+      if (title.toLowerCase().includes('plano alimentar') || title.toLowerCase().includes('resumo nutricional')) {
         if (lines.length > 1) {
-          title = lines[1].replace(/^\[.*?\]\s*/, '').trim();
-          lines.splice(0, 1);
+          lines.shift();
+          title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
         } else {
           return;
         }
       }
+
+      if (!title || title.toLowerCase().includes('plano alimentar')) return;
 
       let days = "";
       const baseItems = [];
@@ -2029,13 +2033,15 @@ function parseDietaAluno(rawText) {
         }
       });
 
-      meals.push({
-        mealTitle: title,
-        days: days,
-        baseItems: baseItems,
-        trocasCarbo: trocasCarbo,
-        trocasProt: trocasProt
-      });
+      if (title && (baseItems.length > 0 || trocasCarbo.length > 0 || trocasProt.length > 0)) {
+        meals.push({
+          mealTitle: title,
+          days: days,
+          baseItems: baseItems,
+          trocasCarbo: trocasCarbo,
+          trocasProt: trocasProt
+        });
+      }
     });
 
     if (meals.length > 0) {
@@ -2074,7 +2080,7 @@ function renderDietaAluno(refeicoesData) {
     rawText = refeicoesData;
   }
 
-  // Extração única e limpa de Metas e Suplementação
+  // Extração única de Metas e Suplementação
   let cleanText = rawText.trim();
   let metasTexto = "";
   let suplementosList = [];
