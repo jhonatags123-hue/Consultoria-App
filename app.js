@@ -1,7 +1,6 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
-// Mapeamento dos Links de Checkout do Asaas
 const CHECKOUT_LINKS = {
   COMPLETA_TRIMESTRAL: {
     cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57",
@@ -1990,7 +1989,6 @@ function parseDietaAluno(rawText) {
       let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
       const titleLower = title.toLowerCase();
 
-      // Ignora blocos inteiros que pertencem ao resumo de metas ou suplementos
       if (
         titleLower.includes('plano alimentar') || 
         titleLower.includes('resumo nutricional') ||
@@ -2087,7 +2085,6 @@ function renderDietaAluno(refeicoesData) {
     rawText = refeicoesData;
   }
 
-  // Extração única de Metas e Suplementação
   let cleanText = rawText.trim();
   let metasTexto = "";
   let suplementosList = [];
@@ -2103,18 +2100,31 @@ function renderDietaAluno(refeicoesData) {
     let emSuplementos = false;
 
     linhas.forEach(linha => {
-      if (linha.includes('[SUPLEMENTAÇÃO DIÁRIA]') || linha.toLowerCase().includes('suplementação')) {
+      const linhaLower = linha.toLowerCase().trim();
+
+      if (
+        linhaLower.includes('plano alimentar') || 
+        linhaLower.includes('refeição]') || 
+        linhaLower.includes('[refeição]') ||
+        linhaLower.startsWith('🍽')
+      ) {
+        return;
+      }
+
+      if (
+        linhaLower.includes('[suplementação diária]') || 
+        linhaLower.includes('suplementação')
+      ) {
         emSuplementos = true;
         return;
       }
+
       if (emSuplementos) {
         if (linha.startsWith('-') || linha.startsWith('•')) {
           suplementosList.push(linha.replace(/^[-•*]\s*/, '').trim());
         }
       } else {
-        if (!linha.startsWith('🍽 Refeição')) {
-          metasTexto += linha + '\n';
-        }
+        metasTexto += linha + '\n';
       }
     });
   }
@@ -2159,7 +2169,6 @@ function renderDietaAluno(refeicoesData) {
     });
   }
 
-  // CONTAINER CONECTADO E COMPACTO DE METAS + SUPLEMENTOS
   if (metasTexto.trim() || suplementosList.length > 0) {
     const boxConectado = document.createElement('div');
     boxConectado.style.cssText = "background: #0d0204; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;";
@@ -2200,7 +2209,6 @@ function renderDietaAluno(refeicoesData) {
     categoryList.appendChild(boxConectado);
   }
 
-  // REFEIÇÕES DO DIA
   const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
   if (currentAba && currentAba.meals) {
     currentAba.meals.forEach((meal, idx) => {
