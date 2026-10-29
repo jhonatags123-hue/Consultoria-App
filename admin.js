@@ -295,7 +295,10 @@ function renderStudentsList(list) {
     return;
   }
 
-  list.forEach((aluno, i) => {
+  const alunosRegulares = list.filter(a => !(a.isento === true || a.status_pagamento === 'isento'));
+  const alunosVip = list.filter(a => a.isento === true || a.status_pagamento === 'isento');
+
+  const criarItemAluno = (aluno, i) => {
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
     let statusClass = "status-pago";
     let statusText = aluno.status_pagamento || "pago";
@@ -313,7 +316,7 @@ function renderStudentsList(list) {
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
 
     const div = document.createElement('div');
-    div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
+    div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
     div.innerHTML = `
       <div>
         <b>${escapeHtml(aluno.nome)}</b> ${badgePendenteHtml}<br>
@@ -329,8 +332,40 @@ function renderStudentsList(list) {
       div.classList.add('active');
       carregarAluno(aluno.codigo);
     };
-    container.appendChild(div);
+    return div;
+  };
+
+  alunosRegulares.forEach((aluno, index) => {
+    container.appendChild(criarItemAluno(aluno, index));
   });
+
+  if (alunosVip.length > 0) {
+    const headerVip = document.createElement('div');
+    headerVip.style.cssText = `
+      margin-top: 18px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      background: rgba(220, 170, 58, 0.1);
+      border-left: 3px solid var(--gold);
+      border-radius: 4px;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `;
+    headerVip.innerHTML = `
+      <span>👑 ALUNOS VIPS / ISENTOS</span>
+      <span style="font-size:10px; opacity:0.8;">(${alunosVip.length})</span>
+    `;
+    container.appendChild(headerVip);
+
+    alunosVip.forEach((aluno) => {
+      container.appendChild(criarItemAluno(aluno, -1));
+    });
+  }
 
   if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
 }
