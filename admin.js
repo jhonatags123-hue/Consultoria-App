@@ -60,11 +60,9 @@ function parsePreco(valorRaw) {
   if (valorRaw === null || valorRaw === undefined) return 0;
   if (typeof valorRaw === 'number') return isNaN(valorRaw) ? 0 : valorRaw;
   
-  // Limpa R$, espaços e letras, mantendo vírgulas e pontos
   let str = String(valorRaw).trim().replace(/[^\d.,]/g, '');
   if (!str) return 0;
 
-  // Trata formato com vírgula como decimal
   if (str.includes(',') && !str.includes('.')) {
     str = str.replace(',', '.');
   } else if (str.includes(',') && str.includes('.')) {
@@ -81,9 +79,11 @@ function extrairPrecoAluno(aluno) {
             aluno.valorMensal ?? 
             aluno.valor ?? 
             aluno.preco ?? 
+            aluno.dadosAnamnese?.valor_mensalidade ??
             aluno.payload?.valor_mensalidade ?? 
             aluno.payload?.valorMensal ?? 
-            aluno.payload?.valor ?? 0;
+            aluno.payload?.valor ?? 
+            aluno.payload?.dadosAnamnese?.valor_mensalidade ?? 0;
   return parsePreco(v);
 }
 
@@ -225,7 +225,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E NOVOS ALUNOS */
+/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E NOVOS ALUNOS CORRIGIDO */
 function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('financeiroDashboardContent');
   if (!container) return;
@@ -249,14 +249,19 @@ function renderTelaFinanceiroExclusiva() {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
     const valor = extrairPrecoAluno(aluno);
 
-    // Verificação de cadastro no mês atual
-    const dtCriacaoStr = aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.created_at;
+    // Verificação de data de início/cadastro no mês atual
+    const dtCriacaoStr = aluno.data_inicio || aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.data_inicio || aluno.payload?.created_at;
     if (dtCriacaoStr) {
-      const dtCriacao = new Date(dtCriacaoStr);
-      if (!isNaN(dtCriacao.getTime()) && dtCriacao.getMonth() === mesAtual && dtCriacao.getFullYear() === anoAtual) {
-        novosAlunosMesCount++;
-        if (!ehIsento) {
-          faturamentoNovosAlunos += valor;
+      const parteData = String(dtCriacaoStr).split('T')[0].split('-');
+      if (parteData.length === 3) {
+        const anoCad = parseInt(parteData[0], 10);
+        const mesCad = parseInt(parteData[1], 10) - 1;
+
+        if (mesCad === mesAtual && anoCad === anoAtual) {
+          novosAlunosMesCount++;
+          if (!ehIsento) {
+            faturamentoNovosAlunos += valor;
+          }
         }
       }
     }
@@ -641,7 +646,6 @@ async function carregarAluno(code) {
 
     document.getElementById('studentName').textContent = currentStudentData.clientName || code;
     document.getElementById('studentCodeDisplay').textContent = `@${code}`;
-    document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
 
     const infoCalculada = calcularDiasRestantes(currentStudentData.data_expiracao, currentStudentData.dia_vencimento, currentStudentData.isento, currentStudentData.status_pagamento);
     document.getElementById('studentVencimentoDisplay').textContent = `📅 Vencimento: ${infoCalculada.dataFormatada}`;
@@ -681,6 +685,13 @@ async function carregarAluno(code) {
     document.getElementById('editPassword').value = '';
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     
+    // PREENCHE A DATA DE INÍCIO DA CONSULTORIA
+    const inputDataInicio = document.getElementById('editDataInicio');
+    if (inputDataInicio) {
+      const dtInicioRaw = currentStudentData.data_inicio || currentStudentData.created_at || '';
+      inputDataInicio.value = dtInicioRaw ? String(dtInicioRaw).split('T')[0] : '';
+    }
+
     const inputValor = document.getElementById('editValorMensalidade');
     if (inputValor) inputValor.value = extrairPrecoAluno(currentStudentData) || '';
 
@@ -2044,11 +2055,17 @@ async function salvarConfiguracoesConta() {
   if (!currentStudentData) return;
 
   const precoDigitado = parsePreco(document.getElementById('editValorMensalidade').value);
+  const dataInicioDigitada = document.getElementById('editDataInicio').value;
 
   currentStudentData.clientName = document.getElementById('editName').value.trim();
   currentStudentData.valor_mensalidade = precoDigitado;
   currentStudentData.valorMensal = precoDigitado;
   
+  if (dataInicioDigitada) {
+    currentStudentData.data_inicio = dataInicioDigitada;
+    currentStudentData.created_at = dataInicioDigitada;
+  }
+
   const isentoVal = document.getElementById('editIsentoCheckbox').checked;
   currentStudentData.isento = isentoVal;
 
@@ -2325,6 +2342,7 @@ async function salvarNovoAlunoBloco() {
   const codigo = document.getElementById('newCode').value.trim().toLowerCase();
   const rawW = document.getElementById('rawWorkout').value.trim();
   const rawD = document.getElementById('rawDiet').value.trim();
+  const inputDataInicio = document.getElementById('newDataInicio').value;
   
   const valorMensal = parsePreco(document.getElementById('newValorMensalidade').value);
 
@@ -2333,6 +2351,8 @@ async function salvarNovoAlunoBloco() {
   const parsedDays = parseWorkoutText(rawW);
 
   const hoje = new Date();
+  const dataInicioFinal = inputDataInicio || hoje.toISOString().split('T')[0];
+
   hoje.setDate(hoje.getDate() + 30);
   
   const anoFmt = hoje.getFullYear();
@@ -2345,6 +2365,8 @@ async function salvarNovoAlunoBloco() {
     status_pagamento: 'pago',
     isento: false,
     dia_vencimento: hoje.getDate(),
+    data_inicio: dataInicioFinal,
+    created_at: dataInicioFinal,
     data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
     valor_mensalidade: valorMensal,
     valorMensal: valorMensal,
