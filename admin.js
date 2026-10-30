@@ -55,12 +55,24 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* BUSCA PROFUNDA DE VALORES PARA EVITAR R$ 0.00 QUANDO O CAMPO VIER DENTRO DO PAYLOAD */
+/* PARSER RESISTENTE A QUALQUER FORMATO NUMÉRICO */
 function parsePreco(valorRaw) {
   if (valorRaw === null || valorRaw === undefined) return 0;
-  if (typeof valorRaw === 'number') return valorRaw;
-  const limpo = String(valorRaw).replace(/[^\d.,]/g, '').replace(',', '.');
-  return parseFloat(limpo) || 0;
+  if (typeof valorRaw === 'number') return isNaN(valorRaw) ? 0 : valorRaw;
+  
+  // Limpa R$, espaços e letras, mantendo vírgulas e pontos
+  let str = String(valorRaw).trim().replace(/[^\d.,]/g, '');
+  if (!str) return 0;
+
+  // Trata formato com vírgula como decimal
+  if (str.includes(',') && !str.includes('.')) {
+    str = str.replace(',', '.');
+  } else if (str.includes(',') && str.includes('.')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  }
+
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
 }
 
 function extrairPrecoAluno(aluno) {
@@ -213,7 +225,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* RENDEREZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E SOMA DE VALORES */
+/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E NOVOS ALUNOS */
 function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('financeiroDashboardContent');
   if (!container) return;
@@ -223,12 +235,31 @@ function renderTelaFinanceiroExclusiva() {
   let totalPendente = 0;
   let totalPagantes = 0;
 
+  let novosAlunosMesCount = 0;
+  let faturamentoNovosAlunos = 0;
+
   const listaPendentes = [];
   const listaIsentos = [];
+
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
 
   allStudentsList.forEach(aluno => {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
     const valor = extrairPrecoAluno(aluno);
+
+    // Verificação de cadastro no mês atual
+    const dtCriacaoStr = aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.created_at;
+    if (dtCriacaoStr) {
+      const dtCriacao = new Date(dtCriacaoStr);
+      if (!isNaN(dtCriacao.getTime()) && dtCriacao.getMonth() === mesAtual && dtCriacao.getFullYear() === anoAtual) {
+        novosAlunosMesCount++;
+        if (!ehIsento) {
+          faturamentoNovosAlunos += valor;
+        }
+      }
+    }
 
     if (ehIsento) {
       listaIsentos.push(aluno);
@@ -260,25 +291,31 @@ function renderTelaFinanceiroExclusiva() {
       <div class="fin-card bruto">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
         <div class="fin-val" style="color:var(--gold);">R$ ${totalBruto.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado mensalmente (${totalPagantes} pagantes)</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado (${totalPagantes} pagantes)</small>
       </div>
 
       <div class="fin-card pago">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">RECEBIDO NO MÊS (PAGO)</small>
         <div class="fin-val" style="color:var(--green);">R$ ${totalRecebido.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Dinheiro garantido no caixa</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Garantido no caixa</small>
       </div>
 
       <div class="fin-card pendente">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">PENDÊNCIAS / EM ATRASO</small>
         <div class="fin-val" style="color:var(--accent);">R$ ${totalPendente.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">A receber de alunos pendentes</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">A receber de pendentes</small>
+      </div>
+
+      <div class="fin-card novos">
+        <small style="color:var(--muted); font-weight:800; font-size:11px;">NOVOS ALUNOS NO MÊS</small>
+        <div class="fin-val" style="color:var(--purple);">+${novosAlunosMesCount}</div>
+        <small style="color:var(--purple); font-size:11px; font-weight:700; margin-top:4px; display:block;">+R$ ${faturamentoNovosAlunos.toFixed(2)} /mês somados</small>
       </div>
 
       <div class="fin-card ticket">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">TICKET MÉDIO POR ALUNO</small>
         <div class="fin-val" style="color:var(--blue);">R$ ${ticketMedio.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por aluno pagante</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por pagante</small>
       </div>
     </div>
 
@@ -318,7 +355,7 @@ function renderTelaFinanceiroExclusiva() {
   `;
 }
 
-/* MANTER SIDEBAR DE ALUNOS SEMPRE VISÍVEL EM TODAS AS ABAS */
+/* NAVEGAÇÃO ENTRE ABAS COM SIDEBAR SEMPRE VISÍVEL */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -334,8 +371,6 @@ function switchTab(tab) {
   if (tab === 'financeiro') {
     const el = document.getElementById('secFinanceiro');
     if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tabFinanceiro');
-    if (tabBtn) tabBtn.classList.add('active');
     renderTelaFinanceiroExclusiva();
   } else if (tab === 'resumo') {
     const el = document.getElementById('secResumo');
