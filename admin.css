@@ -1,11 +1,11 @@
 /* ==========================================================================
-   VARIAVEIS DE CORES E TEMA (JHONATA CONSULTORIA)
+   ESTILOS EXATOS DO PAINEL ORIGINAL (JHONATA CONSULTORIA)
    ========================================================================== */
 :root {
-  --bg-main: #0a0204;
-  --bg-card: #100305;
-  --bg-input: #190509;
-  --border: #2e0a12;
+  --bg-main: #000000;
+  --bg-card: #0d0205;
+  --bg-input: #140307;
+  --border: #2a0810;
   --gold: #dcaa3a;
   --gold-hover: #f3be47;
   --accent: #e63946;
@@ -17,9 +17,6 @@
   --font-main: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* ==========================================================================
-   RESET BASE
-   ========================================================================== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -31,75 +28,56 @@ body.admin-body {
   background-color: var(--bg-main);
   color: var(--text);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
-/* Utilitários de visibilidade */
-.hidden {
-  display: none !important;
-}
+.hidden { display: none !important; }
+.full-width { width: 100%; }
 
-.full-width {
-  width: 100%;
-}
-
-/* ==========================================================================
-   TOASTS / NOTIFICAÇÕES
-   ========================================================================== */
+/* TOASTS */
 .toast-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
+  top: 15px;
+  right: 15px;
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
 .toast {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 12px 18px;
+  background: #140307;
+  border: 1px solid var(--gold);
+  color: #fff;
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-  transition: all 0.3s ease;
+  gap: 8px;
 }
 
-.toast.success { border-left: 4px solid var(--green); }
-.toast.error { border-left: 4px solid var(--accent); }
-.toast.info { border-left: 4px solid var(--gold); }
-
-/* ==========================================================================
-   TELA DE LOGIN
-   ========================================================================== */
+/* LOGIN */
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 20px;
-  background: radial-gradient(circle, #25050e 0%, var(--bg-main) 100%);
+  padding: 15px;
+  background: #000000;
 }
 
 .login-box {
   background: var(--bg-card);
-  border: 1px solid var(--gold);
-  border-radius: 16px;
-  padding: 30px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
   width: 100%;
-  max-width: 380px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  max-width: 360px;
 }
 
 .login-header h2 {
   color: var(--gold);
-  font-size: 20px;
+  font-size: 18px;
   text-align: center;
   margin-bottom: 4px;
 }
@@ -108,32 +86,20 @@ body.admin-body {
   color: var(--muted);
   font-size: 12px;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
-.login-error {
-  background: rgba(230, 57, 70, 0.15);
-  color: var(--accent);
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 12px;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-/* ==========================================================================
-   ELEMENTOS DE FORMULÁRIO & BOTÕES
-   ========================================================================== */
+/* FORMULÁRIOS & CAMPOS */
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .form-group label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text);
 }
 
@@ -146,129 +112,110 @@ textarea {
   background: var(--bg-input);
   border: 1px solid var(--border);
   color: #fff;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
-  transition: border 0.2s;
+  width: 100%;
 }
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--gold);
 }
 
-/* Botões Estilizados */
+/* BOTÕES GERAIS */
 button {
   cursor: pointer;
   border: none;
   border-radius: 8px;
   font-weight: 700;
   font-size: 12px;
-  padding: 10px 14px;
+  padding: 9px 12px;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .btn-primary, .btn-gold {
   background: var(--gold);
   color: #000;
 }
-.btn-primary:hover, .btn-gold:hover {
-  background: var(--gold-hover);
-}
 
 .btn-secondary {
-  background: #20070e;
+  background: #120306;
   border: 1px solid var(--border);
-  color: var(--text);
-}
-.btn-secondary:hover {
-  border-color: var(--gold);
-}
-
-.btn-danger {
-  background: rgba(230, 57, 70, 0.2);
-  border: 1px solid var(--accent);
-  color: var(--accent);
-}
-.btn-danger:hover {
-  background: var(--accent);
   color: #fff;
 }
 
+.btn-danger {
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
 button.sm {
-  padding: 6px 10px;
+  padding: 5px 8px;
   font-size: 11px;
 }
 
-/* ==========================================================================
-   ESTRUTURA PRINCIPAL (LAYOUT ADMIN)
-   ========================================================================== */
-.admin-app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
+/* CABEÇALHO DO PAINEL */
 .admin-header {
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
+  background: #000000;
+  padding: 12px 14px;
 }
 
 .header-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .brand-title {
   font-weight: 900;
-  font-size: 16px;
+  font-size: 17px;
   color: var(--gold);
   letter-spacing: 0.5px;
 }
 
 .brand-badge {
-  background: rgba(220, 170, 58, 0.15);
+  background: rgba(220, 170, 58, 0.2);
   color: var(--gold);
   font-size: 10px;
-  padding: 2px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-weight: 800;
 }
 
 .active-student-bar {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  background: #080103;
-  padding: 12px 16px;
+  background: var(--bg-card);
+  padding: 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-}
-
-.student-info h3 {
-  color: #fff;
-  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .student-label {
   font-size: 10px;
   color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.student-info h3 {
+  color: #fff;
+  font-size: 16px;
+  margin-top: 2px;
 }
 
 .student-badges {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -278,7 +225,7 @@ button.sm {
   flex-wrap: wrap;
 }
 
-/* Pills de Status */
+/* STATUS PILLS */
 .status-pill {
   padding: 4px 8px;
   border-radius: 6px;
@@ -286,48 +233,35 @@ button.sm {
   font-weight: 800;
   text-transform: uppercase;
 }
-.status-pago { background: rgba(37, 211, 102, 0.15); color: var(--green); border: 1px solid var(--green); }
-.status-pendente { background: rgba(230, 57, 70, 0.15); color: var(--accent); border: 1px solid var(--accent); }
-.status-isento { background: rgba(220, 170, 58, 0.15); color: var(--gold); border: 1px solid var(--gold); }
-.status-alerta { background: rgba(243, 190, 71, 0.15); color: #f3be47; border: 1px solid #f3be47; }
+.status-pago { background: rgba(37, 211, 102, 0.2); color: var(--green); border: 1px solid var(--green); }
+.status-pendente { background: rgba(230, 57, 70, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+.status-isento { background: rgba(220, 170, 58, 0.2); color: var(--gold); border: 1px solid var(--gold); }
 
-/* Corpo Principal (Sidebar + Conteúdo) */
+/* LAYOUT PRINCIPAL */
 .admin-layout {
   display: flex;
-  flex: 1;
-  overflow: hidden;
+  flex-direction: column;
+  padding: 12px;
+  gap: 14px;
 }
 
-/* ==========================================================================
-   SIDEBAR (BARRA LATERAL)
-   ========================================================================== */
 .admin-sidebar {
-  width: 320px;
-  min-width: 320px;
-  background: var(--bg-card);
-  border-right: 1px solid var(--border);
-  padding: 14px;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
-
-.sidebar-search input {
-  width: 100%;
+  gap: 10px;
 }
 
 .students-list {
-  flex: 1;
-  max-height: 40vh;
+  max-height: 200px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-right: 4px;
 }
 
 .student-item {
-  background: #080103;
+  background: var(--bg-card);
   border: 1px solid var(--border);
   padding: 10px 12px;
   border-radius: 8px;
@@ -335,23 +269,17 @@ button.sm {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.2s;
 }
 
-.student-item:hover, .student-item.active {
+.student-item.active {
   border-color: var(--gold);
-  background: #18040a;
+  background: #1a040b;
 }
 
-.student-item b {
-  font-size: 13px;
-  color: #fff;
-}
-
-/* Painel de Links na Sidebar (Sanfona) */
+/* LINHA DE LINKS NA SIDEBAR */
 .sidebar-links-wrapper {
-  background: #080103;
-  border: 1px solid var(--gold);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -364,7 +292,6 @@ button.sm {
   display: flex;
   justify-content: space-between;
   cursor: pointer;
-  background: rgba(220, 170, 58, 0.08);
 }
 
 .painel-links-conteudo {
@@ -389,35 +316,39 @@ button.sm {
   color: #000;
 }
 
-/* Botão Financeiro Sidebar */
+/* BOTÕES DESTACADOS DO CAIXA E NOVO ALUNO */
 .btn-finance-dashboard {
   width: 100%;
-  background: linear-gradient(135deg, #15803d 0%, #052e16 100%);
+  background: #0d4220;
   color: #fff;
-  border: 1px solid #22c55e;
+  border: 1px solid #1f8a42;
   padding: 12px;
   font-size: 12px;
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  border-radius: 8px;
 }
 
-/* ==========================================================================
-   ÁREA DE CONTEÚDO PRINCIPAL (ABAS E SEÇÕES)
-   ========================================================================== */
+.sidebar-footer-actions .btn-gold {
+  background: #e3ac34;
+  color: #000;
+  font-weight: 800;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* ÁREA DE CONTEÚDO E ABAS */
 .admin-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .admin-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   overflow-x: auto;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
 }
 
 .tab-btn {
@@ -425,222 +356,101 @@ button.sm {
   border: 1px solid var(--border);
   color: var(--muted);
   white-space: nowrap;
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
-.tab-btn.active, .tab-btn:hover {
+.tab-btn.active {
   border-color: var(--gold);
   color: var(--gold);
-  background: #1c050c;
+  background: #18040a;
 }
 
-.badge-dot {
-  width: 8px;
-  height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: inline-block;
-}
-
-/* Títulos de Seção */
-.section-title {
-  margin-bottom: 16px;
-}
-.section-title h2 {
-  font-size: 18px;
-  color: var(--gold);
-}
-.section-title p {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.section-subtitle {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--gold);
-  margin: 18px 0 10px 0;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ==========================================================================
-   CAIXA FINANCEIRO & CARDS
-   ========================================================================== */
+/* CARDS FINANCEIROS */
 .fin-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
 }
 
 .fin-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  padding: 16px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 10px;
 }
 
 .fin-card .fin-val {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-/* ==========================================================================
-   EDITORES (TREINO, DIETA E CORRIDA)
-   ========================================================================== */
+/* INCÔMODOS E ALERTAS */
+.incomodos-alert-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 10px;
+}
+
+/* REPOSITÓRIO E EDITORES */
 .workout-editor-grid, .diet-editor-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .ai-command-box, .ai-diet-panel {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   background: var(--bg-card);
-  padding: 12px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 8px;
   border: 1px solid var(--border);
-  margin-bottom: 16px;
-}
-
-.ai-command-box input, .ai-diet-panel input {
-  flex: 1;
 }
 
 .live-workout-preview, .diet-preview-list {
-  background: #080103;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  min-height: 400px;
-  max-height: 600px;
-  overflow-y: auto;
-}
-
-.diet-aba-filters {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-  overflow-x: auto;
-}
-
-.diet-aba-btn {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 250px;
 }
 
-.diet-aba-btn.active {
-  border-color: var(--gold);
-  color: var(--gold);
-}
-
-/* Módulo de Corrida */
 .run-schedule-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
 }
 
 .run-day-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  padding: 10px;
+  padding: 8px;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
-.run-day-card b {
-  color: var(--blue);
-  font-size: 11px;
-}
-
-.run-day-card input {
-  font-size: 11px;
-  padding: 6px;
-}
-
-/* Configuração & Permissões */
-.config-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.checkbox-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  cursor: pointer;
-  background: #080103;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-/* ==========================================================================
-   MODAIS & GRÁFICOS
-   ========================================================================== */
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.85);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 999;
-  padding: 20px;
+  padding: 15px;
 }
 
 .modal-chart {
   background: var(--bg-card);
-  border: 1px solid var(--gold);
-  border-radius: 16px;
-  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
   width: 100%;
-  max-width: 650px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.9);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.chart-container-box {
-  height: 250px;
-  position: relative;
-}
-
-/* RESPONSIVIDADE PARA DISPOSITIVOS MÓVEIS */
-@media (max-width: 900px) {
-  .admin-layout {
-    flex-direction: column;
-  }
-  
-  .admin-sidebar {
-    width: 100%;
-    min-width: 100%;
-  }
-
-  .workout-editor-grid, .diet-editor-grid {
-    grid-template-columns: 1fr;
-  }
+  max-width: 500px;
 }
