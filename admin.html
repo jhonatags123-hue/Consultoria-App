@@ -1,747 +1,606 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Painel de Gestão Restrito — Jhonata Personal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Admin Jhonata">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/2548/2548537.png">
-
-<style>
-  :root {
-    --bg: #090204;
-    --card: #150508;
-    --border: #330b13;
-    --accent: #c4324f;
-    --accent-dark: #841628;
-    --gold: #dcaa3a;
-    --gold-soft: #eac267;
-    --green: #25d366;
-    --orange: #f39c12;
-    --blue: #3b82f6;
-    --purple: #a855f7;
-    --text: #f8efec;
-    --muted: #a08086;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-  ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
-  html, body { height:100%; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
-  #adminApp { min-height:100vh; display:flex; flex-direction:column; }
-  #adminApp header { position:sticky; top:0; z-index:500; }
-
-  #loginScreen {
-    position: fixed; inset: 0;
-    background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 10000; padding: 20px;
-  }
-
-  .login-card {
-    background: linear-gradient(180deg, #1c060b, #120306);
-    border: 1px solid var(--border); border-top: 2px solid var(--gold);
-    border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center;
-  }
-  .login-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #fff; }
-  .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
-  .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
-
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
-  h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
-  .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
-
-  .layout { display:grid; grid-template-columns:300px 1fr; gap:20px; padding:20px clamp(16px, 2.5vw, 40px); max-width:none; width:100%; margin:0; flex:1; align-items:start; }
-
-  .panel-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
-  .panel-title { font-size:13px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
-
-  .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; position:relative; }
-  .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
-  .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
-
-  .day-accordion-header {
-    background: linear-gradient(135deg, #1f060c, #110205);
-    border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
-    margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; transition: all .2s ease;
-  }
-  .day-accordion-header:hover { border-color: var(--gold); }
-  .day-accordion-header b { font-size: 15px; color: #fff; }
-
-  .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
-  .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
-
-  .diet-aba-btn { background:#100305; border:1px solid var(--border); color:var(--muted); padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; transition:all .18s; }
-  .diet-aba-btn.active { background:var(--gold); color:#100305; border-color:var(--gold); font-weight:800; }
-
-  .meal-item-base { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-top:6px; }
-  .sub-item-box { background:#0a0204; border-left:3px solid var(--gold); padding:8px 10px; margin-top:4px; margin-left:10px; border-radius:6px; font-size:11.5px; color:#e0d0d3; }
-  .sub-item-box.carbo { border-left-color: #3b82f6; }
-  .sub-item-box.prot { border-left-color: #25d366; }
-
-  .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling: touch; }
-  .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; position:relative; }
-  .tab-btn:hover { border-color:var(--gold); color:#fff; }
-  .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
-
-  label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:10px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; text-align: left; }
-  input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:12px 14px; border-radius:10px; font-size:16px; transition:border-color .18s; }
-  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
-  textarea { resize:vertical; font-family:'Inter',sans-serif; }
-
-  .btn { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800; border:none; padding:12px 18px; border-radius:10px; font-size:12px; cursor:pointer; width:100%; text-transform:uppercase; letter-spacing:0.03em; transition:transform .15s ease; box-shadow:0 4px 12px rgba(212,160,42,0.2); }
-  .btn:hover { transform:translateY(-1px); }
-  .btn-danger { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; box-shadow:0 4px 12px rgba(196,50,79,0.3); }
-  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; box-shadow:0 4px 12px rgba(37,211,102,0.2); }
-  .btn-blue { background:linear-gradient(135deg, #60a5fa, #3b82f6); color:#04142d; box-shadow:0 4px 12px rgba(59,130,246,0.2); }
-  .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
-
-  .hidden { display:none !important; }
-  .status-pill { display:inline-block; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; text-align:center; }
-  .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
-  .status-alerta { background:rgba(243,156,18,0.15); color:var(--orange); border:1px solid var(--orange); }
-  .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
-  .status-isento { background:rgba(220,170,58,0.15); color:var(--gold); border:1px solid var(--gold); }
-
-  .feedback-badge {
-    background: #dcaa3a; color: #000; font-size: 9px; font-weight: 900;
-    padding: 2px 6px; border-radius: 10px; text-transform: uppercase;
-    letter-spacing: 0.5px; animation: pulseBadge 1.5s infinite alternate;
-  }
-  @keyframes pulseBadge {
-    from { opacity: 0.7; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1.05); }
-  }
-
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
-  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; }
-
-  .senha-row { display:flex; gap:8px; align-items:flex-end; }
-  .senha-row > div:first-child { flex:1; }
-
-  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
-  .preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
-
-  .ai-insight-box {
-    background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
-    border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px;
-    margin-bottom: 14px; font-size: 12px; line-height: 1.5; color: var(--text);
-  }
-
-  .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
-  .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
-
-  .run-week-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .run-day-card { background: #0d0204; border: 1px solid var(--border); border-left: 3px solid var(--blue); border-radius: 10px; padding: 12px; }
-  .run-day-card b { color: var(--blue); font-size: 12px; text-transform: uppercase; }
-
-  .tutorial-box { background: #100305; border: 1px solid var(--border); border-left: 3px solid var(--gold); padding: 10px; border-radius: 8px; font-size: 11px; margin-top: 12px; }
-  .tutorial-box a { color: var(--gold); text-decoration: none; font-weight: 700; }
-  .tutorial-box a:hover { text-decoration: underline; }
-
-  .section-subtitle { font-size:12px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin: 20px 0 10px 0; border-bottom:1px solid var(--border); padding-bottom:6px; }
-
-  #toastContainer {
-    position: fixed; top: 20px; right: 20px; z-index: 100000;
-    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
-  }
-  .toast {
-    pointer-events: auto; background: var(--card); border: 1px solid var(--gold);
-    color: #fff; padding: 12px 18px; border-radius: 12px; font-size: 13px;
-    font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.8);
-    display: flex; align-items: center; gap: 10px; transition: all 0.3s ease;
-    animation: toastIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  .toast.error { border-color: var(--accent); background: #20050c; }
-  .toast.success { border-color: var(--green); background: #051a0e; }
-  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-  .gif-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto; margin-top: 10px; }
-  .gif-card { background: #0d0204; border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
-  .gif-card img { width: 100%; height: 90px; object-fit: cover; border-radius: 6px; }
-  .gif-card span { font-size: 11px; color: #fff; font-weight: 600; display: block; margin-top: 4px; }
-
-  .link-box-item {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #0d0502; border: 1px solid rgba(220,170,58,0.3);
-    padding: 8px 12px; border-radius: 8px; margin-bottom: 6px;
-  }
-  .btn-copy-link {
-    background: var(--gold); color: #1a0b02; border: none; font-weight: 700;
-    font-size: 11px; padding: 6px 10px; border-radius: 6px; cursor: pointer;
-  }
-
-  .toggle-switch-box {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #0d0204; border: 1px solid var(--border);
-    padding: 10px 12px; border-radius: 8px; margin-bottom: 8px;
-  }
-  .toggle-switch-box label { margin: 0; font-size: 12px; text-transform: none; font-weight: 700; cursor: pointer; }
-  .toggle-switch-box input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--gold); }
-
-  .fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
-  .fin-card { background: #0d0204; border: 1px solid var(--border); border-radius: 14px; padding: 18px; text-align: center; }
-  .fin-card.bruto { border-color: var(--gold); }
-  .fin-card.pago { border-color: var(--green); }
-  .fin-card.pendente { border-color: var(--accent); }
-  .fin-card.ticket { border-color: var(--blue); }
-  .fin-card.novos { border-color: var(--purple); }
-  .fin-val { font-size: 26px; font-weight: 900; margin-top: 6px; }
-
-  @media (max-width: 820px) {
-    header { padding: 12px 16px; }
-    h1 { font-size: 22px; }
-    .layout { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
-    .panel-card { padding: 16px; border-radius: 12px; margin-bottom: 14px; }
-    .editor-grid { grid-template-columns: 1fr; }
-    .nav-tabs { padding-bottom: 8px; }
-    .tab-btn { padding: 10px 16px; font-size: 12px; }
-    .btn { padding: 14px; font-size: 13px; min-height: 48px; }
-    .senha-row { flex-direction: column; align-items: stretch; }
-    .senha-row > button { width: 100% !important; margin-top: 8px; }
-    .anamnese-grid { grid-template-columns: 1fr; }
-    #toastContainer { left: 20px; right: 20px; top: 15px; }
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Treinador | Consultoria Jhonata</title>
+  
+  <!-- CSS e Fontes -->
+  <link rel="stylesheet" href="admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js para Gráficos de Cargas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="admin-body">
 
-<div id="toastContainer"></div>
+  <!-- Container de Toasts/Notificações -->
+  <div id="toastContainer" class="toast-container"></div>
 
-<div id="loginScreen">
-  <div class="login-card">
-    <h2>PAINEL DO PERSONAL</h2>
-    <p>Digite suas credenciais administrativas</p>
-    <label>Usuário Administrador</label>
-    <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
-    <label>Senha</label>
-    <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginAdmin()">
-    <button type="button" id="btnLoginAdmin" class="btn" style="margin-top:20px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
-    <div id="loginError" class="error-msg">❌ Usuário ou senha incorretos.</div>
-  </div>
-</div>
-
-<div id="chartModal" class="modal-overlay hidden">
-  <div class="modal-chart">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div>
-        <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal Dupla: Cargas & Repetições</span>
+  <!-- TELA DE LOGIN ADMIN -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-box">
+      <div class="login-header">
+        <h2>🏋️ JHONATA PERSONAL</h2>
+        <p>Acesso Restrito do Treinador</p>
       </div>
-      <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
-    </div>
-
-    <div id="aiProgressInsight" class="ai-insight-box hidden">
-      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
-      <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
-    </div>
-
-    <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
-
-    <div style="position:relative; height:280px; width:100%;">
-      <canvas id="progressChart"></canvas>
+      <form onsubmit="event.preventDefault(); loginAdmin();">
+        <div class="form-group">
+          <label for="adminUser">Usuário:</label>
+          <input type="text" id="adminUser" placeholder="Digite seu usuário..." required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="adminPass">Senha:</label>
+          <input type="password" id="adminPass" placeholder="Digite sua senha..." required autocomplete="current-password">
+        </div>
+        <div id="loginError" class="login-error" style="display:none;"></div>
+        <button type="submit" id="btnLoginAdmin" class="btn-primary full-width">ENTRAR NO PAINEL</button>
+      </form>
     </div>
   </div>
-</div>
 
-<div id="adminApp" class="hidden">
-  <header>
-    <div>
-      <h1>JHONATA PERSONAL</h1>
-      <span style="font-size:11px; color:var(--muted);">Gestão Central de Alunos</span>
-    </div>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span class="status-badge">● CONECTADO</span>
-      <button class="btn btn-danger" style="width:auto; padding:7px 14px; font-size:11px;" onclick="logoutAdmin()">Sair</button>
-    </div>
-  </header>
+  <!-- APLICATIVO PAINEL ADMIN -->
+  <div id="adminApp" class="admin-app hidden">
 
-  <div class="layout">
-    <aside id="sidebarConsultoria">
-      <div class="panel-card">
-        <div class="panel-title">
-          <span>👥 Alunos Cadastrados</span>
-          <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
-        </div>
-        <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
-        <div id="alunosList" style="max-height:300px; overflow-y:auto;">Carregando...</div>
+    <!-- CABEÇALHO PRINCIPAL -->
+    <header class="admin-header">
+      <div class="header-brand">
+        <span class="brand-title">JHONATA CONSULTORIA</span>
+        <span class="brand-badge">PAINEL ADMIN</span>
       </div>
 
-      <!-- NOVO BOTÃO DO FINANCEIRO NA SIDEBAR -->
-      <button class="btn" id="btnSidebarFinanceiro" onclick="switchTab('financeiro')" style="margin-bottom:16px; background:linear-gradient(135deg, #25d366, #1fae55); color:#04210f; font-size:13px; font-weight:900; padding:14px; border-radius:12px; box-shadow:0 4px 14px rgba(37,211,102,0.25); text-transform:uppercase; letter-spacing:0.5px;">
-        💰 GESTÃO FINANCEIRA & CAIXA
-      </button>
+      <!-- INFORMAÇÕES DO ALUNO SELECIONADO -->
+      <div class="active-student-bar">
+        <div class="student-info">
+          <span class="student-label">Aluno Selecionado:</span>
+          <h3 id="studentName">Selecione um aluno...</h3>
+          <small id="studentCodeDisplay">@---</small>
+        </div>
 
-      <div class="panel-card">
-        <div class="panel-title">⚡ Ferramentas Rápida</div>
-        <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso via WhatsApp</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="calcularVolumeMuscularSemanal()">📊 Volume Semanal & Tonagem</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
-        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('gifs')">🎥 Banco de GIFs de Exercícios</button>
-        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
+        <div class="student-badges">
+          <span id="studentStatusPill" class="status-pill status-pago">STATUS</span>
+          <span id="studentDaysPill" class="status-pill status-pago">-- DIAS</span>
+          <small id="studentVencimentoDisplay" style="color:var(--muted); font-weight:600; margin-left:8px;">📅 Vencimento: --/--/----</small>
+        </div>
 
-        <div class="tutorial-box">
-          <b style="color:#fff;">📹 Tutoriais de Instalação do App:</b><br>
-          🍏 iOS: <a href="https://youtube.com/shorts/AC3qVx1mglc" target="_blank">Assistir Vídeo</a><br>
-          🤖 Android: <a href="https://youtube.com/shorts/Px4gUAlgR7w" target="_blank">Assistir Vídeo</a>
+        <div class="header-actions">
+          <button class="btn-secondary sm" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso WhatsApp</button>
+          <button class="btn-secondary sm" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
+          <button class="btn-gold sm" onclick="renovarUmMesAluno()">🔄 +30 Dias (Renovar)</button>
+          <button class="btn-danger sm" onclick="logoutAdmin()">🚪 Sair</button>
         </div>
       </div>
-    </aside>
+    </header>
 
-    <main>
-      <div class="nav-tabs">
-        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
-        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editor de Dieta IA</button>
-        <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks <span id="tabFeedbackBadge" class="feedback-badge hidden">NOVO</span></button>
-        <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
-        <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
-        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
-      </div>
+    <!-- CORPO PRINCIPAL -->
+    <div class="admin-layout">
 
-      <div id="secFinanceiro" class="panel-card hidden">
-        <div style="margin-bottom:20px;">
-          <button type="button" class="btn" onclick="togglePainelLinksAdmin()" style="background:var(--gold); color:#1a0b02; font-weight:800; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:12px;">
-            <span>🔗 Central de Links de Vendas Orgânicas</span>
+      <!-- BARRA LATERAL (SIDEBAR) -->
+      <aside id="sidebarConsultoria" class="admin-sidebar">
+        
+        <!-- BUSCA DE ALUNOS -->
+        <div class="sidebar-search">
+          <input type="text" id="searchStudent" placeholder="🔍 Buscar por nome ou código..." oninput="filterStudents()">
+        </div>
+
+        <!-- LISTA DE ALUNOS -->
+        <div class="students-list" id="alunosList">
+          <small style="color:var(--muted);">Carregando alunos...</small>
+        </div>
+
+        <!-- CENTRAL DE LINKS DE VENDAS & ACESSOS (REPOSICIONADO NA SIDEBAR) -->
+        <div class="sidebar-links-wrapper">
+          <div class="painel-links-header" onclick="togglePainelLinksAdmin()">
+            <span>🔗 LINKS DE VENDAS & ACESSOS</span>
             <span id="setaPainelLinks">▼</span>
+          </div>
+
+          <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
+            <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
+              Clique no botão para copiar o link de venda/anamnese:
+            </small>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Asaas (Cartão/Pix Auto):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=asaas')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Especial / Amigos:</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=amigos')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+              <span class="link-nome">Pasta do Drive (Alunos):</span>
+              <button class="btn-link-copy" style="background:#1e3a8a; color:#fff;" onclick="abrirPastaDriveAluno()">📂 Abrir Drive</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÃO PARA ACESSAR O CAIXA FINANCEIRO -->
+        <div class="sidebar-finance-btn">
+          <button id="btnAcessarFinanceiro" class="btn-finance-dashboard" onclick="switchTab('financeiro')">
+            💰 CAIXA FINANCEIRO & MÉTRICAS
           </button>
-
-          <div id="conteudoLinksAdmin" class="hidden" style="margin-top:14px; background:#0d0204; border:1px solid var(--border); padding:16px; border-radius:12px;">
-            <h4 style="color:var(--gold); font-size:12px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">💳 LINKS PADRÃO (COM CHECKOUT ASAAS):</h4>
-            
-            <div class="link-box-item">
-              <span style="font-size:12px; color:#fff;">Anamnese Completa (Asaas)</span>
-              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')" class="btn-copy-link">📋 Copiar Link</button>
-            </div>
-            
-            <div class="link-box-item">
-              <span style="font-size:12px; color:#fff;">Apenas Treino (Asaas)</span>
-              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino')" class="btn-copy-link">📋 Copiar Link</button>
-            </div>
-
-            <h4 style="color:var(--green); font-size:12px; margin-top:14px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">🎁 LINKS ESPECIAIS (AMIGOS / SEM ASAAS):</h4>
-            
-            <div class="link-box-item" style="border-color:var(--green);">
-              <span style="font-size:12px; color:#fff;">Completa Especial (Amigos)</span>
-              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=completa_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar Link</button>
-            </div>
-
-            <div class="link-box-item" style="border-color:var(--green);">
-              <span style="font-size:12px; color:#fff;">Apenas Treino (Amigos)</span>
-              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar Link</button>
-            </div>
-          </div>
         </div>
 
-        <div class="panel-title" style="border-top:1px solid var(--border); padding-top:16px;">💰 Gestão Financeira & Faturamento de Caixa</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">
-          Visão geral dos teus faturamentos, mensalidades recebidas, pendências de alunos e métricas de crescimento.
-        </p>
-        
-        <div id="financeiroDashboardContent"></div>
-      </div>
-
-      <div id="secTreino" class="panel-card hidden">
-        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + IA do Treinador</div>
-        
-        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="margin:0; color:var(--gold);">🎯 Diretrizes Gerais do Treinador (Geração IA Exclusiva):</label>
-            <button class="btn btn-soft" id="btnGerarApenasDiretrizesIA" style="width:auto; padding:6px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="gerarApenasDiretrizesIA()">🤖 Gerar Diretrizes do Treino (IA)</button>
-          </div>
-          <textarea id="editTrainerGuidelines" rows="3" placeholder="Ex: Mantenha a cadência de 3s na descida. Realize o Back-off set na última série com 20% a menos de carga. Tempo de descanso recomendado: 90s."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">A IA lê o treino abaixo e a anamnese (se existir) para montar as diretrizes sem alterar a ficha de treino.</div>
+        <!-- BOTOES DE AÇÃO DA SIDEBAR -->
+        <div class="sidebar-footer-actions">
+          <button class="btn-gold full-width" onclick="switchTab('novo')">➕ NOVO ALUNO MANUAL</button>
         </div>
 
-        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha de Treino:</label>
-          <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Mude o Supino para 3x8-10 OU Adicione Prancha Abdominal 3x1min">
-            <button class="btn" id="btnAiCmd" onclick="executarComandoIaTreino()">⚡ Aplicar Ajuste de Treino via IA</button>
+      </aside>
+
+      <!-- CONTEÚDO PRINCIPAL (ABAS DE TRABALHO) -->
+      <main class="admin-content">
+
+        <!-- NAVEGAÇÃO DE ABAS DO ALUNO -->
+        <nav class="admin-tabs">
+          <button id="tab1" class="tab-btn active" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
+          <button id="tab2" class="tab-btn" onclick="switchTab('treino')">🏋️ Editor de Treino</button>
+          <button id="tab3" class="tab-btn" onclick="switchTab('dieta')">🥗 Editor de Dieta</button>
+          <button id="tab5" class="tab-btn" onclick="switchTab('corrida')">🏃 Cardio & Corrida</button>
+          <button id="tabAnamnese" class="tab-btn" onclick="switchTab('anamnese')">📋 Anamnese Respostas</button>
+          <button id="tabFeedbackAdmin" class="tab-btn" onclick="switchTab('feedbackAdmin')">
+            💬 Feedback <span id="tabFeedbackBadge" class="badge-dot hidden"></span>
+          </button>
+          <button id="tab4" class="tab-btn" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
+          <button class="tab-btn" onclick="switchTab('chatAdmin')">🤖 Assistente IA</button>
+          <button class="tab-btn" onclick="switchTab('gifs')">📹 Repositório GIFs</button>
+        </nav>
+
+        <!-- ABA: SEÇÃO FINANCEIRO EXCLUSIVA -->
+        <section id="secFinanceiro" class="tab-section hidden">
+          <div class="section-title">
+            <h2>💰 CAIXA FINANCEIRO & METRICAS GERAIS</h2>
+            <p>Visão consolidada do faturamento, cobranças e entradas de novos alunos</p>
           </div>
-        </div>
-
-        <div class="editor-grid">
-          <div>
-            <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="14" oninput="lidarEdicaoTreino()" placeholder="ANTERIOR (SEGUNDA)&#10;Agachamento Cobre 3x 8-10&#10;Extensora 3x+myoreps&#10;Prancha Abdominal 3x1min&#10;&#10;POSTERIOR (QUARTA)&#10;Stiff com Halteres 3x 8-10&#10;Mesa Flexora 3x 10-12"></textarea>
+          <div id="financeiroDashboardContent">
+            <small style="color:var(--muted);">Calculando métricas financeiras...</small>
           </div>
+        </section>
 
-          <div>
-            <label>Preview da Ficha Formatada (Ao Vivo):</label>
-            <div id="liveWorkoutPreview" class="preview-card">
-              <p style="color:var(--muted); font-size:12px;">Digite o treino ao lado para visualizar a ficha montada.</p>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA E DIRETRIZES NO BANCO</button>
-      </div>
-
-      <div id="secGifs" class="panel-card hidden">
-        <div class="panel-title">🎥 Banco de Execuções em GIF (PT-BR)</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">
-          Veja e pesquise por animações de execução técnica em GIFs pré-carregadas para associar aos treinos dos alunos.
-        </p>
-        <input type="text" id="searchGifInput" placeholder="🔍 Buscar exercício por nome (ex: Supino, Agachamento)..." oninput="filtrarGifsAdmin()" style="margin-bottom:12px;">
-        <div id="gifGalleryList" class="gif-grid">
-          <div style="color:var(--muted); font-size:12px; grid-column: 1/-1;">Carregando repositório de GIFs...</div>
-        </div>
-      </div>
-
-      <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Editor de Dieta Inteligente (Abas + Refeição + Substituições)</div>
-        
-        <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold); font-size:12px; font-weight:800;">
-            🚀 GERAR DIETA COMPLETA COM ESTRATÉGIA DE CARBO E SUBSTITUTOS
-          </label>
-          <p style="font-size:11px; color:var(--muted); margin-bottom:12px;">
-            A IA vai gerar o Resumo Nutricional e criar de 3-4 trocas de Carbos e 2-3 de Proteínas/Gorduras por refeição!
-          </p>
-
-          <div style="display:flex; gap:8px; flex-direction:column;">
-            <input type="text" id="aiDietExtraInstructions" placeholder="Instruções extras (Ex: Incluir cuscuz no café e manter 4 refeições)">
-            <button class="btn" id="btnRunAnamneseDualAI" style="background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800;" onclick="gerarDietaCompletaPorAnamnese()">
-              ⚡ Gerar Plano Alimentar Estruturado + Substituições
-            </button>
-          </div>
-        </div>
-
-        <div class="editor-grid">
-          <div>
-            <label>Texto da Dieta (Edite Direto Aqui):</label>
-            <textarea id="dietTextarea" rows="18" oninput="lidarEdicaoDieta()" placeholder="[RESUMO NUTRICIONAL - Rosinei Brito Bueno]&#10;🎯 Meta Calórica Diária: 2800 kcal (Gasto Estimado: 2750 kcal)&#10;🥩 Proteínas: 180g (2.0g/kg)&#10;🍞 Carboidratos: 350g (3.8g/kg)&#10;🥑 Gorduras: 75g (0.8g/kg)&#10;💧 Meta Hídrica: 3.5 Litros/dia&#10;&#10;---&#10;&#10;[ABA] CARBO ALTO&#10;Dias: Sábado e Domingo&#10;&#10;REF 1 - CAFÉ DA MANHÃ (07:00)&#10;- Ovos inteiros mexidos | 3 unidades (150g)&#10;- Aveia em flocos | 60g&#10;(Opção de troca) [CARBO] Tapioca | 70g&#10;(Opção de troca) [CARBO] Cuscuz cozido | 140g&#10;(Opção de troca) [CARBO] Pão integral | 3 fatias (75g)&#10;(Opção de troca) [PROT] Whey Protein | 30g&#10;(Opção de troca) [PROT] Queijo cottage | 120g"></textarea>
-            
-            <div style="margin-top:12px;">
-              <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO E SUBSTITUIÇÕES NO BANCO</button>
-            </div>
-          </div>
-
-          <div>
-            <label>Pré-visualização do Plano (Painel do Personal vs. Visão do Aluno):</label>
-            <div id="dietPreviewFilters" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;"></div>
-            <div id="dietPreviewList" class="preview-card"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="secFeedbackAdmin" class="panel-card hidden">
-        <div class="panel-title">📸 Feedbacks & Fotos no Google Drive</div>
-        
-        <button type="button" class="btn btn-soft" onclick="abrirPastaDriveAluno()" style="background:#200a0e; border-color:var(--gold); color:var(--gold); margin-bottom:12px;">
-          📁 Abrir Pasta do Aluno no Google Drive
-        </button>
-
-        <div style="display:flex; align-items:center; justify-content:space-between; background:#100305; padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:12px;">
-          <span style="font-size:12px; color:#fff;">🚨 Forçar Sinal Vermelho no App (Feedback Atrasado):</span>
-          <input type="checkbox" id="adminSolicitarFeedbackToggle" onchange="alternarSolicitacaoFeedback(this.checked)" style="width:20px; height:20px; accent-color:var(--accent);">
-        </div>
-
-        <div id="adminFeedbackHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="color:var(--muted); font-size:12px; text-align:center;">Selecione um aluno para ver os feedbacks e fotos.</div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <input type="text" id="adminFeedbackInput" placeholder="Responder relato do aluno..." style="font-size:13px;" onkeypress="if(event.key==='Enter') responderFeedbackAdmin()">
-          <button class="btn" style="width:120px;" onclick="responderFeedbackAdmin()">Enviar</button>
-        </div>
-      </div>
-
-      <div id="secResumo" class="panel-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
-          <div>
-            <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
-            <div style="display:flex; gap:10px; margin-top:4px; align-items:center; flex-wrap:wrap;">
-              <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-              <span id="studentPassDisplay" style="font-size:12px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
-              <span id="studentVencimentoDisplay" style="font-size:12px; color:var(--muted); font-weight:600;">📅 Vencimento: --</span>
-            </div>
-          </div>
-          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-            <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
-            <span id="studentDaysPill" class="status-pill status-pago" style="font-size:9px;">-- DIAS</span>
-          </div>
-        </div>
-
-        <div id="incomodosBox" style="margin-bottom:16px; background:#100305; border:1px solid var(--accent); padding:14px; border-radius:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b style="color:var(--accent); font-size:13px;">⚠️ Observações / Incômodos do Último Treino:</b>
-            <button class="btn btn-soft" style="width:auto; padding:6px 12px; font-size:10px; border-color:var(--gold); color:var(--gold);" onclick="analisarIncomodosIA()">🤖 Analisar com IA</button>
-          </div>
-          <div id="incomodosList" style="font-size:12px; color:#fff; margin-top:8px;">Selecione um aluno para carregar os relatos.</div>
-          <div id="resumoIncomodosIA" style="margin-top:10px; font-size:11.5px; color:var(--gold); background:#0d0204; padding:8px; border-radius:6px;" class="hidden"></div>
-        </div>
-
-        <div id="summaryOverviewContainer">
-          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
-        </div>
-      </div>
-
-      <div id="secAnamnese" class="panel-card hidden">
-        <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
-        <div id="anamneseDetails">
-          <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
-        </div>
-      </div>
-
-      <div id="secCorrida" class="panel-card hidden">
-        <div class="panel-title">🏃 Prescrição Semanal de Cardio & Corrida (IA + Manual)</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">
-          Defina diretrizes de cardio, distância (Km), tempo (Min) e instruções específicas por dia.
-        </p>
-
-        <div style="background:#100305; border:1px solid #3b82f6; padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:#3b82f6;">🏃 Prescrição de Aeróbico & Cardio (Texto Exibido no App):</label>
-          <textarea id="editCardioGuidelines" rows="3" placeholder="Ex: 30 min de Bike pós-treino de perna (Intensidade Moderada / RPE 6-7). 45 min de Esteira em dias OFF."></textarea>
-          <div style="font-size:10px; color:var(--muted); margin-top:2px;">Exibido na aba Corrida do aplicativo do aluno.</div>
-        </div>
-
-        <div style="background:#100305; border:1px solid var(--blue); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <div style="font-size:12px; font-weight:800; color:var(--blue); margin-bottom:4px;">🤖 Gerar Semana Completa de Cardio + Diretrizes via IA</div>
-          <div style="font-size:11px; color:var(--muted); margin-bottom:8px;">
-            Descreva o objetivo (Ex: "Aluno focado em 5k emagrecimento com 2 dias de tiro e descansos").
-          </div>
-          <div style="display:flex; gap:8px;">
-            <input type="text" id="aiCardioPromptAdmin" placeholder="Ex: Treino para meia maratona com foco em ritmo" style="font-size:13px;">
-            <button class="btn btn-blue" id="btnGerarCardioIA" style="width:160px; flex-shrink:0;" onclick="gerarSemanaCardioIA()">⚡ Gerar Cardio (IA)</button>
-          </div>
-        </div>
-
-        <div class="run-week-grid">
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Segunda-Feira</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_seg" placeholder="Km (Ex: 5.0)" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_seg" placeholder="Tempo (Ex: 30min)" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_seg" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_seg" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Terça-Feira</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_ter" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_ter" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_ter" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_ter" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Quarta-Feira</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_qua" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_qua" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_qua" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_qua" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Quinta-Feira</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_qui" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_qui" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_qui" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_qui" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Sexta-Feira</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_sex" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_sex" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_sex" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_sex" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Sábado (Longão)</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_sab" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_sab" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_sab" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_sab" rows="2" placeholder="Instrução específica" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-
-          <div class="run-day-card">
-            <b style="color:var(--blue)">Domingo</b>
-            <div style="display:flex; gap:6px; margin:6px 0;">
-              <input type="text" id="run_km_dom" placeholder="Km" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_min_dom" placeholder="Tempo" style="font-size:12px; padding:6px;">
-              <input type="text" id="run_int_dom" placeholder="Intensidade" style="font-size:12px; padding:6px;">
-            </div>
-            <textarea id="run_desc_dom" rows="2" placeholder="Instrução específica ou descanso" style="font-size:12px; padding:6px;"></textarea>
-          </div>
-        </div>
-
-        <button class="btn btn-wpp" style="margin-top:8px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PLANO SEMANAL E PRESCRIÇÃO DE CARDIO</button>
-
-        <div style="margin-top:20px; border-top:1px solid var(--border); padding-top:16px;">
-          <label style="margin-top:0;">📋 Registros do Aluno (Últimas 4 Semanas):</label>
-          <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
-        </div>
-      </div>
-
-      <div id="secCadastro" class="panel-card hidden">
-        <div class="panel-title">⚙️ Permissões, Status & Bloco de Notas</div>
-        
-        <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:12px; margin-bottom:16px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <label style="color:var(--gold); margin-top:0;">📝 BLOCO DE NOTAS PRIVADO (Apenas você e a IA leem)</label>
-            <button type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px;" onclick="salvarNotasTreinadorSozinhas()">Salvar Nota</button>
-          </div>
-          <p style="font-size:11px; color:var(--muted); margin-bottom:8px;">
-            Anote aqui estratégias, dores, combinados ou planejamentos futuros do aluno.
-          </p>
-          <textarea id="editNotasTreinador" rows="4" placeholder="Ex: Aluno relatou dor no ombro esquerdo. Evitar desenvolvimento pesado." onchange="atualizarCampoNotasMemoria()"></textarea>
-        </div>
-
-        <label>Nome Exibido</label>
-        <input type="text" id="editName">
-
-        <div style="display:flex; gap:12px; margin-top:8px;">
-          <div style="flex:1;">
-            <label>Dia do Vencimento (Mensal)</label>
-            <input type="number" id="editDiaVencimento" min="1" max="31" placeholder="Ex: 7">
-          </div>
-          <div style="flex:1;">
-            <label>Evolução de Carga / Força (%)</label>
-            <input type="number" id="editEvolucaoCarga" placeholder="Ex: 12.5">
-          </div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <label style="color: var(--gold);">💰 Valor da Mensalidade (R$)</label>
-          <input type="text" id="editValorMensalidade" placeholder="Ex: 80 ou 40">
-        </div>
-
-        <div style="margin-top:12px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px;">
-          <label style="color:var(--gold); margin-top:0;">⏳ Data de Vigência do Novo Protocolo</label>
-          <input type="date" id="editDataVigencia" style="margin-top:4px;">
-        </div>
-
-        <div style="margin-top:12px;">
-          <label>Ciclo de Rotação de Treino (Semanas)</label>
-          <select id="editSemanasRotacao">
-            <option value="4">4 Semanas (Padrão)</option>
-            <option value="5" selected>5 Semanas (Regra de Rotação)</option>
-            <option value="6">6 Semanas</option>
-            <option value="8">8 Semanas (Longas)</option>
-          </select>
-        </div>
-
-        <div style="margin-top:16px; background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px;">
-          <label style="color:var(--gold); margin-top:0; font-size:12px; font-weight:800; border-bottom:1px solid var(--border); padding-bottom:6px; margin-bottom:12px;">
-            🔒 CHAVES DE LIBERAÇÃO DE MÓDULOS NO APP DO ALUNO
-          </label>
-
-          <div class="toggle-switch-box">
-            <label for="editLiberarDieta" style="color:var(--gold);">🥗 Liberar Aba de Dieta / Plano Alimentar</label>
-            <input type="checkbox" id="editLiberarDieta">
-          </div>
-
-          <div class="toggle-switch-box">
-            <label for="editLiberarErgogenicos" style="color:var(--purple);">💉 Liberar Aba de Protocolos Ergogênicos / Hormonais</label>
-            <input type="checkbox" id="editLiberarErgogenicos">
-          </div>
-
-          <div class="toggle-switch-box">
-            <label for="editPermitirTecnicas" style="color:var(--blue);">⚡ Liberar Escolha de Técnicas Avançadas (em 2x ou 3x)</label>
-            <input type="checkbox" id="editPermitirTecnicas">
-          </div>
+        <!-- ABA: RESUMO GERAL DO ALUNO -->
+        <section id="secResumo" class="tab-section">
           
-          <p style="font-size:10.5px; color:var(--muted); margin-top:6px; line-height:1.4;">
-            * Nota: Se você prescrever uma técnica obrigatória no texto (Ex: Cluster/Myo-Reps), o aluno fará obrigatoriamente aquela. A opção acima libera ele alternar apenas se você prescrever "2x" ou "3x".
-          </p>
-        </div>
+          <div class="summary-top-bar">
+            <button class="btn-secondary sm" onclick="calcularVolumeMuscularSemanal()">📊 Ver Volume & Tonagem Semanal</button>
+            
+            <div class="solicitar-feedback-box">
+              <label class="switch-label">
+                <input type="checkbox" id="adminSolicitarFeedbackToggle" onchange="alternarSolicitacaoFeedback(this.checked)">
+                <span class="switch-custom"></span>
+                <span style="font-size:12px; font-weight:700; color:var(--accent);">🚨 Exigir Feedback Urgente no App</span>
+              </label>
+            </div>
+          </div>
 
-        <div style="margin-top:14px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:14px;">
-          <label style="color:var(--gold); margin-top:0;">💳 Gestão de Pagamento & Isenção VIP</label>
+          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS -->
+          <div class="incomodos-alert-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <h3 style="color:var(--accent); font-size:14px;">🚨 DORES E OBSERVACÕES DO ÚLTIMO TREINO</h3>
+              <button class="btn-secondary sm" onclick="analisarIncomodosIA()">🤖 Analisar com IA</button>
+            </div>
+            <div id="incomodosList" style="font-size:12px;">
+              <small style="color:var(--muted)">Carregando relatos...</small>
+            </div>
+            <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:10px;"></div>
+          </div>
+
+          <!-- CONTAINER DOS TREINOS, DIETA E CARDIO DA VISÃO GERAL -->
+          <div id="summaryOverviewContainer"></div>
+        </section>
+
+        <!-- ABA: ANAMNESE DETALHADA -->
+        <section id="secAnamnese" class="tab-section hidden">
+          <div class="section-title">
+            <h2>📋 RESPOSTAS DA ANAMNESE</h2>
+            <p>Ficha de hábitos, lesões e dados enviados pelo aluno</p>
+          </div>
+          <div id="anamneseDetails"></div>
+        </section>
+
+        <!-- ABA: FEEDBACK E CHAT DO ALUNO -->
+        <section id="secFeedbackAdmin" class="tab-section hidden">
+          <div class="section-title">
+            <h2>💬 HISTÓRICO DE FEEDBACKS & ENVIOS DE FOTOS</h2>
+            <p>Mensagens de acompanhamento e atualizações de shapes do aluno</p>
+          </div>
+
+          <div class="feedback-chat-container">
+            <div id="adminFeedbackHistory" class="feedback-history-list"></div>
+            
+            <div class="feedback-input-box">
+              <textarea id="adminFeedbackInput" rows="2" placeholder="Digite sua orientação ou resposta para o aluno..."></textarea>
+              <button class="btn-gold" onclick="responderFeedbackAdmin()">ENVIAR RESPOSTA</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA: EDITOR DE TREINO INTELIGENTE -->
+        <section id="secTreino" class="tab-section hidden">
+          <div class="section-title">
+            <h2>🏋️ EDITOR DE TREINO INTELIGENTE</h2>
+            <p>Digite os treinos e o parser organizará automaticamente séries, repetições e técnicas avançadas</p>
+          </div>
+
+          <!-- COMANDOS RÁPIDOS DE IA PARA TREINO -->
+          <div class="ai-command-box">
+            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicionar 1 série de leg press com back-off no Treino A...">
+            <button id="btnAiCmd" class="btn-gold" onclick="executarComandoIaTreino()">⚡ Ajustar via IA</button>
+            <button id="btnGerarApenasDiretrizesIA" class="btn-secondary" onclick="gerarApenasDiretrizesIA()">📋 Gerar Diretrizes com IA</button>
+          </div>
+
+          <div class="workout-editor-grid">
+            
+            <!-- DIGITAÇÃO / TEXTAREA DA FICHA DE TREINO -->
+            <div class="editor-column">
+              <label for="liveWorkoutText"><b>Ficha de Treino (Texto Puro):</b></label>
+              <textarea id="liveWorkoutText" rows="18" placeholder="TREINO A - PEITO E TRÍCEPS
+Supino Reto 3x8-10
+Crucifixo Inclinado 3x10-12
+Supino Inclinado 3x + cluster + backoff
+Tríceps Pulley 3xMyoReps" oninput="lidarEdicaoTreino()"></textarea>
+
+              <div style="margin-top:12px;">
+                <label for="editTrainerGuidelines"><b>📌 Diretrizes de Execução do Treinador:</b></label>
+                <textarea id="editTrainerGuidelines" rows="4" placeholder="1. Aquecimento geral...&#10;2. Séries de reconhecimento..."></textarea>
+              </div>
+
+              <div class="action-buttons-row" style="margin-top:12px;">
+                <button class="btn-gold full-width" onclick="salvarTreinoEditado()">💾 SALVAR FICHA DE TREINO</button>
+              </div>
+            </div>
+
+            <!-- PREVIEW EM TEMPO REAL DA FICHA DE TREINO -->
+            <div class="preview-column">
+              <label><b>👁️ Preview em Tempo Real (Visão do App do Aluno):</b></label>
+              <div id="liveWorkoutPreview" class="live-workout-preview"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ABA: EDITOR DE DIETA COM IA DUAL -->
+        <section id="secDieta" class="tab-section hidden">
+          <div class="section-title">
+            <h2>🥗 EDITOR DE DIETA & ESTRUTURAÇÃO DE REFEIÇÕES</h2>
+            <p>Crie planos alimentares com substituições automáticas divididos por ciclos e abas</p>
+          </div>
+
+          <!-- PAINEL DE GERAÇÃO COM IA -->
+          <div class="ai-diet-panel">
+            <input type="text" id="aiDietExtraInstructions" placeholder="Instrução extra para a IA (Ex: Sem lactose, foco em déficit calórico 2000kcal...)">
+            <button id="btnRunAnamneseDualAI" class="btn-gold" onclick="gerarDietaCompletaPorAnamnese()">🤖 Gerar Dieta Completa por IA</button>
+          </div>
+
+          <div class="diet-editor-grid">
+            
+            <!-- TEXTAREA DA DIETA -->
+            <div class="editor-column">
+              <label for="dietTextarea"><b>Plano Alimentar Estruturado:</b></label>
+              <textarea id="dietTextarea" rows="22" placeholder="[RESUMO NUTRICIONAL]
+Meta Calórica Diária: 2200 kcal
+
+[SUPLEMENTAÇÃO DIÁRIA]
+- Creatina 5g ao dia
+
+---
+[ABA] DIETA BASE
+REF 1 - CAFÉ DA MANHÃ
+- Ovos mexidos 3 unidades
+- Pão integral 2 fatias
+(Opção de troca) [CARBO] Tapioca 40g
+(Opção de troca) [PROT] Whey Protein 30g" oninput="lidarEdicaoDieta()"></textarea>
+
+              <button class="btn-gold full-width" style="margin-top:12px;" onclick="salvarDieta()">💾 SALVAR DIETA</button>
+            </div>
+
+            <!-- PREVIEW DA DIETA E NAVEGAÇÃO DE ABAS -->
+            <div class="preview-column">
+              <label><b>👁️ Preview da Dieta por Abas:</b></label>
+              <div id="dietPreviewFilters" class="diet-aba-filters"></div>
+              <div id="dietPreviewList" class="diet-preview-list"></div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ABA: CARDIO E CORRIDA -->
+        <section id="secCorrida" class="tab-section hidden">
+          <div class="section-title">
+            <h2>🏃 MÓDULO DE CARDIO & CORRIDA SEMANAL</h2>
+            <p>Configure treinos aeróbicos detalhados por dia da semana e acompanhe registros</p>
+          </div>
+
+          <div class="ai-command-box" style="margin-bottom:14px;">
+            <input type="text" id="aiCardioPromptAdmin" placeholder="Prompt para o cardio (Ex: Aluno maratonista, foco em Z2 e tiros nas quartas...)">
+            <button id="btnGerarCardioIA" class="btn-gold" onclick="gerarSemanaCardioIA()">⚡ Gerar Cardio com IA</button>
+          </div>
+
+          <div style="background:#100305; border:1px solid var(--border); padding:14px; border-radius:12px; margin-bottom:16px;">
+            <label for="editCardioGuidelines"><b>📌 Orientação Geral de Cardio:</b></label>
+            <textarea id="editCardioGuidelines" rows="2" style="margin-top:6px;" placeholder="Ex: Realizar os cardios preferencialmente em jejum ou pós-treino..."></textarea>
+          </div>
+
+          <h4 style="color:var(--gold); font-size:14px; margin-bottom:10px;">📅 Prescrição Diária Semanal:</h4>
           
-          <div style="display:flex; align-items:center; gap:8px; margin-top:8px; margin-bottom:12px; background:#0d0502; padding:10px; border-radius:8px; border:1px solid var(--gold);">
-            <input type="checkbox" id="editIsentoCheckbox" style="width:18px; height:18px; accent-color:var(--gold);">
-            <label for="editIsentoCheckbox" style="color:var(--gold); font-size:12px; margin:0; cursor:pointer;">🎁 Aluno Isento / Cortesia (Acesso Livre / Sem Bloqueio)</label>
+          <div class="run-schedule-grid">
+            <div class="run-day-card">
+              <b>SEGUNDA</b>
+              <input type="text" id="run_km_seg" placeholder="Km (Ex: 5.0)">
+              <input type="text" id="run_min_seg" placeholder="Tempo (Ex: 30 min)">
+              <input type="text" id="run_int_seg" placeholder="Intensidade (Ex: Moderada)">
+              <input type="text" id="run_desc_seg" placeholder="Descrição / Detalhes">
+            </div>
+
+            <div class="run-day-card">
+              <b>TERÇA</b>
+              <input type="text" id="run_km_ter" placeholder="Km">
+              <input type="text" id="run_min_ter" placeholder="Tempo">
+              <input type="text" id="run_int_ter" placeholder="Intensidade">
+              <input type="text" id="run_desc_ter" placeholder="Descrição">
+            </div>
+
+            <div class="run-day-card">
+              <b>QUARTA</b>
+              <input type="text" id="run_km_qua" placeholder="Km">
+              <input type="text" id="run_min_qua" placeholder="Tempo">
+              <input type="text" id="run_int_qua" placeholder="Intensidade">
+              <input type="text" id="run_desc_qua" placeholder="Descrição">
+            </div>
+
+            <div class="run-day-card">
+              <b>QUINTA</b>
+              <input type="text" id="run_km_qui" placeholder="Km">
+              <input type="text" id="run_min_qui" placeholder="Tempo">
+              <input type="text" id="run_int_qui" placeholder="Intensidade">
+              <input type="text" id="run_desc_qui" placeholder="Descrição">
+            </div>
+
+            <div class="run-day-card">
+              <b>SEXTA</b>
+              <input type="text" id="run_km_sex" placeholder="Km">
+              <input type="text" id="run_min_sex" placeholder="Tempo">
+              <input type="text" id="run_int_sex" placeholder="Intensidade">
+              <input type="text" id="run_desc_sex" placeholder="Descrição">
+            </div>
+
+            <div class="run-day-card">
+              <b>SÁBADO</b>
+              <input type="text" id="run_km_sab" placeholder="Km">
+              <input type="text" id="run_min_sab" placeholder="Tempo">
+              <input type="text" id="run_int_sab" placeholder="Intensidade">
+              <input type="text" id="run_desc_sab" placeholder="Descrição">
+            </div>
+
+            <div class="run-day-card">
+              <b>DOMINGO</b>
+              <input type="text" id="run_km_dom" placeholder="Km">
+              <input type="text" id="run_min_dom" placeholder="Tempo">
+              <input type="text" id="run_int_dom" placeholder="Intensidade">
+              <input type="text" id="run_desc_dom" placeholder="Descrição">
+            </div>
           </div>
 
-          <div style="display:flex; gap:10px; align-items:center; flex-direction:column;">
-            <select id="editStatus" style="width:100%;">
-              <option value="pago">🟢 Pago / Acesso Liberado</option>
-              <option value="pendente">🔴 Suspenso / Pendente</option>
-              <option value="isento">🎁 Isento / VIP</option>
-            </select>
-            <button type="button" class="btn btn-wpp" style="width:100%; padding:12px;" onclick="renovarUmMesAluno()">🔄 Renovar Acesso (+30 Dias)</button>
+          <button class="btn-gold full-width" style="margin-top:14px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PRESCRIÇÃO DE CARDIO</button>
+
+          <div style="margin-top:20px;">
+            <h4 style="color:var(--blue); font-size:14px; margin-bottom:10px;">📊 Histórico de Corridas Registradas pelo Aluno:</h4>
+            <div id="adminRunHistoryList"></div>
           </div>
-        </div>
+        </section>
 
-        <label style="margin-top:14px;">Senha do Aluno</label>
-        <div class="senha-row">
-          <div>
-            <input type="text" id="editPassword" placeholder="Deixe em branco para manter a senha atual">
+        <!-- ABA: DADOS E PERMISSÕES DO ALUNO -->
+        <section id="secCadastro" class="tab-section hidden">
+          <div class="section-title">
+            <h2>⚙️ DADOS E PERMISSÕES DE ACESSO DO ALUNO</h2>
+            <p>Ajuste nome, mensalidade, vencimento, senhas e liberações do app</p>
           </div>
-          <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
-        </div>
 
-        <div style="display:flex; gap:10px; margin-top:16px; flex-direction:column;">
-          <button class="btn" onclick="salvarConfiguracoesConta()">💾 Atualizar Todos os Dados</button>
-          <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Credenciais no WhatsApp</button>
-          <button class="btn btn-danger" onclick="deletarAluno()">🗑️ Excluir Aluno</button>
-        </div>
-      </div>
+          <div class="config-form-grid">
+            
+            <div class="form-group">
+              <label for="editName">Nome Completo do Aluno:</label>
+              <input type="text" id="editName">
+            </div>
 
-      <div id="secNovo" class="panel-card hidden">
-        <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
-        
-        <label>Nome Completo</label>
-        <input type="text" id="newName" placeholder="Ex: Lucas Andrade">
+            <div class="form-group">
+              <label for="editValorMensalidade">Valor da Mensalidade (R$):</label>
+              <input type="text" id="editValorMensalidade" placeholder="Ex: 80,00">
+            </div>
 
-        <label>Código / Usuário de Acesso</label>
-        <input type="text" id="newCode" placeholder="Ex: lucas">
+            <!-- CAMPO DATA DE INÍCIO DA CONSULTORIA -->
+            <div class="form-group">
+              <label for="editDataInicio">📅 Data em que Começou a Consultoria:</label>
+              <input type="date" id="editDataInicio">
+            </div>
 
-        <label style="color: var(--gold);">💰 Valor da Mensalidade (R$)</label>
-        <input type="text" id="newValorMensalidade" placeholder="Ex: 80 ou 40">
+            <div class="form-group">
+              <label for="editStatus">Status de Pagamento:</label>
+              <select id="editStatus">
+                <option value="pago">PAGO (Ativo)</option>
+                <option value="pendente">PENDENTE (Suspenso)</option>
+              </select>
+            </div>
 
-        <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Prancha Abdominal 3x1min"></textarea>
+            <div class="form-group">
+              <label for="editDiaVencimento">Dia do Vencimento Mensal (1 a 31):</label>
+              <input type="number" id="editDiaVencimento" min="1" max="31">
+            </div>
 
-        <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[ABA] CARBO BAIXO&#10;Segunda, Terça e Quarta&#10;&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Ovos mexidos | 3 un"></textarea>
+            <div class="form-group">
+              <label for="editPassword">Redefinir Senha do Aluno (Opcional):</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="editPassword" placeholder="Digite uma nova senha...">
+                <button type="button" class="btn-secondary" onclick="gerarNovaSenhaAluno()">⚡ Gerar</button>
+              </div>
+            </div>
 
-        <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
-      </div>
+            <div class="form-group">
+              <label for="editEvolucaoCarga">Meta de Evolução de Carga (%):</label>
+              <input type="number" id="editEvolucaoCarga" placeholder="Ex: 5">
+            </div>
 
-      <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição com base em todo o contexto do aluno.</p>
+            <div class="form-group">
+              <label for="editSemanasRotacao">Semanas de Rotação da Ficha:</label>
+              <input type="number" id="editSemanasRotacao" value="5">
+            </div>
 
-        <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje? Estou lendo todo o histórico e anotações do aluno selecionado.</div>
-        </div>
+            <div class="form-group">
+              <label for="editDataVigencia">Data de Vigência do Protocolo:</label>
+              <input type="text" id="editDataVigencia" placeholder="Ex: Outubro/2026">
+            </div>
 
-        <div style="display:flex; gap:8px;">
-          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
-          <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
-        </div>
-      </div>
-    </main>
+          </div>
+
+          <div class="permissions-box" style="margin-top:16px;">
+            <h4 style="color:var(--gold); font-size:13px; margin-bottom:12px;">🔒 Permissões & Liberações do App:</h4>
+            
+            <div class="checkbox-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" id="editIsentoCheckbox">
+                <span>👑 Aluno VIP / Isento de Pagamento</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="editLiberarDieta">
+                <span>🥗 Liberar Aba Dieta no App</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="editLiberarErgogenicos">
+                <span>💉 Liberar Aba Ergogênicos/Hormônios</span>
+              </label>
+
+              <label class="checkbox-label">
+                <input type="checkbox" id="editPermitirTecnicas">
+                <span>⚙️ Permitir que o Aluno Altere Técnicas no App</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:16px;">
+            <label for="editNotasTreinador"><b>📝 Bloco de Notas Privado do Treinador (Apenas você vê):</b></label>
+            <textarea id="editNotasTreinador" rows="4" placeholder="Anote observações pessoais sobre este aluno..."></textarea>
+            <button class="btn-secondary sm" style="margin-top:6px;" onclick="salvarNotasTreinadorSozinhas()">💾 Salvar Apenas as Notas</button>
+          </div>
+
+          <div class="action-buttons-row" style="margin-top:20px;">
+            <button class="btn-gold" style="flex:2;" onclick="salvarConfiguracoesConta()">💾 SALVAR DADOS DO ALUNO</button>
+            <button class="btn-danger" style="flex:1;" onclick="deletarAluno()">🗑️ EXCLUIR ALUNO</button>
+          </div>
+        </section>
+
+        <!-- ABA: CRIAR NOVO ALUNO MANUALMENTE -->
+        <section id="secNovo" class="tab-section hidden">
+          <div class="section-title">
+            <h2>➕ CADASTRAR NOVO ALUNO MANUALMENTE</h2>
+            <p>Crie uma nova conta com treino e dieta iniciais</p>
+          </div>
+
+          <div class="config-form-grid">
+            <div class="form-group">
+              <label for="newName">Nome Completo do Aluno:*</label>
+              <input type="text" id="newName" placeholder="Ex: João Silva" required>
+            </div>
+
+            <div class="form-group">
+              <label for="newCode">Código / Usuário (sem espaços):*</label>
+              <input type="text" id="newCode" placeholder="Ex: joaosilva" required>
+            </div>
+
+            <div class="form-group">
+              <label for="newValorMensalidade">Valor da Mensalidade (R$):</label>
+              <input type="text" id="newValorMensalidade" placeholder="Ex: 80,00" value="80,00">
+            </div>
+
+            <!-- CAMPO DATA DE INÍCIO DA CONSULTORIA (NOVO ALUNO) -->
+            <div class="form-group">
+              <label for="newDataInicio">📅 Data em que Começou a Consultoria:</label>
+              <input type="date" id="newDataInicio">
+            </div>
+          </div>
+
+          <div style="margin-top:14px;">
+            <label for="rawWorkout"><b>Ficha de Treino Inicial:</b></label>
+            <textarea id="rawWorkout" rows="6" placeholder="TREINO A&#10;Supino Reto 3x8-10"></textarea>
+          </div>
+
+          <div style="margin-top:14px;">
+            <label for="rawDiet"><b>Plano Alimentar Inicial:</b></label>
+            <textarea id="rawDiet" rows="6" placeholder="REF 1 - CAFÉ DA MANHÃ&#10;- 3 Ovos"></textarea>
+          </div>
+
+          <button class="btn-gold full-width" style="margin-top:16px;" onclick="salvarNovoAlunoBloco()">✅ SALVAR E CRIAR ALUNO</button>
+        </section>
+
+        <!-- ABA: CHAT COM ASSISTENTE IA -->
+        <section id="secChatAdmin" class="tab-section hidden">
+          <div class="section-title">
+            <h2>🤖 ASSISTENTE IA DO TREINADOR</h2>
+            <p>Tire dúvidas, peça sugestões de treinos, substituições ou orientações técnicas</p>
+          </div>
+
+          <div class="admin-chat-box">
+            <div id="adminChatHistory" class="chat-history-container">
+              <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;">
+                <b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com os alunos hoje?
+              </div>
+            </div>
+
+            <div class="chat-input-row">
+              <input type="text" id="adminChatInput" placeholder="Digite seu comando para a IA..." onkeydown="if(event.key==='Enter') sendAdminChatMessage()">
+              <button class="btn-gold" onclick="sendAdminChatMessage()">ENVIAR</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA: REPOSITÓRIO DE GIFS DE EXERCÍCIOS -->
+        <section id="secGifs" class="tab-section hidden">
+          <div class="section-title">
+            <h2>📹 REPOSITÓRIO DE GIFS DE EXECUÇÃO</h2>
+            <p>Busque e visualize os GIFs cadastrados para as execuções dos exercícios</p>
+          </div>
+
+          <div class="sidebar-search" style="margin-bottom:14px;">
+            <input type="text" id="searchGifInput" placeholder="🔍 Buscar exercício no repositório..." oninput="filtrarGifsAdmin()">
+          </div>
+
+          <div id="gifGalleryList" class="gif-gallery-grid"></div>
+        </section>
+
+      </main>
+    </div>
   </div>
-</div>
 
-<script src="admin.js"></script>
+  <!-- MODAL DE GRÁFICO E DETALHES DE EVOLUÇÃO -->
+  <div id="chartModal" class="modal-overlay hidden">
+    <div class="modal-chart">
+      <div class="modal-header">
+        <div>
+          <h3 id="chartExName">Nome do Exercício</h3>
+          <small id="chartExMeta" style="color:var(--muted)">Meta de Séries e Reps</small>
+        </div>
+        <button class="btn-close" onclick="closeChartModal()">✕</button>
+      </div>
+
+      <div class="chart-container-box">
+        <canvas id="progressChart"></canvas>
+      </div>
+
+      <div id="aiProgressInsight" class="ai-insight-box hidden" style="margin-top:12px;">
+        <span style="font-weight:800; color:var(--gold);">🤖 Análise da IA:</span>
+        <div id="aiInsightText" style="font-size:12px; margin-top:4px;"></div>
+      </div>
+
+      <div id="logsDetailList" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- SCRIPT PRINCIPAL DO PAINEL -->
+  <script src="admin.js"></script>
 </body>
 </html>
