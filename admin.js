@@ -55,7 +55,7 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* --- CONVERTE VALORES COMO "80", "40", "150,00" EM NÚMEROS REAIS --- */
+/* --- LEITURA E CONVERSÃO PRECISA DE VALORES (SOMA DO CAIXA) --- */
 function parsePreco(valorRaw) {
   if (valorRaw === null || valorRaw === undefined) return 0;
   if (typeof valorRaw === 'number') return valorRaw;
@@ -201,7 +201,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* --- RENDERIZAÇÃO DA TELA EXCLUSIVA DO FINANCEIRO --- */
+/* --- RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO AUTOMÁTICO --- */
 function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('financeiroDashboardContent');
   if (!container) return;
@@ -307,7 +307,7 @@ function renderTelaFinanceiroExclusiva() {
   `;
 }
 
-/* --- ALTERNÂNCIA DE ABAS COM TELA EXCLUSIVA DO FINANCEIRO --- */
+/* --- ALTERNÂNCIA DE ABAS DO PAINEL --- */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -644,7 +644,7 @@ async function carregarAluno(code) {
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     
     const inputValor = document.getElementById('editValorMensalidade');
-    if (inputValor) inputValor.value = currentStudentData.valor_mensalidade || currentStudentData.valorMensal || '';
+    if (inputValor) inputValor.value = parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal) || '';
 
     document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
     document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
