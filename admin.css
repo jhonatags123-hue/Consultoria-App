@@ -1,5 +1,6 @@
 /* ==========================================================================
-   PAINEL DE GESTÃO RESTRO - JHONATA PERSONAL (DESIGN SYSTEM DEFINITIVO)
+   PAINEL DE GESTÃO RESTRITO — JHONATA PERSONAL
+   Estilo Visual Premium & Alta Performance
    ========================================================================== */
 
 :root {
@@ -14,54 +15,53 @@
   --text: #f8efec;
   --muted: #a08086;
   --blue: #3b82f6;
+  --blue-dark: #1e3a8a;
 }
 
-* { 
-  margin: 0; 
-  padding: 0; 
-  box-sizing: border-box; 
-  -webkit-tap-highlight-color: transparent; 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-html, body { 
-  height: 100%; 
-  width: 100%; 
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-body { 
-  background: var(--bg); 
-  color: var(--text); 
-  font-family: 'Inter', sans-serif; 
-  min-height: 100vh; 
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
 }
 
-#adminApp { 
-  min-height: 100vh; 
-  display: flex; 
-  flex-direction: column; 
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
 }
 
-/* ==========================================================================
-   1. CORREÇÃO RADICAL DA TELA DE LOGIN (SEM VAZAMENTOS DE CONTEÚDO)
-   ========================================================================== */
-#loginScreen {
-  position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  background: #090204 !important;
-  background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  z-index: 999999 !important;
-  padding: 20px !important;
+body, html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  line-height: 1.5;
 }
 
-.login-card {
+/* --------------------------------------------------------------------------
+   TELA DE LOGIN (Isolamento Total & Efeito Glowing Premium)
+   -------------------------------------------------------------------------- */
+#loginScreen, .login-wrapper {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999999;
+  isolation: isolate;
+  padding: 20px;
+}
+
+.login-card, .login-box {
   background: linear-gradient(180deg, #1c060b, #120306);
   border: 1px solid var(--border);
   border-top: 2px solid var(--gold);
@@ -69,273 +69,312 @@ body {
   padding: 32px 28px;
   width: 100%;
   max-width: 380px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 20px rgba(220,170,58,0.1);
   text-align: center;
 }
 
-.login-card h2 { 
-  font-family: 'Bebas Neue', sans-serif; 
-  font-size: 32px; 
-  letter-spacing: 1px; 
-  color: #fff; 
+.login-card h2, .login-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 1px;
+  color: #fff;
 }
 
-.login-card p { 
-  font-size: 12px; 
-  color: var(--muted); 
-  margin-top: 4px; 
-  margin-bottom: 24px; 
+.login-card p, .login-header p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+  margin-bottom: 24px;
 }
 
-.error-msg { 
-  color: #ff6b7f; 
-  font-size: 12px; 
-  font-weight: 700; 
-  margin-top: 10px; 
-  display: none; 
+.form-group {
+  margin-bottom: 14px;
+  text-align: left;
 }
 
-/* ==========================================================================
-   2. CABEÇALHO SUPERIOR (HEADER)
-   ========================================================================== */
-header { 
-  background: var(--card); 
-  border-bottom: 1px solid var(--border); 
-  padding: 16px 28px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  position: sticky;
-  top: 0;
-  z-index: 500;
-  box-shadow: 0 4px 18px rgba(0,0,0,0.5);
+.error-msg, .login-error {
+  color: #ff6b7f;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
 }
 
-h1 { 
-  font-family: 'Bebas Neue', sans-serif; 
-  font-size: 28px; 
-  letter-spacing: 1px; 
-  color: #fff; 
-}
-
-.status-badge { 
-  background: rgba(37,211,102,0.15); 
-  border: 1px solid var(--green); 
-  color: var(--green); 
-  padding: 4px 10px; 
-  border-radius: 20px; 
-  font-size: 11px; 
-  font-weight: 700; 
-}
-
-/* ==========================================================================
-   3. LAYOUT EM 2 COLUNAS (SIDEBAR ESQUERDA + CONTEÚDO CENTRAL AMAPLO)
-   ========================================================================== */
-.layout { 
-  display: grid; 
-  grid-template-columns: 310px 1fr; 
-  gap: 22px; 
-  padding: 22px; 
-  width: 100%; 
-  max-width: 1650px;
-  margin: 0 auto; 
-  flex: 1; 
-  align-items: start; 
-}
-
-/* COLUNA LATERAL ESQUERDA */
-aside {
+/* --------------------------------------------------------------------------
+   CABEÇALHO PRINCIPAL & STATUS BAR
+   -------------------------------------------------------------------------- */
+.admin-header, header {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 28px;
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  position: sticky;
-  top: 85px;
-}
-
-/* ÁREA CENTRAL PRINCIPAL */
-main {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-}
-
-.panel-card { 
-  background: var(--card); 
-  border: 1px solid var(--border); 
-  border-radius: 16px; 
-  padding: 20px; 
-  margin-bottom: 16px; 
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4); 
-}
-
-.panel-title { 
-  font-size: 13px; 
-  font-weight: 800; 
-  text-transform: uppercase; 
-  color: var(--gold); 
-  letter-spacing: 1px; 
-  margin-bottom: 14px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-}
-
-/* ==========================================================================
-   4. LISTA DE ALUNOS & ITENS DE SELEÇÃO
-   ========================================================================== */
-.student-item { 
-  background: #100305; 
-  border: 1px solid var(--border); 
-  padding: 12px 14px; 
-  border-radius: 12px; 
-  margin-bottom: 8px; 
-  cursor: pointer; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  transition: all .2s ease; 
-}
-
-.student-item:hover { 
-  border-color: var(--gold); 
-  transform: translateX(3px); 
-  background: #1a050a;
-}
-
-.student-item.active { 
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark)); 
-  border-color: var(--accent); 
-  color: #fff; 
-}
-
-/* ACCORDIONS & EXERCÍCIOS */
-.day-accordion-header {
-  background: linear-gradient(135deg, #1f060c, #110205);
-  border: 1px solid var(--border); 
-  padding: 14px 16px; 
-  border-radius: 12px;
-  margin-bottom: 8px; 
-  cursor: pointer; 
-  display: flex; 
   justify-content: space-between;
-  align-items: center; 
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.header-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title, header h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.brand-badge {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.active-student-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.student-info h3 {
+  font-size: 18px;
+  color: #fff;
+}
+
+.student-label {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+#studentCodeDisplay {
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+#studentPassDisplay {
+  font-size: 11px;
+  background: #210410;
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: #fff;
+  font-weight: 700;
+}
+
+.student-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* --------------------------------------------------------------------------
+   LAYOUT 2 COLUNAS & PANÉIS (CARDS)
+   -------------------------------------------------------------------------- */
+.layout, .admin-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 22px;
+  padding: 22px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+@media (max-width: 960px) {
+  .layout, .admin-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --------------------------------------------------------------------------
+   LISTAGEM DE ALUNOS & EFEITOS DE SELEÇÃO
+   -------------------------------------------------------------------------- */
+.student-item {
+  background: #100305;
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   transition: all .2s ease;
 }
 
-.day-accordion-header:hover { border-color: var(--gold); }
-.day-accordion-header b { font-size: 15px; color: #fff; }
+.student-item:hover {
+  border-color: var(--gold);
+  transform: translateX(3px);
+}
+
+.student-item.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(196,50,79,0.3);
+}
+
+/* --------------------------------------------------------------------------
+   ACORDION DE EXERCÍCIOS E TREINOS CADASTRADOS
+   -------------------------------------------------------------------------- */
+.day-accordion-header {
+  background: linear-gradient(135deg, #1f060c, #110205);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all .2s ease;
+}
+
+.day-accordion-header:hover {
+  border-color: var(--gold);
+}
+
+.day-accordion-header b {
+  font-size: 15px;
+  color: #fff;
+}
 
 .day-accordion-body {
-  background: #0d0204; 
-  border: 1px solid var(--border); 
+  background: #0d0204;
+  border: 1px solid var(--border);
   border-top: none;
-  border-radius: 0 0 12px 12px; 
-  padding: 12px; 
-  margin-top: -12px; 
+  border-radius: 0 0 12px 12px;
+  padding: 12px;
+  margin-top: -12px;
   margin-bottom: 12px;
 }
 
-.ex-clickable { 
-  background: #150408; 
-  border: 1px solid var(--border); 
-  padding: 10px 12px; 
-  border-radius: 8px; 
-  margin-bottom: 6px; 
-  cursor: pointer; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  transition: all .18s; 
-}
-
-.ex-clickable:hover { 
-  border-color: var(--gold); 
-  background: #20060d; 
-  transform: translateX(2px); 
-}
-
-/* ==========================================================================
-   5. NAVEGAÇÃO DE ABAS SUPERIOR (NAIN)
-   ========================================================================== */
-.nav-tabs { 
-  display: flex; 
-  gap: 8px; 
-  margin-bottom: 18px; 
-  border-bottom: 1px solid var(--border); 
-  padding-bottom: 12px; 
-  overflow-x: auto; 
-}
-
-.tab-btn { 
-  background: transparent; 
-  border: 1px solid var(--border); 
-  color: var(--muted); 
-  padding: 10px 18px; 
-  border-radius: 10px; 
-  font-weight: 700; 
-  font-size: 12px; 
-  cursor: pointer; 
-  white-space: nowrap; 
-  transition: all .18s; 
-}
-
-.tab-btn:hover { 
-  border-color: var(--gold); 
-  color: #fff; 
-}
-
-.tab-btn.active { 
-  background: linear-gradient(135deg, var(--gold-soft), var(--gold)); 
-  color: #1a0307; 
-  border-color: var(--gold); 
-  font-weight: 800; 
-  box-shadow: 0 4px 14px rgba(220,170,58,0.25);
-}
-
-/* ==========================================================================
-   6. BOTÕES UNIFICADOS E FORMULÁRIOS
-   ========================================================================== */
-label { 
-  display: block; 
-  font-size: 11px; 
-  font-weight: 700; 
-  color: var(--gold); 
-  margin: 10px 0 4px 0; 
-  text-transform: uppercase; 
-  letter-spacing: 0.03em; 
-  text-align: left; 
-}
-
-input, select, textarea { 
-  width: 100%; 
-  background: #0d0204; 
-  border: 1px solid var(--border); 
-  color: #fff; 
-  padding: 12px 14px; 
-  border-radius: 10px; 
-  font-size: 13px; 
-  transition: border-color .18s; 
-}
-
-input:focus, select:focus, textarea:focus { 
-  outline: none; 
-  border-color: var(--gold); 
-}
-
-textarea { 
-  resize: vertical; 
-  font-family: 'Inter', sans-serif; 
-}
-
-/* ESTILIZAÇÃO GERAL DE BOTÕES (GATILHOS, ATALHOS E IA) */
-button, 
-.btn, 
-input[type="button"], 
-input[type="submit"] {
-  font-family: 'Inter', sans-serif;
+.ex-clickable {
+  background: #150408;
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
   cursor: pointer;
-  transition: transform .15s ease, background-color .15s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all .18s ease;
+}
+
+.ex-clickable:hover {
+  border-color: var(--gold);
+  background: #20060d;
+  transform: translateX(2px);
+}
+
+/* --------------------------------------------------------------------------
+   ABAS DE NAVEGAÇÃO PRINCIPAL (NAV TABS)
+   -------------------------------------------------------------------------- */
+.nav-tabs, .admin-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .18s ease;
+}
+
+.tab-btn:hover {
+  border-color: var(--gold);
+  color: #fff;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color: #1a0307;
+  border-color: var(--gold);
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(220,170,58,0.2);
+}
+
+/* --------------------------------------------------------------------------
+   FORMULÁRIOS, INPUTS E TEXTAREAS
+   -------------------------------------------------------------------------- */
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 10px 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-align: left;
+}
+
+input, select, textarea {
+  width: 100%;
+  background: #0d0204;
+  border: 1px solid var(--border);
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  transition: border-color .18s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(220,170,58,0.2);
+}
+
+textarea {
+  resize: vertical;
+  font-family: 'Inter', sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   ESTILIZANDO BOTÕES E AÇÕES
+   -------------------------------------------------------------------------- */
+.btn {
   background: linear-gradient(135deg, var(--gold-soft), var(--gold));
   color: #1a0307;
   font-weight: 800;
@@ -343,71 +382,142 @@ input[type="submit"] {
   padding: 12px 18px;
   border-radius: 10px;
   font-size: 12px;
+  cursor: pointer;
   width: 100%;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  transition: transform .15s ease, box-shadow .15s ease;
   box-shadow: 0 4px 12px rgba(212,160,42,0.2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  text-decoration: none;
+  gap: 6px;
 }
 
-button:hover, .btn:hover { 
-  transform: translateY(-1px); 
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(212,160,42,0.3);
 }
 
-button:active, .btn:active {
-  transform: scale(0.98);
+.btn.sm, .btn-secondary.sm, .btn-gold.sm, .btn-danger.sm {
+  padding: 6px 12px;
+  font-size: 11px;
+  width: auto;
 }
 
-/* VARIANTES DE BOTÕES */
-.btn-danger { 
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark)) !important; 
-  color: #fff !important; 
-  box-shadow: 0 4px 12px rgba(196,50,79,0.3) !important; 
+.btn-danger {
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(196,50,79,0.3);
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.btn-wpp { 
-  background: linear-gradient(135deg, #34e37a, #1fae55) !important; 
-  color: #04210f !important; 
-  box-shadow: 0 4px 12px rgba(37,211,102,0.2) !important; 
+.btn-danger:hover {
+  box-shadow: 0 6px 15px rgba(196,50,79,0.4);
 }
 
-.btn-soft { 
-  background: #1f080c !important; 
-  border: 1px solid var(--border) !important; 
-  color: #fff !important; 
-  box-shadow: none !important; 
+.btn-wpp {
+  background: linear-gradient(135deg, #34e37a, #1fae55);
+  color: #04210f;
+  box-shadow: 0 4px 12px rgba(37,211,102,0.2);
+  border: none;
 }
 
-.btn-soft:hover {
-  border-color: var(--gold) !important;
-  color: var(--gold) !important;
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold-soft), var(--gold));
+  color: #1a0307;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.btn-blue {
-  background: linear-gradient(135deg, #60a5fa, var(--blue)) !important;
-  color: #04142d !important;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.2) !important;
+.btn-secondary {
+  background: #1f080c;
+  border: 1px solid var(--border);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-/* Status Pills */
-.hidden { display: none !important; }
-.status-pill { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
-.status-pago { background: rgba(37,211,102,0.15); color: var(--green); border: 1px solid var(--green); }
-.status-pendente { background: rgba(196,50,79,0.15); color: var(--accent); border: 1px solid var(--accent); }
+.btn-soft {
+  background: #1f080c;
+  border: 1px solid var(--border);
+  color: #fff;
+  box-shadow: none;
+}
 
-/* Modais e Gráficos */
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 99999; }
-.modal-chart { background: var(--card); border: 1px solid var(--border); border-top: 2px solid var(--gold); padding: 24px; border-radius: 18px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; }
+.full-width {
+  width: 100%;
+}
 
-.senha-row { display: flex; gap: 8px; align-items: flex-end; }
-.senha-row > div:first-child { flex: 1; }
+.hidden {
+  display: none !important;
+}
 
-.editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
-.preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
+/* --------------------------------------------------------------------------
+   BADGES & PILULAS DE STATUS
+   -------------------------------------------------------------------------- */
+.status-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.status-pago {
+  background: rgba(37,211,102,0.15);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.status-pendente {
+  background: rgba(196,50,79,0.15);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.status-badge {
+  background: rgba(37,211,102,0.15);
+  border: 1px solid var(--green);
+  color: var(--green);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   MODAIS & CAIXAS DE ANÁLISE COM IA
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.modal-chart {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  padding: 24px;
+  border-radius: 18px;
+  width: 90%;
+  max-width: 650px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
 
 .ai-insight-box {
   background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
@@ -420,24 +530,148 @@ button:active, .btn:active {
   color: var(--text);
 }
 
-.anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-.anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
-.anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
+/* --------------------------------------------------------------------------
+   GRID DE ANAMNESE E EDITORES AO VIVO
+   -------------------------------------------------------------------------- */
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 10px;
+}
 
-/* ==========================================================================
-   7. DISPOSITIVOS MÓVEIS (RESPONSIVIDADE AUTOMÁTICA)
-   ========================================================================== */
-@media (max-width: 960px) {
-  .layout { 
-    grid-template-columns: 1fr; 
-    padding: 14px; 
-  }
-  aside { 
-    position: static; 
-    width: 100%; 
-  }
-  .editor-grid { 
-    grid-template-columns: 1fr; 
+@media (max-width: 900px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
   }
 }
+
+.preview-card {
+  background: #0d0204;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.anamnese-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.anamnese-box {
+  background: #0d0204;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.anamnese-label {
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.anamnese-val {
+  font-size: 13px;
+  color: #fff;
+  margin-top: 4px;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.senha-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.senha-row > div:first-child {
+  flex: 1;
+}
+
+/* --------------------------------------------------------------------------
+   PAINEL DE LINKS DE VENDAS & BOTÃO DO CAIXA FINANCEIRO
+   -------------------------------------------------------------------------- */
+.sidebar-links-wrapper {
+  margin-top: 14px;
+  background: #100305;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.painel-links-header {
+  padding: 12px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--gold);
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.painel-links-conteudo {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  background: #0d0204;
+}
+
+.link-item-row {
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.link-nome {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.btn-link-copy {
+  background: var(--border);
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.btn-link-copy:hover {
+  background: var(--gold);
+  color: #1a0307;
+}
+
+.sidebar-finance-btn {
+  margin-top: 14px;
+}
+
+.btn-finance-dashboard {
+  width: 100%;
+  background: linear-gradient(135deg, var(--blue-dark), #0f172a);
+  border: 1px solid var(--blue);
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform .15s ease;
+}
+
+.btn-finance-dashboard:hover {
+  transform: translateY(-1px);
+}
+
+.badge-dot {
+  display: inline-block;
+  width:
