@@ -278,39 +278,6 @@
       </div>
 
       <div class="panel-card">
-        <button type="button" class="btn" onclick="togglePainelLinksAdmin()" style="background:var(--gold); color:#1a0b02; font-weight:800; display:flex; justify-content:space-between; align-items:center; padding:10px 14px;">
-          <span>🔗 Central de Links de Venda</span>
-          <span id="setaPainelLinks">▼</span>
-        </button>
-
-        <div id="conteudoLinksAdmin" class="hidden" style="margin-top:14px;">
-          <h4 style="color:var(--gold); font-size:11px; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">💳 LINKS PADRÃO (COM CHECKOUT ASAAS):</h4>
-          
-          <div class="link-box-item">
-            <span style="font-size:11px; color:#fff;">Anamnese Completa (Asaas)</span>
-            <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')" class="btn-copy-link">📋 Copiar</button>
-          </div>
-          
-          <div class="link-box-item">
-            <span style="font-size:11px; color:#fff;">Apenas Treino (Asaas)</span>
-            <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino')" class="btn-copy-link">📋 Copiar</button>
-          </div>
-
-          <h4 style="color:var(--green); font-size:11px; margin-top:10px; margin-bottom:6px; border-bottom:1px solid var(--border); padding-bottom:4px;">🎁 LINKS ESPECIAIS (AMIGOS / SEM ASAAS):</h4>
-          
-          <div class="link-box-item" style="border-color:var(--green);">
-            <span style="font-size:11px; color:#fff;">Completa Especial (Amigos)</span>
-            <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=completa_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar</button>
-          </div>
-
-          <div class="link-box-item" style="border-color:var(--green);">
-            <span style="font-size:11px; color:#fff;">Apenas Treino (Amigos)</span>
-            <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel-card">
         <div class="panel-title">⚡ Ferramentas Rápida</div>
         <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso via WhatsApp</button>
         <button class="btn btn-soft" style="margin-top:8px;" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
@@ -339,12 +306,49 @@
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
       </div>
 
-      <!-- ABA FINANCEIRO SEPARADA E DEDICADA -->
+      <!-- ABA FINANCEIRO + CENTRAL DE LINKS INTEGRADA -->
       <div id="secFinanceiro" class="panel-card">
-        <div class="panel-title">💰 Módulo de Gestão Financeira & Faturamento</div>
+        
+        <!-- BLOCO DOBRÁVEL DE LINKS NO TOPO -->
+        <div style="margin-bottom:20px;">
+          <button type="button" class="btn" onclick="togglePainelLinksAdmin()" style="background:var(--gold); color:#1a0b02; font-weight:800; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:12px;">
+            <span>🔗 Central de Links de Vendas Orgânicas</span>
+            <span id="setaPainelLinks">▼</span>
+          </button>
+
+          <div id="conteudoLinksAdmin" class="hidden" style="margin-top:14px; background:#0d0204; border:1px solid var(--border); padding:16px; border-radius:12px;">
+            <h4 style="color:var(--gold); font-size:12px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">💳 LINKS PADRÃO (COM CHECKOUT ASAAS):</h4>
+            
+            <div class="link-box-item">
+              <span style="font-size:12px; color:#fff;">Anamnese Completa (Asaas)</span>
+              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')" class="btn-copy-link">📋 Copiar Link</button>
+            </div>
+            
+            <div class="link-box-item">
+              <span style="font-size:12px; color:#fff;">Apenas Treino (Asaas)</span>
+              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino')" class="btn-copy-link">📋 Copiar Link</button>
+            </div>
+
+            <h4 style="color:var(--green); font-size:12px; margin-top:14px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px;">🎁 LINKS ESPECIAIS (AMIGOS / SEM ASAAS):</h4>
+            
+            <div class="link-box-item" style="border-color:var(--green);">
+              <span style="font-size:12px; color:#fff;">Completa Especial (Amigos)</span>
+              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=completa_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-box-item" style="border-color:var(--green);">
+              <span style="font-size:12px; color:#fff;">Apenas Treino (Amigos)</span>
+              <button onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino_especial')" class="btn-copy-link" style="background:var(--green); color:#fff;">📋 Copiar Link</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEÇÃO DE FINANCEIRO & CAIXA EXIBIDA LOGO ABAIXO DO BLOCO DOBRÁVEL -->
+        <div class="panel-title" style="border-top:1px solid var(--border); padding-top:16px;">💰 Gestão Financeira & Faturamento de Caixa</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">
-          Esta tela é 100% isolada da consultoria para você analisar seus ganhos, pendências e caixa geral.
+          Visão geral dos teus faturamentos, mensalidades recebidas, pendências de alunos e cortesias.
         </p>
+        
         <div id="financeiroDashboardContent"></div>
       </div>
 
