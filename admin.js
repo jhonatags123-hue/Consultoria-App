@@ -216,7 +216,7 @@ function renderTelaFinanceiroExclusiva() {
 
   allStudentsList.forEach(aluno => {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento';
-    const valor = parsePreco(aluno.valor_mensalidade || aluno.valorMensal);
+    const valor = parsePreco(aluno.valor_mensalidade ?? aluno.valorMensal ?? aluno.valor ?? aluno.preco ?? 0);
 
     if (ehIsento) {
       listaIsentos.push(aluno);
@@ -244,7 +244,7 @@ function renderTelaFinanceiroExclusiva() {
       <div class="fin-card bruto">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
         <div class="fin-val" style="color:var(--gold);">R$ ${totalBruto.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado mensalmente</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado mensalmente (${totalPagantes} pagantes)</small>
       </div>
 
       <div class="fin-card pago">
@@ -262,7 +262,7 @@ function renderTelaFinanceiroExclusiva() {
       <div class="fin-card ticket">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">TICKET MÉDIO POR ALUNO</small>
         <div class="fin-val" style="color:var(--blue);">R$ ${ticketMedio.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por aluno pagante (${totalPagantes})</small>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por aluno pagante</small>
       </div>
     </div>
 
@@ -466,8 +466,28 @@ async function fetchAlunos() {
       cache: 'no-cache'
     });
     if (!res.ok) { logoutAdmin(); return; }
-    allStudentsList = await res.json();
+    
+    const dados = await res.json();
+    
+    // Normaliza os objetos para garantir que os valores das mensalidades são convertidos para número
+    allStudentsList = (dados || []).map(aluno => {
+      const precoCalculado = parsePreco(
+        aluno.valor_mensalidade ?? aluno.valorMensal ?? aluno.valor ?? aluno.preco ?? 0
+      );
+      return {
+        ...aluno,
+        valor_mensalidade: precoCalculado,
+        valorMensal: precoCalculado
+      };
+    });
+
     renderStudentsList(allStudentsList);
+
+    // Se estiver na aba do financeiro, recarrega os totais na tela
+    const secFin = document.getElementById('secFinanceiro');
+    if (secFin && !secFin.classList.contains('hidden')) {
+      renderTelaFinanceiroExclusiva();
+    }
   } catch(e) { 
     if (container) container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
     showToast("Erro de comunicação com o servidor.", "error");
