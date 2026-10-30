@@ -55,12 +55,24 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* --- LEITURA E CONVERSÃO PRECISA DE VALORES (SOMA DO CAIXA) --- */
+/* BUSCA PROFUNDA DE VALORES PARA EVITAR R$ 0.00 QUANDO O CAMPO VIER DENTRO DO PAYLOAD */
 function parsePreco(valorRaw) {
   if (valorRaw === null || valorRaw === undefined) return 0;
   if (typeof valorRaw === 'number') return valorRaw;
   const limpo = String(valorRaw).replace(/[^\d.,]/g, '').replace(',', '.');
   return parseFloat(limpo) || 0;
+}
+
+function extrairPrecoAluno(aluno) {
+  if (!aluno) return 0;
+  const v = aluno.valor_mensalidade ?? 
+            aluno.valorMensal ?? 
+            aluno.valor ?? 
+            aluno.preco ?? 
+            aluno.payload?.valor_mensalidade ?? 
+            aluno.payload?.valorMensal ?? 
+            aluno.payload?.valor ?? 0;
+  return parsePreco(v);
 }
 
 function togglePainelLinksAdmin() {
@@ -201,7 +213,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* --- RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO AUTOMÁTICO --- */
+/* RENDEREZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E SOMA DE VALORES */
 function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('financeiroDashboardContent');
   if (!container) return;
@@ -215,8 +227,8 @@ function renderTelaFinanceiroExclusiva() {
   const listaIsentos = [];
 
   allStudentsList.forEach(aluno => {
-    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento';
-    const valor = parsePreco(aluno.valor_mensalidade ?? aluno.valorMensal ?? aluno.valor ?? aluno.preco ?? 0);
+    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
+    const valor = extrairPrecoAluno(aluno);
 
     if (ehIsento) {
       listaIsentos.push(aluno);
@@ -224,12 +236,17 @@ function renderTelaFinanceiroExclusiva() {
       totalBruto += valor;
       totalPagantes++;
 
-      const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+      const info = calcularDiasRestantes(
+        aluno.data_expiracao || aluno.payload?.data_expiracao, 
+        aluno.dia_vencimento || aluno.payload?.dia_vencimento, 
+        aluno.isento, 
+        aluno.status_pagamento
+      );
       const estaPendente = aluno.status_pagamento === 'pendente' || info.dias <= 0;
 
       if (estaPendente) {
         totalPendente += valor;
-        listaPendentes.push({ nome: aluno.clientName || aluno.nome, codigo: aluno.codigo, valor });
+        listaPendentes.push({ nome: aluno.clientName || aluno.nome || aluno.payload?.clientName, codigo: aluno.codigo, valor });
       } else {
         totalRecebido += valor;
       }
@@ -239,7 +256,6 @@ function renderTelaFinanceiroExclusiva() {
   const ticketMedio = totalPagantes > 0 ? (totalBruto / totalPagantes) : 0;
 
   container.innerHTML = `
-    <!-- CARDS DE MÉTRICAS GRANDES -->
     <div class="fin-grid">
       <div class="fin-card bruto">
         <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
@@ -266,10 +282,7 @@ function renderTelaFinanceiroExclusiva() {
       </div>
     </div>
 
-    <!-- SEÇÕES DE INADIMPLENTES E VIPS -->
     <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
-      
-      <!-- CARD DE ALUNOS PENDENTES -->
       <div style="background:#100305; border:1px solid var(--accent); border-radius:12px; padding:16px;">
         <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
           🚨 ALUNOS COM PAGAMENTO PENDENTE (${listaPendentes.length})
@@ -286,7 +299,6 @@ function renderTelaFinanceiroExclusiva() {
         }
       </div>
 
-      <!-- CARD DE ALUNOS VIPS E ISENTOS -->
       <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px;">
         <h3 style="color:var(--gold); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
           👑 ALUNOS VIPS / ISENTOS (${listaIsentos.length})
@@ -296,18 +308,17 @@ function renderTelaFinanceiroExclusiva() {
           ? '<p style="color:var(--muted); font-size:12px;">Nenhum aluno isento cadastrado.</p>'
           : listaIsentos.map(i => `
             <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-              <div><b>${escapeHtml(i.clientName || i.nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(i.codigo)})</small></div>
+              <div><b>${escapeHtml(i.clientName || i.nome || i.payload?.clientName)}</b> <small style="color:var(--muted)">(@${escapeHtml(i.codigo)})</small></div>
               <span style="color:var(--gold); font-weight:800; font-size:11px;">CORTESIA / VIP</span>
             </div>
           `).join('')
         }
       </div>
-
     </div>
   `;
 }
 
-/* --- ALTERNÂNCIA DE ABAS DO PAINEL --- */
+/* MANTER SIDEBAR DE ALUNOS SEMPRE VISÍVEL EM TODAS AS ABAS */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -318,64 +329,58 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
   const sidebar = document.getElementById('sidebarConsultoria');
+  if (sidebar) sidebar.style.display = 'block';
 
   if (tab === 'financeiro') {
     const el = document.getElementById('secFinanceiro');
     if (el) el.classList.remove('hidden');
     const tabBtn = document.getElementById('tabFinanceiro');
     if (tabBtn) tabBtn.classList.add('active');
-
-    if (sidebar) sidebar.style.display = 'none';
-
     renderTelaFinanceiroExclusiva();
-  } else {
-    if (sidebar) sidebar.style.display = 'block';
-
-    if (tab === 'resumo') {
-      const el = document.getElementById('secResumo');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tab1');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'anamnese') {
-      const el = document.getElementById('secAnamnese');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tabAnamnese');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'feedbackAdmin') {
-      const el = document.getElementById('secFeedbackAdmin');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tabFeedbackAdmin');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'treino') {
-      const el = document.getElementById('secTreino');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tab2');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'dieta') {
-      const el = document.getElementById('secDieta');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tab3');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'corrida') {
-      const el = document.getElementById('secCorrida');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tab5');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'cadastro') {
-      const el = document.getElementById('secCadastro');
-      if (el) el.classList.remove('hidden');
-      const tabBtn = document.getElementById('tab4');
-      if (tabBtn) tabBtn.classList.add('active');
-    } else if (tab === 'novo') {
-      const el = document.getElementById('secNovo');
-      if (el) el.classList.remove('hidden');
-    } else if (tab === 'chatAdmin') {
-      const el = document.getElementById('secChatAdmin');
-      if (el) el.classList.remove('hidden');
-    } else if (tab === 'gifs') {
-      const el = document.getElementById('secGifs');
-      if (el) el.classList.remove('hidden');
-    }
+  } else if (tab === 'resumo') {
+    const el = document.getElementById('secResumo');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab1');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'anamnese') {
+    const el = document.getElementById('secAnamnese');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabAnamnese');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'feedbackAdmin') {
+    const el = document.getElementById('secFeedbackAdmin');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabFeedbackAdmin');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'treino') {
+    const el = document.getElementById('secTreino');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab2');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'dieta') {
+    const el = document.getElementById('secDieta');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab3');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'corrida') {
+    const el = document.getElementById('secCorrida');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab5');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'cadastro') {
+    const el = document.getElementById('secCadastro');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab4');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'novo') {
+    const el = document.getElementById('secNovo');
+    if (el) el.classList.remove('hidden');
+  } else if (tab === 'chatAdmin') {
+    const el = document.getElementById('secChatAdmin');
+    if (el) el.classList.remove('hidden');
+  } else if (tab === 'gifs') {
+    const el = document.getElementById('secGifs');
+    if (el) el.classList.remove('hidden');
   }
 }
 
@@ -468,9 +473,7 @@ async function fetchAlunos() {
     const dados = await res.json();
     
     allStudentsList = (dados || []).map(aluno => {
-      const precoCalculado = parsePreco(
-        aluno.valor_mensalidade ?? aluno.valorMensal ?? aluno.valor ?? aluno.preco ?? 0
-      );
+      const precoCalculado = extrairPrecoAluno(aluno);
       return {
         ...aluno,
         valor_mensalidade: precoCalculado,
@@ -527,7 +530,7 @@ function renderStudentsList(list) {
 
     const temPendente = alunoTemFeedbackPendente(aluno);
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
-    const valorMensalExibicao = parsePreco(aluno.valor_mensalidade || aluno.valorMensal);
+    const valorMensalExibicao = extrairPrecoAluno(aluno);
 
     const div = document.createElement('div');
     div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
@@ -644,7 +647,7 @@ async function carregarAluno(code) {
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     
     const inputValor = document.getElementById('editValorMensalidade');
-    if (inputValor) inputValor.value = parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal) || '';
+    if (inputValor) inputValor.value = extrairPrecoAluno(currentStudentData) || '';
 
     document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
     document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
@@ -1335,7 +1338,6 @@ function renderAnamneseDetails() {
   const supVal = a.suplementos || a.ergogenicos || a.usoSuplementos || 'Nenhum informado.';
 
   let htmlAnamnese = `
-    <!-- BLOCO 1: DADOS PESSOAIS & CONTATO -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
       <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">👤 Dados Pessoais & Contato</h4>
       <div class="anamnese-grid">
@@ -1350,7 +1352,6 @@ function renderAnamneseDetails() {
       </div>
     </div>
 
-    <!-- BLOCO 2: OBJETIVOS, DISPONIBILIDADE & TREINO -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
       <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🎯 Objetivo & Rotina de Treinamento</h4>
       <div class="anamnese-grid">
@@ -1364,7 +1365,6 @@ function renderAnamneseDetails() {
       </div>
     </div>
 
-    <!-- BLOCO 3: ESTILO DE VIDA, SONO & ESTRESSE -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
       <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🌙 Estilo de Vida & Hábitos</h4>
       <div class="anamnese-grid">
@@ -2074,7 +2074,6 @@ async function salvarConfiguracoesConta() {
   document.getElementById('editPassword').value = '';
 }
 
-/* --- SALVAR ALTERAÇÕES COM ATUALIZAÇÃO SÍNCRONA DA MEMÓRIA E RE-FETCH --- */
 async function salvarAlteracoes(tipoLimpezaRascunho = null) {
   try {
     atualizarCampoNotasMemoria();
@@ -2095,18 +2094,17 @@ async function salvarAlteracoes(tipoLimpezaRascunho = null) {
 
       showToast("Dados salvos com sucesso!", "success");
 
-      // Atualiza imediatamente o objeto local na lista antes de ir ao banco
       const idx = allStudentsList.findIndex(a => a.codigo === currentStudentCode);
       if (idx !== -1) {
+        const preco = extrairPrecoAluno(currentStudentData);
         allStudentsList[idx] = {
           ...allStudentsList[idx],
           ...currentStudentData,
-          valor_mensalidade: parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal),
-          valorMensal: parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal)
+          valor_mensalidade: preco,
+          valorMensal: preco
         };
       }
 
-      // Recarrega a lista do backend para confirmar integridade
       await fetchAlunos();
       await carregarAluno(currentStudentCode);
     } else {
