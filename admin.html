@@ -189,7 +189,6 @@
   .toggle-switch-box label { margin: 0; font-size: 12px; text-transform: none; font-weight: 700; cursor: pointer; }
   .toggle-switch-box input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--gold); }
 
-  /* CARDS DO FINANCIAL DASHBOARD */
   .fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
   .fin-card { background: #0d0204; border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
   .fin-card.bruto { border-color: var(--gold); }
@@ -306,10 +305,7 @@
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
       </div>
 
-      <!-- ABA FINANCEIRO + CENTRAL DE LINKS INTEGRADA -->
       <div id="secFinanceiro" class="panel-card">
-        
-        <!-- BLOCO DOBRÁVEL DE LINKS NO TOPO -->
         <div style="margin-bottom:20px;">
           <button type="button" class="btn" onclick="togglePainelLinksAdmin()" style="background:var(--gold); color:#1a0b02; font-weight:800; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:12px;">
             <span>🔗 Central de Links de Vendas Orgânicas</span>
@@ -343,7 +339,6 @@
           </div>
         </div>
 
-        <!-- SEÇÃO DE FINANCEIRO & CAIXA EXIBIDA LOGO ABAIXO DO BLOCO DOBRÁVEL -->
         <div class="panel-title" style="border-top:1px solid var(--border); padding-top:16px;">💰 Gestão Financeira & Faturamento de Caixa</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">
           Visão geral dos teus faturamentos, mensalidades recebidas, pendências de alunos e cortesias.
