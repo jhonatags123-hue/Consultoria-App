@@ -193,9 +193,11 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* --- CÁLCULO FINANCEIRO SIMPLES BASEADO NO VALOR MANUAL --- */
+/* --- CÁLCULO FINANCEIRO COMPLETO E FORMATADO --- */
 function calcularDashboardFinanceiro(listaAlunos) {
-  if (!listaAlunos || !Array.isArray(listaAlunos)) return { totalBruto: 0, totalPago: 0, totalPendente: 0, totalAlunosPagantes: 0, ticketMedio: 0 };
+  if (!listaAlunos || !Array.isArray(listaAlunos)) {
+    return { totalBruto: 0, totalPago: 0, totalPendente: 0, totalAlunosPagantes: 0, ticketMedio: 0 };
+  }
 
   let totalBruto = 0;
   let totalPago = 0;
@@ -205,7 +207,9 @@ function calcularDashboardFinanceiro(listaAlunos) {
   listaAlunos.forEach(aluno => {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento';
     if (!ehIsento) {
-      const valor = parseFloat(aluno.valor_mensalidade || aluno.valorMensal) || 0;
+      const valRaw = aluno.valor_mensalidade || aluno.valorMensal || 0;
+      const valor = parseFloat(String(valRaw).replace(',', '.')) || 0;
+      
       totalBruto += valor;
       totalAlunosPagantes++;
 
@@ -232,25 +236,30 @@ function renderResumoFinanceiroGeral(listaAlunos) {
   const fin = calcularDashboardFinanceiro(listaAlunos);
 
   container.innerHTML = `
-    <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:16px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">💰 Resumo Financeiro da Consultoria</h4>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
-        <div style="background:#0d0204; border:1px solid var(--gold); padding:10px; border-radius:8px; text-align:center;">
-          <small style="color:var(--muted); font-size:10px;">FATURAMENTO BRUTO</small>
-          <div style="color:var(--gold); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalBruto.toFixed(2)}</div>
+    <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:18px;">
+      <h4 style="color:var(--gold); font-size:14px; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); padding-bottom:8px;">💰 Gestão Financeira da Consultoria</h4>
+      
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
+        <div style="background:#0d0204; border:1px solid var(--gold); padding:14px; border-radius:10px; text-align:center;">
+          <small style="color:var(--muted); font-size:11px; font-weight:700;">FATURAMENTO BRUTO</small>
+          <div style="color:var(--gold); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalBruto.toFixed(2)}</div>
         </div>
-        <div style="background:#0d0204; border:1px solid var(--green); padding:10px; border-radius:8px; text-align:center;">
-          <small style="color:var(--muted); font-size:10px;">RECEBIDO NO MÊS</small>
-          <div style="color:var(--green); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalPago.toFixed(2)}</div>
+        <div style="background:#0d0204; border:1px solid var(--green); padding:14px; border-radius:10px; text-align:center;">
+          <small style="color:var(--muted); font-size:11px; font-weight:700;">RECEBIDO NO MÊS</small>
+          <div style="color:var(--green); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalPago.toFixed(2)}</div>
         </div>
-        <div style="background:#0d0204; border:1px solid var(--accent); padding:10px; border-radius:8px; text-align:center;">
-          <small style="color:var(--muted); font-size:10px;">PENDENTE / A VENCER</small>
-          <div style="color:var(--accent); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalPendente.toFixed(2)}</div>
+        <div style="background:#0d0204; border:1px solid var(--accent); padding:14px; border-radius:10px; text-align:center;">
+          <small style="color:var(--muted); font-size:11px; font-weight:700;">PENDENTE / A VENCER</small>
+          <div style="color:var(--accent); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalPendente.toFixed(2)}</div>
         </div>
-        <div style="background:#0d0204; border:1px solid #60a5fa; padding:10px; border-radius:8px; text-align:center;">
-          <small style="color:var(--muted); font-size:10px;">TICKET MÉDIO</small>
-          <div style="color:#60a5fa; font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.ticketMedio.toFixed(2)}</div>
+        <div style="background:#0d0204; border:1px solid #60a5fa; padding:14px; border-radius:10px; text-align:center;">
+          <small style="color:var(--muted); font-size:11px; font-weight:700;">TICKET MÉDIO</small>
+          <div style="color:#60a5fa; font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.ticketMedio.toFixed(2)}</div>
         </div>
+      </div>
+
+      <div style="font-size:12px; color:var(--muted); background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
+        📊 <b>Total de Alunos Pagantes:</b> <span style="color:#fff; font-weight:700;">${fin.totalAlunosPagantes} alunos</span>
       </div>
     </div>
   `;
@@ -387,7 +396,7 @@ function renderStudentsList(list) {
 
     const temPendente = alunoTemFeedbackPendente(aluno);
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
-    const valorMensalExibição = parseFloat(aluno.valor_mensalidade || aluno.valorMensal) || 0;
+    const valorMensalExibicao = parseFloat(String(aluno.valor_mensalidade || aluno.valorMensal || 0).replace(',', '.')) || 0;
 
     const div = document.createElement('div');
     div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
@@ -395,7 +404,7 @@ function renderStudentsList(list) {
       <div>
         <b>${escapeHtml(aluno.nome)}</b> ${badgePendenteHtml}<br>
         <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
-        ${valorMensalExibição > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibição.toFixed(2)}/mês</small>` : ''}
+        ${valorMensalExibicao > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibicao.toFixed(2)}/mês</small>` : ''}
       </div>
       <div style="text-align:right;">
         <span class="status-pill ${statusClass}">${escapeHtml(statusText.toUpperCase())}</span>
@@ -1603,10 +1612,8 @@ function closeChartModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-const ORDEM_ABAS_PRINCIPAIS = ['treino', 'dieta', 'feedbackAdmin', 'resumo', 'anamnese', 'corrida', 'cadastro'];
-
 function switchTab(tab) {
-  const ids = ['secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
+  const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -1614,7 +1621,13 @@ function switchTab(tab) {
 
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
-  if (tab === 'resumo') {
+  if (tab === 'financeiro') {
+    const el = document.getElementById('secFinanceiro');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabFinanceiro');
+    if (tabBtn) tabBtn.classList.add('active');
+    renderResumoFinanceiroGeral(allStudentsList);
+  } else if (tab === 'resumo') {
     const el = document.getElementById('secResumo');
     if (el) el.classList.remove('hidden');
     const tabBtn = document.getElementById('tab1');
@@ -1961,7 +1974,9 @@ async function salvarConfiguracoesConta() {
 
   const elValor = document.getElementById('editValorMensalidade');
   if (elValor) {
-    currentStudentData.valor_mensalidade = parseFloat(elValor.value) || 0;
+    const valNumerico = parseFloat(String(elValor.value).replace(',', '.')) || 0;
+    currentStudentData.valor_mensalidade = valNumerico;
+    currentStudentData.valorMensal = valNumerico;
   }
 
   currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
@@ -2010,7 +2025,6 @@ async function salvarAlteracoes(tipoLimpezaRascunho = null) {
       showToast("Dados salvos com sucesso!", "success");
       await fetchAlunos();
       await carregarAluno(currentStudentCode);
-      switchTab('resumo');
     } else {
       showToast("Erro ao salvar dados no servidor.", "error");
     }
@@ -2194,7 +2208,7 @@ async function salvarNovoAlunoBloco() {
   const rawD = document.getElementById('rawDiet').value.trim();
   
   const elValor = document.getElementById('newValorMensalidade');
-  const valorMensal = elValor ? (parseFloat(elValor.value) || 0) : 0;
+  const valorMensal = elValor ? (parseFloat(String(elValor.value).replace(',', '.')) || 0) : 0;
 
   if (!nome || !codigo) return showToast("Preencha Nome e Código.", "error");
 
@@ -2215,6 +2229,7 @@ async function salvarNovoAlunoBloco() {
     dia_vencimento: hoje.getDate(),
     data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
     valor_mensalidade: valorMensal,
+    valorMensal: valorMensal,
     semanas_rotacao: 5,
     data_vigencia: "",
     pode_alterar_tecnica: false,
@@ -2242,7 +2257,7 @@ async function salvarNovoAlunoBloco() {
       lastGeneratedPassword = codigo;
       showToast(`Aluno criado! Senha: ${codigo}`, "success");
       fetchAlunos();
-      switchTab('resumo');
+      switchTab('financeiro');
     }
   } catch(e) { showToast("Erro ao criar aluno.", "error"); }
 }
