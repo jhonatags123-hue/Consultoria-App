@@ -1,106 +1,368 @@
 /* ==========================================================================
-   ESTILOS EXATOS DO PAINEL ORIGINAL (JHONATA CONSULTORIA)
+   PAINEL ADMIN - JHONATA PERSONAL (DESIGN ORIGINAL FIEL)
    ========================================================================== */
+
 :root {
-  --bg-main: #000000;
-  --bg-card: #0d0205;
-  --bg-input: #140307;
-  --border: #2a0810;
+  --bg-main: #060103;
+  --bg-card: #120307;
+  --bg-input: #1a050b;
+  --border-card: #2e0912;
   --gold: #dcaa3a;
-  --gold-hover: #f3be47;
-  --accent: #e63946;
-  --green: #25d366;
-  --blue: #3b82f6;
-  --purple: #a855f7;
-  --text: #f8efec;
-  --muted: #a08086;
-  --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+  --gold-hover: #f5c253;
+  --accent-red: #b91c1c;
+  --accent-red-hover: #dc2626;
+  --green-connected: #10b981;
+  --green-btn: #10b981;
+  --blue-info: #3b82f6;
+  --text-main: #ffffff;
+  --text-muted: #a08086;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: var(--font-main);
+  font-family: var(--font-family);
+  -webkit-tap-highlight-color: transparent;
 }
 
 body.admin-body {
   background-color: var(--bg-main);
-  color: var(--text);
+  color: var(--text-main);
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .hidden { display: none !important; }
-.full-width { width: 100%; }
+.full-width { width: 100% !important; }
 
-/* TOASTS */
+/* TOASTS DE NOTIFICAÇÃO */
 .toast-container {
   position: fixed;
-  top: 15px;
-  right: 15px;
-  z-index: 9999;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .toast {
-  background: #140307;
+  background: var(--bg-card);
   border: 1px solid var(--gold);
   color: #fff;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.8);
 }
 
-/* LOGIN */
+/* TELA DE LOGIN RESTAURAÇÃO */
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 15px;
-  background: #000000;
+  padding: 16px;
+  background: var(--bg-main);
 }
 
 .login-box {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid var(--border-card);
+  border-radius: 18px;
   padding: 24px;
   width: 100%;
   max-width: 360px;
 }
 
 .login-header h2 {
-  color: var(--gold);
-  font-size: 18px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
   text-align: center;
-  margin-bottom: 4px;
 }
 
 .login-header p {
-  color: var(--muted);
+  color: var(--text-muted);
   font-size: 12px;
   text-align: center;
+  margin-top: 2px;
   margin-bottom: 20px;
 }
 
-/* FORMULÁRIOS & CAMPOS */
+/* ESTRUTURA DO TOPO (HEADER) */
+.admin-header {
+  background: var(--bg-main);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.header-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.brand-title {
+  font-weight: 900;
+  font-size: 18px;
+  color: #fff;
+  letter-spacing: 0.5px;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title small {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.status-connected-badge {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid var(--green-connected);
+  color: var(--green-connected);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.btn-logout-top {
+  background: var(--accent-red);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+/* BARRA DE NAVEGAÇÃO SUPERIOR (ABAS PÍLULA) */
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+
+.tab-btn.btn-tab-financeiro.active {
+  background: var(--green-btn);
+  color: #fff;
+  border-color: var(--green-btn);
+}
+
+/* BARRA DE ALUNO SELECIONADO & AÇÕES */
+.active-student-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: 10px;
+}
+
+.student-info h3 {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.student-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+/* LAYOUT CORPO (SIDEBAR + MAIN) */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 14px;
+}
+
+/* SIDEBAR & LISTA DE ALUNOS */
+.admin-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-search input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.students-list {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.student-item.active {
+  border-color: var(--gold);
+  background: #1e060e;
+}
+
+.feedback-badge {
+  background: var(--gold);
+  color: #000;
+  font-size: 9px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+/* CENTRAL DE LINKS E BOTOES DE AÇÃO */
+.sidebar-links-wrapper {
+  background: var(--bg-card);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.painel-links-header {
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold);
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+  background: rgba(220, 170, 58, 0.08);
+}
+
+.btn-finance-dashboard {
+  width: 100%;
+  background: #059669;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.sidebar-footer-actions .btn-gold {
+  background: var(--gold);
+  color: #000;
+  font-weight: 800;
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+  font-size: 13px;
+}
+
+/* CONTEÚDO PRINCIPAL (PAINÉIS E CARDS) */
+.admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-title h2 {
+  font-size: 16px;
+  color: var(--gold);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--gold);
+  margin: 16px 0 8px 0;
+}
+
+/* CARDS FINANCEIROS DO PAINEL */
+.fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.fin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.fin-card .fin-val {
+  font-size: 22px;
+  font-weight: 900;
+  margin-top: 4px;
+}
+
+/* CAMPOS DE FORMULÁRIOS & CONFIGURAÇÕES */
 .form-group {
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .form-group label {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--gold);
+  text-transform: uppercase;
 }
 
 input[type="text"],
@@ -110,11 +372,11 @@ input[type="date"],
 select,
 textarea {
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-card);
   color: #fff;
-  padding: 9px 12px;
-  border-radius: 8px;
-  font-size: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
   outline: none;
   width: 100%;
 }
@@ -123,19 +385,14 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--gold);
 }
 
-/* BOTÕES GERAIS */
+/* BOTÕES GERAIS DE AÇÃO */
 button {
   cursor: pointer;
   border: none;
-  border-radius: 8px;
-  font-weight: 700;
+  border-radius: 10px;
+  font-weight: 800;
   font-size: 12px;
-  padding: 9px 12px;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
+  padding: 10px 14px;
 }
 
 .btn-primary, .btn-gold {
@@ -144,262 +401,62 @@ button {
 }
 
 .btn-secondary {
-  background: #120306;
-  border: 1px solid var(--border);
+  background: #1c060d;
+  border: 1px solid var(--border-card);
   color: #fff;
 }
 
 .btn-danger {
-  background: rgba(230, 57, 70, 0.15);
-  border: 1px solid var(--accent);
-  color: var(--accent);
+  background: rgba(185, 28, 28, 0.2);
+  border: 1px solid var(--accent-red);
+  color: #ef4444;
 }
 
 button.sm {
-  padding: 5px 8px;
+  padding: 6px 10px;
   font-size: 11px;
 }
 
-/* CABEÇALHO DO PAINEL */
-.admin-header {
-  background: #000000;
+/* ACCORDIONS DE TREINOS E EXERCÍCIOS */
+.day-accordion-header {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   padding: 12px 14px;
-}
-
-.header-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.brand-title {
-  font-weight: 900;
-  font-size: 17px;
-  color: var(--gold);
-  letter-spacing: 0.5px;
-}
-
-.brand-badge {
-  background: rgba(220, 170, 58, 0.2);
-  color: var(--gold);
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 800;
-}
-
-.active-student-bar {
-  background: var(--bg-card);
-  padding: 12px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.student-label {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.student-info h3 {
-  color: #fff;
-  font-size: 16px;
-  margin-top: 2px;
-}
-
-.student-badges {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.header-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* STATUS PILLS */
-.status-pill {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-.status-pago { background: rgba(37, 211, 102, 0.2); color: var(--green); border: 1px solid var(--green); }
-.status-pendente { background: rgba(230, 57, 70, 0.2); color: var(--accent); border: 1px solid var(--accent); }
-.status-isento { background: rgba(220, 170, 58, 0.2); color: var(--gold); border: 1px solid var(--gold); }
-
-/* LAYOUT PRINCIPAL */
-.admin-layout {
-  display: flex;
-  flex-direction: column;
-  padding: 12px;
-  gap: 14px;
-}
-
-.admin-sidebar {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.students-list {
-  max-height: 200px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.student-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 10px 12px;
-  border-radius: 8px;
-  cursor: pointer;
+  margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.student-item.active {
-  border-color: var(--gold);
-  background: #1a040b;
-}
-
-/* LINHA DE LINKS NA SIDEBAR */
-.sidebar-links-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.painel-links-header {
-  padding: 10px 12px;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--gold);
-  display: flex;
-  justify-content: space-between;
   cursor: pointer;
 }
 
-.painel-links-conteudo {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border-top: 1px solid var(--border);
-}
-
-.link-item-row {
+.ex-clickable {
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-top: 6px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-}
-
-.btn-link-copy {
-  padding: 4px 8px;
-  font-size: 10px;
-  background: var(--gold);
-  color: #000;
-}
-
-/* BOTÕES DESTACADOS DO CAIXA E NOVO ALUNO */
-.btn-finance-dashboard {
-  width: 100%;
-  background: #0d4220;
-  color: #fff;
-  border: 1px solid #1f8a42;
-  padding: 12px;
   font-size: 12px;
-  font-weight: 800;
-  border-radius: 8px;
+  cursor: pointer;
 }
 
-.sidebar-footer-actions .btn-gold {
-  background: #e3ac34;
-  color: #000;
-  font-weight: 800;
-  padding: 12px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-/* ÁREA DE CONTEÚDO E ABAS */
-.admin-content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.admin-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-}
-
-.tab-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  white-space: nowrap;
-  font-size: 11px;
-  padding: 8px 12px;
-  border-radius: 8px;
-}
-
-.tab-btn.active {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: #18040a;
-}
-
-/* CARDS FINANCEIROS */
-.fin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 10px;
-}
-
-.fin-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 12px;
-  border-radius: 10px;
-}
-
-.fin-card .fin-val {
-  font-size: 20px;
-  font-weight: 900;
-  margin-top: 4px;
-}
-
-/* INCÔMODOS E ALERTAS */
-.incomodos-alert-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 12px;
-  border-radius: 10px;
-}
-
-/* REPOSITÓRIO E EDITORES */
+/* EDITOR DE TREINOS E DIETAS */
 .workout-editor-grid, .diet-editor-grid {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+.live-workout-preview, .diet-preview-list {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .ai-command-box, .ai-diet-panel {
@@ -407,50 +464,27 @@ button.sm {
   gap: 8px;
   background: var(--bg-card);
   padding: 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
+  border-radius: 12px;
+  border: 1px solid var(--border-card);
 }
 
-.live-workout-preview, .diet-preview-list {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-  min-height: 250px;
-}
-
-.run-schedule-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-}
-
-.run-day-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  padding: 8px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
+/* MODAL DE GRÁFICOS */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.9);
+  background: rgba(0,0,0,0.92);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 999;
-  padding: 15px;
+  z-index: 9999;
+  padding: 14px;
 }
 
 .modal-chart {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid var(--gold);
+  border-radius: 16px;
   padding: 16px;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
 }
