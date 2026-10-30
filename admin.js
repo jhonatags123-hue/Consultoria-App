@@ -55,6 +55,14 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+/* --- CONVERTE VALORES COMO "80", "40", "150,00" EM NÚMEROS REAIS --- */
+function parsePreco(valorRaw) {
+  if (valorRaw === null || valorRaw === undefined) return 0;
+  if (typeof valorRaw === 'number') return valorRaw;
+  const limpo = String(valorRaw).replace(/[^\d.,]/g, '').replace(',', '.');
+  return parseFloat(limpo) || 0;
+}
+
 function togglePainelLinksAdmin() {
   const conteudo = document.getElementById('conteudoLinksAdmin');
   const seta = document.getElementById('setaPainelLinks');
@@ -193,76 +201,184 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* --- CÁLCULO FINANCEIRO COMPLETO E FORMATADO --- */
-function calcularDashboardFinanceiro(listaAlunos) {
-  if (!listaAlunos || !Array.isArray(listaAlunos)) {
-    return { totalBruto: 0, totalPago: 0, totalPendente: 0, totalAlunosPagantes: 0, ticketMedio: 0 };
-  }
+/* --- RENDERIZAÇÃO DA TELA EXCLUSIVA DO FINANCEIRO --- */
+function renderTelaFinanceiroExclusiva() {
+  const container = document.getElementById('financeiroDashboardContent');
+  if (!container) return;
 
   let totalBruto = 0;
-  let totalPago = 0;
+  let totalRecebido = 0;
   let totalPendente = 0;
-  let totalAlunosPagantes = 0;
+  let totalPagantes = 0;
 
-  listaAlunos.forEach(aluno => {
+  const listaPendentes = [];
+  const listaIsentos = [];
+
+  allStudentsList.forEach(aluno => {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento';
-    if (!ehIsento) {
-      const valRaw = aluno.valor_mensalidade || aluno.valorMensal || 0;
-      const valor = parseFloat(String(valRaw).replace(',', '.')) || 0;
-      
+    const valor = parsePreco(aluno.valor_mensalidade || aluno.valorMensal);
+
+    if (ehIsento) {
+      listaIsentos.push(aluno);
+    } else {
       totalBruto += valor;
-      totalAlunosPagantes++;
+      totalPagantes++;
 
       const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
       const estaPendente = aluno.status_pagamento === 'pendente' || info.dias <= 0;
 
       if (estaPendente) {
         totalPendente += valor;
+        listaPendentes.push({ nome: aluno.clientName || aluno.nome, codigo: aluno.codigo, valor });
       } else {
-        totalPago += valor;
+        totalRecebido += valor;
       }
     }
   });
 
-  const ticketMedio = totalAlunosPagantes > 0 ? (totalBruto / totalAlunosPagantes) : 0;
-
-  return { totalBruto, totalPago, totalPendente, totalAlunosPagantes, ticketMedio };
-}
-
-function renderResumoFinanceiroGeral(listaAlunos) {
-  const container = document.getElementById('financeiroResumoContainer');
-  if (!container) return;
-
-  const fin = calcularDashboardFinanceiro(listaAlunos);
+  const ticketMedio = totalPagantes > 0 ? (totalBruto / totalPagantes) : 0;
 
   container.innerHTML = `
-    <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:18px;">
-      <h4 style="color:var(--gold); font-size:14px; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid var(--border); padding-bottom:8px;">💰 Gestão Financeira da Consultoria</h4>
-      
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-bottom:16px;">
-        <div style="background:#0d0204; border:1px solid var(--gold); padding:14px; border-radius:10px; text-align:center;">
-          <small style="color:var(--muted); font-size:11px; font-weight:700;">FATURAMENTO BRUTO</small>
-          <div style="color:var(--gold); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalBruto.toFixed(2)}</div>
-        </div>
-        <div style="background:#0d0204; border:1px solid var(--green); padding:14px; border-radius:10px; text-align:center;">
-          <small style="color:var(--muted); font-size:11px; font-weight:700;">RECEBIDO NO MÊS</small>
-          <div style="color:var(--green); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalPago.toFixed(2)}</div>
-        </div>
-        <div style="background:#0d0204; border:1px solid var(--accent); padding:14px; border-radius:10px; text-align:center;">
-          <small style="color:var(--muted); font-size:11px; font-weight:700;">PENDENTE / A VENCER</small>
-          <div style="color:var(--accent); font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.totalPendente.toFixed(2)}</div>
-        </div>
-        <div style="background:#0d0204; border:1px solid #60a5fa; padding:14px; border-radius:10px; text-align:center;">
-          <small style="color:var(--muted); font-size:11px; font-weight:700;">TICKET MÉDIO</small>
-          <div style="color:#60a5fa; font-weight:800; font-size:20px; margin-top:4px;">R$ ${fin.ticketMedio.toFixed(2)}</div>
-        </div>
+    <!-- CARDS DE MÉTRICAS GRANDES -->
+    <div class="fin-grid">
+      <div class="fin-card bruto">
+        <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
+        <div class="fin-val" style="color:var(--gold);">R$ ${totalBruto.toFixed(2)}</div>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado mensalmente</small>
       </div>
 
-      <div style="font-size:12px; color:var(--muted); background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
-        📊 <b>Total de Alunos Pagantes:</b> <span style="color:#fff; font-weight:700;">${fin.totalAlunosPagantes} alunos</span>
+      <div class="fin-card pago">
+        <small style="color:var(--muted); font-weight:800; font-size:11px;">RECEBIDO NO MÊS (PAGO)</small>
+        <div class="fin-val" style="color:var(--green);">R$ ${totalRecebido.toFixed(2)}</div>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Dinheiro garantido no caixa</small>
+      </div>
+
+      <div class="fin-card pendente">
+        <small style="color:var(--muted); font-weight:800; font-size:11px;">PENDÊNCIAS / EM ATRASO</small>
+        <div class="fin-val" style="color:var(--accent);">R$ ${totalPendente.toFixed(2)}</div>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">A receber de alunos pendentes</small>
+      </div>
+
+      <div class="fin-card ticket">
+        <small style="color:var(--muted); font-weight:800; font-size:11px;">TICKET MÉDIO POR ALUNO</small>
+        <div class="fin-val" style="color:var(--blue);">R$ ${ticketMedio.toFixed(2)}</div>
+        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por aluno pagante (${totalPagantes})</small>
       </div>
     </div>
+
+    <!-- SEÇÕES DE INADIMPLENTES E VIPS -->
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
+      
+      <!-- CARD DE ALUNOS PENDENTES -->
+      <div style="background:#100305; border:1px solid var(--accent); border-radius:12px; padding:16px;">
+        <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+          🚨 ALUNOS COM PAGAMENTO PENDENTE (${listaPendentes.length})
+        </h3>
+        ${
+          listaPendentes.length === 0 
+          ? '<p style="color:var(--green); font-size:12px;">🎉 Nenhum aluno inadimplente no momento!</p>'
+          : listaPendentes.map(p => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
+              <div><b>${escapeHtml(p.nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(p.codigo)})</small></div>
+              <span style="color:var(--accent); font-weight:800;">R$ ${p.valor.toFixed(2)}</span>
+            </div>
+          `).join('')
+        }
+      </div>
+
+      <!-- CARD DE ALUNOS VIPS E ISENTOS -->
+      <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px;">
+        <h3 style="color:var(--gold); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+          👑 ALUNOS VIPS / ISENTOS (${listaIsentos.length})
+        </h3>
+        ${
+          listaIsentos.length === 0 
+          ? '<p style="color:var(--muted); font-size:12px;">Nenhum aluno isento cadastrado.</p>'
+          : listaIsentos.map(i => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
+              <div><b>${escapeHtml(i.clientName || i.nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(i.codigo)})</small></div>
+              <span style="color:var(--gold); font-weight:800; font-size:11px;">CORTESIA / VIP</span>
+            </div>
+          `).join('')
+        }
+      </div>
+
+    </div>
   `;
+}
+
+/* --- ALTERNÂNCIA DE ABAS COM TELA EXCLUSIVA DO FINANCEIRO --- */
+function switchTab(tab) {
+  const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+  const sidebar = document.getElementById('sidebarConsultoria');
+
+  if (tab === 'financeiro') {
+    const el = document.getElementById('secFinanceiro');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabFinanceiro');
+    if (tabBtn) tabBtn.classList.add('active');
+
+    // Oculta a lista de alunos da esquerda para dar 100% de foco ao caixa
+    if (sidebar) sidebar.style.display = 'none';
+
+    renderTelaFinanceiroExclusiva();
+  } else {
+    // Exibe novamente a barra lateral da consultoria
+    if (sidebar) sidebar.style.display = 'block';
+
+    if (tab === 'resumo') {
+      const el = document.getElementById('secResumo');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tab1');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'anamnese') {
+      const el = document.getElementById('secAnamnese');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tabAnamnese');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'feedbackAdmin') {
+      const el = document.getElementById('secFeedbackAdmin');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tabFeedbackAdmin');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'treino') {
+      const el = document.getElementById('secTreino');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tab2');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'dieta') {
+      const el = document.getElementById('secDieta');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tab3');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'corrida') {
+      const el = document.getElementById('secCorrida');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tab5');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'cadastro') {
+      const el = document.getElementById('secCadastro');
+      if (el) el.classList.remove('hidden');
+      const tabBtn = document.getElementById('tab4');
+      if (tabBtn) tabBtn.classList.add('active');
+    } else if (tab === 'novo') {
+      const el = document.getElementById('secNovo');
+      if (el) el.classList.remove('hidden');
+    } else if (tab === 'chatAdmin') {
+      const el = document.getElementById('secChatAdmin');
+      if (el) el.classList.remove('hidden');
+    } else if (tab === 'gifs') {
+      const el = document.getElementById('secGifs');
+      if (el) el.classList.remove('hidden');
+    }
+  }
 }
 
 function lidarEdicaoTreino() {
@@ -352,7 +468,6 @@ async function fetchAlunos() {
     if (!res.ok) { logoutAdmin(); return; }
     allStudentsList = await res.json();
     renderStudentsList(allStudentsList);
-    renderResumoFinanceiroGeral(allStudentsList);
   } catch(e) { 
     if (container) container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
     showToast("Erro de comunicação com o servidor.", "error");
@@ -396,13 +511,13 @@ function renderStudentsList(list) {
 
     const temPendente = alunoTemFeedbackPendente(aluno);
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
-    const valorMensalExibicao = parseFloat(String(aluno.valor_mensalidade || aluno.valorMensal || 0).replace(',', '.')) || 0;
+    const valorMensalExibicao = parsePreco(aluno.valor_mensalidade || aluno.valorMensal);
 
     const div = document.createElement('div');
     div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
     div.innerHTML = `
       <div>
-        <b>${escapeHtml(aluno.nome)}</b> ${badgePendenteHtml}<br>
+        <b>${escapeHtml(aluno.clientName || aluno.nome)}</b> ${badgePendenteHtml}<br>
         <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
         ${valorMensalExibicao > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibicao.toFixed(2)}/mês</small>` : ''}
       </div>
@@ -456,7 +571,7 @@ function renderStudentsList(list) {
 
 function filterStudents() {
   const term = document.getElementById('searchStudent').value.toLowerCase();
-  const filtered = allStudentsList.filter(a => (a.nome || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
+  const filtered = allStudentsList.filter(a => (a.nome || a.clientName || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
   renderStudentsList(filtered);
 }
 
@@ -1163,7 +1278,6 @@ function renderCorridaAdmin() {
   }
 }
 
-/* --- EXIBIÇÃO COMPLETA DA ANAMNESE --- */
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
   if (!div) return;
@@ -1612,68 +1726,6 @@ function closeChartModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function switchTab(tab) {
-  const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('hidden');
-  });
-
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-  if (tab === 'financeiro') {
-    const el = document.getElementById('secFinanceiro');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tabFinanceiro');
-    if (tabBtn) tabBtn.classList.add('active');
-    renderResumoFinanceiroGeral(allStudentsList);
-  } else if (tab === 'resumo') {
-    const el = document.getElementById('secResumo');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tab1');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'anamnese') {
-    const el = document.getElementById('secAnamnese');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tabAnamnese');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'feedbackAdmin') {
-    const el = document.getElementById('secFeedbackAdmin');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tabFeedbackAdmin');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'treino') {
-    const el = document.getElementById('secTreino');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tab2');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'dieta') {
-    const el = document.getElementById('secDieta');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tab3');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'corrida') {
-    const el = document.getElementById('secCorrida');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tab5');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'cadastro') {
-    const el = document.getElementById('secCadastro');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tab4');
-    if (tabBtn) tabBtn.classList.add('active');
-  } else if (tab === 'novo') {
-    const el = document.getElementById('secNovo');
-    if (el) el.classList.remove('hidden');
-  } else if (tab === 'chatAdmin') {
-    const el = document.getElementById('secChatAdmin');
-    if (el) el.classList.remove('hidden');
-  } else if (tab === 'gifs') {
-    const el = document.getElementById('secGifs');
-    if (el) el.classList.remove('hidden');
-  }
-}
-
 function loadDietView() {
   const tx = document.getElementById('dietTextarea');
   if (!tx) return;
@@ -1938,7 +1990,13 @@ function salvarDieta() {
 }
 
 async function salvarConfiguracoesConta() {
+  if (!currentStudentData) return;
+
+  const precoDigitado = parsePreco(document.getElementById('editValorMensalidade').value);
+
   currentStudentData.clientName = document.getElementById('editName').value.trim();
+  currentStudentData.valor_mensalidade = precoDigitado;
+  currentStudentData.valorMensal = precoDigitado;
   
   const isentoVal = document.getElementById('editIsentoCheckbox').checked;
   currentStudentData.isento = isentoVal;
@@ -1972,13 +2030,6 @@ async function salvarConfiguracoesConta() {
     currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
   }
 
-  const elValor = document.getElementById('editValorMensalidade');
-  if (elValor) {
-    const valNumerico = parseFloat(String(elValor.value).replace(',', '.')) || 0;
-    currentStudentData.valor_mensalidade = valNumerico;
-    currentStudentData.valorMensal = valNumerico;
-  }
-
   currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
   currentStudentData.semanas_rotacao = parseInt(document.getElementById('editSemanasRotacao').value) || 5;
   currentStudentData.data_vigencia = document.getElementById('editDataVigencia').value || '';
@@ -2001,6 +2052,15 @@ async function salvarConfiguracoesConta() {
     lastGeneratedPassword = newPass;
   } else {
     delete currentStudentData.senha;
+  }
+
+  // Atualiza em tempo real na lista global em memória
+  const idx = allStudentsList.findIndex(a => a.codigo === currentStudentCode);
+  if (idx !== -1) {
+    allStudentsList[idx].valor_mensalidade = precoDigitado;
+    allStudentsList[idx].valorMensal = precoDigitado;
+    allStudentsList[idx].status_pagamento = currentStudentData.status_pagamento;
+    allStudentsList[idx].isento = currentStudentData.isento;
   }
 
   await salvarAlteracoes();
@@ -2207,8 +2267,7 @@ async function salvarNovoAlunoBloco() {
   const rawW = document.getElementById('rawWorkout').value.trim();
   const rawD = document.getElementById('rawDiet').value.trim();
   
-  const elValor = document.getElementById('newValorMensalidade');
-  const valorMensal = elValor ? (parseFloat(String(elValor.value).replace(',', '.')) || 0) : 0;
+  const valorMensal = parsePreco(document.getElementById('newValorMensalidade').value);
 
   if (!nome || !codigo) return showToast("Preencha Nome e Código.", "error");
 
@@ -2256,7 +2315,7 @@ async function salvarNovoAlunoBloco() {
     if (res.ok) {
       lastGeneratedPassword = codigo;
       showToast(`Aluno criado! Senha: ${codigo}`, "success");
-      fetchAlunos();
+      await fetchAlunos();
       switchTab('financeiro');
     }
   } catch(e) { showToast("Erro ao criar aluno.", "error"); }
