@@ -325,12 +325,10 @@ function switchTab(tab) {
     const tabBtn = document.getElementById('tabFinanceiro');
     if (tabBtn) tabBtn.classList.add('active');
 
-    // Oculta a lista de alunos da esquerda para dar 100% de foco ao caixa
     if (sidebar) sidebar.style.display = 'none';
 
     renderTelaFinanceiroExclusiva();
   } else {
-    // Exibe novamente a barra lateral da consultoria
     if (sidebar) sidebar.style.display = 'block';
 
     if (tab === 'resumo') {
@@ -469,7 +467,6 @@ async function fetchAlunos() {
     
     const dados = await res.json();
     
-    // Normaliza os objetos para garantir que os valores das mensalidades são convertidos para número
     allStudentsList = (dados || []).map(aluno => {
       const precoCalculado = parsePreco(
         aluno.valor_mensalidade ?? aluno.valorMensal ?? aluno.valor ?? aluno.preco ?? 0
@@ -483,7 +480,6 @@ async function fetchAlunos() {
 
     renderStudentsList(allStudentsList);
 
-    // Se estiver na aba do financeiro, recarrega os totais na tela
     const secFin = document.getElementById('secFinanceiro');
     if (secFin && !secFin.classList.contains('hidden')) {
       renderTelaFinanceiroExclusiva();
@@ -2074,41 +2070,51 @@ async function salvarConfiguracoesConta() {
     delete currentStudentData.senha;
   }
 
-  // Atualiza em tempo real na lista global em memória
-  const idx = allStudentsList.findIndex(a => a.codigo === currentStudentCode);
-  if (idx !== -1) {
-    allStudentsList[idx].valor_mensalidade = precoDigitado;
-    allStudentsList[idx].valorMensal = precoDigitado;
-    allStudentsList[idx].status_pagamento = currentStudentData.status_pagamento;
-    allStudentsList[idx].isento = currentStudentData.isento;
-  }
-
   await salvarAlteracoes();
   document.getElementById('editPassword').value = '';
 }
 
+/* --- SALVAR ALTERAÇÕES COM ATUALIZAÇÃO SÍNCRONA DA MEMÓRIA E RE-FETCH --- */
 async function salvarAlteracoes(tipoLimpezaRascunho = null) {
   try {
     atualizarCampoNotasMemoria();
+
     const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
       method: 'POST',
       headers: authHeaders(),
       cache: 'no-cache',
       body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
     });
+
     if (res.ok) {
       if (tipoLimpezaRascunho === 'workout') {
         localStorage.removeItem(`draft_workout_${currentStudentCode}`);
       } else if (tipoLimpezaRascunho === 'diet') {
         localStorage.removeItem(`draft_diet_${currentStudentCode}`);
       }
+
       showToast("Dados salvos com sucesso!", "success");
+
+      // Atualiza imediatamente o objeto local na lista antes de ir ao banco
+      const idx = allStudentsList.findIndex(a => a.codigo === currentStudentCode);
+      if (idx !== -1) {
+        allStudentsList[idx] = {
+          ...allStudentsList[idx],
+          ...currentStudentData,
+          valor_mensalidade: parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal),
+          valorMensal: parsePreco(currentStudentData.valor_mensalidade || currentStudentData.valorMensal)
+        };
+      }
+
+      // Recarrega a lista do backend para confirmar integridade
       await fetchAlunos();
       await carregarAluno(currentStudentCode);
     } else {
       showToast("Erro ao salvar dados no servidor.", "error");
     }
-  } catch(e) { showToast("Erro de conexão ao salvar no servidor.", "error"); }
+  } catch(e) { 
+    showToast("Erro de conexão ao salvar no servidor.", "error"); 
+  }
 }
 
 function parseWorkoutText(rawText) {
