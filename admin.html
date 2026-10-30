@@ -90,7 +90,6 @@
   .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; position:relative; }
   .tab-btn:hover { border-color:var(--gold); color:#fff; }
   .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
-  .tab-btn-fin.active { background:linear-gradient(135deg, #25d366, #1fae55) !important; color:#04210f !important; border-color:#25d366 !important; }
 
   label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:10px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; text-align: left; }
   input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:12px 14px; border-radius:10px; font-size:16px; transition:border-color .18s; }
@@ -189,13 +188,14 @@
   .toggle-switch-box label { margin: 0; font-size: 12px; text-transform: none; font-weight: 700; cursor: pointer; }
   .toggle-switch-box input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--gold); }
 
-  .fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .fin-card { background: #0d0204; border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+  .fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .fin-card { background: #0d0204; border: 1px solid var(--border); border-radius: 14px; padding: 18px; text-align: center; }
   .fin-card.bruto { border-color: var(--gold); }
   .fin-card.pago { border-color: var(--green); }
   .fin-card.pendente { border-color: var(--accent); }
   .fin-card.ticket { border-color: var(--blue); }
-  .fin-val { font-size: 28px; font-weight: 900; margin-top: 6px; }
+  .fin-card.novos { border-color: var(--purple); }
+  .fin-val { font-size: 26px; font-weight: 900; margin-top: 6px; }
 
   @media (max-width: 820px) {
     header { padding: 12px 16px; }
@@ -276,6 +276,11 @@
         <div id="alunosList" style="max-height:300px; overflow-y:auto;">Carregando...</div>
       </div>
 
+      <!-- NOVO BOTÃO DO FINANCEIRO NA SIDEBAR -->
+      <button class="btn" id="btnSidebarFinanceiro" onclick="switchTab('financeiro')" style="margin-bottom:16px; background:linear-gradient(135deg, #25d366, #1fae55); color:#04210f; font-size:13px; font-weight:900; padding:14px; border-radius:12px; box-shadow:0 4px 14px rgba(37,211,102,0.25); text-transform:uppercase; letter-spacing:0.5px;">
+        💰 GESTÃO FINANCEIRA & CAIXA
+      </button>
+
       <div class="panel-card">
         <div class="panel-title">⚡ Ferramentas Rápida</div>
         <button class="btn btn-wpp" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso via WhatsApp</button>
@@ -295,17 +300,16 @@
 
     <main>
       <div class="nav-tabs">
-        <button class="tab-btn tab-btn-fin active" id="tabFinanceiro" onclick="switchTab('financeiro')">💰 FINANCEIRO & CAIXA</button>
+        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
         <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editor de Dieta IA</button>
         <button class="tab-btn" id="tabFeedbackAdmin" onclick="switchTab('feedbackAdmin')">💬 Feedbacks <span id="tabFeedbackBadge" class="feedback-badge hidden">NOVO</span></button>
-        <button class="tab-btn" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
         <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
         <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
         <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
       </div>
 
-      <div id="secFinanceiro" class="panel-card">
+      <div id="secFinanceiro" class="panel-card hidden">
         <div style="margin-bottom:20px;">
           <button type="button" class="btn" onclick="togglePainelLinksAdmin()" style="background:var(--gold); color:#1a0b02; font-weight:800; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-radius:12px;">
             <span>🔗 Central de Links de Vendas Orgânicas</span>
@@ -341,7 +345,7 @@
 
         <div class="panel-title" style="border-top:1px solid var(--border); padding-top:16px;">💰 Gestão Financeira & Faturamento de Caixa</div>
         <p style="font-size:12px; color:var(--muted); margin-bottom:20px;">
-          Visão geral dos teus faturamentos, mensalidades recebidas, pendências de alunos e cortesias.
+          Visão geral dos teus faturamentos, mensalidades recebidas, pendências de alunos e métricas de crescimento.
         </p>
         
         <div id="financeiroDashboardContent"></div>
@@ -454,7 +458,7 @@
         </div>
       </div>
 
-      <div id="secResumo" class="panel-card hidden">
+      <div id="secResumo" class="panel-card">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
             <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
