@@ -1,34 +1,47 @@
 /* ==========================================================================
-   PAINEL ADMIN - JHONATA PERSONAL (DESIGN ORIGINAL FIEL)
+   JHONATA PERSONAL - DESIGN SYSTEM PREMIUM DARK MODE
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 :root {
-  --bg-main: #060103;
-  --bg-card: #120307;
-  --bg-input: #1a050b;
-  --border-card: #2e0912;
-  --gold: #dcaa3a;
-  --gold-hover: #f5c253;
-  --accent-red: #b91c1c;
-  --accent-red-hover: #dc2626;
-  --green-connected: #10b981;
-  --green-btn: #10b981;
-  --blue-info: #3b82f6;
-  --text-main: #ffffff;
-  --text-muted: #a08086;
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* PALETA DE CORES */
+  --bg-app: #0a0a0c;
+  --bg-surface-1: #121215;
+  --bg-surface-2: #1a1a1e;
+  --bg-input: #222227;
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(251, 191, 36, 0.3);
+
+  /* ACCENTS & NEONS SOFISTICADOS */
+  --gold-main: #fbbf24;
+  --gold-glow: rgba(251, 191, 36, 0.15);
+  
+  --green-main: #10b981;
+  --green-glow: rgba(16, 185, 129, 0.15);
+  
+  --red-main: #ef4444;
+  --red-glow: rgba(239, 68, 68, 0.15);
+  
+  --blue-main: #3b82f6;
+
+  /* TIPOGRAFIA */
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: var(--font-family);
+  font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
 }
 
 body.admin-body {
-  background-color: var(--bg-main);
+  background-color: var(--bg-app);
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
@@ -38,158 +51,167 @@ body.admin-body {
 .hidden { display: none !important; }
 .full-width { width: 100% !important; }
 
-/* TOASTS DE NOTIFICAÇÃO */
+/* TOASTS (NOTIFICAÇÕES ELEGANTES) */
 .toast-container {
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   z-index: 10000;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .toast {
-  background: var(--bg-card);
-  border: 1px solid var(--gold);
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 12px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
 }
 
-/* TELA DE LOGIN RESTAURAÇÃO */
+.toast.success { border-left: 4px solid var(--green-main); }
+.toast.error { border-left: 4px solid var(--red-main); }
+.toast.info { border-left: 4px solid var(--gold-main); }
+
+/* TELA DE LOGIN */
 .login-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  padding: 16px;
-  background: var(--bg-main);
+  padding: 20px;
+  background: radial-gradient(circle at top, #1c1508 0%, var(--bg-app) 80%);
 }
 
 .login-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: 18px;
-  padding: 24px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 32px 24px;
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.6);
 }
 
 .login-header h2 {
-  color: #fff;
-  font-size: 20px;
-  font-weight: 900;
+  color: var(--gold-main);
+  font-size: 22px;
+  font-weight: 800;
   text-align: center;
+  letter-spacing: -0.5px;
 }
 
 .login-header p {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
   text-align: center;
-  margin-top: 2px;
-  margin-bottom: 20px;
+  margin-top: 4px;
+  margin-bottom: 24px;
 }
 
-/* ESTRUTURA DO TOPO (HEADER) */
+/* CABEÇALHO DO PAINEL (HEADER) */
 .admin-header {
-  background: var(--bg-main);
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--border-card);
+  background: var(--bg-surface-1);
+  padding: 16px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .header-brand {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .brand-title {
-  font-weight: 900;
+  font-weight: 800;
   font-size: 18px;
-  color: #fff;
-  letter-spacing: 0.5px;
-  display: flex;
-  flex-direction: column;
-}
-
-.brand-title small {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
 }
 
 .status-connected-badge {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid var(--green-connected);
-  color: var(--green-connected);
+  background: var(--green-glow);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--green-main);
   font-size: 11px;
-  font-weight: 800;
-  padding: 4px 10px;
+  font-weight: 700;
+  padding: 4px 12px;
   border-radius: 20px;
+  text-transform: uppercase;
 }
 
 .btn-logout-top {
-  background: var(--accent-red);
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  padding: 8px 16px;
+  background: var(--red-glow);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  padding: 8px 14px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+  transition: all 0.2s;
 }
 
-/* BARRA DE NAVEGAÇÃO SUPERIOR (ABAS PÍLULA) */
+.btn-logout-top:hover {
+  background: var(--red-main);
+  color: #fff;
+}
+
+/* ABAS DE NAVEGAÇÃO PÍLULA */
 .admin-tabs {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   scrollbar-width: none;
 }
 .admin-tabs::-webkit-scrollbar { display: none; }
 
 .tab-btn {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
   color: var(--text-muted);
   white-space: nowrap;
   font-size: 12px;
-  font-weight: 700;
-  padding: 8px 14px;
+  font-weight: 600;
+  padding: 10px 16px;
   border-radius: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: var(--bg-input);
 }
 
 .tab-btn.active {
-  background: var(--gold);
+  background: var(--gold-main);
   color: #000;
-  border-color: var(--gold);
+  border-color: var(--gold-main);
+  font-weight: 800;
+  box-shadow: 0 4px 15px var(--gold-glow);
 }
 
-.tab-btn.btn-tab-financeiro.active {
-  background: var(--green-btn);
-  color: #fff;
-  border-color: var(--green-btn);
-}
-
-/* BARRA DE ALUNO SELECIONADO & AÇÕES */
+/* BARRA DE ALUNO ATIVO */
 .active-student-bar {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
   border-radius: 16px;
-  padding: 14px;
-  margin-top: 10px;
+  padding: 16px;
+  margin-top: 12px;
 }
 
 .student-info h3 {
-  color: #fff;
+  color: var(--text-main);
   font-size: 18px;
   font-weight: 800;
 }
@@ -197,162 +219,150 @@ body.admin-body {
 .student-badges {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
+  gap: 8px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 
-.header-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 12px;
-  flex-wrap: wrap;
+/* PILLS DE STATUS */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
-/* LAYOUT CORPO (SIDEBAR + MAIN) */
+.status-pago {
+  background: var(--green-glow);
+  color: var(--green-main);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pendente {
+  background: var(--red-glow);
+  color: var(--red-main);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.status-isento {
+  background: var(--gold-glow);
+  color: var(--gold-main);
+  border: 1px solid var(--border-highlight);
+}
+
+/* LISTA DE ALUNOS (SIDEBAR) */
 .admin-layout {
   display: flex;
   flex-direction: column;
-  padding: 12px;
-  gap: 14px;
-}
-
-/* SIDEBAR & LISTA DE ALUNOS */
-.admin-sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.sidebar-search input {
-  width: 100%;
-  background: var(--bg-input);
-  border: 1px solid var(--border-card);
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px;
+  padding: 16px;
+  gap: 16px;
 }
 
 .students-list {
-  max-height: 240px;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .student-item {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  padding: 12px;
-  border-radius: 12px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  padding: 14px;
+  border-radius: 14px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.2s ease;
 }
 
-.student-item.active {
-  border-color: var(--gold);
-  background: #1e060e;
+.student-item:hover, .student-item.active {
+  border-color: var(--gold-main);
+  background: var(--bg-surface-2);
+  transform: translateY(-1px);
+}
+
+.student-item b {
+  color: var(--text-main);
+  font-size: 14px;
+}
+
+.student-item small {
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .feedback-badge {
-  background: var(--gold);
+  background: var(--gold-main);
   color: #000;
-  font-size: 9px;
-  font-weight: 900;
-  padding: 2px 6px;
-  border-radius: 8px;
-}
-
-/* CENTRAL DE LINKS E BOTOES DE AÇÃO */
-.sidebar-links-wrapper {
-  background: var(--bg-card);
-  border: 1px solid var(--gold);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.painel-links-header {
-  padding: 12px;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 800;
-  color: var(--gold);
-  display: flex;
-  justify-content: space-between;
-  cursor: pointer;
-  background: rgba(220, 170, 58, 0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+  margin-left: 6px;
 }
 
+/* BOTÕES DE AÇÃO DESTACADOS */
 .btn-finance-dashboard {
   width: 100%;
-  background: #059669;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   color: #fff;
   border: none;
-  padding: 12px;
+  padding: 14px;
   font-size: 13px;
   font-weight: 800;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+  transition: transform 0.2s;
 }
 
-.sidebar-footer-actions .btn-gold {
-  background: var(--gold);
+.btn-finance-dashboard:active { transform: scale(0.98); }
+
+.sidebar-footer-actions .btn-gold,
+.btn-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
   color: #000;
+  border: none;
   font-weight: 800;
-  padding: 12px;
-  border-radius: 12px;
-  width: 100%;
-  font-size: 13px;
-}
-
-/* CONTEÚDO PRINCIPAL (PAINÉIS E CARDS) */
-.admin-content {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.section-title h2 {
-  font-size: 16px;
-  color: var(--gold);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.section-subtitle {
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--gold);
-  margin: 16px 0 8px 0;
-}
-
-/* CARDS FINANCEIROS DO PAINEL */
-.fin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-}
-
-.fin-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
   padding: 14px;
   border-radius: 14px;
+  width: 100%;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px var(--gold-glow);
+  transition: transform 0.2s;
 }
 
-.fin-card .fin-val {
-  font-size: 22px;
-  font-weight: 900;
-  margin-top: 4px;
+.btn-gold:active { transform: scale(0.98); }
+
+.btn-secondary {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
 }
 
-/* CAMPOS DE FORMULÁRIOS & CONFIGURAÇÕES */
+.btn-danger {
+  background: var(--red-glow);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* FORMULÁRIOS & CHECKBOXES */
 .form-group {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -361,8 +371,9 @@ body.admin-body {
 .form-group label {
   font-size: 11px;
   font-weight: 800;
-  color: var(--gold);
+  color: var(--gold-main);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 input[type="text"],
@@ -372,119 +383,109 @@ input[type="date"],
 select,
 textarea {
   background: var(--bg-input);
-  border: 1px solid var(--border-card);
-  color: #fff;
-  padding: 11px 14px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 12px 14px;
   border-radius: 10px;
   font-size: 13px;
   outline: none;
   width: 100%;
+  transition: border-color 0.2s;
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--gold);
+  border-color: var(--gold-main);
 }
 
-/* BOTÕES GERAIS DE AÇÃO */
-button {
-  cursor: pointer;
-  border: none;
-  border-radius: 10px;
-  font-weight: 800;
-  font-size: 12px;
-  padding: 10px 14px;
+.checkbox-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 16px 0;
 }
 
-.btn-primary, .btn-gold {
-  background: var(--gold);
-  color: #000;
-}
-
-.btn-secondary {
-  background: #1c060d;
-  border: 1px solid var(--border-card);
-  color: #fff;
-}
-
-.btn-danger {
-  background: rgba(185, 28, 28, 0.2);
-  border: 1px solid var(--accent-red);
-  color: #ef4444;
-}
-
-button.sm {
-  padding: 6px 10px;
-  font-size: 11px;
-}
-
-/* ACCORDIONS DE TREINOS E EXERCÍCIOS */
-.day-accordion-header {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
   padding: 12px 14px;
   border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.checkbox-label:hover {
+  background: var(--bg-surface-2);
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--gold-main);
+  border-radius: 4px;
+}
+
+/* CARDS FINANCEIROS DA DASHBOARD */
+.fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.fin-card {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  padding: 16px;
+  border-radius: 16px;
+}
+
+.fin-card .fin-val {
+  font-size: 22px;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+/* ACCORDIONS E LISTAS DE EXERCÍCIOS */
+.day-accordion-header {
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  padding: 14px 16px;
+  border-radius: 14px;
   margin-bottom: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.day-accordion-header:hover {
+  border-color: var(--gold-main);
 }
 
 .ex-clickable {
-  background: var(--bg-input);
-  border: 1px solid var(--border-card);
-  padding: 10px 12px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+  padding: 12px 14px;
   border-radius: 10px;
   margin-top: 6px;
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-/* EDITOR DE TREINOS E DIETAS */
-.workout-editor-grid, .diet-editor-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
 .live-workout-preview, .diet-preview-list {
-  background: var(--bg-card);
-  border: 1px solid var(--border-card);
-  border-radius: 12px;
-  padding: 12px;
-  min-height: 200px;
+  background: var(--bg-surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 220px;
   max-height: 400px;
   overflow-y: auto;
-}
-
-.ai-command-box, .ai-diet-panel {
-  display: flex;
-  gap: 8px;
-  background: var(--bg-card);
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--border-card);
-}
-
-/* MODAL DE GRÁFICOS */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.92);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  padding: 14px;
-}
-
-.modal-chart {
-  background: var(--bg-card);
-  border: 1px solid var(--gold);
-  border-radius: 16px;
-  padding: 16px;
-  width: 100%;
-  max-width: 480px;
 }
