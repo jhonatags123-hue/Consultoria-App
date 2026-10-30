@@ -92,12 +92,14 @@ function carregarGifsAdmin() {
       renderGifsAdmin(gifsDatabase);
     })
     .catch(() => {
-      document.getElementById('gifGalleryList').innerHTML = `<div style="color:var(--accent); font-size:12px; grid-column: 1/-1;">Não foi possível carregar a lista de GIFs.</div>`;
+      const gallery = document.getElementById('gifGalleryList');
+      if (gallery) gallery.innerHTML = `<div style="color:var(--accent); font-size:12px; grid-column: 1/-1;">Não foi possível carregar a lista de GIFs.</div>`;
     });
 }
 
 function renderGifsAdmin(lista) {
   const gallery = document.getElementById('gifGalleryList');
+  if (!gallery) return;
   gallery.innerHTML = "";
   if (!lista || lista.length === 0) {
     gallery.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column: 1/-1;">Nenhum GIF encontrado.</div>`;
@@ -116,7 +118,9 @@ function renderGifsAdmin(lista) {
 }
 
 function filtrarGifsAdmin() {
-  const termo = document.getElementById('searchGifInput').value.toLowerCase();
+  const input = document.getElementById('searchGifInput');
+  if (!input) return;
+  const termo = input.value.toLowerCase();
   const filtrados = gifsDatabase.filter(g => g.nome.toLowerCase().includes(termo));
   renderGifsAdmin(filtrados);
 }
@@ -130,7 +134,8 @@ function buscarGifExercicio(nomeEx) {
 
 function atualizarCampoNotasMemoria() {
   if (currentStudentData) {
-    currentStudentData.notas_treinador = document.getElementById('editNotasTreinador').value.trim();
+    const el = document.getElementById('editNotasTreinador');
+    if (el) currentStudentData.notas_treinador = el.value.trim();
   }
 }
 
@@ -188,6 +193,69 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
+/* --- CÁLCULO FINANCEIRO SIMPLES BASEADO NO VALOR MANUAL --- */
+function calcularDashboardFinanceiro(listaAlunos) {
+  if (!listaAlunos || !Array.isArray(listaAlunos)) return { totalBruto: 0, totalPago: 0, totalPendente: 0, totalAlunosPagantes: 0, ticketMedio: 0 };
+
+  let totalBruto = 0;
+  let totalPago = 0;
+  let totalPendente = 0;
+  let totalAlunosPagantes = 0;
+
+  listaAlunos.forEach(aluno => {
+    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento';
+    if (!ehIsento) {
+      const valor = parseFloat(aluno.valor_mensalidade || aluno.valorMensal) || 0;
+      totalBruto += valor;
+      totalAlunosPagantes++;
+
+      const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+      const estaPendente = aluno.status_pagamento === 'pendente' || info.dias <= 0;
+
+      if (estaPendente) {
+        totalPendente += valor;
+      } else {
+        totalPago += valor;
+      }
+    }
+  });
+
+  const ticketMedio = totalAlunosPagantes > 0 ? (totalBruto / totalAlunosPagantes) : 0;
+
+  return { totalBruto, totalPago, totalPendente, totalAlunosPagantes, ticketMedio };
+}
+
+function renderResumoFinanceiroGeral(listaAlunos) {
+  const container = document.getElementById('financeiroResumoContainer');
+  if (!container) return;
+
+  const fin = calcularDashboardFinanceiro(listaAlunos);
+
+  container.innerHTML = `
+    <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:16px;">
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">💰 Resumo Financeiro da Consultoria</h4>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px;">
+        <div style="background:#0d0204; border:1px solid var(--gold); padding:10px; border-radius:8px; text-align:center;">
+          <small style="color:var(--muted); font-size:10px;">FATURAMENTO BRUTO</small>
+          <div style="color:var(--gold); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalBruto.toFixed(2)}</div>
+        </div>
+        <div style="background:#0d0204; border:1px solid var(--green); padding:10px; border-radius:8px; text-align:center;">
+          <small style="color:var(--muted); font-size:10px;">RECEBIDO NO MÊS</small>
+          <div style="color:var(--green); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalPago.toFixed(2)}</div>
+        </div>
+        <div style="background:#0d0204; border:1px solid var(--accent); padding:10px; border-radius:8px; text-align:center;">
+          <small style="color:var(--muted); font-size:10px;">PENDENTE / A VENCER</small>
+          <div style="color:var(--accent); font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.totalPendente.toFixed(2)}</div>
+        </div>
+        <div style="background:#0d0204; border:1px solid #60a5fa; padding:10px; border-radius:8px; text-align:center;">
+          <small style="color:var(--muted); font-size:10px;">TICKET MÉDIO</small>
+          <div style="color:#60a5fa; font-weight:800; font-size:16px; margin-top:2px;">R$ ${fin.ticketMedio.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function lidarEdicaoTreino() {
   atualizarPreviewAoVivo();
   if (currentStudentCode) {
@@ -209,8 +277,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const token = localStorage.getItem('admin_token') || localStorage.getItem('adminToken');
   if (token) {
-    document.getElementById('loginScreen').classList.add('hidden');
-    document.getElementById('adminApp').classList.remove('hidden');
+    const loginScreen = document.getElementById('loginScreen');
+    const adminApp = document.getElementById('adminApp');
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (adminApp) adminApp.classList.remove('hidden');
     fetchAlunos();
     carregarGifsAdmin();
   }
@@ -263,7 +333,7 @@ function logoutAdmin() {
 
 async function fetchAlunos() {
   const container = document.getElementById('alunosList');
-  container.innerHTML = "Carregando...";
+  if (container) container.innerHTML = "Carregando...";
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
@@ -273,8 +343,9 @@ async function fetchAlunos() {
     if (!res.ok) { logoutAdmin(); return; }
     allStudentsList = await res.json();
     renderStudentsList(allStudentsList);
+    renderResumoFinanceiroGeral(allStudentsList);
   } catch(e) { 
-    container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
+    if (container) container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
     showToast("Erro de comunicação com o servidor.", "error");
   }
 }
@@ -289,7 +360,9 @@ function alunoTemFeedbackPendente(aluno) {
 
 function renderStudentsList(list) {
   const container = document.getElementById('alunosList');
+  if (!container) return;
   container.innerHTML = "";
+
   if (!list || list.length === 0) {
     container.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
     return;
@@ -314,6 +387,7 @@ function renderStudentsList(list) {
 
     const temPendente = alunoTemFeedbackPendente(aluno);
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
+    const valorMensalExibição = parseFloat(aluno.valor_mensalidade || aluno.valorMensal) || 0;
 
     const div = document.createElement('div');
     div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
@@ -321,6 +395,7 @@ function renderStudentsList(list) {
       <div>
         <b>${escapeHtml(aluno.nome)}</b> ${badgePendenteHtml}<br>
         <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
+        ${valorMensalExibição > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibição.toFixed(2)}/mês</small>` : ''}
       </div>
       <div style="text-align:right;">
         <span class="status-pill ${statusClass}">${escapeHtml(statusText.toUpperCase())}</span>
@@ -427,9 +502,12 @@ async function carregarAluno(code) {
     document.getElementById('editIsentoCheckbox').checked = currentStudentData.isento === true;
     document.getElementById('editPassword').value = '';
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
+    
+    const inputValor = document.getElementById('editValorMensalidade');
+    if (inputValor) inputValor.value = currentStudentData.valor_mensalidade || currentStudentData.valorMensal || '';
+
     document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
     document.getElementById('editSemanasRotacao').value = currentStudentData.semanas_rotacao || 5;
-
     document.getElementById('editDataVigencia').value = currentStudentData.data_vigencia || '';
 
     document.getElementById('editLiberarDieta').checked = currentStudentData.liberarDieta !== false && !currentStudentData.apenasTreino;
@@ -459,6 +537,8 @@ async function carregarAluno(code) {
 
 function renderIncomodosAluno() {
   const list = document.getElementById('incomodosList');
+  if (!list) return;
+
   const sessoes = (currentStudentData && currentStudentData.historico_sessoes) || [];
   
   if (sessoes.length === 0) {
@@ -492,6 +572,8 @@ async function analisarIncomodosIA() {
   const ultimasObs = sessoes.length > 0 ? (sessoes[sessoes.length - 1].observacoes || []) : [];
 
   const box = document.getElementById('resumoIncomodosIA');
+  if (!box) return;
+
   box.classList.remove('hidden');
   box.innerHTML = "<i>Gerando análise de incômodos e dores via IA...</i>";
 
@@ -515,6 +597,7 @@ async function analisarIncomodosIA() {
 
 function renderResumoVisaoGeral() {
   const container = document.getElementById('summaryOverviewContainer');
+  if (!container) return;
   container.innerHTML = "";
 
   if (!currentStudentData) {
@@ -1029,6 +1112,7 @@ async function gerarNovaSenhaAluno() {
 
 function renderCorridaAdmin() {
   const list = document.getElementById('adminRunHistoryList');
+  if (!list) return;
   list.innerHTML = '';
 
   const registros = (currentStudentData && currentStudentData.registros_corrida) || {};
@@ -1070,6 +1154,7 @@ function renderCorridaAdmin() {
   }
 }
 
+/* --- EXIBIÇÃO COMPLETA DA ANAMNESE --- */
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
   if (!div) return;
@@ -1081,56 +1166,92 @@ function renderAnamneseDetails() {
     return;
   }
 
-  div.innerHTML = `
-    <!-- BLOCO 1: DADOS PESSOAIS -->
+  const ehApenasTreino = currentStudentData.apenasTreino === true || currentStudentData.liberarDieta === false;
+
+  const nomeVal = a.nome || a.clientName || '-';
+  const generoVal = a.genero || a.sexo || a.gender || '-';
+  const foneVal = a.telefone || a.whatsapp || a.celular || '-';
+  const emailVal = a.email || '-';
+  const cpfVal = a.cpf || '-';
+  const idadeVal = a.nascimento || a.idade || a.dataNascimento || '-';
+  const pesoVal = a.peso ? `${a.peso} kg` : '-';
+  const alturaVal = a.altura ? `${a.altura} m` : '-';
+
+  const objetivoVal = a.objetivo || a.objetivoPrincipal || '-';
+  const expVal = a.tempoTreino || a.experiencia || a.tempoMusculacao || '-';
+  const diasVal = a.diasDisponiveis || a.diasSemana || a.diasTreino || a.diasPreferidos || '-';
+  const horasVal = a.horasTreino || a.tempoSessao || a.tempoDisponivel || a.duracaoTreino || a.horarioTreino || '-';
+  const outrasAtivVal = a.outrasAtividades || a.outrosEsportes || a.cardioOutros || a.atividadeExtra || 'Nenhuma declarada.';
+  const lesoesVal = a.lesoes || a.dores || a.historicoLesoes || 'Nenhuma declarada.';
+  const saudeVal = a.medicamentos || a.patologias || a.problemasSaude || 'Nenhum declarado.';
+
+  const rotinaVal = a.rotina || a.trabalho || a.profissao || '-';
+  const sonoVal = a.sono || a.horasSono || a.qualidadeSono || '-';
+  const estresseVal = a.estresse || a.nivelEstresse || '-';
+
+  const refeicoesVal = a.numRefeicoes || a.refeicoesDia || '-';
+  const aguaVal = a.agua || a.consumoAgua || '-';
+  const odeiaVal = a.alimentosOdiados || a.restricoes || a.alimentosNaoGosta || 'Nenhum declarado.';
+  const gostaVal = a.alimentosGosta || a.preferencias || a.alimentosIndispensaveis || 'Nenhum declarado.';
+  const supVal = a.suplementos || a.ergogenicos || a.usoSuplementos || 'Nenhum informado.';
+
+  let htmlAnamnese = `
+    <!-- BLOCO 1: DADOS PESSOAIS & CONTATO -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">👤 Dados Pessoais</h4>
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">👤 Dados Pessoais & Contato</h4>
       <div class="anamnese-grid">
-        <div class="anamnese-box"><div class="anamnese-label">Nome Completo</div><div class="anamnese-val">${escapeHtml(a.nome || a.clientName) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(a.telefone) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">E-mail</div><div class="anamnese-val">${escapeHtml(a.email) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">CPF</div><div class="anamnese-val">${escapeHtml(a.cpf) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Data Nasc. / Idade</div><div class="anamnese-val">${escapeHtml(a.nascimento || a.idade) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Gênero</div><div class="anamnese-val">${escapeHtml(a.genero) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Peso Corporal</div><div class="anamnese-val">${a.peso ? escapeHtml(a.peso) + ' kg' : '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Altura</div><div class="anamnese-val">${a.altura ? escapeHtml(a.altura) + ' m' : '-'}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Nome Completo</div><div class="anamnese-val">${escapeHtml(nomeVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Gênero</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(generoVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(foneVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">E-mail</div><div class="anamnese-val">${escapeHtml(emailVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">CPF</div><div class="anamnese-val">${escapeHtml(cpfVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Data Nasc. / Idade</div><div class="anamnese-val">${escapeHtml(idadeVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Peso Corporal</div><div class="anamnese-val">${escapeHtml(pesoVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Altura</div><div class="anamnese-val">${escapeHtml(alturaVal)}</div></div>
       </div>
     </div>
 
-    <!-- BLOCO 2: OBJETIVOS E HISTÓRICO DE TREINO -->
+    <!-- BLOCO 2: OBJETIVOS, DISPONIBILIDADE & TREINO -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🎯 Objetivo e Condição Física</h4>
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🎯 Objetivo & Rotina de Treinamento</h4>
       <div class="anamnese-grid">
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Objetivo Principal</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(a.objetivo) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Tempo Praticando Musculação</div><div class="anamnese-val">${escapeHtml(a.tempoTreino || a.experiencia) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Dias Disponíveis por Semana</div><div class="anamnese-val">${escapeHtml(a.diasDisponiveis || a.diasSemana) || '-'}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Lesões, Dores ou Incômodos</div><div class="anamnese-val" style="color:#ff6b7f;">${escapeHtml(a.lesoes || a.dores) || 'Nenhuma declarada.'}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Problemas de Saúde / Medicamentos</div><div class="anamnese-val">${escapeHtml(a.medicamentos || a.patologias) || 'Nenhum declarado.'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Objetivo Principal</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(objetivoVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Experiência na Musculação</div><div class="anamnese-val">${escapeHtml(expVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Dias Pref. / Disponíveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(diasVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Tempo / Horas por Treino</div><div class="anamnese-val" style="color:#60a5fa; font-weight:700;">${escapeHtml(horasVal)}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Outras Atividades Físicas / Esportes</div><div class="anamnese-val">${escapeHtml(outrasAtivVal)}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Lesões, Dores ou Incômodos</div><div class="anamnese-val" style="color:#ff6b7f;">${escapeHtml(lesoesVal)}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Problemas de Saúde / Medicamentos</div><div class="anamnese-val">${escapeHtml(saudeVal)}</div></div>
       </div>
     </div>
 
-    <!-- BLOCO 3: ROTINA & HÁBITOS -->
+    <!-- BLOCO 3: ESTILO DE VIDA, SONO & ESTRESSE -->
     <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🌙 Rotina e Sono</h4>
+      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🌙 Estilo de Vida & Hábitos</h4>
       <div class="anamnese-grid">
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Profissão / Rotina Diária</div><div class="anamnese-val">${escapeHtml(a.rotina || a.trabalho) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Média de Sono / Noite</div><div class="anamnese-val">${escapeHtml(a.sono || a.horasSono) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Nível de Estresse</div><div class="anamnese-val">${escapeHtml(a.estresse) || '-'}</div></div>
-      </div>
-    </div>
-
-    <!-- BLOCO 4: ALIMENTAÇÃO E DIETA -->
-    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🥗 Hábitos Alimentares & Preferências</h4>
-      <div class="anamnese-grid">
-        <div class="anamnese-box"><div class="anamnese-label">Refeições por Dia</div><div class="anamnese-val">${escapeHtml(a.numRefeicoes) || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Consumo Diário de Água</div><div class="anamnese-val">${escapeHtml(a.agua) || '-'}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos que NÃO Gosta / Alergias</div><div class="anamnese-val" style="color:#ff6b7f; font-weight:700;">${escapeHtml(a.alimentosOdiados || a.restricoes) || 'Nenhum declarado.'}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos Preferidos / Indispensáveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(a.alimentosGosta || a.preferencias) || 'Nenhum declarado.'}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Suplementos e Ergogênicos em Uso</div><div class="anamnese-val">${escapeHtml(a.suplementos || a.ergogenicos) || 'Nenhum informado.'}</div></div>
+        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Profissão / Rotina Diária</div><div class="anamnese-val">${escapeHtml(rotinaVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Média de Sono / Noite</div><div class="anamnese-val">${escapeHtml(sonoVal)}</div></div>
+        <div class="anamnese-box"><div class="anamnese-label">Nível de Estresse</div><div class="anamnese-val">${escapeHtml(estresseVal)}</div></div>
       </div>
     </div>
   `;
+
+  if (!ehApenasTreino) {
+    htmlAnamnese += `
+      <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px;">
+        <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🥗 Hábitos Alimentares & Preferências</h4>
+        <div class="anamnese-grid">
+          <div class="anamnese-box"><div class="anamnese-label">Refeições por Dia</div><div class="anamnese-val">${escapeHtml(refeicoesVal)}</div></div>
+          <div class="anamnese-box"><div class="anamnese-label">Consumo Diário de Água</div><div class="anamnese-val">${escapeHtml(aguaVal)}</div></div>
+          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos que NÃO Gosta / Alergias</div><div class="anamnese-val" style="color:#ff6b7f; font-weight:700;">${escapeHtml(odeiaVal)}</div></div>
+          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos Preferidos / Indispensáveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(gostaVal)}</div></div>
+          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Suplementos / Ergogênicos em Uso</div><div class="anamnese-val">${escapeHtml(supVal)}</div></div>
+        </div>
+      </div>
+    `;
+  }
+
+  div.innerHTML = htmlAnamnese;
 }
 
 function renderAdminFeedbackHistory() {
@@ -1190,7 +1311,8 @@ async function responderFeedbackAdmin() {
 
     input.value = '';
     renderAdminFeedbackHistory();
-    document.getElementById('tabFeedbackBadge').classList.add('hidden');
+    const tabBadge = document.getElementById('tabFeedbackBadge');
+    if (tabBadge) tabBadge.classList.add('hidden');
     fetchAlunos();
     showToast("Resposta enviada!", "success");
   } catch (e) {
@@ -1252,6 +1374,7 @@ async function renovarUmMesAluno() {
 
 function carregarTreinoNoEditorAoVivo() {
   const tx = document.getElementById('liveWorkoutText');
+  if (!tx) return;
   const draft = localStorage.getItem(`draft_workout_${currentStudentCode}`);
 
   if (draft) {
@@ -1280,8 +1403,11 @@ function carregarTreinoNoEditorAoVivo() {
 }
 
 function atualizarPreviewAoVivo() {
-  const raw = document.getElementById('liveWorkoutText').value;
+  const tx = document.getElementById('liveWorkoutText');
   const container = document.getElementById('liveWorkoutPreview');
+  if (!tx || !container) return;
+
+  const raw = tx.value;
   const parsedDays = parseWorkoutText(raw);
 
   container.innerHTML = "";
@@ -1342,7 +1468,8 @@ async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
 
   if (historicoSemanal.length === 0) {
     html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
-    document.getElementById('aiProgressInsight').classList.add('hidden');
+    const boxIA = document.getElementById('aiProgressInsight');
+    if (boxIA) boxIA.classList.add('hidden');
   } else {
     historicoSemanal.forEach((reg, idx) => {
       const cargaVal = reg.cargaMax || reg.carga || 0;
@@ -1373,6 +1500,8 @@ async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
 async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
   const boxIA = document.getElementById('aiProgressInsight');
   const textIA = document.getElementById('aiInsightText');
+
+  if (!boxIA || !textIA) return;
 
   boxIA.classList.remove('hidden');
   textIA.innerHTML = "<i>Analisando cargas e repetições com a IA...</i>";
@@ -1470,57 +1599,72 @@ function renderChartDuplo(cargas, reps) {
 }
 
 function closeChartModal() {
-  document.getElementById('chartModal').classList.add('hidden');
+  const modal = document.getElementById('chartModal');
+  if (modal) modal.classList.add('hidden');
 }
 
 const ORDEM_ABAS_PRINCIPAIS = ['treino', 'dieta', 'feedbackAdmin', 'resumo', 'anamnese', 'corrida', 'cadastro'];
 
 function switchTab(tab) {
-  document.getElementById('secResumo').classList.add('hidden');
-  document.getElementById('secAnamnese').classList.add('hidden');
-  document.getElementById('secFeedbackAdmin').classList.add('hidden');
-  document.getElementById('secTreino').classList.add('hidden');
-  document.getElementById('secDieta').classList.add('hidden');
-  document.getElementById('secCorrida').classList.add('hidden');
-  document.getElementById('secCadastro').classList.add('hidden');
-  document.getElementById('secNovo').classList.add('hidden');
-  document.getElementById('secChatAdmin').classList.add('hidden');
-  document.getElementById('secGifs').classList.add('hidden');
+  const ids = ['secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
 
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
 
   if (tab === 'resumo') {
-    document.getElementById('secResumo').classList.remove('hidden');
-    document.getElementById('tab1').classList.add('active');
+    const el = document.getElementById('secResumo');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab1');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'anamnese') {
-    document.getElementById('secAnamnese').classList.remove('hidden');
-    document.getElementById('tabAnamnese').classList.add('active');
+    const el = document.getElementById('secAnamnese');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabAnamnese');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'feedbackAdmin') {
-    document.getElementById('secFeedbackAdmin').classList.remove('hidden');
-    document.getElementById('tabFeedbackAdmin').classList.add('active');
+    const el = document.getElementById('secFeedbackAdmin');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabFeedbackAdmin');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'treino') {
-    document.getElementById('secTreino').classList.remove('hidden');
-    document.getElementById('tab2').classList.add('active');
+    const el = document.getElementById('secTreino');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab2');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'dieta') {
-    document.getElementById('secDieta').classList.remove('hidden');
-    document.getElementById('tab3').classList.add('active');
+    const el = document.getElementById('secDieta');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab3');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'corrida') {
-    document.getElementById('secCorrida').classList.remove('hidden');
-    document.getElementById('tab5').classList.add('active');
+    const el = document.getElementById('secCorrida');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab5');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'cadastro') {
-    document.getElementById('secCadastro').classList.remove('hidden');
-    document.getElementById('tab4').classList.add('active');
+    const el = document.getElementById('secCadastro');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tab4');
+    if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'novo') {
-    document.getElementById('secNovo').classList.remove('hidden');
+    const el = document.getElementById('secNovo');
+    if (el) el.classList.remove('hidden');
   } else if (tab === 'chatAdmin') {
-    document.getElementById('secChatAdmin').classList.remove('hidden');
+    const el = document.getElementById('secChatAdmin');
+    if (el) el.classList.remove('hidden');
   } else if (tab === 'gifs') {
-    document.getElementById('secGifs').classList.remove('hidden');
+    const el = document.getElementById('secGifs');
+    if (el) el.classList.remove('hidden');
   }
 }
 
 function loadDietView() {
   const tx = document.getElementById('dietTextarea');
+  if (!tx) return;
+
   const draft = localStorage.getItem(`draft_diet_${currentStudentCode}`);
 
   if (draft) {
@@ -1670,10 +1814,13 @@ function parseDietaEstruturada(rawText) {
 }
 
 function atualizarPreviewDietaAoVivo() {
-  const raw = document.getElementById('dietTextarea').value;
+  const tx = document.getElementById('dietTextarea');
   const filtersEl = document.getElementById('dietPreviewFilters');
   const listEl = document.getElementById('dietPreviewList');
 
+  if (!tx || !filtersEl || !listEl) return;
+
+  const raw = tx.value;
   const { resumoAdminText, suplementos, abas } = parseDietaEstruturada(raw);
   filtersEl.innerHTML = '';
   listEl.innerHTML = '';
@@ -1810,6 +1957,11 @@ async function salvarConfiguracoesConta() {
     const diaFmt = String(novaDataExp.getDate()).padStart(2, '0');
 
     currentStudentData.data_expiracao = `${anoFmt}-${mesFmt}-${diaFmt}`;
+  }
+
+  const elValor = document.getElementById('editValorMensalidade');
+  if (elValor) {
+    currentStudentData.valor_mensalidade = parseFloat(elValor.value) || 0;
   }
 
   currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
@@ -2040,6 +2192,9 @@ async function salvarNovoAlunoBloco() {
   const codigo = document.getElementById('newCode').value.trim().toLowerCase();
   const rawW = document.getElementById('rawWorkout').value.trim();
   const rawD = document.getElementById('rawDiet').value.trim();
+  
+  const elValor = document.getElementById('newValorMensalidade');
+  const valorMensal = elValor ? (parseFloat(elValor.value) || 0) : 0;
 
   if (!nome || !codigo) return showToast("Preencha Nome e Código.", "error");
 
@@ -2059,6 +2214,7 @@ async function salvarNovoAlunoBloco() {
     isento: false,
     dia_vencimento: hoje.getDate(),
     data_expiracao: `${anoFmt}-${mesFmt}-${diaFmt}`,
+    valor_mensalidade: valorMensal,
     semanas_rotacao: 5,
     data_vigencia: "",
     pode_alterar_tecnica: false,
@@ -2240,8 +2396,9 @@ function renderModalVolumeMuscular(relatorio) {
 async function sendAdminChatMessage() {
   const input = document.getElementById('adminChatInput');
   const history = document.getElementById('adminChatHistory');
-  const text = input.value.trim();
+  if (!input || !history) return;
 
+  const text = input.value.trim();
   if (!text) return;
 
   history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${escapeHtml(text)}</div>`;
