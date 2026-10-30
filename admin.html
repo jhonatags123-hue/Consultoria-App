@@ -446,6 +446,9 @@
       </div>
 
       <div id="secResumo" class="panel-card hidden">
+        <!-- DASHBOARD FINANCEIRO RENDERIZADO PELO JS -->
+        <div id="financeiroResumoContainer"></div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
           <div>
             <h2 id="studentName" style="font-size:20px; color:#fff;">Selecione um aluno</h2>
@@ -613,6 +616,12 @@
           </div>
         </div>
 
+        <!-- CAMPO DE VALOR DA MENSALIDADE DO ALUNO -->
+        <div style="margin-top:12px;">
+          <label style="color: var(--gold);">💰 Valor da Mensalidade (R$)</label>
+          <input type="number" id="editValorMensalidade" placeholder="Ex: 150.00" step="0.01">
+        </div>
+
         <div style="margin-top:12px; background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px;">
           <label style="color:var(--gold); margin-top:0;">⏳ Data de Vigência do Novo Protocolo</label>
           <input type="date" id="editDataVigencia" style="margin-top:4px;">
@@ -694,6 +703,10 @@
 
         <label>Código / Usuário de Acesso</label>
         <input type="text" id="newCode" placeholder="Ex: lucas">
+
+        <!-- CAMPO DE VALOR DA MENSALIDADE NA CRIAÇÃO -->
+        <label style="color: var(--gold);">💰 Valor da Mensalidade (R$)</label>
+        <input type="number" id="newValorMensalidade" placeholder="Ex: 150.00" step="0.01">
 
         <label>Bloco do Treino (Texto Puro)</label>
         <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Prancha Abdominal 3x1min"></textarea>
