@@ -41,7 +41,7 @@ function showToast(mensagem, tipo = 'info') {
 
 function authHeaders() {
   const token = localStorage.getItem('adminToken') || localStorage.getItem('admin_token') || '';
-  const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
+  const cleanToken = String(token).replace(/^Bearer\s+/i, '').replace(/^"|"$/g, '').trim();
   return { 
     'Content-Type': 'application/json', 
     'Authorization': cleanToken ? `Bearer ${cleanToken}` : '' 
@@ -1014,6 +1014,7 @@ async function gerarSemanaCardioIA() {
     const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
       method: 'POST',
       headers: authHeaders(),
+      cache: 'no-cache',
       body: JSON.stringify({
         mensagem: `Você é um preparador físico especializado em cardio/corrida.
 Monte uma semana de cardio dividida por dias (seg, ter, qua, qui, sex, sab, dom) e adicione uma orientação geral de prescrição de cardio.
@@ -1031,8 +1032,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
   }
 }`,
-        contexto: currentStudentData || {},
-        origem: "ADMIN"
+        contexto: currentStudentData || {}
       })
     });
 
@@ -1127,8 +1127,7 @@ REGRAS DE FORMATO:
 
 --- FICHA DE TREINO ATUAL ---
 ${treinoAtualTexto}`,
-        contexto: currentStudentData || {},
-        origem: "ADMIN"
+        contexto: currentStudentData || {}
       })
     });
 
@@ -1176,8 +1175,7 @@ Retorne ESTRITAMENTE um JSON no formato:
 
 Ficha Atual:
 ${tx.value}`,
-        contexto: currentStudentData || {},
-        origem: "ADMIN"
+        contexto: currentStudentData || {}
       })
     });
 
