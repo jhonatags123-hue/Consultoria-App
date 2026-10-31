@@ -169,6 +169,7 @@
           <button id="tab2" class="tab-btn" onclick="switchTab('treino')">🏋️ Editor de Treino</button>
           <button id="tab3" class="tab-btn" onclick="switchTab('dieta')">🥗 Editor de Dieta</button>
           <button id="tab5" class="tab-btn" onclick="switchTab('corrida')">🏃 Cardio & Corrida</button>
+          <button id="tabErgogenicos" class="tab-btn" onclick="switchTab('ergogenicos')">💉 Ergogênicos</button>
           <button id="tabAnamnese" class="tab-btn" onclick="switchTab('anamnese')">📋 Anamnese Respostas</button>
           <button id="tabFeedbackAdmin" class="tab-btn" onclick="abrirAbaFeedback()">
             💬 Feedback <span id="tabFeedbackBadge" class="badge-dot hidden">🔴</span>
@@ -264,6 +265,11 @@
             <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Gere as diretrizes gerais de execução para este protocolo.</p>
             <button id="btnGerarApenasDiretrizesIA" class="btn btn-gold btn-lg full-width" onclick="gerarApenasDiretrizesIA()">⚡ GERAR DIRETRIZES COM AUXILIAR DO COACH</button>
           </div>
+
+          <div class="content-box-inner" style="margin-top:12px; margin-bottom:12px; padding:12px;">
+            <label for="editTrainerGuidelines" style="margin-top:0; font-size:13px; font-weight:700; color:var(--gold);">📌 Diretrizes de Execução do Treinador:</label>
+            <textarea id="editTrainerGuidelines" rows="4" placeholder="1. Aquecimento geral...&#10;2. Séries de reconhecimento..."></textarea>
+          </div>
           
           <div class="tool-box-ia" style="margin-top:12px;">
             <div class="tool-box-header">🛠️ AJUSTE DE FICHA EM TEMPO REAL (AUXILIAR DO COACH)</div>
@@ -278,11 +284,6 @@
             <div>
               <label for="liveWorkoutText">Texto da Ficha (Texto Puro):</label>
               <textarea id="liveWorkoutText" rows="15" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto 3x8-10" oninput="lidarEdicaoTreino()"></textarea>
-
-              <div style="margin-top:10px;">
-                <label for="editTrainerGuidelines">📌 Diretrizes de Execução do Treinador:</label>
-                <textarea id="editTrainerGuidelines" rows="4" placeholder="1. Aquecimento geral...&#10;2. Séries de reconhecimento..."></textarea>
-              </div>
 
               <button class="btn btn-lg" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA DE TREINO</button>
             </div>
@@ -404,6 +405,26 @@
             <label style="color:var(--blue);">📊 Histórico de Corridas do Aluno:</label>
             <div id="adminRunHistoryList" class="content-box-inner" style="margin-top:6px;"></div>
           </div>
+        </section>
+
+        <!-- ABA: ERGOGÊNICOS E RECURSOS AVANÇADOS -->
+        <section id="secErgogenicos" class="tab-section hidden panel-card">
+          <div class="panel-title">💉 Protocolo de Ergogênicos & Recursos Avançados</div>
+
+          <div class="tool-box-ia" style="margin-bottom:12px;">
+            <div class="tool-box-header">⚡ GERAR PROTOCOLO DE ERGOGÊNICOS (AUXILIAR DO COACH)</div>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <input type="text" id="aiErgogenicosPromptAdmin" placeholder="Ex: Protocolo focado em cutting com dosagens de TRT e proteção hepática...">
+              <button id="btnGerarErgoIA" class="btn btn-gold btn-lg" style="width:240px; min-width:240px;" onclick="gerarProtocoloErgogenicosIA()">⚡ GERAR VIA AUXILIAR</button>
+            </div>
+          </div>
+
+          <div class="content-box-inner" style="padding:14px;">
+            <label for="editProtocoloErgogenicos" style="margin-top:0; font-size:13px; font-weight:700; color:var(--gold);">📌 Prescrição & Detalhamento do Protocolo:</label>
+            <textarea id="editProtocoloErgogenicos" rows="14" placeholder="Digite ou gere o protocolo de ergogênicos, protetores, posologia e timing de aplicações..."></textarea>
+          </div>
+
+          <button class="btn btn-gold btn-lg full-width" style="margin-top:14px;" onclick="salvarProtocoloErgogenicos()">💾 SALVAR PROTOCOLO DE ERGOGÊNICOS</button>
         </section>
 
         <!-- ABA: DADOS E PERMISSÕES DO ALUNO -->
@@ -597,12 +618,12 @@
     </div>
   </div>
 
- <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
+  <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
   <script src="admin.js"></script>
   <!-- SCRIPT DA GESTÃO FINANCEIRA EXCLUSIVA & CONTAS PESSOAIS -->
   <script src="admin2.js"></script>
 
-  <!-- CORREÇÃO DA CÓPIA DE LINKS (COLA AQUI ABAIXO) -->
+  <!-- CORREÇÃO DA CÓPIA DE LINKS -->
   <script>
     function copiarTextoParaClipboard(texto, mensagemSucesso) {
       if (!texto) {
