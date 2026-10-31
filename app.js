@@ -1148,13 +1148,22 @@ async function concluirTreinoDoDia() {
         }
       }
 
-      const cAtiv = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      const rAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      if (!isNaN(cAtiv) && cAtiv > cMax) cMax = cAtiv;
-      if (!isNaN(rAtiv)) { 
-        rTotal += rAtiv; 
-        seriesCount++; 
-        if (!isNaN(cAtiv)) volumeToneladoTotal += (cAtiv * rAtiv);
+      // Soma específica de Myo-Reps no Resumo do Treino
+      const cMyo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+      const rMyoAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+      const bMyo = parseFloat(currentData.logs?.[`log_b_${exKeySanitized}_myo_blocos`]);
+      const rMyoBloco = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_myo_repsbloco`]);
+
+      if (!isNaN(cMyo) && cMyo > cMax) cMax = cMyo;
+
+      if (!isNaN(rMyoAtiv)) {
+        let totalRepsMyo = rMyoAtiv;
+        if (!isNaN(bMyo) && !isNaN(rMyoBloco)) {
+          totalRepsMyo += (bMyo * rMyoBloco);
+        }
+        rTotal += totalRepsMyo;
+        seriesCount++;
+        if (!isNaN(cMyo)) volumeToneladoTotal += (cMyo * totalRepsMyo);
       }
 
       const cCl = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
@@ -1257,6 +1266,8 @@ async function concluirTreinoDoDia() {
       }
       delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
       delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
+      delete currentData.logs[`log_b_${exKeySanitized}_myo_blocos`];
+      delete currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`];
       delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
       delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
       delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
@@ -1567,52 +1578,35 @@ function renderExercisesForDay(day, dayIdx, container) {
     if (activeMode === 'myoreps') {
       const keyAtivC = `log_c_${exKeySanitized}_ativ`;
       const keyAtivR = `log_r_${exKeySanitized}_ativ`;
+      const keyBlocos = `log_b_${exKeySanitized}_myo_blocos`;
+      const keyRepsBloco = `log_r_${exKeySanitized}_myo_repsbloco`;
+
       const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
       const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
-
-      const keyBoC = `log_c_${exKeySanitized}_bo`;
-      const keyBoR = `log_r_${exKeySanitized}_bo`;
-      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
-
-      const nAtiv = parseFloat(valAtivC) || 0;
-      let c20Myo = nAtiv > 0 ? Math.round(nAtiv * 0.80) : 0;
-      let c30Myo = nAtiv > 0 ? Math.round(nAtiv * 0.70) : 0;
+      const valBlocos = (currentData.logs && currentData.logs[keyBlocos]) || '';
+      const valRepsBloco = (currentData.logs && currentData.logs[keyRepsBloco]) || '';
 
       html += `
-        <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:2px solid var(--mark);">
+        <!-- Série 1: Ativação -->
+        <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:4px solid var(--mark);">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Ativação</button>
-          <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="atualizarBackoffLiveMyo('${exKeySanitized}', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
+          <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px; border-color:var(--mark) !important;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
           <span class="unit">kg</span>
-          <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px;" placeholder="${exMeta || '8-12'}" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
+          <input ${createLogInputAttr(keyAtivR)} class="input-field input-log" style="width:65px; border-color:var(--mark) !important;" placeholder="Ativação" value="${escapeHtml(valAtivR)}" oninput="scheduleAutoSave('${keyAtivR}', this.value, ${dayIdx}, ${exIdx})">
           <span class="unit">reps</span>
         </div>
-        <div style="font-size:10px; color:var(--mark); margin:3px 0 5px 4px; font-weight:700;">
-          ⏱ Myo-Reps (Mini-séries com 15-20s de descanso).
+
+        <!-- Série 2: Mini-Blocos -->
+        <div class="series-row" style="margin-top:6px; background:var(--panel-2); border:1px solid var(--line);">
+          <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Mini-Blocos</button>
+          <input ${createLogInputAttr(keyBlocos)} class="input-field input-log" style="width:55px; border-color:var(--mark) !important;" placeholder="Blocos" value="${escapeHtml(valBlocos)}" oninput="scheduleAutoSave('${keyBlocos}', this.value, ${dayIdx}, ${exIdx})">
+          <span class="unit" style="font-size:9px;">blocos</span>
+          <input ${createLogInputAttr(keyRepsBloco)} class="input-field input-log" style="width:65px; border-color:var(--mark) !important;" placeholder="Reps/bloco" value="${escapeHtml(valRepsBloco)}" oninput="scheduleAutoSave('${keyRepsBloco}', this.value, ${dayIdx}, ${exIdx})">
+          <span class="unit">reps</span>
         </div>
-        <div style="background:var(--signal-dim); border:1px solid var(--signal-light); border-radius:6px; padding:8px; margin-top:4px;">
-          <div style="font-size:11px; font-weight:600; color:var(--signal-light); margin-bottom:4px;">⚙️ Back-off Set (Redução de 20% a 30%):</div>
-          <div id="calc_backoff_box_myo_${exKeySanitized}" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-            ${nAtiv > 0 ? `
-              <div style="display:flex; gap:4px; width:100%;">
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c20Myo}, ${dayIdx},${exIdx})">
-                  -20% (${c20Myo}kg)
-                </button>
-                <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  onclick="aplicarCargaBackoff('${keyBoC}',${c30Myo}, ${dayIdx},${exIdx})">
-                  -30% (${c30Myo}kg)
-                </button>
-              </div>
-            ` : `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`}
-          </div>
-          <div class="series-row" style="background:var(--panel); border:1px solid var(--line);">
-            <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Back-off</button>
-            <input id="input_${keyBoC}" ${createLogInputAttr(keyBoC)} class="input-field input-log" style="width:55px; border-color:var(--signal-light) !important;" placeholder="Kg" value="${escapeHtml(valBoC)}" oninput="scheduleAutoSave('${keyBoC}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">kg</span>
-            <input ${createLogInputAttr(keyBoR)} class="input-field input-log" style="width:65px; border-color:var(--signal-light) !important;" placeholder="${exMeta || '10-12'}" value="${escapeHtml(valBoR)}" oninput="scheduleAutoSave('${keyBoR}', this.value, ${dayIdx}, ${exIdx})">
-            <span class="unit">reps</span>
-          </div>
+        
+        <div style="font-size:10.5px; color:var(--ink-dim); margin:4px 0 0 4px;">
+          ⏱ 10 a 15 segundos de descanso entre os mini-blocos com a mesma carga.
         </div>
       `;
     } else if (activeMode === 'cluster') {
@@ -1806,35 +1800,6 @@ function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
   }
 }
 
-function atualizarBackoffLiveMyo(exKeySanitized, dayIdx, exIdx) {
-  const box = document.getElementById(`calc_backoff_box_myo_${exKeySanitized}`);
-  if (!box) return;
-
-  const elAtiv = document.getElementById(`input_ativ_${exKeySanitized}`);
-  const cargaAtiv = elAtiv ? (parseFloat(elAtiv.value) || 0) : 0;
-  const keyBoC = `log_c_${exKeySanitized}_bo`;
-
-  if (cargaAtiv > 0) {
-    const c20 = Math.round(cargaAtiv * 0.80);
-    const c30 = Math.round(cargaAtiv * 0.70);
-
-    box.innerHTML = `
-      <div style="display:flex; gap:4px; width:100%;">
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
-          -20% (${c20}kg)
-        </button>
-        <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-          onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
-          -30% (${c30}kg)
-        </button>
-      </div>
-    `;
-  } else {
-    box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga de ativação para calcular o Back-off</span>`;
-  }
-}
-
 function scheduleAutoSave(key, value, dayIdx, exIdx) {
   if (!workoutTimerRunning) {
     alert("⚠️ Clique em '▶ INICIAR TREINO' antes de registrar dados!");
@@ -1913,10 +1878,20 @@ function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     }
   }
 
-  const cAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
-  const rAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
-  if (!isNaN(cAtiv) && cAtiv > maxCarga) maxCarga = cAtiv;
-  if (!isNaN(rAtiv)) { totalReps += rAtiv; seriesPreenchidas++; }
+  // Leitura específica de Myo-Reps
+  const cMyoAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+  const rMyoAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
+  const rMyoBlocos = parseFloat(currentData.logs[`log_b_${exKeySanitized}_myo_blocos`]);
+  const rMyoRepsBloco = parseFloat(currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`]);
+
+  if (!isNaN(cMyoAtiv) && cMyoAtiv > maxCarga) maxCarga = cMyoAtiv;
+  if (!isNaN(rMyoAtiv)) { 
+    totalReps += rMyoAtiv; 
+    seriesPreenchidas++; 
+  }
+  if (!isNaN(rMyoBlocos) && !isNaN(rMyoRepsBloco)) {
+    totalReps += (rMyoBlocos * rMyoRepsBloco);
+  }
 
   const cCl = parseFloat(currentData.logs[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
   const rCl = parseFloat(currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
