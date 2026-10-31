@@ -159,7 +159,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -706,9 +706,11 @@ function loadStudentData(data) {
     renderDietaAluno(data.refeicoes || data.dieta || []);
   }
 
-  if (data.liberarErgogenicos === true) {
+  // RENDERIZAÇÃO DOS ERGOGÊNICOS ATUALIZADA (BUSCA FLEXÍVEL)
+  const temErgogenicos = data.liberarErgogenicos === true || data.ergogenicos || data.protocolo_ergogenico || data.protocoloErgogenicos || data.ergogenicos_texto;
+  if (temErgogenicos) {
     if (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
-    renderErgogenicosAluno(data.ergogenicos || data.protocolo_ergogenico || '');
+    renderErgogenicosAluno(data);
   } else {
     if (btnErgogenicos) btnErgogenicos.classList.add('hidden');
   }
@@ -727,6 +729,27 @@ function loadStudentData(data) {
   setupSwipeNavigation();
 
   showTab('treino');
+}
+
+function renderErgogenicosAluno(payloadData) {
+  const container = document.getElementById('ergogenicosContent') || document.getElementById('ergogenicosBody');
+  if (!container) return;
+
+  let textoProtocolo = "";
+  if (typeof payloadData === 'string') {
+    textoProtocolo = payloadData;
+  } else if (payloadData && typeof payloadData === 'object') {
+    textoProtocolo = payloadData.ergogenicos || 
+                     payloadData.protocolo_ergogenico || 
+                     payloadData.protocoloErgogenicos || 
+                     payloadData.ergogenicos_texto || "";
+  }
+
+  if (textoProtocolo && textoProtocolo.trim()) {
+    container.innerHTML = escapeHtml(textoProtocolo).replace(/\n/g, '<br>');
+  } else {
+    container.innerHTML = `<div style="color:var(--ink-dim); text-align:center; padding:12px;">Nenhum protocolo ou orientação cadastrada no momento.</div>`;
+  }
 }
 
 function toggleCheckExercise(btn, dayIdx, exIdx) {
@@ -1022,16 +1045,6 @@ function setupCorrida(data) {
   document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
 }
 
-function renderErgogenicosAluno(textoProtocolo) {
-  const container = document.getElementById('ergogenicosBody');
-  if (!container) return;
-  if (textoProtocolo && textoProtocolo.trim()) {
-    container.innerHTML = escapeHtml(textoProtocolo).replace(/\n/g, '<br>');
-  } else {
-    container.innerHTML = `Nenhum protocolo ou orientação cadastrada no momento.`;
-  }
-}
-
 function setupWorkout(days) {
   currentData.days = days;
   renderTreinoDayList();
@@ -1148,7 +1161,6 @@ async function concluirTreinoDoDia() {
         }
       }
 
-      // Soma específica de Myo-Reps no Resumo do Treino
       const cMyo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
       const rMyoAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
       const bMyo = parseFloat(currentData.logs?.[`log_b_${exKeySanitized}_myo_blocos`]);
@@ -1347,24 +1359,6 @@ function toggleTrainerGoals() {
 function toggleCardioGoals() {
   const body = document.getElementById('cardioGoalsBody');
   const arrow = document.getElementById('arrowCardio');
-  if (!body || !arrow) return;
-
-  body.classList.toggle('collapsed');
-  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
-}
-
-function toggleNutritionalGoals() {
-  const body = document.getElementById('nutriGoalsBody');
-  const arrow = document.getElementById('arrowNutriGoals');
-  if (!body || !arrow) return;
-
-  body.classList.toggle('collapsed');
-  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
-}
-
-function toggleSupplements() {
-  const body = document.getElementById('supplementsBody');
-  const arrow = document.getElementById('arrowSupplements');
   if (!body || !arrow) return;
 
   body.classList.toggle('collapsed');
@@ -1587,7 +1581,6 @@ function renderExercisesForDay(day, dayIdx, container) {
       const valRepsBloco = (currentData.logs && currentData.logs[keyRepsBloco]) || '';
 
       html += `
-        <!-- Série 1: Ativação -->
         <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:4px solid var(--mark);">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Ativação</button>
           <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px; border-color:var(--mark) !important;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
@@ -1596,7 +1589,6 @@ function renderExercisesForDay(day, dayIdx, container) {
           <span class="unit">reps</span>
         </div>
 
-        <!-- Série 2: Mini-Blocos -->
         <div class="series-row" style="margin-top:6px; background:var(--panel-2); border:1px solid var(--line);">
           <button type="button" class="btn-check-serie" data-num="2" onclick="toggleCheckSerie(this)">Mini-Blocos</button>
           <input ${createLogInputAttr(keyBlocos)} class="input-field input-log" style="width:55px; border-color:var(--mark) !important;" placeholder="Blocos" value="${escapeHtml(valBlocos)}" oninput="scheduleAutoSave('${keyBlocos}', this.value, ${dayIdx}, ${exIdx})">
@@ -1878,7 +1870,6 @@ function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     }
   }
 
-  // Leitura específica de Myo-Reps
   const cMyoAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
   const rMyoAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
   const rMyoBlocos = parseFloat(currentData.logs[`log_b_${exKeySanitized}_myo_blocos`]);
