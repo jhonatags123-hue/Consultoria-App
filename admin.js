@@ -555,7 +555,6 @@ function alunoTemFeedbackPendente(aluno) {
   return ultimaMsg && ultimaMsg.autor === "ALUNO";
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS CORRIGIDA */
 function toggleSanfonaIsentos() {
   isentosExpanded = !isentosExpanded;
   const boxContainer = document.getElementById('alunosIsentosListContainer');
@@ -568,7 +567,7 @@ function toggleSanfonaIsentos() {
   }
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS CORRIGIDA */
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS (CORRIGIDA) */
 function renderStudentsList(list) {
   const container = document.getElementById('alunosList');
   if (!container) return;
@@ -579,26 +578,29 @@ function renderStudentsList(list) {
     return;
   }
 
-  // Helper para identificar com 100% de certeza se o aluno é VIP/Isento
-  const checarSeEhIsento = (a) => {
-    const st = String(a.status_pagamento || a.status || '').toLowerCase();
-    const pl = String(a.plano || a.tipo || '').toLowerCase();
+  // Função de checagem blindada para identificar VIP/Isento
+  const checarSeEhIsento = (aluno) => {
+    if (!aluno) return false;
+    const stPag = String(aluno.status_pagamento || aluno.status || '').toLowerCase();
+    const plano = String(aluno.plano || aluno.tipo || '').toLowerCase();
+    
     return (
-      a.isento === true || 
-      a.isento === 'true' || 
-      a.payload?.isento === true || 
-      st === 'isento' || 
-      st === 'vip' || 
-      pl === 'isento' || 
-      pl === 'vip'
+      aluno.isento === true ||
+      aluno.isento === 'true' ||
+      aluno.payload?.isento === true ||
+      stPag === 'isento' ||
+      stPag === 'vip' ||
+      plano === 'isento' ||
+      plano === 'vip'
     );
   };
 
-  // Separação rigorosa
+  // 1. Separa estritamente os pagantes dos isentos/VIPs
   const alunosRegulares = list.filter(a => !checarSeEhIsento(a));
   const alunosVip = list.filter(a => checarSeEhIsento(a));
 
-  const criarItemAluno = (aluno, index) => {
+  // Função interna para montar o HTML de cada Card de Aluno
+  const criarItemAluno = (aluno) => {
     const ehVIP = checarSeEhIsento(aluno);
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
     
@@ -619,7 +621,7 @@ function renderStudentsList(list) {
     const valorMensalExibicao = extrairPrecoAluno(aluno);
 
     const div = document.createElement('div');
-    div.className = `student-item ${aluno.codigo === currentStudentCode || (index === 0 && !currentStudentCode) ? 'active' : ''}`;
+    div.className = `student-item ${aluno.codigo === currentStudentCode ? 'active' : ''}`;
     div.innerHTML = `
       <div>
         <b>${escapeHtml(aluno.clientName || aluno.nome)}</b> ${badgePendenteHtml}<br>
@@ -639,12 +641,19 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // 1. Renderiza APENAS os pagantes/regulares
-  alunosRegulares.forEach((aluno, index) => {
-    container.appendChild(criarItemAluno(aluno, index));
-  });
+  // 2. Renderiza APENAS os alunos pagantes na lista principal
+  if (alunosRegulares.length === 0) {
+    const emptyMsg = document.createElement('div');
+    emptyMsg.style.cssText = "padding:8px; font-size:12px; color:var(--muted);";
+    emptyMsg.textContent = "Nenhum aluno pagante encontrado.";
+    container.appendChild(emptyMsg);
+  } else {
+    alunosRegulares.forEach((aluno) => {
+      container.appendChild(criarItemAluno(aluno));
+    });
+  }
 
-  // 2. Renderiza a Sanfona dos Isentos/VIPs
+  // 3. Renderiza o bloco Retrátil (Sanfona) EXCLUSIVAMENTE para os alunos VIPs / Isentos
   if (alunosVip.length > 0) {
     const headerVip = document.createElement('div');
     headerVip.style.cssText = `
@@ -676,14 +685,22 @@ function renderStudentsList(list) {
     boxIsentos.style.display = isentosExpanded ? 'block' : 'none';
 
     alunosVip.forEach((aluno) => {
-      boxIsentos.appendChild(criarItemAluno(aluno, -1));
+      boxIsentos.appendChild(criarItemAluno(aluno));
     });
 
     container.appendChild(boxIsentos);
   }
 
-  if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
+  // Seleciona o primeiro aluno pagante por padrão caso nenhum esteja selecionado
+  if (!currentStudentCode) {
+    if (alunosRegulares.length > 0) {
+      carregarAluno(alunosRegulares[0].codigo);
+    } else if (alunosVip.length > 0) {
+      carregarAluno(alunosVip[0].codigo);
+    }
+  }
 }
+
 function filterStudents() {
   const term = document.getElementById('searchStudent').value.toLowerCase();
   const filtered = allStudentsList.filter(a => (a.nome || a.clientName || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
