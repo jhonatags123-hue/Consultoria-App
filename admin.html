@@ -69,6 +69,7 @@
         </div>
 
         <div class="header-actions">
+          <button class="btn-action sm" style="background:#4285F4; color:#fff;" onclick="abrirPastaDriveAluno()">📁 Google Drive</button>
           <button class="btn-action sm" onclick="enviarCredenciaisWhatsApp()">📱 Enviar WhatsApp</button>
           <button class="btn-action sm" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
           <button class="btn-gold sm" onclick="renovarUmMesAluno()">🔄 +30 Dias</button>
@@ -171,28 +172,26 @@
           <button id="tab5" class="tab-btn" onclick="switchTab('corrida')">🏃 Cardio & Corrida</button>
           <button id="tabErgogenicos" class="tab-btn" onclick="switchTab('ergogenicos')">💉 Ergogênicos</button>
           <button id="tabAnamnese" class="tab-btn" onclick="switchTab('anamnese')">📋 Anamnese Respostas</button>
-          <button id="tabFeedbackAdmin" class="tab-btn" onclick="abrirAbaFeedback()">
+          <button id="tabFeedbackAdmin" class="tab-btn" onclick="switchTab('feedbackAdmin')">
             💬 Feedback <span id="tabFeedbackBadge" class="badge-dot hidden">🔴</span>
           </button>
           <button id="tab4" class="tab-btn" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
           <button class="tab-btn" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </nav>
 
-        <!-- ABA 1: CAIXA FINANCEIRO CONSULTORIA (GERENCIADO VIA ADMIN2.JS) -->
+        <!-- ABA 1: CAIXA FINANCEIRO CONSULTORIA -->
         <section id="secFinanceiro" class="tab-section hidden panel-card">
           <div class="panel-title">💰 CAIXA FINANCEIRO CONSULTORIA & MÉTRICAS</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Visão consolidada do faturamento, cobranças e entradas de novos alunos</p>
-          
           <div id="financeiroDashboardContent" class="content-box-inner">
             <small style="color:var(--muted);">Calculando métricas financeiras...</small>
           </div>
         </section>
 
-        <!-- ABA 2: CONTAS E LUCROS PESSOAIS (GERENCIADO VIA ADMIN2.JS) -->
+        <!-- ABA 2: CONTAS E LUCROS PESSOAIS -->
         <section id="secContasLucros" class="tab-section hidden panel-card">
           <div class="panel-title">💳 GESTÃO FINANCEIRA PESSOAL: CONTAS, RENDAS & LUCROS</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Calculadora de arrecadação total, consultoria, renda da esposa, gastos e valor da hora.</p>
-          
           <div id="contasLucrosContent" class="content-box-inner"></div>
         </section>
 
@@ -211,7 +210,7 @@
             </div>
           </div>
 
-          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS COMPACTADO -->
+          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS -->
           <div class="incomodos-alert-box content-box-inner" style="border-color:var(--accent); margin-bottom:16px; padding:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
               <h3 style="color:var(--accent); font-size:12px; font-weight:800;">🚨 DORES E OBSERVAÇÕES REGISTRADAS</h3>
@@ -223,7 +222,7 @@
             <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:8px;"></div>
           </div>
 
-          <!-- FICHA DO ALUNO -->
+          <!-- FICHA DO ALUNO (COM AS 4 SANFONAS FECHADAS) -->
           <div id="workoutOverview" class="content-box-inner">
             <div id="summaryOverviewContainer"></div>
           </div>
@@ -247,7 +246,7 @@
           </div>
 
           <div class="feedback-chat-container content-box-inner">
-            <div id="adminFeedbackHistory" class="feedback-history-list" style="max-height:360px; overflow-y:auto; margin-bottom:12px;"></div>
+            <div id="adminFeedbackHistory" class="feedback-history-list" style="height:320px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:8px;"></div>
             
             <div class="feedback-input-box" style="display:flex; flex-direction:column; gap:8px;">
               <textarea id="adminFeedbackInput" rows="3" placeholder="Digite sua orientação ou resposta para o aluno..."></textarea>
@@ -482,15 +481,13 @@
 
             <div class="form-group" style="margin-top:10px;">
               <label for="editPassword">Redefinir Senha do Aluno:</label>
-              <div class="senha-row">
-                <div>
-                  <input type="text" id="editPassword" placeholder="Deixe em branco para manter a atual">
-                </div>
+              <div class="senha-row" style="display:flex; gap:8px;">
+                <input type="text" id="editPassword" placeholder="Deixe em branco para manter a atual" style="flex:1;">
                 <button type="button" class="btn btn-soft btn-md" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Senha</button>
               </div>
             </div>
 
-            <div class="config-checkboxes-panel" style="margin-top:12px;">
+            <div class="config-checkboxes-panel" style="margin-top:12px; display:flex; flex-direction:column; gap:6px;">
               <div class="checkbox-button-item">
                 <input type="checkbox" id="editIsentoCheckbox">
                 <label for="editIsentoCheckbox">👑 Aluno VIP / Isento de Pagamento</label>
@@ -623,7 +620,7 @@
   <!-- SCRIPT DA GESTÃO FINANCEIRA EXCLUSIVA & CONTAS PESSOAIS -->
   <script src="admin2.js"></script>
 
-  <!-- CORREÇÃO DA CÓPIA DE LINKS -->
+  <!-- CORREÇÃO DA CÓPIA DE LINKS E NAVEGAÇÃO -->
   <script>
     function copiarTextoParaClipboard(texto, mensagemSucesso) {
       if (!texto) {
