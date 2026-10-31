@@ -111,14 +111,15 @@ function copiarLinkVenda(url) {
   }
 }
 
+// 1. GOOGLE DRIVE ÍNTEGRO
 function abrirPastaDriveAluno() {
-  if (!currentStudentData) {
+  if (!currentStudentData && !currentStudentCode) {
     return showToast("Selecione um aluno primeiro.", "error");
   }
 
-  const nomeAluno = currentStudentData.clientName || currentStudentData.nome || currentStudentCode;
+  const nomeAluno = (currentStudentData && (currentStudentData.clientName || currentStudentData.nome)) || currentStudentCode;
   
-  if (currentStudentData.driveFolderUrl) {
+  if (currentStudentData && currentStudentData.driveFolderUrl) {
     window.open(currentStudentData.driveFolderUrl, '_blank');
   } else {
     const searchUrl = `https://drive.google.com/drive/search?q=${encodeURIComponent(nomeAluno)}`;
@@ -242,7 +243,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* NAVEGAÇÃO ENTRE ABAS INTEGRADA COM ADMIN2.JS */
+/* NAVEGAÇÃO ENTRE ABAS INTEGRADA */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secContasLucros', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secErgogenicos', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -278,10 +279,7 @@ function switchTab(tab) {
     const tabBtn = document.getElementById('tabAnamnese');
     if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'feedbackAdmin') {
-    const el = document.getElementById('secFeedbackAdmin');
-    if (el) el.classList.remove('hidden');
-    const tabBtn = document.getElementById('tabFeedbackAdmin');
-    if (tabBtn) tabBtn.classList.add('active');
+    abrirAbaFeedback();
   } else if (tab === 'treino') {
     const el = document.getElementById('secTreino');
     if (el) el.classList.remove('hidden');
@@ -317,6 +315,15 @@ function switchTab(tab) {
     const el = document.getElementById('secGifs');
     if (el) el.classList.remove('hidden');
   }
+}
+
+// 2. CHAT DE FEEDBACK ATUALIZADO E SEM ERROS DE CONSOLE
+function abrirAbaFeedback() {
+  const el = document.getElementById('secFeedbackAdmin');
+  if (el) el.classList.remove('hidden');
+  const tabBtn = document.getElementById('tabFeedbackAdmin');
+  if (tabBtn) tabBtn.classList.add('active');
+  renderAdminFeedbackHistory();
 }
 
 function lidarEdicaoTreino() {
@@ -803,6 +810,7 @@ async function analisarIncomodosIA() {
   }
 }
 
+// 3. RESUMO VISÃO GERAL COM 4 SANFONAS FECHADAS
 function renderResumoVisaoGeral() {
   const container = document.getElementById('summaryOverviewContainer');
   if (!container) return;
@@ -813,213 +821,137 @@ function renderResumoVisaoGeral() {
     return;
   }
 
-  let htmlContent = `<div class="section-subtitle">🏋 TREINOS CADASTRADOS & EVOLUÇÃO DE CARGAS</div>`;
+  // PREPARAÇÃO DOS CONTEÚDOS INTERNOS
+  // 1. TREINO
+  let htmlTreino = "";
   const days = currentStudentData.days || [];
-  const weeklyLogs = currentStudentData.weekly_logs || {};
-  const dailyLogs = currentStudentData.logs || {};
-
   if (days.length === 0) {
-    htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhum treino cadastrado.</p>`;
+    htmlTreino = `<p style="color:var(--muted); font-size:12px;">Nenhum treino cadastrado.</p>`;
   } else {
-    days.forEach((day, dayIdx) => {
-      const numEx = (day.exercicios || []).length;
-      htmlContent += `
-        <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_day_${dayIdx}')">
-          <div>
-            <b>🏋️ ${escapeHtml(day.title)}</b>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
+    days.forEach((day) => {
+      htmlTreino += `
+        <div style="margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+          <b style="color:var(--gold);">🏋️ ${escapeHtml(day.title)}</b>
+          <div style="margin-top:4px;">
+            ${(day.exercicios || []).map(ex => `<div style="font-size:12px;">• ${escapeHtml(ex.nome)} — <span style="color:var(--muted);">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span></div>`).join('')}
           </div>
-          <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Detalhes ▾</span>
         </div>
-        <div id="resumo_day_${dayIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px;">
       `;
-
-      (day.exercicios || []).forEach((ex, exIdx) => {
-        const exKey = sanitizeExKey(ex.nome);
-        const keyDirect = `${dayIdx}_${exIdx}`;
-        const historico = weeklyLogs[exKey] || weeklyLogs[keyDirect] || [];
-        let cargaRecenteTexto = "Sem carga salva";
-
-        if (historico.length > 0) {
-          const ult = historico[historico.length - 1];
-          cargaRecenteTexto = `${ult.cargaMax || ult.carga || 0}kg (${ult.repsMed || ult.reps || '-'} reps)`;
-        } else {
-          let maxC = 0;
-          let totalR = 0;
-          let countS = 0;
-          for (let s = 1; s <= 5; s++) {
-            const c = parseFloat(dailyLogs[`log_c_${exKey}_s${s}`] || dailyLogs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-            const r = parseFloat(dailyLogs[`log_r_${exKey}_s${s}`] || dailyLogs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
-            if (!isNaN(c) && c > maxC) maxC = c;
-            if (!isNaN(r)) { totalR += r; countS++; }
-          }
-          if (maxC > 0) {
-            const rMed = countS > 0 ? Math.round(totalR / countS) : '-';
-            cargaRecenteTexto = `${maxC}kg (${rMed} reps)`;
-          }
-        }
-
-        const hasGif = ex.gifUrl ? '📹 GIF' : '';
-
-        htmlContent += `
-          <div class="ex-clickable" onclick="verEvolucaoSemanal('${escapeHtml(ex.nome)}', '${escapeHtml(ex.series)}', '${escapeHtml(ex.reps)}')">
-            <span>• <b>${escapeHtml(ex.nome)}</b> <small style="color:var(--green);">${hasGif}</small></span>
-            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${escapeHtml(ex.series)} (${escapeHtml(ex.reps)}) | 📈 ${cargaRecenteTexto}</span>
-          </div>
-        `;
-      });
-
-      htmlContent += `</div>`;
     });
   }
 
-  htmlContent += `<div class="section-subtitle">🥗 PLANO ALIMENTAR / DIETA</div>`;
-  
+  // 2. DIETA
+  let htmlDieta = "";
   if (currentStudentData.liberarDieta === false) {
-    htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Aba Dieta bloqueada para o aluno.</p>`;
+    htmlDieta = `<p style="color:var(--muted); font-size:12px;">Aba Dieta bloqueada no app do aluno.</p>`;
   } else {
     let textoDietaRaw = "";
     const refeicoes = currentStudentData.refeicoes || [];
-    
     if (typeof refeicoes === 'string') {
       textoDietaRaw = refeicoes;
     } else if (Array.isArray(refeicoes)) {
       refeicoes.forEach(ref => {
-        if (typeof ref === 'string') {
-          textoDietaRaw += `${ref}\n\n`;
-        } else {
-          textoDietaRaw += `${ref.titulo ? ref.titulo + '\n' : ''}${ref.alimentos || ''}\n\n`;
-        }
+        textoDietaRaw += typeof ref === 'string' ? `${ref}\n\n` : `${ref.titulo ? ref.titulo + '\n' : ''}${ref.alimentos || ''}\n\n`;
       });
     }
 
     const { resumoAdminText, suplementos, abas } = parseDietaEstruturada(textoDietaRaw);
 
     if (!resumoAdminText && suplementos.length === 0 && abas.length === 0) {
-      htmlContent += `<p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhuma dieta cadastrada.</p>`;
+      htmlDieta = `<p style="color:var(--muted); font-size:12px;">Nenhuma dieta cadastrada.</p>`;
     } else {
       if (resumoAdminText) {
-        htmlContent += `
-          <div style="background:#100305; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:10px; font-size:12px; color:#fff;">
-            <b style="color:var(--gold); font-size:13px;">📊 METAS DIÁRIAS (CALORIAS & ÁGUA):</b>
-            <div style="margin-top:6px; white-space:pre-line;">${escapeHtml(resumoAdminText)}</div>
-          </div>
-        `;
+        htmlDieta += `<div style="margin-bottom:8px; color:var(--gold); font-size:12px;"><b>📊 Metas:</b> ${escapeHtml(resumoAdminText)}</div>`;
       }
-
       if (suplementos.length > 0) {
-        htmlContent += `
-          <div style="background:#050d1a; border:1px solid #60a5fa; border-radius:10px; padding:12px; margin-bottom:10px; font-size:12px; color:#fff;">
-            <b style="color:#60a5fa; font-size:13px;">💊 SUPLEMENTAÇÃO DIÁRIA:</b>
-            <ul style="margin-top:6px; margin-left:16px;">
-              ${suplementos.map(s => `<li>${escapeHtml(s)}</li>`).join('')}
-            </ul>
-          </div>
-        `;
+        htmlDieta += `<div style="margin-bottom:8px; font-size:12px;"><b>💊 Suplementos:</b> ${suplementos.map(s => escapeHtml(s)).join(', ')}</div>`;
       }
-
       if (abas.length > 0) {
-        abas.forEach((abaObj, abaIdx) => {
-          htmlContent += `
-            <div class="day-accordion-header" onclick="toggleResumoAccordion('resumo_aba_${abaIdx}')" style="border-left: 3px solid var(--gold);">
-              <div>
-                <b style="color:var(--gold)">📋 ${escapeHtml(abaObj.abaNome || 'CICLO / DIETA BASE')}</b>
-                ${abaObj.abaDias ? `<div style="font-size:11px; color:var(--blue); font-weight:700; margin-top:2px;">${escapeHtml(abaObj.abaDias)}</div>` : ''}
-              </div>
-              <span style="color:var(--gold); font-size:12px; font-weight:700;">Ver Refeições ▾</span>
-            </div>
-            <div id="resumo_aba_${abaIdx}" class="hidden" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:12px; font-size:12px; color:#fff;">
-          `;
-
-          (abaObj.meals || []).forEach((ref) => {
-            htmlContent += `
-              <div style="margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #1f080e;">
-                <b style="color:var(--gold)">🍽 ${escapeHtml(ref.mealTitle || 'Refeição')}</b>
-                <div style="margin-top:4px;">
-                  ${ref.baseItems.map(item => `<div>• ${escapeHtml(item)}</div>`).join('')}
-                </div>
-                ${ref.trocasCarbo.length > 0 ? `
-                  <div style="margin-top:4px; color:#60a5fa; font-weight:700; font-size:11px;">🌾 Trocas Carbo:</div>
-                  ${ref.trocasCarbo.map(sub => `<div style="font-size:11px; color:#93c5fd;">🔄 ${escapeHtml(sub)}</div>`).join('')}
-                ` : ''}
-                ${ref.trocasProt.length > 0 ? `
-                  <div style="margin-top:4px; color:#25d366; font-weight:700; font-size:11px;">🥩 Trocas Prot/Gord:</div>
-                  ${ref.trocasProt.map(sub => `<div style="font-size:11px; color:#86efac;">🔄 ${escapeHtml(sub)}</div>`).join('')}
-                ` : ''}
-              </div>
-            `;
+        abas.forEach(abaObj => {
+          htmlDieta += `<div style="margin-top:6px;"><b style="color:var(--gold);">${escapeHtml(abaObj.abaNome)}</b></div>`;
+          (abaObj.meals || []).forEach(ref => {
+            htmlDieta += `<div style="font-size:12px; margin-left:8px;">🍽️ <b>${escapeHtml(ref.mealTitle)}:</b> ${ref.baseItems.map(i => escapeHtml(i)).join(', ')}</div>`;
           });
-
-          htmlContent += `</div>`;
         });
       }
     }
   }
 
-  htmlContent += `<div class="section-subtitle">🏃 AERÓBICO & CORRIDA</div>`;
+  // 3. CARDIO
+  let htmlCardio = "";
   const cardioGuidelines = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
   const prescricao = currentStudentData.prescricao_corrida || {};
-
-  htmlContent += `
-    <div style="background:#0d0204; border:1px solid var(--border); border-left:3px solid var(--blue); padding:12px; border-radius:10px; margin-bottom:12px;">
-      <b style="color:var(--blue); font-size:12px;">📌 Orientação Geral de Cardio:</b>
-      <p style="font-size:12px; color:#fff; margin-top:4px;">${escapeHtml(cardioGuidelines || 'Sem orientação cadastrada.')}</p>
-    </div>
-  `;
+  htmlCardio += `<div style="font-size:12px; margin-bottom:6px;"><b>📌 Orientação:</b> ${escapeHtml(cardioGuidelines || 'Sem diretrizes.')}</div>`;
 
   const diasNomes = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
   let temSemana = false;
-
-  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:8px;">`;
+  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:6px;">`;
   Object.keys(diasNomes).forEach(d => {
     const p = prescricao[d];
     if (p && (p.km || p.min || p.desc)) {
       temSemana = true;
       semanaHtml += `
-        <div style="background:#100305; border:1px solid var(--border); padding:8px; border-radius:8px; font-size:11px;">
-          <b style="color:var(--blue);">${diasNomes[d]}:</b> 
-          ${p.km ? p.km + 'km' : ''} ${p.min ? '| ' + p.min : ''} ${p.intensidade ? '(' + p.intensidade + ')' : ''}<br>
+        <div style="background:#0d0204; border:1px solid var(--border); padding:6px; border-radius:6px; font-size:11px;">
+          <b style="color:var(--blue);">${diasNomes[d]}:</b> ${p.km ? p.km + 'km' : ''} ${p.min ? '| ' + p.min : ''}<br>
           <span style="color:var(--muted);">${escapeHtml(p.desc || '')}</span>
         </div>
       `;
     }
   });
   semanaHtml += `</div>`;
+  if (temSemana) htmlCardio += semanaHtml;
 
-  if (temSemana) htmlContent += semanaHtml;
-
-  // --- BLOCO DOS ERGOGÊNICOS NO RESUMO DO ADMIN ---
-  htmlContent += `<div class="section-subtitle">💉 RECURSOS ERGOGÊNICOS & HORMONAIS</div>`;
-
-  const protocoloTexto = currentStudentData.protocoloErgogenicos || 
-                         currentStudentData.ergogenicos_texto || 
-                         currentStudentData.payload?.protocoloErgogenicos || 
-                         currentStudentData.payload?.ergogenicos_texto || '';
-
-  const estaLiberadoErgo = currentStudentData.liberarErgogenicos === true || 
-                           currentStudentData.payload?.liberarErgogenicos === true;
-
-  if (estaLiberadoErgo && protocoloTexto.trim()) {
-    htmlContent += `
-      <div style="background:#100305; border:1px solid var(--gold); border-left:4px solid var(--gold); padding:12px; border-radius:10px; margin-bottom:12px;">
-        <b style="color:var(--gold); font-size:13px; display:block; margin-bottom:6px;">💉 Protocolo Ativo Cadastrado:</b>
-        <div style="font-size:12px; color:#fff; white-space:pre-line; line-height:1.5;">${escapeHtml(protocoloTexto)}</div>
-      </div>
-    `;
-  } else if (protocoloTexto.trim()) {
-    htmlContent += `
-      <div style="background:#100305; border:1px solid var(--border); border-left:4px solid var(--muted); padding:12px; border-radius:10px; margin-bottom:12px;">
-        <b style="color:var(--muted); font-size:12px; display:block; margin-bottom:4px;">⚠️ Protocolo Rascunho (Aba Bloqueada no App do Aluno):</b>
-        <div style="font-size:12px; color:var(--muted); white-space:pre-line;">${escapeHtml(protocoloTexto)}</div>
-      </div>
-    `;
+  // 4. ERGOGÊNICOS
+  let htmlErgo = "";
+  const protocoloTexto = currentStudentData.protocoloErgogenicos || currentStudentData.ergogenicos_texto || '';
+  if (protocoloTexto.trim()) {
+    htmlErgo = `<div style="font-size:12px; white-space:pre-line; color:#fff;">${escapeHtml(protocoloTexto)}</div>`;
   } else {
-    htmlContent += `
-      <p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhum protocolo ergogênico ou hormonal cadastrado para este aluno.</p>
-    `;
+    htmlErgo = `<p style="color:var(--muted); font-size:12px;">Nenhum protocolo ergogênico cadastrado.</p>`;
   }
 
-  container.innerHTML = htmlContent;
+  // REMONTAGEM FINAL COM 4 SUPER SANFONAS RECOLHIDAS
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+      
+      <details style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:800; color:var(--gold); font-size:13px; outline:none;">
+          🏋️ PROTOCOLO DE TREINAMENTO (CLIQUE PARA EXPANDIR)
+        </summary>
+        <div style="margin-top:10px; background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
+          ${htmlTreino}
+        </div>
+      </details>
+
+      <details style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:800; color:var(--gold); font-size:13px; outline:none;">
+          🥗 PLANO ALIMENTAR & METAS (CLIQUE PARA EXPANDIR)
+        </summary>
+        <div style="margin-top:10px; background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
+          ${htmlDieta}
+        </div>
+      </details>
+
+      <details style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:800; color:var(--gold); font-size:13px; outline:none;">
+          🏃 PROTOCOLO DE CARDIO & CORRIDA (CLIQUE PARA EXPANDIR)
+        </summary>
+        <div style="margin-top:10px; background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
+          ${htmlCardio}
+        </div>
+      </details>
+
+      <details style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px;">
+        <summary style="cursor:pointer; font-weight:800; color:var(--gold); font-size:13px; outline:none;">
+          💉 PROTOCOLO DE ERGOGÊNICOS (CLIQUE PARA EXPANDIR)
+        </summary>
+        <div style="margin-top:10px; background:#0d0204; padding:10px; border-radius:8px; border:1px solid var(--border);">
+          ${htmlErgo}
+        </div>
+      </details>
+
+    </div>
+  `;
 }
 
 function toggleResumoAccordion(elementId) {
