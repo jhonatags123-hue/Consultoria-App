@@ -144,10 +144,16 @@
           </div>
         </div>
 
-        <!-- BOTÃO CAIXA FINANCEIRO -->
+        <!-- BOTÕES DA CENTRAL FINANCEIRA NA SIDEBAR -->
         <div class="sidebar-finance-btn">
           <button id="btnAcessarFinanceiro" class="btn-finance-dashboard" onclick="switchTab('financeiro')">
-            💰 CAIXA FINANCEIRO & MÉTRICAS
+            💰 CAIXA DA CONSULTORIA
+          </button>
+        </div>
+
+        <div class="sidebar-finance-btn" style="margin-top:8px;">
+          <button id="btnAcessarContasLucros" class="btn-finance-dashboard" style="background:linear-gradient(135deg, #059669, #10b981); color:#fff; border:none;" onclick="switchTab('contasLucros')">
+            💳 CONTAS & LUCROS PESSOAIS
           </button>
         </div>
 
@@ -167,16 +173,27 @@
             💬 Feedback <span id="tabFeedbackBadge" class="badge-dot hidden"></span>
           </button>
           <button id="tab4" class="tab-btn" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
+          <button class="tab-btn" style="color:var(--gold);" onclick="switchTab('contasLucros')">💳 Contas & Lucros</button>
           <button class="tab-btn" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </nav>
 
-        <!-- ABA: CAIXA FINANCEIRO -->
+        <!-- ABA: CAIXA FINANCEIRO DA CONSULTORIA -->
         <section id="secFinanceiro" class="tab-section hidden panel-card">
-          <div class="panel-title">💰 CAIXA FINANCEIRO & MÉTRICAS GERAIS</div>
+          <div class="panel-title">💰 CAIXA FINANCEIRO CONSULTORIA (ALUNOS)</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Visão consolidada do faturamento, cobranças e entradas de novos alunos</p>
           
           <div id="financeiroDashboardContent" class="content-box-inner">
             <small style="color:var(--muted);">Calculando métricas financeiras...</small>
+          </div>
+        </section>
+
+        <!-- ABA: CONTAS E LUCROS PESSOAIS (ADMIN2) -->
+        <section id="secContasLucros" class="tab-section hidden panel-card">
+          <div class="panel-title">💳 CONTAS & LUCROS PESSOAIS</div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Gestão das suas rendas de empregos, consultoria, horas trabalhadas e despesas mensais</p>
+          
+          <div id="contasLucrosContent" class="content-box-inner">
+            <small style="color:var(--muted);">Carregando painel de contas e lucros...</small>
           </div>
         </section>
 
@@ -584,9 +601,9 @@
     </div>
   </div>
 
- <!-- SCRIPT PRINCIPAL DO PAINEL -->
+  <!-- SCRIPT PRINCIPAL DO PAINEL -->
   <script src="admin.js"></script>
-  <!-- NOVO SCRIPT DE CONTAS & LUCROS -->
+  <!-- SCRIPT DE CONTAS & LUCROS PESSOAIS -->
   <script src="admin2.js"></script>
 </body>
 </html>
