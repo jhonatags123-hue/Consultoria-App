@@ -6,7 +6,8 @@ let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
 let gifsDatabase = [];
-let isentosExpanded = false; // Controle de abertura da sanfona dos isentos
+let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
+let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
@@ -240,7 +241,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA COM CÁLCULO E NOVOS ALUNOS CORRIGIDO */
+/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA */
 function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('financeiroDashboardContent');
   if (!container) return;
@@ -374,7 +375,7 @@ function renderTelaFinanceiroExclusiva() {
   `;
 }
 
-/* NAVEGAÇÃO ENTRE ABAS COM SIDEBAR SEMPRE VISÍVEL */
+/* NAVEGAÇÃO ENTRE ABAS */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -567,12 +568,24 @@ function toggleSanfonaIsentos() {
   }
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS - SEPARAÇÃO TOTAL DE CONTAINERS */
+function toggleSanfonaPendentes() {
+  pendentesExpanded = !pendentesExpanded;
+  const boxContainer = document.getElementById('alunosPendentesListContainer');
+  const iconSeta = document.getElementById('setaPendentesIcon');
+  if (boxContainer) {
+    boxContainer.style.display = pendentesExpanded ? 'block' : 'none';
+  }
+  if (iconSeta) {
+    iconSeta.textContent = pendentesExpanded ? '▲' : '▼';
+  }
+}
+
+/* RENDERIZAÇÃO DAS 3 SEÇÕES (PAGANTES, ISENTOS E PENDENTES) */
 function renderStudentsList(list) {
   const containerPagantes = document.getElementById('alunosList');
   if (!containerPagantes) return;
   
-  // Limpa EXCLUSIVAMENTE a lista de pagantes
+  // Limpa o container da lista principal
   containerPagantes.innerHTML = "";
 
   if (!list || list.length === 0) {
@@ -580,7 +593,7 @@ function renderStudentsList(list) {
     return;
   }
 
-  // Identificador rigoroso de VIP/Isento
+  // Verificadores de Status
   const checarSeEhIsento = (aluno) => {
     if (!aluno) return false;
     const stPag = String(aluno.status_pagamento || aluno.status || '').toLowerCase();
@@ -597,11 +610,24 @@ function renderStudentsList(list) {
     );
   };
 
-  // Separação dos dois grupos em arrays totalmente independentes
-  const alunosRegulares = list.filter(a => !checarSeEhIsento(a));
-  const alunosVip = list.filter(a => checarSeEhIsento(a));
+  const checarSeEhPendente = (aluno) => {
+    if (!aluno || checarSeEhIsento(aluno)) return false;
+    const info = calcularDiasRestantes(
+      aluno.data_expiracao || aluno.payload?.data_expiracao,
+      aluno.dia_vencimento || aluno.payload?.dia_vencimento,
+      aluno.isento,
+      aluno.status_pagamento
+    );
+    const stPag = String(aluno.status_pagamento || '').toLowerCase();
+    return stPag === 'pendente' || info.dias <= 0;
+  };
 
-  // Construtor do HTML do card de aluno
+  // Separação em 3 grupos
+  const alunosIsentos = list.filter(a => checarSeEhIsento(a));
+  const alunosPendentes = list.filter(a => checarSeEhPendente(a));
+  const alunosPagantes = list.filter(a => !checarSeEhIsento(a) && !checarSeEhPendente(a));
+
+  // Função interna para criar os cards
   const criarItemAluno = (aluno) => {
     const ehVIP = checarSeEhIsento(aluno);
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
@@ -614,6 +640,7 @@ function renderStudentsList(list) {
       statusText = "ISENTO";
     } else if (statusText === 'pendente' || infoCalculada.dias <= 0) {
       statusClass = "status-pendente";
+      statusText = "PENDENTE";
     } else if (infoCalculada.dias <= 5) {
       statusClass = "status-alerta";
     }
@@ -643,26 +670,26 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // 1. RENDERIZA APENAS OS PAGANTES DENTRO DO CONTAINER PRINCIPAL (#alunosList)
-  if (alunosRegulares.length === 0) {
-    containerPagantes.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno pagante cadastrado.</small>";
+  // 1. RENDERIZA APENAS OS PAGANTES NA LISTA PRINCIPAL DENTRO DE #alunosList
+  if (alunosPagantes.length === 0) {
+    containerPagantes.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno pagante ativo.</small>";
   } else {
-    alunosRegulares.forEach((aluno) => {
+    alunosPagantes.forEach((aluno) => {
       containerPagantes.appendChild(criarItemAluno(aluno));
     });
   }
 
-  // 2. RENDERIZA OS ISENTOS/VIPS NO BLINGUINHO FORA DA LISTA PRINCIPAL
-  let areaIsentos = document.getElementById('areaIsentosContainer');
+  // 2. RENDERIZA AS SANFONAS (ISENTOS E PENDENTES) NO CONTAINER DE BAIXO
+  let areaAbasExternas = document.getElementById('areaAbasExternasContainer');
   
-  // Se a div externa de isentos não existir no HTML, cria ela logo após o container de pagantes
-  if (!areaIsentos) {
-    areaIsentos = document.createElement('div');
-    areaIsentos.id = 'areaIsentosContainer';
-    containerPagantes.parentNode.insertBefore(areaIsentos, containerPagantes.nextSibling);
+  if (!areaAbasExternas) {
+    areaAbasExternas = document.createElement('div');
+    areaAbasExternas.id = 'areaAbasExternasContainer';
+    containerPagantes.parentNode.insertBefore(areaAbasExternas, containerPagantes.nextSibling);
   }
 
-  areaIsentos.innerHTML = `
+  areaAbasExternas.innerHTML = `
+    <!-- SANFONA ISENTOS / CORTESIA -->
     <div onclick="toggleSanfonaIsentos()" style="
       margin-top: 14px;
       margin-bottom: 6px;
@@ -680,30 +707,63 @@ function renderStudentsList(list) {
       cursor: pointer;
       user-select: none;
     ">
-      <span>👑 ALUNOS ISENTOS / CORTESIA (${alunosVip.length})</span>
+      <span>👑 ALUNOS ISENTOS / CORTESIA (${alunosIsentos.length})</span>
       <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
     </div>
-    <div id="alunosIsentosListContainer" style="display: ${isentosExpanded ? 'block' : 'none'};"></div>
+    <div id="alunosIsentosListContainer" style="display: ${isentosExpanded ? 'block' : 'none'}; margin-bottom: 8px;"></div>
+
+    <!-- SANFONA PENDENTES / EM ATRASO -->
+    <div onclick="toggleSanfonaPendentes()" style="
+      margin-top: 8px;
+      margin-bottom: 6px;
+      padding: 10px;
+      background: rgba(255, 77, 77, 0.12);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    ">
+      <span>🚨 ALUNOS PENDENTES / EM ATRASO (${alunosPendentes.length})</span>
+      <span id="setaPendentesIcon" style="font-size:12px;">${pendentesExpanded ? '▲' : '▼'}</span>
+    </div>
+    <div id="alunosPendentesListContainer" style="display: ${pendentesExpanded ? 'block' : 'none'};"></div>
   `;
 
-  const boxIsentosContent = document.getElementById('alunosIsentosListContainer');
-  if (alunosVip.length === 0) {
-    boxIsentosContent.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
+  // Preenche Isentos
+  const boxIsentos = document.getElementById('alunosIsentosListContainer');
+  if (alunosIsentos.length === 0) {
+    boxIsentos.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
   } else {
-    alunosVip.forEach((aluno) => {
-      boxIsentosContent.appendChild(criarItemAluno(aluno));
-    });
+    alunosIsentos.forEach(aluno => boxIsentos.appendChild(criarItemAluno(aluno)));
   }
 
-  // Seleção padrão
+  // Preenche Pendentes
+  const boxPendentes = document.getElementById('alunosPendentesListContainer');
+  if (alunosPendentes.length === 0) {
+    boxPendentes.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno em atraso! 🎉</div>`;
+  } else {
+    alunosPendentes.forEach(aluno => boxPendentes.appendChild(criarItemAluno(aluno)));
+  }
+
+  // Seleção automática ao carregar
   if (!currentStudentCode) {
-    if (alunosRegulares.length > 0) {
-      carregarAluno(alunosRegulares[0].codigo);
-    } else if (alunosVip.length > 0) {
-      carregarAluno(alunosVip[0].codigo);
+    if (alunosPagantes.length > 0) {
+      carregarAluno(alunosPagantes[0].codigo);
+    } else if (alunosIsentos.length > 0) {
+      carregarAluno(alunosIsentos[0].codigo);
+    } else if (alunosPendentes.length > 0) {
+      carregarAluno(alunosPendentes[0].codigo);
     }
   }
 }
+
 function filterStudents() {
   const term = document.getElementById('searchStudent').value.toLowerCase();
   const filtered = allStudentsList.filter(a => (a.nome || a.clientName || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
@@ -1418,9 +1478,6 @@ function renderCorridaAdmin() {
   }
 }
 
-/* ==========================================================================
-   RENDERIZAÇÃO DA ANAMNESE ESTRUTURADA EM 4 CARDS E CATEGORIAS
-   ========================================================================== */
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
   if (!div) return;
