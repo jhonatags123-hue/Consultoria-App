@@ -2,28 +2,12 @@
 /* ADMIN2.JS - GESTÃO FINANCEIRA PESSOAL: CONTAS & LUCROS  */
 /* ====================================================== */
 
-/* CALCULA FATURAMENTO ATUAL DOS ALUNOS PAGANTES (DA CONSULTORIA) */
-function calcularFaturamentoConsultoriaAtual() {
-  let faturamentoCalculado = 0;
-  if (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) {
-    allStudentsList.forEach(aluno => {
-      const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
-      if (!ehIsento) {
-        faturamentoCalculado += extrairPrecoAluno(aluno);
-      }
-    });
-  }
-  return faturamentoCalculado;
-}
-
 /* CARREGA DADOS SALVOS DO LOCALSTORAGE */
 function carregarDadosContasLucros() {
-  const faturamentoAuto = calcularFaturamentoConsultoriaAtual();
-
   const defaultData = {
     emp1_nome: "Personal Presencial", emp1_valor: 0, emp1_horas: 0,
     emp2_nome: "Emprego 2", emp2_valor: 0, emp2_horas: 0,
-    emp3_nome: "Consultoria On-line", emp3_valor: faturamentoAuto, emp3_horas: 0,
+    emp3_nome: "Consultoria On-line", emp3_valor: 0, emp3_horas: 0,
     esposa_nome: "Renda Esposa", esposa_valor: 0,
     contas: [
       { nome: "Luz", valor: 150, diaVencimento: 10, paga: false },
@@ -33,14 +17,7 @@ function carregarDadosContasLucros() {
 
   try {
     const saved = localStorage.getItem('personal_contas_lucros');
-    if (!saved) return defaultData;
-
-    const parsed = JSON.parse(saved);
-    if (faturamentoAuto > 0 && (!parsed.emp3_valor || parsed.emp3_valor === 0)) {
-      parsed.emp3_valor = faturamentoAuto;
-    }
-    parsed.emp3_nome = "Consultoria On-line (App)";
-    return parsed;
+    return saved ? JSON.parse(saved) : defaultData;
   } catch (e) {
     return defaultData;
   }
@@ -50,7 +27,7 @@ function salvarDadosContasLucros(dados) {
   localStorage.setItem('personal_contas_lucros', JSON.stringify(dados));
 }
 
-/* RENDERIZA A TELA DE CONTAS E LUCROS */
+/* RENDERIZA A TELA DE CONTAS E LUCROS PESSOAIS */
 function renderTelaContasELucros() {
   const container = document.getElementById('contasLucrosContent');
   if (!container) return;
@@ -80,7 +57,7 @@ function renderTelaContasELucros() {
   const lucroLiquidoSobra = totalArrecadacaoGeral - totalGastosContas;
 
   container.innerHTML = `
-    <!-- CARDS DOS TOTAIS DE ARRECADAÇÃO E GASTOS -->
+    <!-- CARDS DOS TOTAIS DE ARRECADAÇÃO E GASTOS PESSOAIS -->
     <div class="fin-grid" style="margin-bottom:16px;">
       
       <!-- CARD 1: TOTAL DE ARRECADAÇÃO -->
@@ -147,15 +124,12 @@ function renderTelaContasELucros() {
             </div>
           </div>
 
-          <!-- EMPREGO 3: CONSULTORIA ON-LINE -->
+          <!-- EMPREGO 3: CONSULTORIA -->
           <div style="background:#05140b; border:1px solid var(--green); padding:10px; border-radius:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="color:var(--green); font-size:12px;">EMPREGO 3: CONSULTORIA ON-LINE (APP)</b>
-              <button onclick="puxarFaturamentoAutomaticoConsultoria()" style="background:none; border:none; color:var(--gold); font-size:11px; cursor:pointer; font-weight:700;">🔄 Auto Faturamento</button>
-            </div>
+            <b style="color:var(--green); font-size:12px;">EMPREGO 3: CONSULTORIA ON-LINE</b>
             <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; margin-top:6px;">
-              <input type="text" id="emp3_nome" value="Consultoria On-line" readonly style="opacity:0.8;">
-              <input type="number" id="emp3_valor" value="${dados.emp3_valor || 0}" placeholder="Ganho R$">
+              <input type="text" id="emp3_nome" value="${escapeHtml(dados.emp3_nome || 'Consultoria On-line')}" placeholder="Nome">
+              <input type="number" id="emp3_valor" value="${dados.emp3_valor || ''}" placeholder="Ganho R$">
               <input type="number" id="emp3_horas" value="${dados.emp3_horas || ''}" placeholder="Horas/dia">
             </div>
           </div>
@@ -173,7 +147,7 @@ function renderTelaContasELucros() {
         </div>
       </div>
 
-      <!-- 2. GERENCIADOR DE CONTAS E GASTOS (LUZ, GASOLINA, ETC.) -->
+      <!-- 2. GERENCIADOR DE CONTAS E GASTOS PESSOAIS -->
       <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
           🧾 GERENCIADOR DE CONTAS & GASTOS
@@ -217,13 +191,6 @@ function renderTelaContasELucros() {
   `;
 }
 
-function puxarFaturamentoAutomaticoConsultoria() {
-  const total = calcularFaturamentoConsultoriaAtual();
-  const el = document.getElementById('emp3_valor');
-  if (el) el.value = total;
-  showToast(`Ganho da consultoria atualizado para R$ ${total.toFixed(2)}!`, "success");
-}
-
 function salvarEmpregosEHoras() {
   const dados = carregarDadosContasLucros();
 
@@ -235,7 +202,7 @@ function salvarEmpregosEHoras() {
   dados.emp2_valor = parsePreco(document.getElementById('emp2_valor').value);
   dados.emp2_horas = parseFloat(document.getElementById('emp2_horas').value) || 0;
 
-  dados.emp3_nome = "Consultoria On-line";
+  dados.emp3_nome = document.getElementById('emp3_nome').value.trim() || "Consultoria On-line";
   dados.emp3_valor = parsePreco(document.getElementById('emp3_valor').value);
   dados.emp3_horas = parseFloat(document.getElementById('emp3_horas').value) || 0;
 
@@ -244,7 +211,7 @@ function salvarEmpregosEHoras() {
 
   salvarDadosContasLucros(dados);
   renderTelaContasELucros();
-  showToast("Rendas e horas salvas com sucesso!", "success");
+  if (typeof showToast === 'function') showToast("Rendas e horas salvas com sucesso!", "success");
 }
 
 function adicionarNovaConta() {
@@ -253,7 +220,8 @@ function adicionarNovaConta() {
   const dia = parseInt(document.getElementById('novaContaDia').value) || null;
 
   if (!nome || valor <= 0) {
-    return showToast("Preencha o nome e o valor da conta corretamente.", "error");
+    if (typeof showToast === 'function') showToast("Preencha o nome e o valor da conta corretamente.", "error");
+    return;
   }
 
   const dados = carregarDadosContasLucros();
@@ -261,7 +229,7 @@ function adicionarNovaConta() {
 
   salvarDadosContasLucros(dados);
   renderTelaContasELucros();
-  showToast("Conta adicionada com sucesso!", "success");
+  if (typeof showToast === 'function') showToast("Conta adicionada com sucesso!", "success");
 }
 
 function alternarStatusConta(index) {
@@ -279,6 +247,6 @@ function removerConta(index) {
     dados.contas.splice(index, 1);
     salvarDadosContasLucros(dados);
     renderTelaContasELucros();
-    showToast("Conta removida.", "info");
+    if (typeof showToast === 'function') showToast("Conta removida.", "info");
   }
 }
