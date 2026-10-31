@@ -555,7 +555,7 @@ function alunoTemFeedbackPendente(aluno) {
   return ultimaMsg && ultimaMsg.autor === "ALUNO";
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS */
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS CORRIGIDA */
 function toggleSanfonaIsentos() {
   isentosExpanded = !isentosExpanded;
   const boxContainer = document.getElementById('alunosIsentosListContainer');
@@ -578,10 +578,11 @@ function renderStudentsList(list) {
     return;
   }
 
+  // Separação estrita dos alunos pagantes vs. alunos VIPs/Isentos
   const alunosRegulares = list.filter(a => !(a.isento === true || a.status_pagamento === 'isento'));
   const alunosVip = list.filter(a => a.isento === true || a.status_pagamento === 'isento');
 
-  const criarItemAluno = (aluno, i) => {
+  const criarItemAluno = (aluno, index) => {
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
     let statusClass = "status-pago";
     let statusText = aluno.status_pagamento || "pago";
@@ -600,7 +601,7 @@ function renderStudentsList(list) {
     const valorMensalExibicao = extrairPrecoAluno(aluno);
 
     const div = document.createElement('div');
-    div.className = `student-item ${aluno.codigo === currentStudentCode || (i === 0 && !currentStudentCode) ? 'active' : ''}`;
+    div.className = `student-item ${aluno.codigo === currentStudentCode || (index === 0 && !currentStudentCode) ? 'active' : ''}`;
     div.innerHTML = `
       <div>
         <b>${escapeHtml(aluno.clientName || aluno.nome)}</b> ${badgePendenteHtml}<br>
@@ -620,10 +621,12 @@ function renderStudentsList(list) {
     return div;
   };
 
+  // Renderiza APENAS os alunos regulares na lista principal
   alunosRegulares.forEach((aluno, index) => {
     container.appendChild(criarItemAluno(aluno, index));
   });
 
+  // Renderiza a Sanfona APENAS se houver alunos VIPs/Isentos
   if (alunosVip.length > 0) {
     const headerVip = document.createElement('div');
     headerVip.style.cssText = `
@@ -1142,7 +1145,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-​2. Série de Reconhecimento (Feeder Set)
+2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
