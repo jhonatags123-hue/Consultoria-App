@@ -1,6 +1,6 @@
 /* ==========================================================================
    PAINEL DE GESTÃO RESTRITO — JHONATA PERSONAL
-   Visual Limpo, Caixas Estruturadas & Botões Proporcionais
+   Visual Limpo, Estrutura Centralizada & Acordions Responsivos
    ========================================================================== */
 
 :root {
@@ -89,7 +89,7 @@ body, html {
 }
 
 .form-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   text-align: left;
 }
 
@@ -101,12 +101,12 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   CABEÇALHO E PAINEL DO ALUNO SELECIONADO
+   CABEÇALHO E CENTRALIZADOR DO ALUNO SELECIONADO
    -------------------------------------------------------------------------- */
 .admin-header, header {
   background: var(--card);
   border-bottom: 1px solid var(--border);
-  padding: 16px 28px;
+  padding: 14px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -122,7 +122,7 @@ body, html {
 
 .brand-title, header h1 {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   letter-spacing: 1px;
   color: #fff;
 }
@@ -136,17 +136,23 @@ body, html {
   background: var(--card-inner);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 10px 16px;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.student-info-group h3 {
-  font-size: 16px;
+.student-info-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.student-name-hero {
+  font-size: 18px;
   color: #fff;
-  font-weight: 800;
+  font-weight: 900;
+  letter-spacing: 0.02em;
 }
 
 .student-label {
@@ -159,13 +165,13 @@ body, html {
 .student-credentials {
   display: flex;
   gap: 6px;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .btn-tag {
   background: #1c060b;
   border: 1px solid var(--border);
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -191,24 +197,24 @@ body, html {
 .btn-badge.status-pago {
   background: rgba(37,211,102,0.15);
   color: var(--green);
-  border-color: var(--green);
+  border: 1px solid var(--green);
 }
 
 .btn-badge.status-pendente {
   background: rgba(196,50,79,0.15);
   color: var(--accent);
-  border-color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 .btn-badge.status-info {
   background: #150408;
   color: var(--muted);
-  border-color: var(--border);
+  border: 1px solid var(--border);
 }
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -216,7 +222,7 @@ body, html {
   background: #1f080c;
   border: 1px solid var(--border);
   color: #fff;
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-radius: 8px;
   font-size: 11px;
   font-weight: 700;
@@ -230,14 +236,14 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   LAYOUT & CARDS
+   LAYOUT & CARDS CENTRALIZADOS
    -------------------------------------------------------------------------- */
 .layout, .admin-layout {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 22px;
-  padding: 22px;
-  max-width: 1500px;
+  grid-template-columns: 320px minmax(0, 1100px);
+  gap: 20px;
+  padding: 20px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -251,8 +257,8 @@ body, html {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 18px;
+  margin-bottom: 18px;
   box-shadow: 0 8px 20px rgba(0,0,0,0.4);
 }
 
@@ -262,7 +268,7 @@ body, html {
   text-transform: uppercase;
   color: var(--gold);
   letter-spacing: 1px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -281,26 +287,81 @@ body, html {
   background: var(--card-inner);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px;
 }
 
 /* --------------------------------------------------------------------------
-   LISTAGEM DE ALUNOS COM ROLAGEM ÚNICA (APROX 5 ALUNOS)
+   ACORDION DE TREINO — O BOTÃO É O PRÓPRIO NOME DO TREINO (LOWER 1, UPPER 1)
+   -------------------------------------------------------------------------- */
+.day-accordion-header {
+  background: linear-gradient(135deg, #1f060c, #110205);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all .2s ease;
+}
+
+.day-accordion-header:hover {
+  border-color: var(--gold);
+  background: #280810;
+}
+
+.day-accordion-header b {
+  font-size: 14px;
+  color: #fff;
+}
+
+.day-accordion-body {
+  background: #090204;
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 10px;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+.ex-clickable {
+  background: #140407;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  transition: all .18s ease;
+}
+
+.ex-clickable:hover {
+  border-color: var(--gold);
+  background: #1f060d;
+}
+
+/* --------------------------------------------------------------------------
+   LISTAGEM DE ALUNOS COM ROLAGEM ÚNICA (~5 VISÍVEIS)
    -------------------------------------------------------------------------- */
 .scrollable-students-list {
-  max-height: 290px;
+  max-height: 280px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
 .isentos-container {
-  margin-top: 16px;
+  margin-top: 14px;
   border-top: 1px dashed var(--border);
-  padding-top: 12px;
+  padding-top: 10px;
 }
 
 .scrollable-isentos-list {
-  max-height: 140px;
+  max-height: 130px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -308,7 +369,7 @@ body, html {
 .student-item {
   background: #100305;
   border: 1px solid var(--border);
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 10px;
   margin-bottom: 6px;
   cursor: pointer;
@@ -337,19 +398,19 @@ body, html {
   background: #100305;
   border: 1px solid var(--gold);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 .tool-box-header {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--gold);
   letter-spacing: 0.05em;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 /* --------------------------------------------------------------------------
-   BOTÕES
+   BOTÕES COM DIVERSOS TAMANHOS
    -------------------------------------------------------------------------- */
 .btn {
   background: linear-gradient(135deg, var(--gold-soft), var(--gold));
@@ -374,18 +435,18 @@ body, html {
 }
 
 .btn-md {
-  padding: 10px 14px;
+  padding: 9px 12px;
   font-size: 12px;
 }
 
 .btn-lg {
-  padding: 14px 20px;
-  font-size: 13px;
+  padding: 12px 18px;
+  font-size: 12px;
   font-weight: 900;
 }
 
 .btn.sm, .btn-secondary.sm, .btn-gold.sm, .btn-danger.sm {
-  padding: 6px 12px;
+  padding: 6px 10px;
   font-size: 11px;
   width: auto;
 }
@@ -428,9 +489,9 @@ body, html {
 .nav-tabs, .admin-tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   overflow-x: auto;
 }
 
@@ -438,7 +499,7 @@ body, html {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--muted);
-  padding: 10px 18px;
+  padding: 9px 16px;
   border-radius: 10px;
   font-weight: 700;
   font-size: 12px;
@@ -468,7 +529,7 @@ label {
   font-size: 11px;
   font-weight: 700;
   color: var(--gold);
-  margin: 10px 0 4px 0;
+  margin: 8px 0 4px 0;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   text-align: left;
@@ -479,9 +540,9 @@ input, select, textarea {
   background: #0d0204;
   border: 1px solid var(--border);
   color: #fff;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 12px;
   transition: border-color .18s;
 }
 
@@ -497,20 +558,20 @@ textarea {
 }
 
 .config-checkboxes-panel {
-  margin-top: 14px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .checkbox-button-item {
   background: #150408;
   border: 1px solid var(--border);
-  padding: 12px 14px;
-  border-radius: 10px;
+  padding: 10px 12px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   transition: border-color .18s ease;
 }
 
@@ -519,8 +580,8 @@ textarea {
 }
 
 .checkbox-button-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
   accent-color: var(--gold);
 }
@@ -535,12 +596,12 @@ textarea {
 }
 
 /* --------------------------------------------------------------------------
-   OUTROS COMPONENTES
+   COMPONENTES DA SIDEBAR & LINKS
    -------------------------------------------------------------------------- */
 .editor-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 14px;
 }
 
 @media (max-width: 900px) {
@@ -553,8 +614,8 @@ textarea {
   background: #0d0204;
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px;
-  max-height: 520px;
+  padding: 12px;
+  max-height: 480px;
   overflow-y: auto;
 }
 
@@ -577,7 +638,7 @@ textarea {
 }
 
 .painel-links-header {
-  padding: 12px 14px;
+  padding: 10px 12px;
   font-size: 11px;
   font-weight: 800;
   color: var(--gold);
@@ -588,13 +649,13 @@ textarea {
 }
 
 .painel-links-conteudo {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-top: 1px solid var(--border);
   background: #0d0204;
 }
 
 .link-item-row {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -609,7 +670,7 @@ textarea {
   background: var(--border);
   color: #fff;
   border: none;
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
@@ -625,7 +686,7 @@ textarea {
   background: linear-gradient(135deg, var(--blue-dark), #0f172a);
   border: 1px solid var(--blue);
   color: #fff;
-  padding: 12px;
+  padding: 11px;
   border-radius: 12px;
   font-weight: 800;
   font-size: 12px;
@@ -647,10 +708,10 @@ textarea {
   background: var(--card);
   border: 1px solid var(--border);
   border-top: 2px solid var(--gold);
-  padding: 24px;
-  border-radius: 18px;
+  padding: 20px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 650px;
+  max-width: 620px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -659,10 +720,10 @@ textarea {
   background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
   border: 1px solid var(--gold);
   border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.4;
   color: var(--text);
 }
 
