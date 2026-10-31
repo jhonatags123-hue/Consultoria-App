@@ -241,143 +241,9 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* RENDERIZAÇÃO DA DASHBOARD FINANCEIRA */
-function renderTelaFinanceiroExclusiva() {
-  const container = document.getElementById('financeiroDashboardContent');
-  if (!container) return;
-
-  let totalBruto = 0;
-  let totalRecebido = 0;
-  let totalPendente = 0;
-  let totalPagantes = 0;
-
-  let novosAlunosMesCount = 0;
-  let faturamentoNovosAlunos = 0;
-
-  const listaPendentes = [];
-  const listaIsentos = [];
-
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
-
-  allStudentsList.forEach(aluno => {
-    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
-    const valor = extrairPrecoAluno(aluno);
-
-    const dtCriacaoStr = aluno.data_inicio || aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.data_inicio || aluno.payload?.created_at;
-    if (dtCriacaoStr) {
-      const parteData = String(dtCriacaoStr).split('T')[0].split('-');
-      if (parteData.length === 3) {
-        const anoCad = parseInt(parteData[0], 10);
-        const mesCad = parseInt(parteData[1], 10) - 1;
-
-        if (mesCad === mesAtual && anoCad === anoAtual) {
-          novosAlunosMesCount++;
-          if (!ehIsento) {
-            faturamentoNovosAlunos += valor;
-          }
-        }
-      }
-    }
-
-    if (ehIsento) {
-      listaIsentos.push(aluno);
-    } else {
-      totalBruto += valor;
-      totalPagantes++;
-
-      const info = calcularDiasRestantes(
-        aluno.data_expiracao || aluno.payload?.data_expiracao, 
-        aluno.dia_vencimento || aluno.payload?.dia_vencimento, 
-        aluno.isento, 
-        aluno.status_pagamento
-      );
-      const estaPendente = aluno.status_pagamento === 'pendente' || info.dias <= 0;
-
-      if (estaPendente) {
-        totalPendente += valor;
-        listaPendentes.push({ nome: aluno.clientName || aluno.nome || aluno.payload?.clientName, codigo: aluno.codigo, valor });
-      } else {
-        totalRecebido += valor;
-      }
-    }
-  });
-
-  const ticketMedio = totalPagantes > 0 ? (totalBruto / totalPagantes) : 0;
-
-  container.innerHTML = `
-    <div class="fin-grid">
-      <div class="fin-card bruto">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
-        <div class="fin-val" style="color:var(--gold);">R$ ${totalBruto.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado (${totalPagantes} pagantes)</small>
-      </div>
-
-      <div class="fin-card pago">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">RECEBIDO NO MÊS (PAGO)</small>
-        <div class="fin-val" style="color:var(--green);">R$ ${totalRecebido.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Garantido no caixa</small>
-      </div>
-
-      <div class="fin-card pendente">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">PENDÊNCIAS / EM ATRASO</small>
-        <div class="fin-val" style="color:var(--accent);">R$ ${totalPendente.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">A receber de pendentes</small>
-      </div>
-
-      <div class="fin-card novos">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">NOVOS ALUNOS NO MÊS</small>
-        <div class="fin-val" style="color:var(--purple);">+${novosAlunosMesCount}</div>
-        <small style="color:var(--purple); font-size:11px; font-weight:700; margin-top:4px; display:block;">+R$ ${faturamentoNovosAlunos.toFixed(2)} /mês somados</small>
-      </div>
-
-      <div class="fin-card ticket">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">TICKET MÉDIO POR ALUNO</small>
-        <div class="fin-val" style="color:var(--blue);">R$ ${ticketMedio.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por pagante</small>
-      </div>
-    </div>
-
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
-      <div style="background:#100305; border:1px solid var(--accent); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          🚨 ALUNOS COM PAGAMENTO PENDENTE (${listaPendentes.length})
-        </h3>
-        ${
-          listaPendentes.length === 0 
-          ? '<p style="color:var(--green); font-size:12px;">🎉 Nenhum aluno inadimplente no momento!</p>'
-          : listaPendentes.map(p => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-              <div><b>${escapeHtml(p.nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(p.codigo)})</small></div>
-              <span style="color:var(--accent); font-weight:800;">R$ ${p.valor.toFixed(2)}</span>
-            </div>
-          `).join('')
-        }
-      </div>
-
-      <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--gold); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          👑 ALUNOS VIPS / ISENTOS (${listaIsentos.length})
-        </h3>
-        ${
-          listaIsentos.length === 0 
-          ? '<p style="color:var(--muted); font-size:12px;">Nenhum aluno isento cadastrado.</p>'
-          : listaIsentos.map(i => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-              <div><b>${escapeHtml(i.clientName || i.nome || i.payload?.clientName)}</b> <small style="color:var(--muted)">(@${escapeHtml(i.codigo)})</small></div>
-              <span style="color:var(--gold); font-weight:800; font-size:11px;">CORTESIA / VIP</span>
-            </div>
-          `).join('')
-        }
-      </div>
-    </div>
-  `;
-}
-
-/* NAVEGAÇÃO ENTRE ABAS */
+/* NAVEGAÇÃO ENTRE ABAS INTEGRADA COM ADMIN2.JS */
 function switchTab(tab) {
-  const ids = ['secFinanceiro', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
+  const ids = ['secFinanceiro', 'secContasLucros', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -391,7 +257,15 @@ function switchTab(tab) {
   if (tab === 'financeiro') {
     const el = document.getElementById('secFinanceiro');
     if (el) el.classList.remove('hidden');
-    renderTelaFinanceiroExclusiva();
+    if (typeof renderTelaFinanceiroExclusiva === 'function') {
+      renderTelaFinanceiroExclusiva();
+    }
+  } else if (tab === 'contasLucros') {
+    const el = document.getElementById('secContasLucros');
+    if (el) el.classList.remove('hidden');
+    if (typeof renderTelaContasELucros === 'function') {
+      renderTelaContasELucros();
+    }
   } else if (tab === 'resumo') {
     const el = document.getElementById('secResumo');
     if (el) el.classList.remove('hidden');
@@ -539,8 +413,13 @@ async function fetchAlunos() {
     renderStudentsList(allStudentsList);
 
     const secFin = document.getElementById('secFinanceiro');
-    if (secFin && !secFin.classList.contains('hidden')) {
+    if (secFin && !secFin.classList.contains('hidden') && typeof renderTelaFinanceiroExclusiva === 'function') {
       renderTelaFinanceiroExclusiva();
+    }
+
+    const secContas = document.getElementById('secContasLucros');
+    if (secContas && !secContas.classList.contains('hidden') && typeof renderTelaContasELucros === 'function') {
+      renderTelaContasELucros();
     }
   } catch(e) { 
     if (container) container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>";
@@ -585,7 +464,6 @@ function renderStudentsList(list) {
   const containerPagantes = document.getElementById('alunosList');
   if (!containerPagantes) return;
   
-  // Limpa o container da lista principal
   containerPagantes.innerHTML = "";
 
   if (!list || list.length === 0) {
@@ -593,7 +471,6 @@ function renderStudentsList(list) {
     return;
   }
 
-  // Verificadores de Status
   const checarSeEhIsento = (aluno) => {
     if (!aluno) return false;
     const stPag = String(aluno.status_pagamento || aluno.status || '').toLowerCase();
@@ -622,12 +499,10 @@ function renderStudentsList(list) {
     return stPag === 'pendente' || info.dias <= 0;
   };
 
-  // Separação em 3 grupos
   const alunosIsentos = list.filter(a => checarSeEhIsento(a));
   const alunosPendentes = list.filter(a => checarSeEhPendente(a));
   const alunosPagantes = list.filter(a => !checarSeEhIsento(a) && !checarSeEhPendente(a));
 
-  // Função interna para criar os cards
   const criarItemAluno = (aluno) => {
     const ehVIP = checarSeEhIsento(aluno);
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
@@ -670,7 +545,6 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // 1. RENDERIZA APENAS OS PAGANTES NA LISTA PRINCIPAL DENTRO DE #alunosList
   if (alunosPagantes.length === 0) {
     containerPagantes.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno pagante ativo.</small>";
   } else {
@@ -679,7 +553,6 @@ function renderStudentsList(list) {
     });
   }
 
-  // 2. RENDERIZA AS SANFONAS (ISENTOS E PENDENTES) NO CONTAINER DE BAIXO
   let areaAbasExternas = document.getElementById('areaAbasExternasContainer');
   
   if (!areaAbasExternas) {
@@ -736,7 +609,6 @@ function renderStudentsList(list) {
     <div id="alunosPendentesListContainer" style="display: ${pendentesExpanded ? 'block' : 'none'};"></div>
   `;
 
-  // Preenche Isentos
   const boxIsentos = document.getElementById('alunosIsentosListContainer');
   if (alunosIsentos.length === 0) {
     boxIsentos.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
@@ -744,7 +616,6 @@ function renderStudentsList(list) {
     alunosIsentos.forEach(aluno => boxIsentos.appendChild(criarItemAluno(aluno)));
   }
 
-  // Preenche Pendentes
   const boxPendentes = document.getElementById('alunosPendentesListContainer');
   if (alunosPendentes.length === 0) {
     boxPendentes.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno em atraso! 🎉</div>`;
@@ -752,7 +623,6 @@ function renderStudentsList(list) {
     alunosPendentes.forEach(aluno => boxPendentes.appendChild(criarItemAluno(aluno)));
   }
 
-  // Seleção automática ao carregar
   if (!currentStudentCode) {
     if (alunosPagantes.length > 0) {
       carregarAluno(alunosPagantes[0].codigo);
@@ -1496,7 +1366,6 @@ function renderAnamneseDetails() {
   let htmlAnamnese = `
     <div class="anamnese-container" style="display:flex; flex-direction:column; gap:16px;">
       
-      <!-- CARD 1: DADOS PESSOAIS & PERFIL FÍSICO -->
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
           👤 DADOS PESSOAIS & PERFIL FÍSICO
@@ -1533,7 +1402,6 @@ function renderAnamneseDetails() {
         </div>
       </div>
 
-      <!-- CARD 2: ROTINA DE TREINO & LOGÍSTICA -->
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
           🏋️ ROTINA DE TREINO & LOGÍSTICA
@@ -1566,7 +1434,6 @@ function renderAnamneseDetails() {
         </div>
       </div>
 
-      <!-- CARD 3: SAÚDE, LESÕES & ESTILO DE VIDA -->
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
           🏥 SAÚDE, LESÕES & ESTILO DE VIDA
@@ -1598,7 +1465,6 @@ function renderAnamneseDetails() {
 
   if (!ehApenasTreino) {
     htmlAnamnese += `
-      <!-- CARD 4: HÁBITOS ALIMENTARES & PREFERÊNCIAS -->
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
           🥗 HÁBITOS ALIMENTARES & PREFERÊNCIAS
