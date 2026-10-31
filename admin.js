@@ -97,16 +97,30 @@ function togglePainelLinksAdmin() {
 }
 
 function copiarLinkVenda(url) {
-  navigator.clipboard.writeText(url).then(() => {
-    showToast("Link copiado para a área de transferência!", "success");
-  }).catch(() => {
-    showToast("Erro ao copiar o link.", "error");
-  });
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("📋 Link copiado com sucesso!", "success");
+    }).catch(() => {
+      prompt("Copie o link abaixo:", url);
+    });
+  } else {
+    prompt("Copie o link abaixo:", url);
+  }
 }
 
 function abrirPastaDriveAluno() {
-  const pastaDriveUrl = "https://drive.google.com/drive/folders/1j-fRZTrP852K10fxfSbaf_b_vsOdi2hl";
-  window.open(pastaDriveUrl, '_blank');
+  if (!currentStudentData) {
+    return showToast("Selecione um aluno primeiro.", "error");
+  }
+
+  const nomeAluno = currentStudentData.clientName || currentStudentData.nome || currentStudentCode;
+  
+  if (currentStudentData.driveFolderUrl) {
+    window.open(currentStudentData.driveFolderUrl, '_blank');
+  } else {
+    const searchUrl = `https://drive.google.com/drive/search?q=${encodeURIComponent(nomeAluno)}`;
+    window.open(searchUrl, '_blank');
+  }
 }
 
 async function alternarSolicitacaoFeedback(status) {
@@ -249,7 +263,6 @@ function renderTelaFinanceiroExclusiva() {
     const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
     const valor = extrairPrecoAluno(aluno);
 
-    // Verificação de data de início/cadastro no mês atual
     const dtCriacaoStr = aluno.data_inicio || aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.data_inicio || aluno.payload?.created_at;
     if (dtCriacaoStr) {
       const parteData = String(dtCriacaoStr).split('T')[0].split('-');
@@ -685,7 +698,6 @@ async function carregarAluno(code) {
     document.getElementById('editPassword').value = '';
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     
-    // PREENCHE A DATA DE INÍCIO DA CONSULTORIA
     const inputDataInicio = document.getElementById('editDataInicio');
     if (inputDataInicio) {
       const dtInicioRaw = currentStudentData.data_inicio || currentStudentData.created_at || '';
@@ -1107,7 +1119,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-​2. Série de Reconhecimento (Feeder Set)
+2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
@@ -1343,99 +1355,177 @@ function renderCorridaAdmin() {
   }
 }
 
+/* ==========================================================================
+   RENDERIZAÇÃO DA ANAMNESE ESTRUTURADA EM 4 CARDS E CATEGORIAS
+   ========================================================================== */
 function renderAnamneseDetails() {
   const div = document.getElementById('anamneseDetails');
   if (!div) return;
 
-  const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
-
-  if (!a.nome && !a.clientName && !a.objetivo && !a.telefone && !a.email && !a.peso) {
-    div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Nenhuma resposta de anamnese detalhada encontrada para este perfil.</p>`;
+  if (!currentStudentData) {
+    div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Selecione um aluno para exibir os dados da anamnese.</p>`;
     return;
   }
 
+  const a = currentStudentData.dadosAnamnese || currentStudentData.anamnese || currentStudentData;
+
+  const getVal = (val) => (val && String(val).trim() !== '' && String(val).trim() !== 'undefined') ? String(val).trim() : 'Não informado';
+
   const ehApenasTreino = currentStudentData.apenasTreino === true || currentStudentData.liberarDieta === false;
 
-  const nomeVal = a.nome || a.clientName || '-';
-  const generoVal = a.genero || a.sexo || a.gender || '-';
-  const foneVal = a.telefone || a.whatsapp || a.celular || '-';
-  const emailVal = a.email || '-';
-  const cpfVal = a.cpf || '-';
-  const idadeVal = a.nascimento || a.idade || a.dataNascimento || '-';
-  const pesoVal = a.peso ? `${a.peso} kg` : '-';
-  const alturaVal = a.altura ? `${a.altura} m` : '-';
-
-  const objetivoVal = a.objetivo || a.objetivoPrincipal || '-';
-  const expVal = a.tempoTreino || a.experiencia || a.tempoMusculacao || '-';
-  const diasVal = a.diasDisponiveis || a.diasSemana || a.diasTreino || a.diasPreferidos || '-';
-  const horasVal = a.horasTreino || a.tempoSessao || a.tempoDisponivel || a.duracaoTreino || a.horarioTreino || '-';
-  const outrasAtivVal = a.outrasAtividades || a.outrosEsportes || a.cardioOutros || a.atividadeExtra || 'Nenhuma declarada.';
-  const lesoesVal = a.lesoes || a.dores || a.historicoLesoes || 'Nenhuma declarada.';
-  const saudeVal = a.medicamentos || a.patologias || a.problemasSaude || 'Nenhum declarado.';
-
-  const rotinaVal = a.rotina || a.trabalho || a.profissao || '-';
-  const sonoVal = a.sono || a.horasSono || a.qualidadeSono || '-';
-  const estresseVal = a.estresse || a.nivelEstresse || '-';
-
-  const refeicoesVal = a.numRefeicoes || a.refeicoesDia || '-';
-  const aguaVal = a.agua || a.consumoAgua || '-';
-  const odeiaVal = a.alimentosOdiados || a.restricoes || a.alimentosNaoGosta || 'Nenhum declarado.';
-  const gostaVal = a.alimentosGosta || a.preferencias || a.alimentosIndispensaveis || 'Nenhum declarado.';
-  const supVal = a.suplementos || a.ergogenicos || a.usoSuplementos || 'Nenhum informado.';
-
   let htmlAnamnese = `
-    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">👤 Dados Pessoais & Contato</h4>
-      <div class="anamnese-grid">
-        <div class="anamnese-box"><div class="anamnese-label">Nome Completo</div><div class="anamnese-val">${escapeHtml(nomeVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Gênero</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(generoVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Telefone / WhatsApp</div><div class="anamnese-val">${escapeHtml(foneVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">E-mail</div><div class="anamnese-val">${escapeHtml(emailVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">CPF</div><div class="anamnese-val">${escapeHtml(cpfVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Data Nasc. / Idade</div><div class="anamnese-val">${escapeHtml(idadeVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Peso Corporal</div><div class="anamnese-val">${escapeHtml(pesoVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Altura</div><div class="anamnese-val">${escapeHtml(alturaVal)}</div></div>
+    <div class="anamnese-container" style="display:flex; flex-direction:column; gap:16px;">
+      
+      <!-- CARD 1: DADOS PESSOAIS & PERFIL FÍSICO -->
+      <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+          👤 DADOS PESSOAIS & PERFIL FÍSICO
+        </div>
+        <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Nome Completo</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.nome || a.clientName || currentStudentData.clientName))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Idade / Nascimento</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.idade))} ${a.idade ? 'anos' : ''} (${escapeHtml(getVal(a.nascimento))})</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">WhatsApp / Telefone</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.telefone || a.whatsapp))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">E-mail</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.email))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">CPF</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.cpf))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Peso & Altura</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.peso))} kg | ${escapeHtml(getVal(a.altura))} cm</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Objetivo Principal</div>
+            <div class="anamnese-a" style="font-size:13px; color:var(--gold); font-weight:800;">🎯 ${escapeHtml(getVal(a.objetivo || a.objetivoPrincipal))}</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🎯 Objetivo & Rotina de Treinamento</h4>
-      <div class="anamnese-grid">
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Objetivo Principal</div><div class="anamnese-val" style="color:var(--gold); font-weight:700;">${escapeHtml(objetivoVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Experiência na Musculação</div><div class="anamnese-val">${escapeHtml(expVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Dias Pref. / Disponíveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(diasVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Tempo / Horas por Treino</div><div class="anamnese-val" style="color:#60a5fa; font-weight:700;">${escapeHtml(horasVal)}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Outras Atividades Físicas / Esportes</div><div class="anamnese-val">${escapeHtml(outrasAtivVal)}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Lesões, Dores ou Incômodos</div><div class="anamnese-val" style="color:#ff6b7f;">${escapeHtml(lesoesVal)}</div></div>
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Problemas de Saúde / Medicamentos</div><div class="anamnese-val">${escapeHtml(saudeVal)}</div></div>
+      <!-- CARD 2: ROTINA DE TREINO & LOGÍSTICA -->
+      <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+          🏋️ ROTINA DE TREINO & LOGÍSTICA
+        </div>
+        <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Experiência / Tempo de Prática</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoTreino || a.experiencia))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Frequência Semanal (Quantidade)</div>
+            <div class="anamnese-a" style="font-size:13px; color:var(--green); font-weight:800;">📅 ${escapeHtml(getVal(a.diasSemana || a.diasDisponiveis))} dias por semana</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Dias Escolhidos / Preferenciais da Semana</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:700;">📆 ${escapeHtml(getVal(a.preferenciaDias || a.diasTreino))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Duração da Sessão</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoTreinoMin || a.horasTreino))} minutos</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Intervalo de Descanso Desejado</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoDescanso))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Outras Atividades Físicas / Esportes</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.outrasAtividades || a.outrosEsportes))}</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px; margin-bottom:14px;">
-      <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🌙 Estilo de Vida & Hábitos</h4>
-      <div class="anamnese-grid">
-        <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Profissão / Rotina Diária</div><div class="anamnese-val">${escapeHtml(rotinaVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Média de Sono / Noite</div><div class="anamnese-val">${escapeHtml(sonoVal)}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">Nível de Estresse</div><div class="anamnese-val">${escapeHtml(estresseVal)}</div></div>
+      <!-- CARD 3: SAÚDE, LESÕES & ESTILO DE VIDA -->
+      <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+          🏥 SAÚDE, LESÕES & ESTILO DE VIDA
+        </div>
+        <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Lesões, Dores ou Desconfortos</div>
+            <div class="anamnese-a" style="font-size:13px; color:var(--accent); font-weight:800;">🚨 ${escapeHtml(getVal(a.lesoes || a.dores))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Doenças Prévias / Condições Médicas</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.doencas || a.patologias))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Rotina Diária (Trabalho / Estudo)</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.rotina || a.profissao))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Horas & Qualidade do Sono</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.horasSono || a.sono))} (${escapeHtml(getVal(a.qualidadeSono))})</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Álcool & Tabagismo</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">Álcool: ${escapeHtml(getVal(a.alcool))} | Cigarro: ${escapeHtml(getVal(a.tabagismo))}</div>
+          </div>
+        </div>
       </div>
-    </div>
   `;
 
   if (!ehApenasTreino) {
     htmlAnamnese += `
-      <div style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:14px;">
-        <h4 style="color:var(--gold); font-size:13px; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;">🥗 Hábitos Alimentares & Preferências</h4>
-        <div class="anamnese-grid">
-          <div class="anamnese-box"><div class="anamnese-label">Refeições por Dia</div><div class="anamnese-val">${escapeHtml(refeicoesVal)}</div></div>
-          <div class="anamnese-box"><div class="anamnese-label">Consumo Diário de Água</div><div class="anamnese-val">${escapeHtml(aguaVal)}</div></div>
-          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos que NÃO Gosta / Alergias</div><div class="anamnese-val" style="color:#ff6b7f; font-weight:700;">${escapeHtml(odeiaVal)}</div></div>
-          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Alimentos Preferidos / Indispensáveis</div><div class="anamnese-val" style="color:var(--green); font-weight:700;">${escapeHtml(gostaVal)}</div></div>
-          <div class="anamnese-box" style="grid-column: 1 / -1;"><div class="anamnese-label">Suplementos / Ergogênicos em Uso</div><div class="anamnese-val">${escapeHtml(supVal)}</div></div>
+      <!-- CARD 4: HÁBITOS ALIMENTARES & PREFERÊNCIAS -->
+      <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
+          🥗 HÁBITOS ALIMENTARES & PREFERÊNCIAS
+        </div>
+        <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Número de Refeições Diárias</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.numRefeicoes || a.refeicoesDia))} refeições</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Rotina de Final de Semana</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.fimDeSemana))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alimentos Odiados / Não Consome</div>
+            <div class="anamnese-a" style="font-size:13px; color:#ff6b7f; font-weight:700;">🚫 ${escapeHtml(getVal(a.alimentosOdiados || a.restricoes))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Carboidratos Preferidos</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaCarbos))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Proteínas Preferidas</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaProteinas))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Legumes & Verduras Preferidos</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaLegumes))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alergias / Intolerâncias Alimentares</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.alergias))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Orçamento para Alimentação</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.orcamento))}</div>
+          </div>
+          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Suplementos em Uso</div>
+            <div class="anamnese-a" style="font-size:13px; color:var(--gold); font-weight:600;">💊 ${escapeHtml(getVal(a.suplementos || a.usoSuplementos))}</div>
+          </div>
         </div>
       </div>
     `;
   }
 
+  htmlAnamnese += `</div>`;
   div.innerHTML = htmlAnamnese;
 }
 
@@ -2413,13 +2503,6 @@ async function deletarAluno() {
   showToast("Aluno excluído com sucesso.", "error");
   fetchAlunos();
   switchTab('resumo');
-}
-
-function copiarLinkAcessoAluno() {
-  if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
-  const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
-  navigator.clipboard.writeText(linkAluno);
-  showToast("Link de acesso copiado!", "success");
 }
 
 function calcularVolumeMuscularSemanal() {
