@@ -55,6 +55,8 @@
   .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
   .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
 
+  .section-group-title { font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 12px 0 6px 4px; letter-spacing: 0.5px; }
+
   .day-accordion-header {
     background: linear-gradient(135deg, #1f060c, #110205);
     border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
@@ -179,7 +181,7 @@
           <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
         </div>
         <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
-        <div id="alunosList" style="max-height:380px; overflow-y:auto;">Carregando...</div>
+        <div id="alunosList" style="max-height:450px; overflow-y:auto;">Carregando...</div>
       </div>
 
       <div class="panel-card">
@@ -201,29 +203,42 @@
       </div>
 
       <div id="secResumo" class="panel-card">
-        <!-- HEADER EM DESTAQUE DO ALUNO EM FOCO -->
-        <div style="background:linear-gradient(135deg, #1b050b, #0f0205); border:1px solid var(--border); border-top:2px solid var(--gold); border-radius:14px; padding:18px; margin-bottom:18px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <!-- ALUNO EM FOCO COMPACTO E ELEGANTE NO TOPO -->
+        <div style="background:linear-gradient(135deg, #1b050b, #0f0205); border:1px solid var(--border); border-top:2px solid var(--gold); border-radius:14px; padding:16px; margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
             <div>
               <span style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Aluno em Foco</span>
-              <h2 id="studentName" style="font-size:22px; color:#fff; margin-top:2px;">Selecione um aluno</h2>
-              <div style="display:flex; gap:10px; margin-top:6px; align-items:center; flex-wrap:wrap;">
+              <h2 id="studentName" style="font-size:20px; color:#fff; margin-top:2px;">Selecione um aluno</h2>
+              <div style="display:flex; gap:8px; margin-top:4px; align-items:center; flex-wrap:wrap;">
                 <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-                <span id="studentPassDisplay" style="font-size:11px; background:#210410; border:1px solid var(--border); padding:2px 8px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
+                <span id="studentPassDisplay" style="font-size:11px; background:#210410; border:1px solid var(--border); padding:2px 6px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
                 <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
+                <span id="studentVencimentoDisplay" style="font-size:11px; color:var(--muted);">📅 Vencimento: -</span>
               </div>
-              <div id="studentVencimentoDisplay" style="font-size:12px; color:var(--muted); margin-top:8px;">📅 Vencimento: Carregando...</div>
             </div>
 
-            <!-- BOTÕES RÁPIDOS MAIS BONITOS E FUNCIONAIS -->
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-              <button class="btn btn-soft" style="padding:8px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
-              <button class="btn btn-soft" style="padding:8px 12px; font-size:11px;" onclick="adicionar30DiasPlano()">🔄 +30 Dias</button>
-              <button class="btn btn-wpp" style="padding:8px 12px; font-size:11px; width:auto;" onclick="enviarWhatsappAluno()">📱 WhatsApp</button>
+            <!-- BOTÕES FUNCIONAIS DO TOPO -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-wpp" style="padding:7px 12px; font-size:11px; width:auto;" onclick="enviarWhatsappAluno()">📱 WhatsApp</button>
+              <button class="btn btn-soft" style="padding:7px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
+              <button class="btn btn-soft" style="padding:7px 12px; font-size:11px;" onclick="adicionar30DiasPlano()">🔄 +30 Dias</button>
             </div>
           </div>
         </div>
 
+        <!-- EXIBIÇÃO COMPLETA: DIETA, CARDIO E TREINOS -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:12px;">
+            <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:6px; text-transform:uppercase;">🥗 Dieta & Refeições Atuais</div>
+            <div id="summaryDietPreview" style="font-size:12px; color:var(--muted); max-height:150px; overflow-y:auto;">Nenhuma dieta carregada.</div>
+          </div>
+          <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:12px;">
+            <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:6px; text-transform:uppercase;">⚡ Cardio & Diretrizes</div>
+            <div id="summaryCardioPreview" style="font-size:12px; color:var(--muted); max-height:150px; overflow-y:auto;">Aguardando diretrizes...</div>
+          </div>
+        </div>
+
+        <div class="panel-title" style="margin-top:20px;">🏋️ Fichas de Treino Cadastradas</div>
         <div id="workoutOverview">
           <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
         </div>
@@ -290,7 +305,7 @@
           </div>
         </div>
 
-        <label>Histórico do Aluno:</label>
+        <label>Histórico de Corridas do Aluno:</label>
         <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
       </div>
 
@@ -323,7 +338,7 @@
         <select id="editStatus">
           <option value="pago">🟢 Pago / Acesso Liberado</option>
           <option value="isento">⭐ Isento / VIP (Acesso Livre Permanente)</option>
-          <option value="pendente">🔴 Suspenso / Pendente</option>
+          <option value="pendente">🔴 Suspendido / Pendente</option>
         </select>
 
         <div style="margin-top: 14px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; flex-direction:column; gap:8px;">
@@ -345,6 +360,13 @@
             <input type="checkbox" id="editCorredor" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;">
             <label for="editCorredor" style="color: #3b82f6; font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
               🏃 Ativar Módulo de Corrida (Exibe aba de Desempenho)
+            </label>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px;">
+            <input type="checkbox" id="editErgogenicos" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent);">
+            <label for="editErgogenicos" style="color: var(--accent); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
+              💉 Permitir / Exibir Módulo de Ergogenicos (Hormônios)
             </label>
           </div>
         </div>
@@ -467,6 +489,7 @@
     } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
   }
 
+  // SEPARAÇÃO DA LISTA DE ALUNOS POR STATUS (VIP/ISENTO, PAGO, PENDENTE)
   function renderStudentsList(list) {
     const container = document.getElementById('alunosList');
     container.innerHTML = "";
@@ -475,24 +498,42 @@
       return;
     }
 
-    list.forEach((aluno, i) => {
-      const div = document.createElement('div');
-      const isVip = aluno.isento || aluno.status_pagamento === 'isento';
-      const pillClass = isVip ? 'status-vip' : (aluno.status_pagamento === 'pago' ? 'status-pago' : 'status-pendente');
-      const pillText = isVip ? 'ISENTO' : (aluno.status_pagamento || 'pago');
+    const isentos = list.filter(a => a.isento || a.status_pagamento === 'isento');
+    const pagantes = list.filter(a => !a.isento && a.status_pagamento !== 'isento' && a.status_pagamento !== 'pendente');
+    const pendentes = list.filter(a => a.status_pagamento === 'pendente');
 
-      div.className = `student-item ${aluno.codigo === currentStudentCode || (i===0 && !currentStudentCode) ? 'active' : ''}`;
-      div.innerHTML = `<div><b>${aluno.nome}</b><br><small style="color:var(--muted)">@${aluno.codigo}</small></div>
-                        <span class="status-pill ${pillClass}">${pillText}</span>`;
-      div.onclick = () => {
-        document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
-        div.classList.add('active');
-        carregarAluno(aluno.codigo);
-      };
-      container.appendChild(div);
-    });
+    function appendGroup(title, groupList) {
+      if (groupList.length === 0) return;
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'section-group-title';
+      titleDiv.textContent = title;
+      container.appendChild(titleDiv);
 
-    if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
+      groupList.forEach((aluno) => {
+        const isVip = aluno.isento || aluno.status_pagamento === 'isento';
+        const pillClass = isVip ? 'status-vip' : (aluno.status_pagamento === 'pago' ? 'status-pago' : 'status-pendente');
+        const pillText = isVip ? 'ISENTO' : (aluno.status_pagamento || 'pago');
+
+        const div = document.createElement('div');
+        div.className = `student-item ${aluno.codigo === currentStudentCode ? 'active' : ''}`;
+        div.innerHTML = `<div><b>${aluno.nome}</b><br><small style="color:var(--muted)">@${aluno.codigo}</small></div>
+                          <span class="status-pill ${pillClass}">${pillText}</span>`;
+        div.onclick = () => {
+          document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          carregarAluno(aluno.codigo);
+        };
+        container.appendChild(div);
+      });
+    }
+
+    appendGroup('⭐ Isentos / VIPs', isentos);
+    appendGroup('🟢 Pagantes Ativos', pagantes);
+    appendGroup('🔴 Pendentes / Suspensos', pendentes);
+
+    if (list.length > 0 && !currentStudentCode) {
+      carregarAluno(list[0].codigo);
+    }
   }
 
   function filterStudents() {
@@ -527,10 +568,20 @@
           const dtExp = new Date(currentStudentData.data_expiracao).toLocaleDateString('pt-BR');
           vencTxt = `📅 Vencimento em: ${dtExp}`;
         } else {
-          vencTxt = `📅 Dia de Vencimento: ${currentStudentData.dia_vencimento || 20} de cada mês`;
+          vencTxt = `📅 Vencimento dia: ${currentStudentData.dia_vencimento || 20}`;
         }
       }
       document.getElementById('studentVencimentoDisplay').textContent = vencTxt;
+
+      // PREVIEW DA DIETA E CARDIO NO RESUMO
+      let dietaResumo = "Nenhuma refeição cadastrada.";
+      if (currentStudentData.refeicoes && currentStudentData.refeicoes.length > 0) {
+        dietaResumo = currentStudentData.refeicoes.map(r => `<b>${r.titulo}</b><br>${r.alimentos.replace(/\n/g, '<br>')}`).join('<hr style="border-color:var(--border); margin:6px 0;">');
+      }
+      document.getElementById('summaryDietPreview').innerHTML = dietaResumo;
+
+      let cardioResumo = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || "Nenhum cardio prescrito.";
+      document.getElementById('summaryCardioPreview').innerHTML = typeof cardioResumo === 'string' ? cardioResumo.replace(/\n/g, '<br>') : JSON.stringify(cardioResumo);
 
       document.getElementById('editName').value = currentStudentData.clientName || '';
       document.getElementById('editStatus').value = isVip ? 'isento' : (currentStudentData.status_pagamento || 'pago');
@@ -541,6 +592,7 @@
       document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
       document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
       document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
+      document.getElementById('editErgogenicos').checked = currentStudentData.ergogenicos === true;
 
       renderWorkoutView();
       renderAnamneseDetails();
@@ -1065,6 +1117,7 @@ ${tx.value}`,
     currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
     currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
     currentStudentData.corredor = document.getElementById('editCorredor').checked;
+    currentStudentData.ergogenicos = document.getElementById('editErgogenicos').checked;
     
     const newPass = document.getElementById('editPassword').value.trim();
     if (newPass) {
@@ -1214,6 +1267,7 @@ ${tx.value}`,
       permitirTecnicas: false,
       apenasTreino: false,
       corredor: false,
+      ergogenicos: false,
       days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
       refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
     };
