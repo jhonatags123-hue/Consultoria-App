@@ -568,6 +568,7 @@ function toggleSanfonaIsentos() {
   }
 }
 
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS CORRIGIDA */
 function renderStudentsList(list) {
   const container = document.getElementById('alunosList');
   if (!container) return;
@@ -578,16 +579,33 @@ function renderStudentsList(list) {
     return;
   }
 
-  // Separação estrita dos alunos pagantes vs. alunos VIPs/Isentos
-  const alunosRegulares = list.filter(a => !(a.isento === true || a.status_pagamento === 'isento'));
-  const alunosVip = list.filter(a => a.isento === true || a.status_pagamento === 'isento');
+  // Helper para identificar com 100% de certeza se o aluno é VIP/Isento
+  const checarSeEhIsento = (a) => {
+    const st = String(a.status_pagamento || a.status || '').toLowerCase();
+    const pl = String(a.plano || a.tipo || '').toLowerCase();
+    return (
+      a.isento === true || 
+      a.isento === 'true' || 
+      a.payload?.isento === true || 
+      st === 'isento' || 
+      st === 'vip' || 
+      pl === 'isento' || 
+      pl === 'vip'
+    );
+  };
+
+  // Separação rigorosa
+  const alunosRegulares = list.filter(a => !checarSeEhIsento(a));
+  const alunosVip = list.filter(a => checarSeEhIsento(a));
 
   const criarItemAluno = (aluno, index) => {
-    const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+    const ehVIP = checarSeEhIsento(aluno);
+    const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
+    
     let statusClass = "status-pago";
     let statusText = aluno.status_pagamento || "pago";
 
-    if (aluno.isento === true || statusText === 'isento') {
+    if (ehVIP) {
       statusClass = "status-isento";
       statusText = "ISENTO";
     } else if (statusText === 'pendente' || infoCalculada.dias <= 0) {
@@ -610,7 +628,7 @@ function renderStudentsList(list) {
       </div>
       <div style="text-align:right;">
         <span class="status-pill ${statusClass}">${escapeHtml(statusText.toUpperCase())}</span>
-        <div style="font-size:10px; color:var(--muted); margin-top:3px;">${(aluno.isento === true || statusText === 'isento') ? 'Livre' : (infoCalculada.dias <= 0 ? 'Vencido' : infoCalculada.dias + 'd restantes')}</div>
+        <div style="font-size:10px; color:var(--muted); margin-top:3px;">${ehVIP ? 'Livre' : (infoCalculada.dias <= 0 ? 'Vencido' : infoCalculada.dias + 'd restantes')}</div>
       </div>
     `;
     div.onclick = () => {
@@ -621,12 +639,12 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // Renderiza APENAS os alunos regulares na lista principal
+  // 1. Renderiza APENAS os pagantes/regulares
   alunosRegulares.forEach((aluno, index) => {
     container.appendChild(criarItemAluno(aluno, index));
   });
 
-  // Renderiza a Sanfona APENAS se houver alunos VIPs/Isentos
+  // 2. Renderiza a Sanfona dos Isentos/VIPs
   if (alunosVip.length > 0) {
     const headerVip = document.createElement('div');
     headerVip.style.cssText = `
@@ -666,7 +684,6 @@ function renderStudentsList(list) {
 
   if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
 }
-
 function filterStudents() {
   const term = document.getElementById('searchStudent').value.toLowerCase();
   const filtered = allStudentsList.filter(a => (a.nome || a.clientName || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
