@@ -822,7 +822,7 @@ function renderResumoVisaoGeral() {
   }
 
   // PREPARAÇÃO DOS CONTEÚDOS INTERNOS
-  // 1. TREINO
+  // 1. TREINO (COM LINK CLICÁVEL PARA ACOMPANHAR A EVOLUÇÃO)
   let htmlTreino = "";
   const days = currentStudentData.days || [];
   if (days.length === 0) {
@@ -833,7 +833,19 @@ function renderResumoVisaoGeral() {
         <div style="margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
           <b style="color:var(--gold);">🏋️ ${escapeHtml(day.title)}</b>
           <div style="margin-top:4px;">
-            ${(day.exercicios || []).map(ex => `<div style="font-size:12px;">• ${escapeHtml(ex.nome)} — <span style="color:var(--muted);">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span></div>`).join('')}
+            ${(day.exercicios || []).map(ex => {
+              const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
+              const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
+              const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+              return `
+                <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
+                     style="cursor:pointer; font-size:12px; margin-top:3px; padding:3px 6px; border-radius:4px; background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center;"
+                     title="Clique para ver o gráfico de evolução de cargas">
+                  <span>📈 <b>${escapeHtml(ex.nome)}</b></span>
+                  <span style="color:var(--muted); font-size:11px;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+                </div>
+              `;
+            }).join('')}
           </div>
         </div>
       `;
@@ -1755,10 +1767,19 @@ function atualizarPreviewAoVivo() {
     day.exercicios.forEach(ex => {
       const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
       const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
-      html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-        <span>• ${escapeHtml(ex.nome)}${isTecnico}${gifBadge}</span>
-        <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
-      </div>`;
+      
+      const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
+      const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
+      const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+
+      html += `
+        <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
+             style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
+             title="Clique para ver evolução de cargas">
+          <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
+          <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+        </div>
+      `;
     });
 
     html += `</div>`;
@@ -1766,15 +1787,25 @@ function atualizarPreviewAoVivo() {
   });
 }
 
-async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
-  document.getElementById('chartExName').textContent = nomeEx;
-  document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
+/* EXPOSIÇÃO GLOBAL DO ACOMPANHAMENTO DE PROGRESSÃO DE CARGAS COM GRÁFICO */
+window.verEvolucaoSemanal = async function(nomeEx, seriesStr = '', repsStr = '') {
+  const chartModal = document.getElementById('chartModal');
+  const chartExName = document.getElementById('chartExName');
+  const chartExMeta = document.getElementById('chartExMeta');
+  
+  if (!chartModal) {
+    showToast("Estrutura do modal #chartModal não foi encontrada no DOM.", "error");
+    return;
+  }
+
+  if (chartExName) chartExName.textContent = nomeEx;
+  if (chartExMeta) chartExMeta.textContent = seriesStr ? `Meta: ${seriesStr} (${repsStr})` : '';
 
   const weeklyLogs = (currentStudentData && currentStudentData.weekly_logs) || {};
   const dailyLogs = (currentStudentData && currentStudentData.logs) || {};
   
   const keyEx = sanitizeExKey(nomeEx);
-  let historicoSemanal = (weeklyLogs[keyEx] || []).slice(-4);
+  let historicoSemanal = (weeklyLogs[keyEx] || []).slice(-6);
 
   if (historicoSemanal.length === 0) {
     let maxC = 0;
@@ -1790,16 +1821,17 @@ async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
 
     if (maxC > 0) {
       const rMed = countS > 0 ? Math.round(totalR / countS) : '-';
-      historicoSemanal = [{ data: 'Hoje', cargaMax: maxC, repsMed: rMed, tecnica: 'Sessão Recente' }];
+      historicoSemanal = [{ data: 'Sessão Recente', cargaMax: maxC, repsMed: rMed, tecnica: 'Log Diário' }];
     }
   }
 
-  let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
+  const logsDetailList = document.getElementById('logsDetailList');
+  let html = "<b>Progresso de Cargas e Repetições:</b><br>";
   let cargasValidas = [];
   let repsValidas = [];
 
   if (historicoSemanal.length === 0) {
-    html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
+    html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo para este exercício até o momento.</div>`;
     const boxIA = document.getElementById('aiProgressInsight');
     if (boxIA) boxIA.classList.add('hidden');
   } else {
@@ -1807,7 +1839,7 @@ async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
       const cargaVal = reg.cargaMax || reg.carga || 0;
       const repsVal = reg.repsMed || reg.reps || '-';
       html += `
-        <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+        <div style="margin-top:6px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
           <div>
             <b style="color:var(--gold)">Treino ${idx + 1} (${escapeHtml(reg.data || 'Recente')}):</b><br>
             <span style="color:#60a5fa; font-size:11px; font-weight:700;">Reps Médias: ${escapeHtml(repsVal)}</span>
@@ -1820,14 +1852,16 @@ async function verEvolucaoSemanal(nomeEx, seriesStr, repsStr) {
       if (!isNaN(parseFloat(repsVal))) repsValidas.push(parseFloat(repsVal));
     });
 
-    gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
+    if (typeof gerarAnaliseIAProgresso === 'function') {
+      gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
+    }
   }
 
-  document.getElementById('logsDetailList').innerHTML = html;
-  document.getElementById('chartModal').classList.remove('hidden');
+  if (logsDetailList) logsDetailList.innerHTML = html;
+  chartModal.classList.remove('hidden');
 
   renderChartDuplo(cargasValidas, repsValidas);
-}
+};
 
 async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
   const boxIA = document.getElementById('aiProgressInsight');
@@ -1861,7 +1895,10 @@ async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
 }
 
 function renderChartDuplo(cargas, reps) {
-  const ctx = document.getElementById('progressChart').getContext('2d');
+  const canvas = document.getElementById('progressChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
   if (chartInstance) chartInstance.destroy();
 
   const dataCargas = cargas.length > 0 ? cargas : [0];
@@ -1930,10 +1967,10 @@ function renderChartDuplo(cargas, reps) {
   });
 }
 
-function closeChartModal() {
+window.closeChartModal = function() {
   const modal = document.getElementById('chartModal');
   if (modal) modal.classList.add('hidden');
-}
+};
 
 function loadDietView() {
   const tx = document.getElementById('dietTextarea');
