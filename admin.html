@@ -1,1377 +1,605 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel de Gestão Restrito — Jhonata Personal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  :root {
-    --bg: #090204;
-    --card: #150508;
-    --border: #330b13;
-    --accent: #c4324f;
-    --accent-dark: #841628;
-    --gold: #dcaa3a;
-    --gold-soft: #eac267;
-    --green: #25d366;
-    --text: #f8efec;
-    --muted: #a08086;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  ::-webkit-scrollbar { width:6px; height:6px; }
-  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
-  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; min-height:100vh; }
-
-  #loginScreen {
-    position: fixed; inset: 0;
-    background: radial-gradient(800px 500px at 50% 30%, #20050c 0%, #090204 100%);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 10000; padding: 20px;
-  }
-
-  .login-card {
-    background: linear-gradient(180deg, #1c060b, #120306);
-    border: 1px solid var(--border); border-top: 2px solid var(--gold);
-    border-radius: 20px; padding: 32px 28px; width: 100%; max-width: 380px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8); text-align: center;
-  }
-  .login-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px; color: #fff; }
-  .login-card p { font-size: 12px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
-  .error-msg { color: #ff6b7f; font-size: 12px; font-weight: 700; margin-top: 10px; display: none; }
-
-  header { background:var(--card); border-bottom:1px solid var(--border); padding:16px 28px; display:flex; justify-content:space-between; align-items:center; }
-  h1 { font-family:'Bebas Neue',sans-serif; font-size:28px; letter-spacing:1px; color:#fff; }
-  .status-badge { background:rgba(37,211,102,0.15); border:1px solid var(--green); color:var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; }
-
-  .layout { display:grid; grid-template-columns:320px 1fr; gap:22px; padding:22px; max-width:1500px; margin:0 auto; }
-  @media (max-width:960px) { .layout { grid-template-columns:1fr; } }
-
-  .panel-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 8px 20px rgba(0,0,0,0.4); }
-  .panel-title { font-size:13px; font-weight:800; text-transform:uppercase; color:var(--gold); letter-spacing:1px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; }
-
-  .student-item { background:#100305; border:1px solid var(--border); padding:12px 14px; border-radius:12px; margin-bottom:8px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .2s ease; }
-  .student-item:hover { border-color:var(--gold); transform:translateX(3px); }
-  .student-item.active { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); border-color:var(--accent); color:#fff; }
-
-  .section-group-title { font-size: 11px; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 12px 0 6px 4px; letter-spacing: 0.5px; }
-
-  .day-accordion-header {
-    background: linear-gradient(135deg, #1f060c, #110205);
-    border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px;
-    margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between;
-    align-items: center; transition: all .2s ease;
-  }
-  .day-accordion-header:hover { border-color: var(--gold); }
-  .day-accordion-header b { font-size: 15px; color: #fff; }
-
-  .day-accordion-body {
-    background: #0d0204; border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 12px 12px; padding: 12px; margin-top: -12px; margin-bottom: 12px;
-  }
-
-  .ex-clickable { background:#150408; border:1px solid var(--border); padding:10px 12px; border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:all .18s; }
-  .ex-clickable:hover { border-color:var(--gold); background:#20060d; transform:translateX(2px); }
-
-  .nav-tabs { display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--border); padding-bottom:12px; overflow-x:auto; }
-  .tab-btn { background:transparent; border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; font-weight:700; font-size:12px; cursor:pointer; white-space:nowrap; transition:all .18s; }
-  .tab-btn:hover { border-color:var(--gold); color:#fff; }
-  .tab-btn.active { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; border-color:var(--gold); font-weight:800; }
-
-  label { display:block; font-size:11px; font-weight:700; color:var(--gold); margin:10px 0 4px 0; text-transform:uppercase; letter-spacing:0.03em; text-align: left; }
-  input, select, textarea { width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; padding:12px 14px; border-radius:10px; font-size:13px; transition:border-color .18s; }
-  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--gold); }
-  textarea { resize:vertical; font-family:'Inter',sans-serif; }
-
-  .btn { background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#1a0307; font-weight:800; border:none; padding:12px 18px; border-radius:10px; font-size:12px; cursor:pointer; width:100%; text-transform:uppercase; letter-spacing:0.03em; transition:transform .15s ease; box-shadow:0 4px 12px rgba(212,160,42,0.2); }
-  .btn:hover { transform:translateY(-1px); }
-  .btn-danger { background:linear-gradient(135deg, var(--accent), var(--accent-dark)); color:#fff; box-shadow:0 4px 12px rgba(196,50,79,0.3); }
-  .btn-wpp { background:linear-gradient(135deg, #34e37a, #1fae55); color:#04210f; box-shadow:0 4px 12px rgba(37,211,102,0.2); }
-  .btn-soft { background:#1f080c; border:1px solid var(--border); color:#fff; box-shadow:none; }
-
-  .hidden { display:none !important; }
-  .status-pill { display:inline-block; padding:3px 8px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; }
-  .status-pago { background:rgba(37,211,102,0.15); color:var(--green); border:1px solid var(--green); }
-  .status-pendente { background:rgba(196,50,79,0.15); color:var(--accent); border:1px solid var(--accent); }
-  .status-vip { background:rgba(220,170,58,0.15); color:var(--gold); border:1px solid var(--gold); }
-
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:99999; }
-  .modal-chart { background:var(--card); border:1px solid var(--border); border-top:2px solid var(--gold); padding:24px; border-radius:18px; width:90%; max-width:650px; max-height:90vh; overflow-y:auto; }
-
-  .senha-row { display:flex; gap:8px; align-items:flex-end; }
-  .senha-row > div:first-child { flex:1; }
-
-  .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 10px; }
-  @media (max-width: 900px) { .editor-grid { grid-template-columns: 1fr; } }
-  .preview-card { background: #0d0204; border: 1px solid var(--border); border-radius: 12px; padding: 14px; max-height: 520px; overflow-y: auto; }
-
-  .ai-insight-box {
-    background: linear-gradient(135deg, rgba(220,170,58,0.08), rgba(196,50,79,0.08));
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    line-height: 1.5;
-    color: var(--text);
-  }
-
-  .anamnese-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .anamnese-box { background: #0d0204; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .anamnese-label { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
-  .anamnese-val { font-size: 13px; color: #fff; margin-top: 4px; word-break: break-word; line-height: 1.4; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Treinador | Consultoria Jhonata</title>
+  
+  <!-- CSS e Fontes -->
+  <link rel="stylesheet" href="admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  
+  <!-- Chart.js para Gráficos de Cargas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="admin-body">
 
-<div id="loginScreen">
-  <div class="login-card">
-    <h2>PAINEL DO PERSONAL</h2>
-    <p>Digite suas credenciais administrativas</p>
-    <label>Usuário Administrador</label>
-    <input type="text" id="adminUser" placeholder="Usuário" autocomplete="off">
-    <label>Senha</label>
-    <input type="password" id="adminPass" placeholder="••••••••" onkeypress="if(event.key==='Enter') loginAdmin()">
-    <button type="button" id="btnLoginAdmin" class="btn" style="margin-top:20px;" onclick="loginAdmin()">ENTRAR NO PAINEL</button>
-    <div id="loginError" class="error-msg">❌ Usuário ou senha incorretos.</div>
-  </div>
-</div>
+  <!-- Container de Toasts/Notificações -->
+  <div id="toastContainer" class="toast-container"></div>
 
-<div id="chartModal" class="modal-overlay hidden">
-  <div class="modal-chart">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <div>
-        <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
-        <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas & Repetições</span>
+  <!-- TELA DE LOGIN ADMIN -->
+  <div id="loginScreen" class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <h2>🏋️ JHONATA PERSONAL</h2>
+        <p>Acesso Restrito do Treinador</p>
       </div>
-      <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
-    </div>
-
-    <div id="aiProgressInsight" class="ai-insight-box hidden">
-      <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso via IA:</div>
-      <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
-    </div>
-
-    <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
-
-    <div style="position:relative; height:220px; width:100%;">
-      <canvas id="progressChart"></canvas>
-    </div>
-  </div>
-</div>
-
-<div id="adminApp" class="hidden">
-  <header>
-    <div>
-      <h1>JHONATA PERSONAL</h1>
-      <span style="font-size:11px; color:var(--muted);">Gestão Central de Alunos</span>
-    </div>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <span class="status-badge">● CONECTADO</span>
-      <button class="btn btn-danger" style="width:auto; padding:7px 14px; font-size:11px;" onclick="logoutAdmin()">Sair</button>
-    </div>
-  </header>
-
-  <div class="layout">
-    <aside>
-      <div class="panel-card">
-        <div class="panel-title">
-          <span>👥 Alunos Cadastrados</span>
-          <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
+      <form onsubmit="event.preventDefault(); loginAdmin();">
+        <div class="form-group">
+          <label for="adminUser">Usuário Administrador:</label>
+          <input type="text" id="adminUser" placeholder="Digite seu usuário..." required autocomplete="username">
         </div>
-        <input type="text" id="searchStudent" placeholder="🔍 Filtrar aluno..." oninput="filterStudents()" style="margin-bottom:12px;">
-        <div id="alunosList" style="max-height:450px; overflow-y:auto;">Carregando...</div>
+        <div class="form-group">
+          <label for="adminPass">Senha:</label>
+          <input type="password" id="adminPass" placeholder="Digite sua senha..." required autocomplete="current-password">
+        </div>
+        <div id="loginError" class="login-error error-msg" style="display:none;"></div>
+        <button type="submit" id="btnLoginAdmin" class="btn btn-gold btn-lg full-width" style="margin-top:20px;">ENTRAR NO PAINEL</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APLICATIVO PAINEL ADMIN -->
+  <div id="adminApp" class="admin-app hidden">
+
+    <!-- CABEÇALHO PRINCIPAL REORGANIZADO E CENTRALIZADO -->
+    <header class="admin-header">
+      <div class="header-brand">
+        <span class="brand-title">JHONATA PERSONAL</span>
+        <span class="brand-badge">Gestão Central de Alunos</span>
       </div>
 
-      <div class="panel-card">
-        <div class="panel-title">⚡ Ferramentas</div>
-        <button class="btn btn-soft" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
-        <button class="btn btn-soft" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
-        <button class="btn btn-soft" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🤖 Assistente IA do Treinador</button>
-      </div>
-    </aside>
+      <!-- PAINEL CENTRALIZADO DO ALUNO SELECIONADO -->
+      <div class="active-student-bar header-student-panel">
+        <div class="student-info-group">
+          <span class="student-label">ALUNO EM FOCO:</span>
+          <h3 id="studentName" class="student-name-hero">Selecione um aluno...</h3>
+          <div class="student-credentials">
+            <span id="studentCodeDisplay" class="btn-tag">@---</span>
+            <span id="studentPassDisplay" class="btn-tag">🔒 Senha protegida</span>
+          </div>
+        </div>
 
-    <main>
-      <div class="nav-tabs">
-        <button class="tab-btn active" id="tab1" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
-        <button class="tab-btn" id="tabAnamnese" onclick="switchTab('anamnese')">📋 Anamnese</button>
-        <button class="tab-btn" id="tab2" onclick="switchTab('treino')">🏋️ Editor de Treino IA</button>
-        <button class="tab-btn" id="tab3" onclick="switchTab('dieta')">🥗 Editar Dieta</button>
-        <button class="tab-btn" id="tab5" onclick="switchTab('corrida')">🏃 Módulo Corrida</button>
-        <button class="tab-btn" id="tab4" onclick="switchTab('cadastro')">⚙️ Dados & Pagamento</button>
-      </div>
+        <div class="student-badges-group">
+          <button id="studentStatusPill" class="btn-badge status-pago">🟢 PAGO</button>
+          <button id="studentDaysPill" class="btn-badge status-pago">⏳ -- DIAS</button>
+          <button id="studentVencimentoDisplay" class="btn-badge status-info">📅 Vencimento: --/--/----</button>
+        </div>
 
-      <div id="secResumo" class="panel-card">
-        <!-- ALUNO EM FOCO COMPACTO E ELEGANTE NO TOPO -->
-        <div style="background:linear-gradient(135deg, #1b050b, #0f0205); border:1px solid var(--border); border-top:2px solid var(--gold); border-radius:14px; padding:16px; margin-bottom:18px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div class="header-actions">
+          <button class="btn-action sm" onclick="enviarCredenciaisWhatsApp()">📱 Enviar WhatsApp</button>
+          <button class="btn-action sm" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
+          <button class="btn-gold sm" onclick="renovarUmMesAluno()">🔄 +30 Dias</button>
+          <button class="btn-danger sm" onclick="logoutAdmin()">🚪 Sair</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- CORPO PRINCIPAL -->
+    <div class="admin-layout layout">
+
+      <!-- BARRA LATERAL (SIDEBAR) -->
+      <aside id="sidebarConsultoria" class="admin-sidebar">
+        
+        <!-- BUSCA E LISTA DE ALUNOS COM ROLAGEM ÚNICA -->
+        <div class="panel-card">
+          <div class="panel-title">
+            <span>👥 Alunos Cadastrados</span>
+            <button onclick="fetchAlunos()" style="background:none; border:none; color:var(--gold); cursor:pointer; font-size:14px;">🔄</button>
+          </div>
+          <div class="sidebar-search">
+            <input type="text" id="searchStudent" placeholder="🔍 Buscar por nome ou código..." oninput="filterStudents()">
+          </div>
+          <div class="students-list scrollable-students-list" id="alunosList">
+            <small style="color:var(--muted);">Carregando alunos...</small>
+          </div>
+
+          <!-- ÁREA DINÂMICA DAS SANFONAS (ISENTOS & PENDENTES) -->
+          <div id="areaAbasExternasContainer"></div>
+        </div>
+
+        <!-- BOTOES DE FERRAMENTAS -->
+        <div class="panel-card">
+          <div class="panel-title">⚡ Ferramentas</div>
+          <button class="btn btn-wpp btn-md full-width" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')">📋 Copiar Link Anamnese</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('gifs')">📹 Repositório de GIFs</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco)</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
+        </div>
+
+        <!-- PAINEL EXCLUSIVO: LINKS DE VENDAS -->
+        <div class="sidebar-links-wrapper">
+          <div class="painel-links-header" onclick="togglePainelLinksAdmin()">
+            <span>🔗 LINKS DE VENDAS</span>
+            <span id="setaPainelLinks">▼</span>
+          </div>
+
+          <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
+            <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
+              Clique no botão para copiar os links de vendas:
+            </small>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Completa (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=asaas')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Apenas Treino (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=asaas')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+              <span class="link-nome">Anamnese Completa (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Apenas Treino (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=amigos')">📋 Copiar Link</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOTÃO 1: CAIXA FINANCEIRO DA CONSULTORIA -->
+        <div class="sidebar-finance-btn">
+          <button id="btnAcessarFinanceiro" class="btn-finance-dashboard" onclick="switchTab('financeiro')">
+            💰 CAIXA FINANCEIRO CONSULTORIA
+          </button>
+        </div>
+
+        <!-- BOTÃO 2: CONTAS & LUCROS PESSOAIS (ADMIN2) -->
+        <div class="sidebar-finance-btn" style="margin-top:8px;">
+          <button id="btnAcessarContasLucros" class="btn-finance-dashboard" style="background:linear-gradient(135deg, #059669, #10b981); color:#fff; border:none;" onclick="switchTab('contasLucros')">
+            💳 CONTAS & LUCROS PESSOAIS
+          </button>
+        </div>
+
+      </aside>
+
+      <!-- CONTEÚDO PRINCIPAL (ABAS CENTRALIZADAS) -->
+      <main class="admin-content">
+
+        <!-- NAVEGAÇÃO DE ABAS RESTRITA E COMPACTA -->
+        <nav class="admin-tabs nav-tabs">
+          <button id="tab1" class="tab-btn active" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
+          <button id="tab2" class="tab-btn" onclick="switchTab('treino')">🏋️ Editor de Treino</button>
+          <button id="tab3" class="tab-btn" onclick="switchTab('dieta')">🥗 Editor de Dieta</button>
+          <button id="tab5" class="tab-btn" onclick="switchTab('corrida')">🏃 Cardio & Corrida</button>
+          <button id="tabAnamnese" class="tab-btn" onclick="switchTab('anamnese')">📋 Anamnese Respostas</button>
+          <button id="tabFeedbackAdmin" class="tab-btn" onclick="abrirAbaFeedback()">
+            💬 Feedback <span id="tabFeedbackBadge" class="badge-dot hidden">🔴</span>
+          </button>
+          <button id="tab4" class="tab-btn" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
+          <button class="tab-btn" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
+        </nav>
+
+        <!-- ABA 1: CAIXA FINANCEIRO CONSULTORIA (GERENCIADO VIA ADMIN2.JS) -->
+        <section id="secFinanceiro" class="tab-section hidden panel-card">
+          <div class="panel-title">💰 CAIXA FINANCEIRO CONSULTORIA & MÉTRICAS</div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Visão consolidada do faturamento, cobranças e entradas de novos alunos</p>
+          
+          <div id="financeiroDashboardContent" class="content-box-inner">
+            <small style="color:var(--muted);">Calculando métricas financeiras...</small>
+          </div>
+        </section>
+
+        <!-- ABA 2: CONTAS E LUCROS PESSOAIS (GERENCIADO VIA ADMIN2.JS) -->
+        <section id="secContasLucros" class="tab-section hidden panel-card">
+          <div class="panel-title">💳 GESTÃO FINANCEIRA PESSOAL: CONTAS, RENDAS & LUCROS</div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Calculadora de arrecadação total, consultoria, renda da esposa, gastos e valor da hora.</p>
+          
+          <div id="contasLucrosContent" class="content-box-inner"></div>
+        </section>
+
+        <!-- ABA: RESUMO GERAL DO ALUNO -->
+        <section id="secResumo" class="tab-section panel-card">
+          <div class="panel-title">📌 Ficha e Resumo Geral do Aluno</div>
+          
+          <div class="summary-top-bar" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <button class="btn btn-soft btn-md" onclick="calcularVolumeMuscularSemanal()">📊 Ver Volume & Tonagem Semanal</button>
+            
+            <div class="solicitar-feedback-box">
+              <label class="switch-label" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                <input type="checkbox" id="adminSolicitarFeedbackToggle" onchange="alternarSolicitacaoFeedback(this.checked)" style="width:16px; height:16px; accent-color:var(--accent);">
+                <span style="font-size:12px; font-weight:700; color:var(--accent);">🚨 Exigir Feedback Urgente no App</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS COMPACTADO -->
+          <div class="incomodos-alert-box content-box-inner" style="border-color:var(--accent); margin-bottom:16px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h3 style="color:var(--accent); font-size:12px; font-weight:800;">🚨 DORES E OBSERVAÇÕES REGISTRADAS</h3>
+              <button class="btn btn-soft sm" onclick="analisarIncomodosIA()">⚡ Analisar via Auxiliar</button>
+            </div>
+            <div id="incomodosList" style="font-size:12px;">
+              <small style="color:var(--muted)">Carregando relatos...</small>
+            </div>
+            <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:8px;"></div>
+          </div>
+
+          <!-- FICHA DO ALUNO -->
+          <div id="workoutOverview" class="content-box-inner">
+            <div id="summaryOverviewContainer"></div>
+          </div>
+        </section>
+
+        <!-- ABA: ANAMNESE DETALHADA -->
+        <section id="secAnamnese" class="tab-section hidden panel-card">
+          <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
+          <div id="anamneseDetails" class="content-box-inner">
+            <p style="color:var(--muted); font-size:13px;">Selecione um aluno para carregar a anamnese completa.</p>
+          </div>
+        </section>
+
+        <!-- ABA: FEEDBACK DO ALUNO -->
+        <section id="secFeedbackAdmin" class="tab-section hidden panel-card">
+          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>💬 Histórico de Feedbacks & Envios de Fotos</span>
+            <button class="btn btn-soft sm" style="border-color:var(--blue); color:#fff; background:#1e3a8a;" onclick="abrirPastaDriveAluno()">
+              📂 Abrir Drive do Aluno
+            </button>
+          </div>
+
+          <div class="feedback-chat-container content-box-inner">
+            <div id="adminFeedbackHistory" class="feedback-history-list" style="max-height:360px; overflow-y:auto; margin-bottom:12px;"></div>
+            
+            <div class="feedback-input-box" style="display:flex; flex-direction:column; gap:8px;">
+              <textarea id="adminFeedbackInput" rows="3" placeholder="Digite sua orientação ou resposta para o aluno..."></textarea>
+              <button class="btn btn-gold btn-lg full-width" onclick="responderFeedbackAdmin()">ENVIAR RESPOSTA</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA: EDITOR DE TREINO -->
+        <section id="secTreino" class="tab-section hidden panel-card">
+          <div class="panel-title">🏋️ Editor de Prescrição de Treino</div>
+
+          <div class="tool-box-ia">
+            <div class="tool-box-header">📋 GERADOR DE DIRETRIZES (AUXILIAR DO COACH)</div>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Gere as diretrizes gerais de execução para este protocolo.</p>
+            <button id="btnGerarApenasDiretrizesIA" class="btn btn-gold btn-lg full-width" onclick="gerarApenasDiretrizesIA()">⚡ GERAR DIRETRIZES COM AUXILIAR DO COACH</button>
+          </div>
+          
+          <div class="tool-box-ia" style="margin-top:12px;">
+            <div class="tool-box-header">🛠️ AJUSTE DE FICHA EM TEMPO REAL (AUXILIAR DO COACH)</div>
+            <label style="margin-top:4px; color:var(--gold);">Comando para a ficha:</label>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicionar 1 série de leg press com back-off no Treino A...">
+              <button id="btnAiCmd" class="btn btn-gold btn-lg" style="width:220px; min-width:220px;" onclick="executarComandoIaTreino()">⚡ APLICAR VIA AUXILIAR</button>
+            </div>
+          </div>
+
+          <div class="editor-grid" style="margin-top:14px;">
             <div>
-              <span style="font-size:10px; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:1px;">Aluno em Foco</span>
-              <h2 id="studentName" style="font-size:20px; color:#fff; margin-top:2px;">Selecione um aluno</h2>
-              <div style="display:flex; gap:8px; margin-top:4px; align-items:center; flex-wrap:wrap;">
-                <span id="studentCodeDisplay" style="font-size:12px; color:var(--gold); font-weight:700;">@código</span>
-                <span id="studentPassDisplay" style="font-size:11px; background:#210410; border:1px solid var(--border); padding:2px 6px; border-radius:6px; color:#fff; font-weight:700;">🔒 Senha protegida</span>
-                <span id="studentStatusPill" class="status-pill status-pago">PAGO</span>
-                <span id="studentVencimentoDisplay" style="font-size:11px; color:var(--muted);">📅 Vencimento: -</span>
+              <label for="liveWorkoutText">Texto da Ficha (Texto Puro):</label>
+              <textarea id="liveWorkoutText" rows="15" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto 3x8-10" oninput="lidarEdicaoTreino()"></textarea>
+
+              <div style="margin-top:10px;">
+                <label for="editTrainerGuidelines">📌 Diretrizes de Execução do Treinador:</label>
+                <textarea id="editTrainerGuidelines" rows="4" placeholder="1. Aquecimento geral...&#10;2. Séries de reconhecimento..."></textarea>
+              </div>
+
+              <button class="btn btn-lg" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA DE TREINO</button>
+            </div>
+
+            <div>
+              <label>Preview da Ficha Formatada (Ao Vivo):</label>
+              <div id="liveWorkoutPreview" class="preview-card"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA: EDITOR DE DIETA -->
+        <section id="secDieta" class="tab-section hidden panel-card">
+          <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
+
+          <div class="tool-box-ia" style="margin-bottom:12px;">
+            <div class="tool-box-header">🤖 GERAR DIETA COMPLETA (AUXILIAR DO PROFESSOR)</div>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <input type="text" id="aiDietExtraInstructions" placeholder="Instrução extra (Ex: Sem lactose, déficit 2000kcal...)">
+              <button id="btnRunAnamneseDualAI" class="btn btn-gold btn-lg" style="width:240px; min-width:240px;" onclick="gerarDietaCompletaPorAnamnese()">⚡ GERAR DIETA VIA AUXILIAR</button>
+            </div>
+          </div>
+
+          <div class="editor-grid">
+            <div>
+              <label for="dietTextarea">Plano Alimentar Estruturado:</label>
+              <textarea id="dietTextarea" rows="18" placeholder="[RESUMO NUTRICIONAL]&#10;Meta Calórica: 2200 kcal" oninput="lidarEdicaoDieta()"></textarea>
+
+              <button class="btn btn-lg" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+            </div>
+
+            <div>
+              <label>Preview da Dieta por Abas:</label>
+              <div id="dietPreviewFilters" class="diet-aba-filters" style="display:flex; gap:6px; margin-bottom:8px; overflow-x:auto;"></div>
+              <div id="dietPreviewList" class="preview-card"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ABA: CARDIO E CORRIDA -->
+        <section id="secCorrida" class="tab-section hidden panel-card">
+          <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
+
+          <div class="tool-box-ia" style="margin-bottom:12px;">
+            <div class="tool-box-header">⚡ GERAR CARDIO SEMANAL (AUXILIAR DO COACH)</div>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <input type="text" id="aiCardioPromptAdmin" placeholder="Prompt para o cardio (Ex: Foco em Z2 e tiros...)">
+              <button id="btnGerarCardioIA" class="btn btn-gold btn-lg" style="width:220px; min-width:220px;" onclick="gerarSemanaCardioIA()">⚡ GERAR CARDIO VIA AUXILIAR</button>
+            </div>
+          </div>
+
+          <div class="content-box-inner" style="margin-bottom:14px; padding:12px;">
+            <label for="editCardioGuidelines" style="margin-top:0;">📌 Orientação Geral de Cardio:</label>
+            <textarea id="editCardioGuidelines" rows="2" placeholder="Ex: Realizar os cardios preferencialmente em jejum..."></textarea>
+          </div>
+
+          <label>Prescrição Diária Semanal:</label>
+          <div class="run-schedule-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-top:6px;">
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">SEGUNDA</b>
+              <input type="text" id="run_km_seg" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_seg" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_seg" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_seg" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">TERÇA</b>
+              <input type="text" id="run_km_ter" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_ter" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_ter" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_ter" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">QUARTA</b>
+              <input type="text" id="run_km_qua" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_qua" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_qua" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_qua" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">QUINTA</b>
+              <input type="text" id="run_km_qui" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_qui" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_qui" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_qui" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">SEXTA</b>
+              <input type="text" id="run_km_sex" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_sex" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_sex" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_sex" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">SÁBADO</b>
+              <input type="text" id="run_km_sab" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_sab" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_sab" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_sab" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+
+            <div class="content-box-inner" style="padding:8px;">
+              <b style="color:var(--gold); font-size:11px;">DOMINGO</b>
+              <input type="text" id="run_km_dom" placeholder="Km" style="margin-top:4px;">
+              <input type="text" id="run_min_dom" placeholder="Tempo" style="margin-top:4px;">
+              <input type="text" id="run_int_dom" placeholder="Intensidade" style="margin-top:4px;">
+              <input type="text" id="run_desc_dom" placeholder="Descrição" style="margin-top:4px;">
+            </div>
+          </div>
+
+          <button class="btn btn-gold btn-lg full-width" style="margin-top:14px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PRESCRIÇÃO DE CARDIO</button>
+
+          <div style="margin-top:16px;">
+            <label style="color:var(--blue);">📊 Histórico de Corridas do Aluno:</label>
+            <div id="adminRunHistoryList" class="content-box-inner" style="margin-top:6px;"></div>
+          </div>
+        </section>
+
+        <!-- ABA: DADOS E PERMISSÕES DO ALUNO -->
+        <section id="secCadastro" class="tab-section hidden panel-card">
+          <div class="panel-title">⚙️ Configurações & Parâmetros do Aluno</div>
+          
+          <div class="content-box-inner">
+            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+              
+              <div class="form-group">
+                <label for="editName">Nome Completo do Aluno:</label>
+                <input type="text" id="editName">
+              </div>
+
+              <div class="form-group">
+                <label for="editValorMensalidade">Valor Mensalidade (R$):</label>
+                <input type="text" id="editValorMensalidade" placeholder="Ex: 80,00">
+              </div>
+
+              <div class="form-group">
+                <label for="editDataInicio">📅 Início Consultoria:</label>
+                <input type="date" id="editDataInicio">
+              </div>
+
+              <div class="form-group">
+                <label for="editStatus">Status de Pagamento:</label>
+                <select id="editStatus">
+                  <option value="pago">🟢 PAGO (Ativo)</option>
+                  <option value="pendente">🔴 PENDENTE (Suspenso)</option>
+                  <option value="isento">🎁 ISENTO (Cortesia)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="editDiaVencimento">Dia Vencimento (1 a 31):</label>
+                <input type="number" id="editDiaVencimento" min="1" max="31">
+              </div>
+
+              <div class="form-group">
+                <label for="editEvolucaoCarga">Meta Evolução Carga (%):</label>
+                <input type="number" id="editEvolucaoCarga" placeholder="Ex: 5">
+              </div>
+
+              <div class="form-group">
+                <label for="editSemanasRotacao">Semanas de Rotação:</label>
+                <input type="number" id="editSemanasRotacao" value="5">
+              </div>
+
+              <div class="form-group">
+                <label for="editDataVigencia">Vigência Protocolo:</label>
+                <input type="text" id="editDataVigencia" placeholder="Ex: Outubro/2026">
+              </div>
+
+            </div>
+
+            <div class="form-group" style="margin-top:10px;">
+              <label for="editPassword">Redefinir Senha do Aluno:</label>
+              <div class="senha-row">
+                <div>
+                  <input type="text" id="editPassword" placeholder="Deixe em branco para manter a atual">
+                </div>
+                <button type="button" class="btn btn-soft btn-md" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Senha</button>
               </div>
             </div>
 
-            <!-- BOTÕES FUNCIONAIS DO TOPO -->
-            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-              <button class="btn btn-wpp" style="padding:7px 12px; font-size:11px; width:auto;" onclick="enviarWhatsappAluno()">📱 WhatsApp</button>
-              <button class="btn btn-soft" style="padding:7px 12px; font-size:11px; border-color:var(--gold); color:var(--gold);" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
-              <button class="btn btn-soft" style="padding:7px 12px; font-size:11px;" onclick="adicionar30DiasPlano()">🔄 +30 Dias</button>
+            <div class="config-checkboxes-panel" style="margin-top:12px;">
+              <div class="checkbox-button-item">
+                <input type="checkbox" id="editIsentoCheckbox">
+                <label for="editIsentoCheckbox">👑 Aluno VIP / Isento de Pagamento</label>
+              </div>
+
+              <div class="checkbox-button-item">
+                <input type="checkbox" id="editLiberarDieta">
+                <label for="editLiberarDieta">🥗 Liberar Aba Dieta no App</label>
+              </div>
+
+              <div class="checkbox-button-item">
+                <input type="checkbox" id="editLiberarErgogenicos">
+                <label for="editLiberarErgogenicos">💉 Liberar Aba Ergogênicos/Hormônios</label>
+              </div>
+
+              <div class="checkbox-button-item">
+                <input type="checkbox" id="editPermitirTecnicas">
+                <label for="editPermitirTecnicas">⚙️ Permitir que o Aluno Altere Técnicas no App</label>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:12px;">
+              <label for="editNotasTreinador">📝 Bloco de Notas Privado do Treinador:</label>
+              <textarea id="editNotasTreinador" rows="3" placeholder="Anote observações pessoais sobre este aluno..."></textarea>
+              <button class="btn btn-soft sm" style="margin-top:6px;" onclick="salvarNotasTreinadorSozinhas()">💾 Salvar Apenas Notas</button>
             </div>
           </div>
-        </div>
 
-        <!-- EXIBIÇÃO COMPLETA: DIETA, CARDIO E TREINOS -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
-          <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:12px;">
-            <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:6px; text-transform:uppercase;">🥗 Dieta & Refeições Atuais</div>
-            <div id="summaryDietPreview" style="font-size:12px; color:var(--muted); max-height:150px; overflow-y:auto;">Nenhuma dieta carregada.</div>
+          <div style="display:flex; gap:10px; margin-top:14px;">
+            <button class="btn btn-lg" style="flex:2;" onclick="salvarConfiguracoesConta()">💾 SALVAR DADOS DO ALUNO</button>
+            <button class="btn btn-danger btn-lg" style="flex:1;" onclick="deletarAluno()">🗑️ EXCLUIR ALUNO</button>
           </div>
-          <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:12px;">
-            <div style="font-size:12px; font-weight:800; color:var(--gold); margin-bottom:6px; text-transform:uppercase;">⚡ Cardio & Diretrizes</div>
-            <div id="summaryCardioPreview" style="font-size:12px; color:var(--muted); max-height:150px; overflow-y:auto;">Aguardando diretrizes...</div>
+        </section>
+
+        <!-- ABA: CRIAR NOVO ALUNO MANUALMENTE -->
+        <section id="secNovo" class="tab-section hidden panel-card">
+          <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
+          
+          <div class="content-box-inner">
+            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
+              <div class="form-group">
+                <label for="newName">Nome Completo:*</label>
+                <input type="text" id="newName" placeholder="Ex: João Silva" required>
+              </div>
+
+              <div class="form-group">
+                <label for="newCode">Código / Usuário:*</label>
+                <input type="text" id="newCode" placeholder="Ex: joaosilva" required>
+              </div>
+
+              <div class="form-group">
+                <label for="newValorMensalidade">Valor da Mensalidade (R$):</label>
+                <input type="text" id="newValorMensalidade" placeholder="Ex: 80,00" value="80,00">
+              </div>
+
+              <div class="form-group">
+                <label for="newDataInicio">📅 Data em que Começou:</label>
+                <input type="date" id="newDataInicio">
+              </div>
+            </div>
+
+            <label style="margin-top:10px;">Ficha de Treino Inicial (Texto Puro):</label>
+            <textarea id="rawWorkout" rows="5" placeholder="TREINO A&#10;Supino Reto 3x8-10"></textarea>
+
+            <label style="margin-top:10px;">Plano Alimentar Inicial (Texto Puro):</label>
+            <textarea id="rawDiet" rows="5" placeholder="REF 1 - CAFÉ DA MANHÃ&#10;- 3 Ovos"></textarea>
           </div>
-        </div>
 
-        <div class="panel-title" style="margin-top:20px;">🏋️ Fichas de Treino Cadastradas</div>
-        <div id="workoutOverview">
-          <p style="color:var(--muted); font-size:13px;">Clique em um aluno na lista para carregar a ficha completa.</p>
-        </div>
-      </div>
+          <button class="btn btn-wpp btn-lg full-width" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
+        </section>
 
-      <div id="secAnamnese" class="panel-card hidden">
-        <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
-        <div id="anamneseDetails">
-          <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
-        </div>
-      </div>
+        <!-- ABA: CHAT COM AUXILIAR DO TREINADOR -->
+        <section id="secChatAdmin" class="tab-section hidden panel-card">
+          <div class="panel-title">🧠 Auxiliar do Treinador</div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição com seu assistente.</p>
 
-      <div id="secTreino" class="panel-card hidden">
-        <div class="panel-title">🏋️ Editor de Treino em Tempo Real + Assistente IA</div>
-        
-        <div style="background:#100305; border:1px solid var(--gold); padding:12px; border-radius:12px; margin-bottom:16px;">
-          <label style="margin-top:0; color:var(--gold);">🤖 Comando para IA Modificar a Ficha:</label>
+          <div id="adminChatHistory" class="content-box-inner" style="height:320px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#150508; border:1px solid var(--border); padding:10px; border-radius:8px; font-size:13px; color:#fff;">
+              <b>Auxiliar do Treinador:</b> Olá, Jhonata! Como posso te ajudar com os alunos hoje?
+            </div>
+          </div>
+
           <div style="display:flex; gap:8px;">
-            <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicione o treino C (FULLBODY) e substitua Supino por Crossover">
-            <button class="btn" id="btnAiCmd" style="width:180px;" onclick="executarComandoIaTreino()">⚡ Aplicar via IA</button>
+            <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Digite sua mensagem..." style="resize:none; height:44px; padding:10px 14px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
+            <button class="btn btn-lg" style="width:120px; height:44px;" onclick="sendAdminChatMessage()">Enviar</button>
           </div>
-        </div>
+        </section>
 
-        <div class="editor-grid">
-          <div>
-            <label>Texto da Ficha (Edite Direto Aqui):</label>
-            <textarea id="liveWorkoutText" rows="18" oninput="atualizarPreviewAoVivo()" placeholder="UPPER (SEGUNDA)&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;LOWER (TERÇA)&#10;Agachamento 3x 6-8&#10;Mesa Flexora 1x+cluster"></textarea>
-          </div>
-
-          <div>
-            <label>Preview da Ficha Formatada (Ao Vivo):</label>
-            <div id="liveWorkoutPreview" class="preview-card">
-              <p style="color:var(--muted); font-size:12px;">Digite o treino ao lado para visualizar a ficha montada.</p>
-            </div>
-          </div>
-        </div>
-
-        <button class="btn" style="margin-top:18px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA ATUALIZADA NO BANCO</button>
-      </div>
-
-      <div id="secDieta" class="panel-card hidden">
-        <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Escreva a lista de alimentos e clique no botão para a IA calcular calorias/macros e adicionar opções de substituição em gramas.</p>
-
-        <label>Bloco de Refeições:</label>
-        <textarea id="dietTextarea" rows="16" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g)&#10;Ovos Mexidos | 4 unidades"></textarea>
-        
-        <div style="display:flex; gap:10px; margin-top:12px;">
-          <button class="btn btn-soft" id="btnCalcTaco" style="border-color:var(--gold); color:var(--gold);" onclick="calcularMacrosComIA()">🪄 Calcular Macros & Opções de Troca (IA)</button>
-          <button class="btn" style="background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
-        </div>
-      </div>
-
-      <div id="secCorrida" class="panel-card hidden">
-        <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
-        
-        <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:10px; margin-bottom:16px;">
-          <label style="margin-top:0;">Lançar Novo Treino de Corrida:</label>
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <input type="text" id="runData" placeholder="Data (Ex: 15/10)" style="flex:1;">
-            <input type="number" step="0.1" id="runKm" placeholder="Distância (Km)" style="flex:1;">
-            <input type="number" id="runMinutos" placeholder="Tempo (Minutos)" style="flex:1;">
-            <button class="btn btn-wpp" style="width:130px;" onclick="adicionarCorridaAluno()">+ Adicionar</button>
-          </div>
-        </div>
-
-        <label>Histórico de Corridas do Aluno:</label>
-        <div id="adminRunHistoryList" style="margin-top:8px;">Carregando histórico...</div>
-      </div>
-
-      <div id="secCadastro" class="panel-card hidden">
-        <div class="panel-title">⚙️ Configurações da Conta do Aluno</div>
-        
-        <label>Nome Exibido</label>
-        <input type="text" id="editName">
-
-        <div style="display:flex; gap:12px; margin-top:8px;">
-          <div style="flex:1;">
-            <label>Dia do Vencimento (Mensal)</label>
-            <input type="number" id="editDiaVencimento" min="1" max="31" placeholder="Ex: 20">
-          </div>
-          <div style="flex:1;">
-            <label>Evolução de Carga / Força (%)</label>
-            <input type="number" id="editEvolucaoCarga" placeholder="Ex: 12.5">
-          </div>
-        </div>
-
-        <label>Senha do Aluno</label>
-        <div class="senha-row">
-          <div>
-            <input type="text" id="editPassword" placeholder="Deixe em branco para manter a senha atual">
-          </div>
-          <button type="button" class="btn btn-soft" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
-        </div>
-
-        <label>Status do Pagamento</label>
-        <select id="editStatus">
-          <option value="pago">🟢 Pago / Acesso Liberado</option>
-          <option value="isento">⭐ Isento / VIP (Acesso Livre Permanente)</option>
-          <option value="pendente">🔴 Suspendido / Pendente</option>
-        </select>
-
-        <div style="margin-top: 14px; background: #0d0204; border: 1px solid var(--border); padding: 12px; border-radius: 10px; display: flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <input type="checkbox" id="editPermitirTecnicas" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
-            <label for="editPermitirTecnicas" style="color: var(--gold); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              ⚡ Permitir que o aluno escolha/altere Técnicas de Treino
-            </label>
+        <!-- ABA: REPOSITÓRIO DE GIFS DE EXERCÍCIOS -->
+        <section id="secGifs" class="tab-section hidden panel-card">
+          <div class="panel-title">📹 Repositório de GIFs de Execução</div>
+          
+          <div class="sidebar-search" style="margin-bottom:12px;">
+            <input type="text" id="searchGifInput" placeholder="🔍 Buscar exercício no repositório..." oninput="filtrarGifsAdmin()">
           </div>
 
-          <div style="display:flex; align-items:center; gap:10px;">
-            <input type="checkbox" id="editApenasTreino" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--gold);">
-            <label for="editApenasTreino" style="color: var(--text); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              🥗 Perfil "Apenas Treino" (Oculta Dieta no aplicativo do Aluno)
-            </label>
-          </div>
+          <div id="gifGalleryList" class="gif-gallery-grid content-box-inner" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px;"></div>
+        </section>
 
-          <div style="display:flex; align-items:center; gap:10px;">
-            <input type="checkbox" id="editCorredor" style="width: 18px; height: 18px; cursor: pointer; accent-color: #3b82f6;">
-            <label for="editCorredor" style="color: #3b82f6; font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              🏃 Ativar Módulo de Corrida (Exibe aba de Desempenho)
-            </label>
-          </div>
-
-          <div style="display:flex; align-items:center; gap:10px; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 8px;">
-            <input type="checkbox" id="editErgogenicos" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent);">
-            <label for="editErgogenicos" style="color: var(--accent); font-weight: 700; font-size: 12px; cursor: pointer; margin: 0; text-transform: none;">
-              💉 Permitir / Exibir Módulo de Ergogenicos (Hormônios)
-            </label>
-          </div>
-        </div>
-
-        <div style="display:flex; gap:10px; margin-top:16px;">
-          <button class="btn" style="flex:1;" onclick="salvarConfiguracoesConta()">💾 Atualizar Dados</button>
-          <button class="btn btn-danger" style="width:120px;" onclick="deletarAluno()">🗑️ Excluir</button>
-        </div>
-      </div>
-
-      <div id="secNovo" class="panel-card hidden">
-        <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
-        
-        <label>Nome Completo</label>
-        <input type="text" id="newName" placeholder="Ex: Lucas Andrade">
-
-        <label>Código / Usuário de Acesso</label>
-        <input type="text" id="newCode" placeholder="Ex: lucas">
-
-        <label>Bloco do Treino (Texto Puro)</label>
-        <textarea id="rawWorkout" rows="10" placeholder="A - UPPER&#10;Supino Inclinado 3x 6-8&#10;Elevação Lateral 1x+myoreps&#10;&#10;B - LOWER&#10;Agachamento 3x 6-8"></textarea>
-
-        <label>Bloco da Dieta (Texto Puro)</label>
-        <textarea id="rawDiet" rows="6" placeholder="[Carbo Alto] Ref 1 - Café da Manhã&#10;Dias: Terça, Sexta, Domingo&#10;Pão de Forma | 4 fatias (120g) | 276 | 8 | 52 | 3"></textarea>
-
-        <button class="btn btn-wpp" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
-      </div>
-
-      <div id="secChatAdmin" class="panel-card hidden">
-        <div class="panel-title">🤖 Assistente IA do Treinador</div>
-        <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição.</p>
-
-        <div id="adminChatHistory" style="background:#0d0204; border:1px solid var(--border); border-radius:12px; height:320px; padding:14px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff;"><b>Assistente IA:</b> Olá, Jhonata! Como posso te ajudar com a consultoria hoje?</div>
-        </div>
-
-        <div style="display:flex; gap:8px;">
-          <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Pergunte sobre treinos ou nutrição..." style="resize:none; height:42px; padding:11px 13px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
-          <button class="btn" style="width:110px; height:42px;" onclick="sendAdminChatMessage()">Enviar</button>
-        </div>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
-</div>
 
-<script>
-  const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-  let currentStudentCode = "";
-  let currentStudentData = null;
-  let allStudentsList = [];
-  let chartInstance = null;
-
-  function authHeaders() {
-    const token = localStorage.getItem('admin_token');
-    return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-  }
-
-  window.onload = () => {
-    fetch(`${BACKEND_URL}/ping`).catch(() => {});
-
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('adminApp').classList.remove('hidden');
-      fetchAlunos();
-    }
-  };
-
-  async function loginAdmin() {
-    const user = document.getElementById('adminUser').value.trim();
-    const pass = document.getElementById('adminPass').value.trim();
-    const errorDiv = document.getElementById('loginError');
-    const btn = document.getElementById('btnLoginAdmin');
-
-    errorDiv.style.display = 'none';
-    btn.textContent = "VALIDANDO...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ user, pass })
-      });
-      const data = await res.json();
-      if (res.ok && data.token) {
-        localStorage.setItem('admin_token', data.token);
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('adminApp').classList.remove('hidden');
-        fetchAlunos();
-      } else {
-        errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
-        errorDiv.style.display = 'block';
-      }
-    } catch(e) { 
-      errorDiv.textContent = "❌ Erro ao conectar ao servidor Render.";
-      errorDiv.style.display = 'block';
-    } finally {
-      btn.textContent = "ENTRAR NO PAINEL";
-      btn.disabled = false;
-    }
-  }
-
-  function logoutAdmin() {
-    localStorage.removeItem('admin_token');
-    location.reload();
-  }
-
-  async function fetchAlunos() {
-    const container = document.getElementById('alunosList');
-    container.innerHTML = "Carregando...";
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/alunos/listar`, {
-        headers: authHeaders()
-      });
-      if (!res.ok) { logoutAdmin(); return; }
-      allStudentsList = await res.json();
-      renderStudentsList(allStudentsList);
-    } catch(e) { container.innerHTML = "<small style='color:var(--accent)'>Erro de comunicação.</small>"; }
-  }
-
-  // SEPARAÇÃO DA LISTA DE ALUNOS POR STATUS (VIP/ISENTO, PAGO, PENDENTE)
-  function renderStudentsList(list) {
-    const container = document.getElementById('alunosList');
-    container.innerHTML = "";
-    if (!list || list.length === 0) {
-      container.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
-      return;
-    }
-
-    const isentos = list.filter(a => a.isento || a.status_pagamento === 'isento');
-    const pagantes = list.filter(a => !a.isento && a.status_pagamento !== 'isento' && a.status_pagamento !== 'pendente');
-    const pendentes = list.filter(a => a.status_pagamento === 'pendente');
-
-    function appendGroup(title, groupList) {
-      if (groupList.length === 0) return;
-      const titleDiv = document.createElement('div');
-      titleDiv.className = 'section-group-title';
-      titleDiv.textContent = title;
-      container.appendChild(titleDiv);
-
-      groupList.forEach((aluno) => {
-        const isVip = aluno.isento || aluno.status_pagamento === 'isento';
-        const pillClass = isVip ? 'status-vip' : (aluno.status_pagamento === 'pago' ? 'status-pago' : 'status-pendente');
-        const pillText = isVip ? 'ISENTO' : (aluno.status_pagamento || 'pago');
-
-        const div = document.createElement('div');
-        div.className = `student-item ${aluno.codigo === currentStudentCode ? 'active' : ''}`;
-        div.innerHTML = `<div><b>${aluno.nome}</b><br><small style="color:var(--muted)">@${aluno.codigo}</small></div>
-                          <span class="status-pill ${pillClass}">${pillText}</span>`;
-        div.onclick = () => {
-          document.querySelectorAll('.student-item').forEach(el => el.classList.remove('active'));
-          div.classList.add('active');
-          carregarAluno(aluno.codigo);
-        };
-        container.appendChild(div);
-      });
-    }
-
-    appendGroup('⭐ Isentos / VIPs', isentos);
-    appendGroup('🟢 Pagantes Ativos', pagantes);
-    appendGroup('🔴 Pendentes / Suspensos', pendentes);
-
-    if (list.length > 0 && !currentStudentCode) {
-      carregarAluno(list[0].codigo);
-    }
-  }
-
-  function filterStudents() {
-    const term = document.getElementById('searchStudent').value.toLowerCase();
-    const filtered = allStudentsList.filter(a => a.nome.toLowerCase().includes(term) || a.codigo.toLowerCase().includes(term));
-    renderStudentsList(filtered);
-  }
-
-  async function carregarAluno(code) {
-    currentStudentCode = code;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/${code}`, {
-        headers: authHeaders()
-      });
-      currentStudentData = await res.json();
-
-      document.getElementById('studentName').textContent = currentStudentData.clientName || code;
-      document.getElementById('studentCodeDisplay').textContent = `@${code}`;
-      document.getElementById('studentPassDisplay').textContent = `🔒 Senha protegida`;
-
-      const stPill = document.getElementById('studentStatusPill');
-      const isVip = currentStudentData.isento === true || currentStudentData.status_pagamento === 'isento';
-      const stVal = isVip ? 'ISENTO' : (currentStudentData.status_pagamento || 'pago');
-      
-      stPill.textContent = stVal.toUpperCase();
-      stPill.className = `status-pill ${isVip ? 'status-vip' : (stVal === 'pago' ? 'status-pago' : 'status-pendente')}`;
-
-      let vencTxt = "📅 Vencimento: Livre (VIP)";
-      if (!isVip) {
-        if (currentStudentData.data_expiracao) {
-          const dtExp = new Date(currentStudentData.data_expiracao).toLocaleDateString('pt-BR');
-          vencTxt = `📅 Vencimento em: ${dtExp}`;
-        } else {
-          vencTxt = `📅 Vencimento dia: ${currentStudentData.dia_vencimento || 20}`;
-        }
-      }
-      document.getElementById('studentVencimentoDisplay').textContent = vencTxt;
-
-      // PREVIEW DA DIETA E CARDIO NO RESUMO
-      let dietaResumo = "Nenhuma refeição cadastrada.";
-      if (currentStudentData.refeicoes && currentStudentData.refeicoes.length > 0) {
-        dietaResumo = currentStudentData.refeicoes.map(r => `<b>${r.titulo}</b><br>${r.alimentos.replace(/\n/g, '<br>')}`).join('<hr style="border-color:var(--border); margin:6px 0;">');
-      }
-      document.getElementById('summaryDietPreview').innerHTML = dietaResumo;
-
-      let cardioResumo = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || "Nenhum cardio prescrito.";
-      document.getElementById('summaryCardioPreview').innerHTML = typeof cardioResumo === 'string' ? cardioResumo.replace(/\n/g, '<br>') : JSON.stringify(cardioResumo);
-
-      document.getElementById('editName').value = currentStudentData.clientName || '';
-      document.getElementById('editStatus').value = isVip ? 'isento' : (currentStudentData.status_pagamento || 'pago');
-      document.getElementById('editPassword').value = '';
-      document.getElementById('editDiaVencimento').value = currentStudentData.dia_vencimento || 20;
-      document.getElementById('editEvolucaoCarga').value = currentStudentData.evolucao_carga_pct || '';
-
-      document.getElementById('editPermitirTecnicas').checked = currentStudentData.permitirTecnicas === true;
-      document.getElementById('editApenasTreino').checked = currentStudentData.apenasTreino === true;
-      document.getElementById('editCorredor').checked = currentStudentData.corredor === true;
-      document.getElementById('editErgogenicos').checked = currentStudentData.ergogenicos === true;
-
-      renderWorkoutView();
-      renderAnamneseDetails();
-      carregarTreinoNoEditorAoVivo();
-      loadDietView();
-      renderCorridaAdmin();
-    } catch(e) { alert("Erro ao carregar dados do aluno."); }
-  }
-
-  function renderAnamneseDetails() {
-    const div = document.getElementById('anamneseDetails');
-    const a = (currentStudentData && currentStudentData.dadosAnamnese) || currentStudentData || {};
-
-    if (!a.nome && !a.clientName && !a.objetivo) {
-      div.innerHTML = `<p style="color:var(--muted); font-size:13px;">Nenhuma resposta de anamnese detalhada encontrada para este perfil.</p>`;
-      return;
-    }
-
-    div.innerHTML = `
-      <div class="anamnese-grid">
-        <div class="anamnese-box"><div class="anamnese-label">👤 Nome Completo</div><div class="anamnese-val">${a.nome || a.clientName || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📞 Telefone / WhatsApp</div><div class="anamnese-val">${a.telefone || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📧 E-mail</div><div class="anamnese-val">${a.email || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🆔 CPF</div><div class="anamnese-val">${a.cpf || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⚖️ Peso</div><div class="anamnese-val">${a.peso ? a.peso + ' kg' : '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📏 Altura</div><div class="anamnese-val">${a.altura ? a.altura + ' m' : '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🎂 Idade / Nascimento</div><div class="anamnese-val">${a.idade || a.nascimento || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💳 Plano Escolhido</div><div class="anamnese-val">${a.tipoConsultoria || '-'}</div></div>
-      </div>
-
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <div class="anamnese-box"><div class="anamnese-label">🎯 Objetivo Principal</div><div class="anamnese-val">${a.objetivo || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⏱️ Experiência / Tempo de Treino</div><div class="anamnese-val">${a.tempoTreino || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💉 Uso de Ergogênicos / Anabolizantes</div><div class="anamnese-val">${a.anabolizantes || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">📅 Dias e Disponibilidade Semanal</div><div class="anamnese-val">${a.diasSemana || 'Não informado'} (Preferência dias: ${a.preferenciaDias || '-'})</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">⏳ Tempo Disponível por Treino</div><div class="anamnese-val">${a.tempoTreinoMin || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🚴 Outras Atividades Físicas</div><div class="anamnese-val">${a.outrasAtividades || 'Nenhuma'}</div></div>
-        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">⚠️ Lesões, Dores ou Restrições</div><div class="anamnese-val" style="color:#ffd1d1;">${a.lesoes || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🩺 Doenças Crônicas</div><div class="anamnese-val">${a.doencas || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥜 Alergias Alimentares</div><div class="anamnese-val">${a.alergias || 'Nenhuma'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💼 Nível de Atividade Diária / Rotina</div><div class="anamnese-val">${a.rotina || 'Não informado'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">💤 Média e Qualidade do Sono</div><div class="anamnese-val">Horas: ${a.horasSono || '-'} | Qualidade: ${a.qualidadeSono || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🍻 Hábitos (Álcool & Tabagismo)</div><div class="anamnese-val">Álcool: ${a.alcool || '-'} | Tabagismo: ${a.tabagismo || '-'}</div></div>
-        <div class="anamnese-box"><div class="anamnese-label">🥩 Orçamento Alimentar & Suplementos</div><div class="anamnese-val">Orçamento: ${a.orcamento || '-'} | Suplementos: ${a.suplementos || '-'}</div></div>
-        <div class="anamnese-box" style="border-color:#ff4d4d;"><div class="anamnese-label" style="color:#ff6b6b;">🚫 Alimentos Odiados (Aversões)</div><div class="anamnese-val" style="color:#ffd1d1;">${a.alimentosOdiados || 'Nenhum'}</div></div>
-        <div class="anamnese-box" style="border-color:var(--gold);"><div class="anamnese-label">🍽️ Preferências de Alimentos</div><div class="anamnese-val">Carbos: ${a.gostaCarbos || '-'}<br>Proteínas: ${a.gostaProteinas || '-'}<br>Legumes/Frutas: ${a.gostaLegumes || '-'}</div></div>
-      </div>
-    `;
-  }
-
-  function carregarTreinoNoEditorAoVivo() {
-    const tx = document.getElementById('liveWorkoutText');
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      tx.value = "";
-      atualizarPreviewAoVivo();
-      return;
-    }
-
-    let text = "";
-    currentStudentData.days.forEach(day => {
-      text += `${day.title}\n`;
-      (day.exercicios || []).forEach(ex => {
-        text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
-      });
-      text += "\n";
-    });
-
-    tx.value = text.trim();
-    atualizarPreviewAoVivo();
-  }
-
-  function atualizarPreviewAoVivo() {
-    const raw = document.getElementById('liveWorkoutText').value;
-    const container = document.getElementById('liveWorkoutPreview');
-    const parsedDays = parseWorkoutText(raw);
-
-    container.innerHTML = "";
-    if (parsedDays.length === 0) {
-      container.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum treino reconhecido.</p>`;
-      return;
-    }
-
-    parsedDays.forEach(day => {
-      let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-        <b style="color:var(--gold); font-size:13px;">🏋️ ${day.title}</b><br>`;
-      
-      day.exercicios.forEach(ex => {
-        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${ex.tecnicaTipo}]</span>` : '';
-        html += `<div style="font-size:12px; margin-top:4px; display:flex; justify-content:space-between;">
-          <span>• ${ex.nome}${isTecnico}</span>
-          <span style="color:var(--muted); font-weight:700;">${ex.series} (${ex.reps})</span>
-        </div>`;
-      });
-
-      html += `</div>`;
-      container.innerHTML += html;
-    });
-  }
-
-  async function executarComandoIaTreino() {
-    const input = document.getElementById('aiWorkoutCommand');
-    const tx = document.getElementById('liveWorkoutText');
-    const btn = document.getElementById('btnAiCmd');
-    const cmd = input.value.trim();
-
-    if (!cmd) return alert("Digite o comando para a IA.");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⚡ Modificando...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          mensagem: `Você é um assistente de personal trainer.
-Receba o texto de ficha de treino abaixo e aplique a modificação solicitada: "${cmd}".
-Importante: O nome das divisões de treino (UPPER, LOWER, FULLBODY, TREINO A, TREINO B, DIA A) deve ficar sozinho na linha do título do dia.
-Retorne APENAS o novo texto da ficha pronto, sem introduções.
-
-Ficha Atual:
-${tx.value}`,
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.resposta) {
-        tx.value = data.resposta.trim();
-        atualizarPreviewAoVivo();
-        input.value = "";
-        alert("✅ Ficha alterada pela IA com sucesso!");
-      } else {
-        alert("❌ " + (data.error || "Não foi possível modificar a ficha."));
-      }
-    } catch(e) {
-      alert("❌ Erro ao processar comando na IA.");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
-
-  function salvarTreinoEditado() {
-    const raw = document.getElementById('liveWorkoutText').value;
-    currentStudentData.days = parseWorkoutText(raw);
-    salvarAlteracoes();
-  }
-
-  async function gerarNovaSenhaAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    if (!confirm(`Gerar uma nova senha temporária para @${currentStudentCode}?`)) return;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-senha/${currentStudentCode}`, {
-        method: 'POST',
-        headers: authHeaders()
-      });
-      const data = await res.json();
-      if (res.ok && data.senhaTemporaria) {
-        alert(`✅ Nova senha gerada para @${currentStudentCode}:\n\n${data.senhaTemporaria}\n\nRepasse essa senha ao aluno.`);
-      } else {
-        alert("❌ " + (data.error || "Erro ao gerar nova senha."));
-      }
-    } catch (e) {
-      alert("Erro ao conectar ao servidor.");
-    }
-  }
-
-  function renderWorkoutView() {
-    const div = document.getElementById('workoutOverview');
-    div.innerHTML = "";
-
-    if (!currentStudentData.days || currentStudentData.days.length === 0) {
-      div.innerHTML = "<p style='color:var(--muted); font-size:13px;'>Nenhum treino cadastrado neste perfil.</p>";
-      return;
-    }
-
-    currentStudentData.days.forEach((day, dayIdx) => {
-      const numEx = (day.exercicios || []).length;
-      
-      let html = `
-        <div class="day-accordion-header" onclick="toggleDayAccordion(${dayIdx})">
-          <div>
-            <b>🏋️ ${day.title}</b>
-            <div style="font-size:11px; color:var(--muted); margin-top:2px;">${numEx} exercícios cadastrados</div>
-          </div>
-          <span id="accordionArrow_${dayIdx}" style="color:var(--gold); font-size:14px; transition:transform .2s;">▼</span>
-        </div>
-
-        <div id="accordionBody_${dayIdx}" class="day-accordion-body hidden">
-      `;
-
-      (day.exercicios || []).forEach((ex, exIdx) => {
-        html += `
-          <div class="ex-clickable" onclick="verEvolucaoSemanal(${dayIdx}, ${exIdx}, '${ex.nome.replace(/'/g, "\\'")}', '${ex.series}', '${ex.reps}')">
-            <span>• <b>${ex.nome}</b></span>
-            <span style='color:var(--gold); font-size:11px; font-weight:700;'>${ex.series} (${ex.reps}) 📈 Evolução</span>
-          </div>
-        `;
-      });
-
-      html += `</div>`;
-      div.innerHTML += html;
-    });
-  }
-
-  function toggleDayAccordion(dayIdx) {
-    const body = document.getElementById(`accordionBody_${dayIdx}`);
-    const arrow = document.getElementById(`accordionArrow_${dayIdx}`);
-    
-    if (body.classList.contains('hidden')) {
-      body.classList.remove('hidden');
-      arrow.style.transform = 'rotate(180deg)';
-    } else {
-      body.classList.add('hidden');
-      arrow.style.transform = 'rotate(0deg)';
-    }
-  }
-
-  async function verEvolucaoSemanal(dayIdx, exIdx, nomeEx, seriesStr, repsStr) {
-    document.getElementById('chartExName').textContent = nomeEx;
-    document.getElementById('chartExMeta').textContent = `Meta: ${seriesStr} (${repsStr})`;
-
-    const weeklyLogs = currentStudentData.weekly_logs || {};
-    const key = `${dayIdx}_${exIdx}`;
-    const historicoSemanal = (weeklyLogs[key] || []).slice(-4);
-
-    let html = "<b>Progresso Semanal (Últimos Registros):</b><br>";
-    let cargasValidas = [];
-
-    if (historicoSemanal.length === 0) {
-      html += `<div style="margin-top:8px; color:var(--muted); font-size:12px;">Nenhum registro de carga salvo até o momento.</div>`;
-      document.getElementById('aiProgressInsight').classList.add('hidden');
-    } else {
-      historicoSemanal.forEach((reg, idx) => {
-        html += `
-          <div style="margin-top:8px; background:#100305; padding:8px 10px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <b style="color:var(--gold)">Treino ${idx + 1} (${reg.data}):</b><br>
-              <span style="color:var(--muted); font-size:11px;">Média de Repetições: ${reg.repsMed}</span>
-              ${reg.tecnica ? `<br><span style="color:var(--green); font-size:11px; font-weight:700;">⚙️ Técnica usada: ${reg.tecnica}</span>` : ''}
-            </div>
-            <div style="font-size:15px; font-weight:800; color:#fff;">${reg.cargaMax} kg</div>
-          </div>
-        `;
-        if (!isNaN(parseFloat(reg.cargaMax))) cargasValidas.push(parseFloat(reg.cargaMax));
-      });
-
-      gerarAnaliseIAProgresso(nomeEx, historicoSemanal);
-    }
-
-    document.getElementById('logsDetailList').innerHTML = html;
-    document.getElementById('chartModal').classList.remove('hidden');
-
-    renderChart(cargasValidas);
-  }
-
-  async function gerarAnaliseIAProgresso(nomeEx, historicoLogs) {
-    const boxIA = document.getElementById('aiProgressInsight');
-    const textIA = document.getElementById('aiInsightText');
-
-    boxIA.classList.remove('hidden');
-    textIA.innerHTML = "<i>Analisando cargas e repetições com a IA...</i>";
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/analisar-progresso-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({
-          exercicioNome: nomeEx,
-          historicoLogs: historicoLogs
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.analise) {
-        textIA.innerHTML = data.analise.replace(/\n/g, '<br>');
-      } else {
-        textIA.textContent = "Não foi possível gerar o resumo da evolução neste momento.";
-      }
-    } catch (e) {
-      textIA.textContent = "Erro de conexão ao buscar análise da IA.";
-    }
-  }
-
-  function renderChart(cargas) {
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    if (chartInstance) chartInstance.destroy();
-
-    const dataPoints = cargas.length > 0 ? cargas : [0];
-    const labels = dataPoints.map((_, i) => `Semana ${i+1}`);
-
-    chartInstance = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Evolução de Carga (kg)',
-          data: dataPoints,
-          borderColor: '#dcaa3a',
-          backgroundColor: 'rgba(220,170,58,0.12)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.35,
-          pointRadius: 6,
-          pointBackgroundColor: '#c4324f'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } },
-          x: { grid: { color: '#25080e' }, ticks: { color: '#a08086' } }
-        },
-        plugins: {
-          legend: { labels: { color: '#f8efec', font: { family: 'Inter', weight: '700' } } }
-        }
-      }
-    });
-  }
-
-  function closeChartModal() {
-    document.getElementById('chartModal').classList.add('hidden');
-  }
-
-  function switchTab(tab) {
-    document.getElementById('secResumo').classList.add('hidden');
-    document.getElementById('secAnamnese').classList.add('hidden');
-    document.getElementById('secTreino').classList.add('hidden');
-    document.getElementById('secDieta').classList.add('hidden');
-    document.getElementById('secCorrida').classList.add('hidden');
-    document.getElementById('secCadastro').classList.add('hidden');
-    document.getElementById('secNovo').classList.add('hidden');
-    document.getElementById('secChatAdmin').classList.add('hidden');
-
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-    if (tab === 'resumo') {
-      document.getElementById('secResumo').classList.remove('hidden');
-      document.getElementById('tab1').classList.add('active');
-    } else if (tab === 'anamnese') {
-      document.getElementById('secAnamnese').classList.remove('hidden');
-      document.getElementById('tabAnamnese').classList.add('active');
-    } else if (tab === 'treino') {
-      document.getElementById('secTreino').classList.remove('hidden');
-      document.getElementById('tab2').classList.add('active');
-    } else if (tab === 'dieta') {
-      document.getElementById('secDieta').classList.remove('hidden');
-      document.getElementById('tab3').classList.add('active');
-    } else if (tab === 'corrida') {
-      document.getElementById('secCorrida').classList.remove('hidden');
-      document.getElementById('tab5').classList.add('active');
-    } else if (tab === 'cadastro') {
-      document.getElementById('secCadastro').classList.remove('hidden');
-      document.getElementById('tab4').classList.add('active');
-    } else if (tab === 'novo') {
-      document.getElementById('secNovo').classList.remove('hidden');
-    } else if (tab === 'chatAdmin') {
-      document.getElementById('secChatAdmin').classList.remove('hidden');
-    }
-  }
-
-  function renderCorridaAdmin() {
-    const list = document.getElementById('adminRunHistoryList');
-    list.innerHTML = '';
-
-    const corridas = (currentStudentData && currentStudentData.corridas) || [];
-    if (corridas.length === 0) {
-      list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhuma corrida lançada para este aluno.</p>`;
-      return;
-    }
-
-    corridas.forEach((c, idx) => {
-      const div = document.createElement('div');
-      div.style.cssText = "background:#100305; border:1px solid var(--border); padding:10px; border-radius:8px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:12px;";
-      div.innerHTML = `
+  <!-- MODAL DE GRÁFICO DE EVOLUÇÃO -->
+  <div id="chartModal" class="modal-overlay hidden">
+    <div class="modal-chart">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <div>
-          <b style="color:var(--gold);">📅 ${c.data || 'Treino'}</b> — <span>${c.km} km em ${c.minutos} minutos</span>
+          <h3 id="chartExName" style="color:#fff; font-size:16px;">Exercício</h3>
+          <span id="chartExMeta" style="font-size:12px; color:var(--gold);">Evolução Semanal de Cargas & Repetições</span>
         </div>
-        <button onclick="removerCorridaAluno(${idx})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-weight:700;">✕ Excluir</button>
-      `;
-      list.appendChild(div);
-    });
-  }
+        <button onclick="closeChartModal()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+      </div>
 
-  function adicionarCorridaAluno() {
-    const dataTxt = document.getElementById('runData').value.trim();
-    const kmTxt = document.getElementById('runKm').value;
-    const minTxt = document.getElementById('runMinutos').value;
+      <div id="aiProgressInsight" class="ai-insight-box hidden">
+        <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:4px; text-transform:uppercase;">🤖 Análise de Progresso (Auxiliar do Treinador):</div>
+        <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
+      </div>
 
-    if (!dataTxt || !kmTxt || !minTxt) return alert("Preencha data, distância e tempo.");
+      <div id="logsDetailList" style="margin-bottom:14px; background:#0d0204; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
 
-    if (!currentStudentData.corridas) currentStudentData.corridas = [];
-    currentStudentData.corridas.push({ data: dataTxt, km: parseFloat(kmTxt), minutos: parseFloat(minTxt) });
+      <div style="position:relative; height:220px; width:100%;">
+        <canvas id="progressChart"></canvas>
+      </div>
+    </div>
+  </div>
 
-    document.getElementById('runData').value = '';
-    document.getElementById('runKm').value = '';
-    document.getElementById('runMinutos').value = '';
-
-    renderCorridaAdmin();
-    salvarAlteracoes();
-  }
-
-  function removerCorridaAluno(idx) {
-    if (!confirm("Remover este treino de corrida?")) return;
-    currentStudentData.corridas.splice(idx, 1);
-    renderCorridaAdmin();
-    salvarAlteracoes();
-  }
-
-  function loadDietView() {
-    const tx = document.getElementById('dietTextarea');
-    if (!currentStudentData.refeicoes) { tx.value = ""; return; }
-
-    let str = "";
-    currentStudentData.refeicoes.forEach(ref => {
-      str += `${ref.titulo}\n${ref.alimentos}\n\n`;
-    });
-    tx.value = str.trim();
-  }
-
-  async function calcularMacrosComIA() {
-    const tx = document.getElementById('dietTextarea');
-    const btn = document.getElementById('btnCalcTaco');
-    const textoDieta = tx.value.trim();
-
-    if (!textoDieta) return alert("Digite os alimentos na caixa de texto primeiro.");
-
-    const txtOriginal = btn.textContent;
-    btn.textContent = "⏳ Calculando e gerando substituições...";
-    btn.disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gerar-substituicoes-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ 
-          alimento: "Calcular Macronutrientes e Substituições",
-          listaAtual: textoDieta 
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok && data.resultado) {
-        let respLimpa = data.resultado.trim();
-
-        if (respLimpa.includes('|')) {
-          tx.value = respLimpa;
-          alert("✅ Macros calculados e opções de troca preenchidas com sucesso!");
-        } else {
-          alert("⚠️ A IA não gerou a estrutura esperada. Seu texto original foi mantido por segurança.");
-        }
-      } else {
-        alert("❌ " + (data.error || "Não foi possível calcular os macros automaticamente."));
-      }
-    } catch(e) {
-      alert("❌ Erro ao conectar à IA para cálculo de macros.");
-    } finally {
-      btn.textContent = txtOriginal;
-      btn.disabled = false;
-    }
-  }
-
-  function salvarDieta() {
-    const raw = document.getElementById('dietTextarea').value.trim();
-    if (!raw) return alert("A caixa de texto da dieta está vazia.");
-
-    const rawBlocks = raw.split(/(?=\[.*?\])/g);
-    const refeicoesFormatadas = [];
-
-    rawBlocks.forEach(bloco => {
-      const cleanBloco = bloco.trim();
-      if (!cleanBloco) return;
-
-      const lines = cleanBloco.split('\n').map(l => l.trim()).filter(l => l !== '');
-      if (lines.length === 0) return;
-
-      const title = lines[0];
-      const items = lines.slice(1).join('\n');
-
-      if (title && items) {
-        refeicoesFormatadas.push({ titulo: title, alimentos: items });
-      }
-    });
-
-    if (refeicoesFormatadas.length === 0) {
-      const simpleBlocks = raw.split(/\n\s*\n/);
-      simpleBlocks.forEach(b => {
-        const lines = b.trim().split('\n');
-        if (lines.length > 0) {
-          refeicoesFormatadas.push({
-            titulo: lines[0],
-            alimentos: lines.slice(1).join('\n')
-          });
-        }
-      });
-    }
-
-    currentStudentData.refeicoes = refeicoesFormatadas;
-    salvarAlteracoes();
-  }
-
-  async function salvarConfiguracoesConta() {
-    currentStudentData.clientName = document.getElementById('editName').value.trim();
-    const statusSel = document.getElementById('editStatus').value;
-    
-    if (statusSel === 'isento') {
-      currentStudentData.status_pagamento = 'isento';
-      currentStudentData.isento = true;
-    } else {
-      currentStudentData.status_pagamento = statusSel;
-      currentStudentData.isento = false;
-    }
-
-    currentStudentData.dia_vencimento = parseInt(document.getElementById('editDiaVencimento').value) || 20;
-    currentStudentData.evolucao_carga_pct = parseFloat(document.getElementById('editEvolucaoCarga').value) || 0;
-
-    currentStudentData.permitirTecnicas = document.getElementById('editPermitirTecnicas').checked;
-    currentStudentData.apenasTreino = document.getElementById('editApenasTreino').checked;
-    currentStudentData.corredor = document.getElementById('editCorredor').checked;
-    currentStudentData.ergogenicos = document.getElementById('editErgogenicos').checked;
-    
-    const newPass = document.getElementById('editPassword').value.trim();
-    if (newPass) {
-      currentStudentData.senha = newPass;
-    } else {
-      delete currentStudentData.senha;
-    }
-
-    await salvarAlteracoes();
-    document.getElementById('editPassword').value = '';
-  }
-
-  async function salvarAlteracoes() {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ codigo: currentStudentCode, payload: currentStudentData })
-      });
-      if (res.ok) {
-        alert("🎉 Dados salvos com sucesso no banco!");
-        fetchAlunos();
-        renderWorkoutView();
-        switchTab('resumo');
-      }
-    } catch(e) { alert("Erro ao salvar no servidor."); }
-  }
-
-  function parseWorkoutText(rawText) {
-    if (!rawText || !rawText.trim()) return [];
-
-    const lines = rawText.split('\n');
-    const days = [];
-    let currentDay = null;
-
-    let globalSeries = "3";
-    let globalReps = "8-10";
-
-    const exerciseKeywords = ['supino', 'remada', 'puxada', 'elevação', 'elevacao', 'pélvica', 'pelvica', 'flexora', 'extensora', 'rosca', 'tríceps', 'triceps', 'agachamento', 'leg press', 'crucifixo', 'cross', 'desenvolvimento', 'afundo', 'panturrilha', 'stiff', 'terra'];
-    const validDivisionRegex = /^(upper|lower|fullbody|push|pull|legs|treino\s+[a-g0-9]|dia\s+[a-g0-9]|[a-g]\s*[\-\:\)]|\b[a-g]\b)/i;
-
-    lines.forEach(line => {
-      const cleanLine = line.trim();
-      if (!cleanLine) return;
-
-      const lowerLine = cleanLine.toLowerCase();
-
-      if (lowerLine.includes('global') || lowerLine.includes('series') || lowerLine.includes('séries')) {
-        const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
-        if (matchGlobal) {
-          globalSeries = matchGlobal[1];
-          globalReps = matchGlobal[2];
-        }
-        return;
-      }
-
-      const isKnownExercise = exerciseKeywords.some(ex => lowerLine.includes(ex));
-      const hasWorkoutNumbers = /(\d+\s*[xX×]\s*[\d\-\+]*)/i.test(cleanLine);
-
-      const isDayHeader = validDivisionRegex.test(cleanLine) && !isKnownExercise && !hasWorkoutNumbers;
-
-      if (isDayHeader) {
-        currentDay = { title: cleanLine.toUpperCase(), exercicios: [] };
-        days.push(currentDay);
-      } else {
-        if (!currentDay) {
-          currentDay = { title: "TREINO A", exercicios: [] };
-          days.push(currentDay);
-        }
-
-        let name = cleanLine.replace(/^[0-9]+[\.\)-]*\s*/, '').trim();
-
-        const hasMyo = lowerLine.includes('myo');
-        const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
-        const hasCluster = lowerLine.includes('cluster');
-
-        if (hasMyo) {
-          name = name.replace(/1x\+myoreps|1x\+myo|\(myo-reps\)|\(myoreps\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "1 + Mini-blocos",
-            reps: "Ativação (4-6 reps, 40s desc) + Mini-blocos (2 reps, 15s desc)",
-            isTecnico: true,
-            tecnicaTipo: "MYO-REPS"
-          });
-        } else if (hasCluster && hasBackoff) {
-          name = name.replace(/1x\+cluster\+backoff|1x\+cluster\+back-off/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "Cluster + Back-off",
-            reps: "Blocos Cluster (20s desc) + Back-off (-20% a 30% carga)",
-            isTecnico: true,
-            tecnicaTipo: "CLUSTER + BACK-OFF"
-          });
-        } else if (hasCluster) {
-          name = name.replace(/1x\+cluster|\(cluster\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "Cluster Set",
-            reps: "Blocos de 2-3 reps (20s descanso intra-série)",
-            isTecnico: true,
-            tecnicaTipo: "CLUSTER SET"
-          });
-        } else if (hasBackoff) {
-          name = name.replace(/1x\+backoff|1x\+back-off|\(back-off\)|\(backoff\)/gi, '').trim();
-          currentDay.exercicios.push({
-            nome: name,
-            series: "1 Top Set + 1 Back-off",
-            reps: "Top Set + Back-off (-20% a 30% carga)",
-            isTecnico: true,
-            tecnicaTipo: "BACK-OFF SET"
-          });
-        } else {
-          const matchX = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
-
-          if (matchX) {
-            let series = matchX[1];
-            let reps = matchX[2] || globalReps;
-            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
-
-            currentDay.exercicios.push({ nome: name, series: series, reps: reps });
-          } else {
-            currentDay.exercicios.push({ nome: name, series: globalSeries, reps: globalReps });
-          }
-        }
-      }
-    });
-
-    return days.filter(d => d.exercicios.length > 0);
-  }
-
-  async function salvarNovoAlunoBloco() {
-    const nome = document.getElementById('newName').value.trim();
-    const codigo = document.getElementById('newCode').value.trim().toLowerCase();
-    const rawW = document.getElementById('rawWorkout').value.trim();
-    const rawD = document.getElementById('rawDiet').value.trim();
-
-    if (!nome || !codigo) return alert("Preencha Nome e Código.");
-
-    const parsedDays = parseWorkoutText(rawW);
-
-    const payload = {
-      clientName: nome,
-      senha: codigo,
-      status_pagamento: 'pago',
-      dia_vencimento: 20,
-      permitirTecnicas: false,
-      apenasTreino: false,
-      corredor: false,
-      ergogenicos: false,
-      days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
-      refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
-    };
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ codigo: codigo, payload: payload })
-      });
-      if (res.ok) {
-        alert(`🎉 Aluno criado! Senha inicial: ${codigo}.`);
-        fetchAlunos();
-        switchTab('resumo');
-      }
-    } catch(e) { alert("Erro ao criar aluno."); }
-  }
-
-  async function deletarAluno() {
-    if (!confirm(`Tem certeza que deseja apagar o aluno @${currentStudentCode}?`)) return;
-    await fetch(`${BACKEND_URL}/api/aluno/${currentStudentCode}`, {
-      method: 'DELETE',
-      headers: authHeaders()
-    });
-    currentStudentCode = "";
-    fetchAlunos();
-    switchTab('resumo');
-  }
-
-  function copiarLinkAnamnese() {
-    const link = "https://jhonataconsultoria.com.br/app.html?modo=anamnese";
-    navigator.clipboard.writeText(link);
-    alert("✅ Link direto da Anamnese copiado!\n\n" + link);
-  }
-
-  function copiarLinkAcessoAluno() {
-    if (!currentStudentCode) return alert("Selecione um aluno primeiro.");
-    const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
-    navigator.clipboard.writeText(linkAluno);
-    alert(`✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
-  }
-
-  async function adicionar30DiasPlano() {
-    if (!currentStudentCode || !currentStudentData) return alert("Selecione um aluno primeiro.");
-    
-    let baseExp = currentStudentData.data_expiracao ? new Date(currentStudentData.data_expiracao) : new Date();
-    if (isNaN(baseExp.getTime()) || baseExp < new Date()) {
-      baseExp = new Date();
-    }
-    baseExp.setDate(baseExp.getDate() + 30);
-    
-    currentStudentData.data_expiracao = baseExp.toISOString();
-    currentStudentData.status_pagamento = 'pago';
-    currentStudentData.isento = false;
-
-    await salvarAlteracoes();
-  }
-
-  function enviarWhatsappAluno() {
-    if (!currentStudentData) return alert("Selecione um aluno.");
-    const telefone = (currentStudentData.dadosAnamnese && currentStudentData.dadosAnamnese.telefone) || "";
-    const nome = currentStudentData.clientName || currentStudentCode;
-    const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
-    
-    const texto = encodeURIComponent(`Olá ${nome}! Segue o link de acesso ao seu aplicativo de treino e dieta atualizado: ${linkApp}`);
-    
-    let numLimpo = telefone.replace(/\D/g, '');
-    if (!numLimpo.startsWith('55') && numLimpo.length >= 10) {
-      numLimpo = '55' + numLimpo;
-    }
-    
-    const urlWpp = numLimpo ? `https://wa.me/${numLimpo}?text=${texto}` : `https://wa.me/?text=${texto}`;
-    window.open(urlWpp, '_blank');
-  }
-
-  async function sendAdminChatMessage() {
-    const input = document.getElementById('adminChatInput');
-    const history = document.getElementById('adminChatHistory');
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    history.innerHTML += `<div style="background:#20060d; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-end;"><b>Você:</b> ${text}</div>`;
-    input.value = '';
-    history.scrollTop = history.scrollHeight;
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ 
-          mensagem: text, 
-          contexto: currentStudentData || {},
-          origem: "ADMIN"
-        })
-      });
-
-      const data = await res.json();
-      history.innerHTML += `<div style="background:#150508; padding:10px; border-radius:8px; font-size:13px; color:#fff; align-self:flex-start;"><b>Assistente IA:</b> ${data.resposta || 'Resposta indisponível.'}</div>`;
-    } catch(e) {
-      history.innerHTML += `<div style="color:var(--accent); font-size:12px;">Erro na comunicação com a IA.</div>`;
-    }
-    history.scrollTop = history.scrollHeight;
-  }
-</script>
+  <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
+  <script src="admin.js"></script>
+  <!-- SCRIPT DA GESTÃO FINANCEIRA EXCLUSIVA & CONTAS PESSOAIS -->
+  <script src="admin2.js"></script>
 </body>
 </html>
