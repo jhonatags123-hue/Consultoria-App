@@ -434,11 +434,12 @@ async function fetchAlunos() {
 }
 
 function alunoTemFeedbackPendente(aluno) {
+  if (!aluno) return false;
   if (aluno.solicitarFeedback === true) return true;
-  const feedbacks = aluno.feedbacks || [];
+  const feedbacks = aluno.feedbacks || aluno.payload?.feedbacks || [];
   if (feedbacks.length === 0) return false;
   const ultimaMsg = feedbacks[feedbacks.length - 1];
-  return ultimaMsg && ultimaMsg.autor === "ALUNO";
+  return ultimaMsg && (ultimaMsg.autor === "ALUNO" || ultimaMsg.autor === "aluno");
 }
 
 function toggleSanfonaIsentos() {
@@ -688,8 +689,8 @@ async function carregarAluno(code) {
 
     const temFeedback = alunoTemFeedbackPendente(currentStudentData);
     const tabBadge = document.getElementById('tabFeedbackBadge');
-    if (temFeedback) tabBadge.classList.remove('hidden');
-    else tabBadge.classList.add('hidden');
+    if (temFeedback && tabBadge) tabBadge.classList.remove('hidden');
+    else if (tabBadge) tabBadge.classList.add('hidden');
 
     document.getElementById('editName').value = currentStudentData.clientName || '';
     document.getElementById('editStatus').value = stVal;
@@ -987,6 +988,37 @@ function renderResumoVisaoGeral() {
 
   if (temSemana) htmlContent += semanaHtml;
 
+  // --- BLOCO DOS ERGOGÊNICOS NO RESUMO DO ADMIN ---
+  htmlContent += `<div class="section-subtitle">💉 RECURSOS ERGOGÊNICOS & HORMONAIS</div>`;
+
+  const protocoloTexto = currentStudentData.protocoloErgogenicos || 
+                         currentStudentData.ergogenicos_texto || 
+                         currentStudentData.payload?.protocoloErgogenicos || 
+                         currentStudentData.payload?.ergogenicos_texto || '';
+
+  const estaLiberadoErgo = currentStudentData.liberarErgogenicos === true || 
+                           currentStudentData.payload?.liberarErgogenicos === true;
+
+  if (estaLiberadoErgo && protocoloTexto.trim()) {
+    htmlContent += `
+      <div style="background:#100305; border:1px solid var(--gold); border-left:4px solid var(--gold); padding:12px; border-radius:10px; margin-bottom:12px;">
+        <b style="color:var(--gold); font-size:13px; display:block; margin-bottom:6px;">💉 Protocolo Ativo Cadastrado:</b>
+        <div style="font-size:12px; color:#fff; white-space:pre-line; line-height:1.5;">${escapeHtml(protocoloTexto)}</div>
+      </div>
+    `;
+  } else if (protocoloTexto.trim()) {
+    htmlContent += `
+      <div style="background:#100305; border:1px solid var(--border); border-left:4px solid var(--muted); padding:12px; border-radius:10px; margin-bottom:12px;">
+        <b style="color:var(--muted); font-size:12px; display:block; margin-bottom:4px;">⚠️ Protocolo Rascunho (Aba Bloqueada no App do Aluno):</b>
+        <div style="font-size:12px; color:var(--muted); white-space:pre-line;">${escapeHtml(protocoloTexto)}</div>
+      </div>
+    `;
+  } else {
+    htmlContent += `
+      <p style="color:var(--muted); font-size:12px; margin-bottom:14px;">Nenhum protocolo ergogênico ou hormonal cadastrado para este aluno.</p>
+    `;
+  }
+
   container.innerHTML = htmlContent;
 }
 
@@ -1185,7 +1217,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-​2. Série de Reconhecimento (Feeder Set)
+2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
@@ -1251,16 +1283,22 @@ ${tx.value}`,
     if (!res.ok) throw new Error(data.error || 'Falha ao executar alteração na ficha.');
 
     if (data.resposta) {
-      let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
-      const parsedRes = JSON.parse(jsonClean);
-
-      if (parsedRes.workout_text) {
-        tx.value = parsedRes.workout_text.trim();
-        lidarEdicaoTreino();
+      let textoFinal = "";
+      try {
+        const jsonMatch = data.resposta.match(/\{[\s\S]*"workout_text"[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : data.resposta;
+        const parsedRes = JSON.parse(jsonString.replace(/```json/g, '').replace(/```/g, ''));
+        textoFinal = parsedRes.workout_text || data.resposta;
+      } catch (errJson) {
+        textoFinal = data.resposta.replace(/```json/g, '').replace(/```/g, '').replace(/^\{\s*"workout_text"\s*:\s*"/, '').replace(/"\s*\}$/, '');
       }
 
-      input.value = "";
-      showToast("Ficha atualizada pela IA!", "success");
+      if (textoFinal) {
+        tx.value = textoFinal.trim();
+        lidarEdicaoTreino();
+        input.value = "";
+        showToast("Ficha atualizada pela IA!", "success");
+      }
     } else {
       showToast(data.error || "Erro ao alterar ficha.", "error");
     }
@@ -1595,15 +1633,15 @@ function renderAdminFeedbackHistory() {
   if (!history) return;
   history.innerHTML = '';
 
-  const feedbacks = (currentStudentData && currentStudentData.feedbacks) || [];
+  const feedbacks = (currentStudentData && (currentStudentData.feedbacks || currentStudentData.payload?.feedbacks)) || [];
 
   if (feedbacks.length === 0) {
-    history.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center;">Nenhum feedback enviado por este aluno ainda.</div>';
+    history.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px;">Nenhum feedback enviado por este aluno ainda.</div>';
     return;
   }
 
   feedbacks.forEach(f => {
-    const isAluno = f.autor === "ALUNO";
+    const isAluno = f.autor === "ALUNO" || f.autor === "aluno";
     let htmlFotos = '';
 
     if (f.fotos && f.fotos.length > 0) {
@@ -1614,27 +1652,47 @@ function renderAdminFeedbackHistory() {
       htmlFotos += '</div>';
     }
     
-    history.innerHTML += `
-      <div style="background:${isAluno ? '#1a050b' : '#100305'}; padding:10px 12px; border-radius:8px; font-size:12.5px; color:#fff; align-self:${isAluno ? 'flex-start' : 'flex-end'}; border:1px solid ${isAluno ? 'var(--accent)' : 'var(--gold)'}; max-width:85%;">
-        <b style="color:${isAluno ? 'var(--accent)' : 'var(--gold)'}">${isAluno ? 'Aluno' : 'Você (Personal)'}:</b> ${escapeHtml(f.mensagem)}
-        ${htmlFotos}
-      </div>
+    const msgDiv = document.createElement('div');
+    msgDiv.style.cssText = `
+      background: ${isAluno ? '#1a050b' : '#100305'}; 
+      padding: 10px 12px; 
+      border-radius: 8px; 
+      font-size: 12.5px; 
+      color: #fff; 
+      align-self: ${isAluno ? 'flex-start' : 'flex-end'}; 
+      border: 1px solid ${isAluno ? 'var(--accent)' : 'var(--gold)'}; 
+      max-width: 85%;
+      margin-bottom: 8px;
     `;
+
+    msgDiv.innerHTML = `
+      <b style="color:${isAluno ? 'var(--accent)' : 'var(--gold)'}">${isAluno ? 'Aluno' : 'Você (Personal)'}:</b> ${escapeHtml(f.mensagem)}
+      ${htmlFotos}
+    `;
+
+    history.appendChild(msgDiv);
   });
   history.scrollTop = history.scrollHeight;
 }
 
 async function responderFeedbackAdmin() {
   const input = document.getElementById('adminFeedbackInput');
+  if (!input) return;
+
   const msg = input.value.trim();
-  if (!msg || !currentStudentCode) return;
+  if (!msg) return showToast("Digite uma mensagem antes de responder.", "error");
+  if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
       method: 'POST',
       headers: authHeaders(),
       cache: 'no-cache',
-      body: JSON.stringify({ codigo: currentStudentCode, autor: "PERSONAL", mensagem: msg })
+      body: JSON.stringify({ 
+        codigo: currentStudentCode, 
+        autor: "PERSONAL", 
+        mensagem: msg 
+      })
     });
 
     const data = await res.json();
@@ -1642,13 +1700,19 @@ async function responderFeedbackAdmin() {
       currentStudentData.feedbacks = data.feedbacks;
     } else {
       if (!currentStudentData.feedbacks) currentStudentData.feedbacks = [];
-      currentStudentData.feedbacks.push({ autor: "PERSONAL", mensagem: msg, data: new Date().toISOString() });
+      currentStudentData.feedbacks.push({ 
+        autor: "PERSONAL", 
+        mensagem: msg, 
+        data: new Date().toISOString() 
+      });
     }
 
     input.value = '';
     renderAdminFeedbackHistory();
+    
     const tabBadge = document.getElementById('tabFeedbackBadge');
     if (tabBadge) tabBadge.classList.add('hidden');
+    
     fetchAlunos();
     showToast("Resposta enviada!", "success");
   } catch (e) {
