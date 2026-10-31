@@ -285,7 +285,7 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   LISTAGEM DE ALUNOS COM ROLAGEM ÚNICA (APROX. 5 ALUNOS VISÍVEIS)
+   LISTAGEM DE ALUNOS COM ROLAGEM ÚNICA (APROX 5 ALUNOS)
    -------------------------------------------------------------------------- */
 .scrollable-students-list {
   max-height: 290px;
@@ -349,7 +349,7 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   BOTÕES COM DIVERSOS TAMANHOS E HIGHLIGHTS
+   BOTÕES
    -------------------------------------------------------------------------- */
 .btn {
   background: linear-gradient(135deg, var(--gold-soft), var(--gold));
@@ -461,7 +461,7 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   INPUTS & CONFIGURAÇÕES EM FORMATO BOTÃO/CHECKBOX
+   INPUTS & CHECKBOXES
    -------------------------------------------------------------------------- */
 label {
   display: block;
@@ -535,7 +535,7 @@ textarea {
 }
 
 /* --------------------------------------------------------------------------
-   OUTROS ESTILOS DE APOIO
+   OUTROS COMPONENTES
    -------------------------------------------------------------------------- */
 .editor-grid {
   display: grid;
@@ -556,35 +556,6 @@ textarea {
   padding: 14px;
   max-height: 520px;
   overflow-y: auto;
-}
-
-.anamnese-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.anamnese-box {
-  background: #0d0204;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-}
-
-.anamnese-label {
-  font-size: 11px;
-  color: var(--gold);
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.anamnese-val {
-  font-size: 13px;
-  color: #fff;
-  margin-top: 4px;
-  word-break: break-word;
-  line-height: 1.4;
 }
 
 .senha-row {
