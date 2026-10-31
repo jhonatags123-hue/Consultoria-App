@@ -1,6 +1,6 @@
 /* ==========================================================================
    PAINEL DE GESTÃO RESTRITO — JHONATA PERSONAL
-   Visual Limpo, Estrutura Centralizada & Acordions Responsivos
+   Visual Limpo, Estrutura Centralizada, Anamnese em Cards & Responsivo
    ========================================================================== */
 
 :root {
@@ -17,6 +17,7 @@
   --muted: #a08086;
   --blue: #3b82f6;
   --blue-dark: #1e3a8a;
+  --purple: #a855f7;
 }
 
 * {
@@ -42,7 +43,7 @@
 body, html {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   min-height: 100vh;
   line-height: 1.5;
 }
@@ -184,7 +185,7 @@ body, html {
   align-items: center;
 }
 
-.btn-badge {
+.btn-badge, .status-pill {
   border-radius: 8px;
   padding: 5px 10px;
   font-size: 11px;
@@ -192,18 +193,31 @@ body, html {
   text-transform: uppercase;
   border: 1px solid transparent;
   cursor: default;
+  display: inline-block;
 }
 
-.btn-badge.status-pago {
+.status-pill.status-pago, .btn-badge.status-pago {
   background: rgba(37,211,102,0.15);
   color: var(--green);
   border: 1px solid var(--green);
 }
 
-.btn-badge.status-pendente {
+.status-pill.status-pendente, .btn-badge.status-pendente {
   background: rgba(196,50,79,0.15);
   color: var(--accent);
   border: 1px solid var(--accent);
+}
+
+.status-pill.status-alerta {
+  background: rgba(220,170,58,0.15);
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+
+.status-pill.status-isento, .btn-badge.status-isento {
+  background: rgba(220,170,58,0.2);
+  color: var(--gold);
+  border: 1px solid var(--gold);
 }
 
 .btn-badge.status-info {
@@ -274,13 +288,16 @@ body, html {
   align-items: center;
 }
 
-.panel-subtitle {
+.panel-subtitle, .section-subtitle {
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
   color: var(--muted);
   letter-spacing: 0.05em;
+  margin-top: 14px;
   margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
 }
 
 .content-box-inner {
@@ -291,7 +308,7 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
-   ACORDION DE TREINO — O BOTÃO É O PRÓPRIO NOME DO TREINO (LOWER 1, UPPER 1)
+   ACORDIONS DE TREINO E RESUMO DE DIETA
    -------------------------------------------------------------------------- */
 .day-accordion-header {
   background: linear-gradient(135deg, #1f060c, #110205);
@@ -346,6 +363,90 @@ body, html {
 }
 
 /* --------------------------------------------------------------------------
+   ESTILIZAÇÃO DA ANAMNESE ESTRUTURADA (4 CARDS E GRID RESPONSIVO)
+   -------------------------------------------------------------------------- */
+.anamnese-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.anamnese-card {
+  background: #100305;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.anamnese-card-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 6px;
+}
+
+.anamnese-questions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.anamnese-item {
+  background: #0d0204;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.anamnese-q {
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.anamnese-a {
+  font-size: 13px;
+  color: #fff;
+  font-weight: 600;
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   DASHBOARD FINANCEIRA EM CARDS (FIN-GRID)
+   -------------------------------------------------------------------------- */
+.fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fin-card {
+  background: #100305;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.fin-card.bruto { border-top: 3px solid var(--gold); }
+.fin-card.pago { border-top: 3px solid var(--green); }
+.fin-card.pendente { border-top: 3px solid var(--accent); }
+.fin-card.novos { border-top: 3px solid var(--purple); }
+.fin-card.ticket { border-top: 3px solid var(--blue); }
+
+.fin-val {
+  font-size: 22px;
+  font-weight: 900;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
    LISTAGEM DE ALUNOS COM ROLAGEM ÚNICA (~5 VISÍVEIS)
    -------------------------------------------------------------------------- */
 .scrollable-students-list {
@@ -389,6 +490,15 @@ body, html {
   border-color: var(--accent);
   color: #fff;
   box-shadow: 0 4px 12px rgba(196,50,79,0.3);
+}
+
+.feedback-badge {
+  background: var(--accent);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 4px;
 }
 
 /* --------------------------------------------------------------------------
@@ -596,7 +706,7 @@ textarea {
 }
 
 /* --------------------------------------------------------------------------
-   COMPONENTES DA SIDEBAR & LINKS
+   COMPONENTES DA SIDEBAR & LINKS DE VENDA
    -------------------------------------------------------------------------- */
 .editor-grid {
   display: grid;
@@ -693,6 +803,44 @@ textarea {
   cursor: pointer;
 }
 
+/* --------------------------------------------------------------------------
+   GALERIA DE GIFS
+   -------------------------------------------------------------------------- */
+.gif-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.gif-card {
+  background: #0d0204;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+}
+
+.gif-card img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.gif-card span {
+  font-size: 10.5px;
+  color: var(--text);
+  margin-top: 4px;
+  display: block;
+  word-break: break-word;
+}
+
+/* --------------------------------------------------------------------------
+   MODAL OVERLAY & TOAST NOTIFICATIONS
+   -------------------------------------------------------------------------- */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -727,18 +875,30 @@ textarea {
   color: var(--text);
 }
 
-.badge-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background-color: var(--accent);
-  border-radius: 50%;
-  margin-left: 4px;
-}
-
 .toast-container {
   position: fixed;
   top: 20px;
   right: 20px;
   z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
+
+.toast {
+  background: #1c060b;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--gold);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.success { border-left-color: var(--green); }
+.toast.error { border-left-color: var(--accent); }
