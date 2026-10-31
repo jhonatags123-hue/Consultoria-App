@@ -567,7 +567,7 @@ function toggleSanfonaIsentos() {
   }
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS (CORRIGIDA) */
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA NO LUGAR CORRETO */
 function renderStudentsList(list) {
   const container = document.getElementById('alunosList');
   if (!container) return;
@@ -578,7 +578,7 @@ function renderStudentsList(list) {
     return;
   }
 
-  // Função de checagem blindada para identificar VIP/Isento
+  // Função de checagem para identificar VIP/Isento
   const checarSeEhIsento = (aluno) => {
     if (!aluno) return false;
     const stPag = String(aluno.status_pagamento || aluno.status || '').toLowerCase();
@@ -595,11 +595,11 @@ function renderStudentsList(list) {
     );
   };
 
-  // 1. Separa estritamente os pagantes dos isentos/VIPs
+  // Separação dos grupos
   const alunosRegulares = list.filter(a => !checarSeEhIsento(a));
   const alunosVip = list.filter(a => checarSeEhIsento(a));
 
-  // Função interna para montar o HTML de cada Card de Aluno
+  // Função para criar o card de cada aluno
   const criarItemAluno = (aluno) => {
     const ehVIP = checarSeEhIsento(aluno);
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
@@ -641,7 +641,7 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // 2. Renderiza APENAS os alunos pagantes na lista principal
+  // 1. Preenche Apenas a Lista Principal de Pagantes
   if (alunosRegulares.length === 0) {
     const emptyMsg = document.createElement('div');
     emptyMsg.style.cssText = "padding:8px; font-size:12px; color:var(--muted);";
@@ -653,45 +653,58 @@ function renderStudentsList(list) {
     });
   }
 
-  // 3. Renderiza o bloco Retrátil (Sanfona) EXCLUSIVAMENTE para os alunos VIPs / Isentos
-  if (alunosVip.length > 0) {
-    const headerVip = document.createElement('div');
-    headerVip.style.cssText = `
-      margin-top: 16px;
-      margin-bottom: 6px;
-      padding: 8px 10px;
-      background: rgba(220, 170, 58, 0.12);
-      border-left: 3px solid var(--gold);
-      border-radius: 6px;
-      color: var(--gold);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-    `;
-    headerVip.onclick = toggleSanfonaIsentos;
-    headerVip.innerHTML = `
-      <span>👑 ALUNOS VIPS / ISENTOS (${alunosVip.length})</span>
-      <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
-    `;
-    container.appendChild(headerVip);
+  // 2. Coloca a Sanfona dos Isentos/VIPs no Bloco Inferior (Substituindo o antigo "Alunos Isentos / Cortesia")
+  // Procura se existe o container externo reservado para isentos ou anexa logo abaixo da lista
+  let areaIsentos = document.getElementById('areaIsentosContainer');
+  
+  if (!areaIsentos) {
+    areaIsentos = document.createElement('div');
+    areaIsentos.id = 'areaIsentosContainer';
+    container.parentNode.insertBefore(areaIsentos, container.nextSibling);
+  }
 
-    const boxIsentos = document.createElement('div');
-    boxIsentos.id = "alunosIsentosListContainer";
-    boxIsentos.style.display = isentosExpanded ? 'block' : 'none';
+  areaIsentos.innerHTML = '';
 
+  const headerVip = document.createElement('div');
+  headerVip.style.cssText = `
+    margin-top: 12px;
+    margin-bottom: 6px;
+    padding: 10px;
+    background: rgba(220, 170, 58, 0.12);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  `;
+  headerVip.onclick = toggleSanfonaIsentos;
+  headerVip.innerHTML = `
+    <span>👑 ALUNOS ISENTOS / CORTESIA (${alunosVip.length})</span>
+    <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
+  `;
+  areaIsentos.appendChild(headerVip);
+
+  const boxIsentos = document.createElement('div');
+  boxIsentos.id = "alunosIsentosListContainer";
+  boxIsentos.style.display = isentosExpanded ? 'block' : 'none';
+
+  if (alunosVip.length === 0) {
+    boxIsentos.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
+  } else {
     alunosVip.forEach((aluno) => {
       boxIsentos.appendChild(criarItemAluno(aluno));
     });
-
-    container.appendChild(boxIsentos);
   }
 
-  // Seleciona o primeiro aluno pagante por padrão caso nenhum esteja selecionado
+  areaIsentos.appendChild(boxIsentos);
+
+  // Seleção automática ao carregar
   if (!currentStudentCode) {
     if (alunosRegulares.length > 0) {
       carregarAluno(alunosRegulares[0].codigo);
