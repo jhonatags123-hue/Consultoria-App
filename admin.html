@@ -597,9 +597,59 @@
     </div>
   </div>
 
-  <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
+ <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
   <script src="admin.js"></script>
   <!-- SCRIPT DA GESTÃO FINANCEIRA EXCLUSIVA & CONTAS PESSOAIS -->
   <script src="admin2.js"></script>
+
+  <!-- CORREÇÃO DA CÓPIA DE LINKS (COLA AQUI ABAIXO) -->
+  <script>
+    function copiarTextoParaClipboard(texto, mensagemSucesso) {
+      if (!texto) {
+        alert("⚠️ Nenhum link disponível para copiar.");
+        return;
+      }
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto)
+          .then(() => alert(mensagemSucesso || "✅ Link copiado para a área de transferência!"))
+          .catch(() => fallbackCopiarTexto(texto, mensagemSucesso));
+      } else {
+        fallbackCopiarTexto(texto, mensagemSucesso);
+      }
+    }
+
+    function fallbackCopiarTexto(texto, mensagemSucesso) {
+      const tempInput = document.createElement("input");
+      tempInput.style.position = "absolute";
+      tempInput.style.left = "-9999px";
+      tempInput.value = texto;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      tempInput.setSelectionRange(0, 99999);
+      
+      try {
+        document.execCommand("copy");
+        alert(mensagemSucesso || "✅ Link copiado para a área de transferência!");
+      } catch (err) {
+        alert("❌ Não foi possível copiar o link automaticamente. O link é:\n\n" + texto);
+      } finally {
+        document.body.removeChild(tempInput);
+      }
+    }
+
+    function copiarLinkAcessoAluno() {
+      if (!currentStudentCode) {
+        alert("⚠️ Selecione um aluno na lista primeiro.");
+        return;
+      }
+      const linkAluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentStudentCode}`;
+      copiarTextoParaClipboard(linkAluno, `✅ Link de acesso para @${currentStudentCode} copiado!\n\n${linkAluno}`);
+    }
+
+    function copiarLinkVenda(link) {
+      copiarTextoParaClipboard(link, `✅ Link copiado com sucesso!\n\n${link}`);
+    }
+  </script>
 </body>
 </html>
