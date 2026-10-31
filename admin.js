@@ -567,18 +567,20 @@ function toggleSanfonaIsentos() {
   }
 }
 
-/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA NO LUGAR CORRETO */
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS - SEPARAÇÃO TOTAL DE CONTAINERS */
 function renderStudentsList(list) {
-  const container = document.getElementById('alunosList');
-  if (!container) return;
-  container.innerHTML = "";
+  const containerPagantes = document.getElementById('alunosList');
+  if (!containerPagantes) return;
+  
+  // Limpa EXCLUSIVAMENTE a lista de pagantes
+  containerPagantes.innerHTML = "";
 
   if (!list || list.length === 0) {
-    container.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
+    containerPagantes.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno encontrado.</small>";
     return;
   }
 
-  // Função de checagem para identificar VIP/Isento
+  // Identificador rigoroso de VIP/Isento
   const checarSeEhIsento = (aluno) => {
     if (!aluno) return false;
     const stPag = String(aluno.status_pagamento || aluno.status || '').toLowerCase();
@@ -595,11 +597,11 @@ function renderStudentsList(list) {
     );
   };
 
-  // Separação dos grupos
+  // Separação dos dois grupos em arrays totalmente independentes
   const alunosRegulares = list.filter(a => !checarSeEhIsento(a));
   const alunosVip = list.filter(a => checarSeEhIsento(a));
 
-  // Função para criar o card de cada aluno
+  // Construtor do HTML do card de aluno
   const criarItemAluno = (aluno) => {
     const ehVIP = checarSeEhIsento(aluno);
     const infoCalculada = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, ehVIP, aluno.status_pagamento);
@@ -641,70 +643,59 @@ function renderStudentsList(list) {
     return div;
   };
 
-  // 1. Preenche Apenas a Lista Principal de Pagantes
+  // 1. RENDERIZA APENAS OS PAGANTES DENTRO DO CONTAINER PRINCIPAL (#alunosList)
   if (alunosRegulares.length === 0) {
-    const emptyMsg = document.createElement('div');
-    emptyMsg.style.cssText = "padding:8px; font-size:12px; color:var(--muted);";
-    emptyMsg.textContent = "Nenhum aluno pagante encontrado.";
-    container.appendChild(emptyMsg);
+    containerPagantes.innerHTML = "<small style='color:var(--muted); font-size:12px;'>Nenhum aluno pagante cadastrado.</small>";
   } else {
     alunosRegulares.forEach((aluno) => {
-      container.appendChild(criarItemAluno(aluno));
+      containerPagantes.appendChild(criarItemAluno(aluno));
     });
   }
 
-  // 2. Coloca a Sanfona dos Isentos/VIPs no Bloco Inferior (Substituindo o antigo "Alunos Isentos / Cortesia")
-  // Procura se existe o container externo reservado para isentos ou anexa logo abaixo da lista
+  // 2. RENDERIZA OS ISENTOS/VIPS NO BLINGUINHO FORA DA LISTA PRINCIPAL
   let areaIsentos = document.getElementById('areaIsentosContainer');
   
+  // Se a div externa de isentos não existir no HTML, cria ela logo após o container de pagantes
   if (!areaIsentos) {
     areaIsentos = document.createElement('div');
     areaIsentos.id = 'areaIsentosContainer';
-    container.parentNode.insertBefore(areaIsentos, container.nextSibling);
+    containerPagantes.parentNode.insertBefore(areaIsentos, containerPagantes.nextSibling);
   }
 
-  areaIsentos.innerHTML = '';
-
-  const headerVip = document.createElement('div');
-  headerVip.style.cssText = `
-    margin-top: 12px;
-    margin-bottom: 6px;
-    padding: 10px;
-    background: rgba(220, 170, 58, 0.12);
-    border-left: 3px solid var(--gold);
-    border-radius: 6px;
-    color: var(--gold);
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    user-select: none;
+  areaIsentos.innerHTML = `
+    <div onclick="toggleSanfonaIsentos()" style="
+      margin-top: 14px;
+      margin-bottom: 6px;
+      padding: 10px;
+      background: rgba(220, 170, 58, 0.12);
+      border-left: 3px solid var(--gold);
+      border-radius: 6px;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    ">
+      <span>👑 ALUNOS ISENTOS / CORTESIA (${alunosVip.length})</span>
+      <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
+    </div>
+    <div id="alunosIsentosListContainer" style="display: ${isentosExpanded ? 'block' : 'none'};"></div>
   `;
-  headerVip.onclick = toggleSanfonaIsentos;
-  headerVip.innerHTML = `
-    <span>👑 ALUNOS ISENTOS / CORTESIA (${alunosVip.length})</span>
-    <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
-  `;
-  areaIsentos.appendChild(headerVip);
 
-  const boxIsentos = document.createElement('div');
-  boxIsentos.id = "alunosIsentosListContainer";
-  boxIsentos.style.display = isentosExpanded ? 'block' : 'none';
-
+  const boxIsentosContent = document.getElementById('alunosIsentosListContainer');
   if (alunosVip.length === 0) {
-    boxIsentos.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
+    boxIsentosContent.innerHTML = `<div style="padding:8px; font-size:12px; color:var(--muted);">Nenhum aluno isento.</div>`;
   } else {
     alunosVip.forEach((aluno) => {
-      boxIsentos.appendChild(criarItemAluno(aluno));
+      boxIsentosContent.appendChild(criarItemAluno(aluno));
     });
   }
 
-  areaIsentos.appendChild(boxIsentos);
-
-  // Seleção automática ao carregar
+  // Seleção padrão
   if (!currentStudentCode) {
     if (alunosRegulares.length > 0) {
       carregarAluno(alunosRegulares[0].codigo);
@@ -713,7 +704,6 @@ function renderStudentsList(list) {
     }
   }
 }
-
 function filterStudents() {
   const term = document.getElementById('searchStudent').value.toLowerCase();
   const filtered = allStudentsList.filter(a => (a.nome || a.clientName || '').toLowerCase().includes(term) || (a.codigo || '').toLowerCase().includes(term));
