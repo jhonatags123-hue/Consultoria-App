@@ -83,7 +83,7 @@
       <!-- BARRA LATERAL (SIDEBAR) -->
       <aside id="sidebarConsultoria" class="admin-sidebar">
         
-        <!-- BUSCA E LISTA DE ALUNOS COM ROLAGEM ÚNICA (~5 ALUNOS VISÍVEIS) -->
+        <!-- BUSCA E LISTA DE ALUNOS COM ROLAGEM ÚNICA -->
         <div class="panel-card">
           <div class="panel-title">
             <span>👥 Alunos Cadastrados</span>
@@ -105,41 +105,46 @@
           </div>
         </div>
 
-        <!-- BOTOES DE FERRAMENTAS (INCLUINDO REPOSITÓRIO DE GIFS AQUI) -->
+        <!-- BOTOES DE FERRAMENTAS -->
         <div class="panel-card">
           <div class="panel-title">⚡ Ferramentas</div>
           <button class="btn btn-wpp btn-md full-width" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
-          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link Anamnese</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')">📋 Copiar Link Anamnese</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('gifs')">📹 Repositório de GIFs</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco)</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </div>
 
-        <!-- CENTRAL DE LINKS DE VENDAS & ACESSOS -->
+        <!-- PAINEL EXCLUSIVO: LINKS DE VENDAS -->
         <div class="sidebar-links-wrapper">
           <div class="painel-links-header" onclick="togglePainelLinksAdmin()">
-            <span>🔗 LINKS DE VENDAS & ACESSOS</span>
+            <span>🔗 LINKS DE VENDAS</span>
             <span id="setaPainelLinks">▼</span>
           </div>
 
           <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
             <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
-              Clique no botão para copiar o link:
+              Clique no botão para copiar os links de vendas:
             </small>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Asaas:</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=asaas')">📋 Copiar Link</button>
+              <span class="link-nome">Anamnese Completa (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=asaas')">📋 Copiar Link</button>
             </div>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Amigos:</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=amigos')">📋 Copiar Link</button>
+              <span class="link-nome">Anamnese Apenas Treino (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=asaas')">📋 Copiar Link</button>
             </div>
 
             <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
-              <span class="link-nome">Pasta do Drive:</span>
-              <button class="btn-link-copy" style="background:#1e3a8a; color:#fff;" onclick="abrirPastaDriveAluno()">📂 Abrir Drive</button>
+              <span class="link-nome">Anamnese Completa (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos')">📋 Copiar Link</button>
+            </div>
+
+            <div class="link-item-row">
+              <span class="link-nome">Anamnese Apenas Treino (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=amigos')">📋 Copiar Link</button>
             </div>
           </div>
         </div>
@@ -156,7 +161,7 @@
       <!-- CONTEÚDO PRINCIPAL (ABAS CENTRALIZADAS) -->
       <main class="admin-content">
 
-        <!-- NAVEGAÇÃO DE ABAS RESTRITA E COMPACTA (SEM GIFS) -->
+        <!-- NAVEGAÇÃO DE ABAS RESTRITA E COMPACTA -->
         <nav class="admin-tabs nav-tabs">
           <button id="tab1" class="tab-btn active" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
           <button id="tab2" class="tab-btn" onclick="switchTab('treino')">🏋️ Editor de Treino</button>
@@ -180,7 +185,7 @@
           </div>
         </section>
 
-        <!-- ABA: RESUMO GERAL DO ALUNO (EXIBIÇÃO EXPANSÍVEL NO PRÓPRIO NOME DO TREINO) -->
+        <!-- ABA: RESUMO GERAL DO ALUNO -->
         <section id="secResumo" class="tab-section panel-card">
           <div class="panel-title">📌 Ficha e Resumo Geral do Aluno</div>
           
@@ -207,23 +212,28 @@
             <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:8px;"></div>
           </div>
 
-          <!-- FICHA DO ALUNO: BOTOES CLICÁVEIS NOS TREINOS (LOWER 1, UPPER 1, ETC) -->
+          <!-- FICHA DO ALUNO -->
           <div id="workoutOverview" class="content-box-inner">
             <div id="summaryOverviewContainer"></div>
           </div>
         </section>
 
-        <!-- ABA: ANAMNESE DETALHADA -->
+        <!-- ABA: ANAMNESE DETALHADA E ORGANIZADA POR CARDS E CATEGORIAS -->
         <section id="secAnamnese" class="tab-section hidden panel-card">
           <div class="panel-title">📋 Respostas da Anamnese Detalhada</div>
           <div id="anamneseDetails" class="content-box-inner">
-            <p style="color:var(--muted); font-size:13px;">Nenhuma anamnese selecionada.</p>
+            <p style="color:var(--muted); font-size:13px;">Selecione um aluno para carregar a anamnese completa.</p>
           </div>
         </section>
 
-        <!-- ABA: FEEDBACK DO ALUNO -->
+        <!-- ABA: FEEDBACK DO ALUNO COM O BOTÃO DE ABRIR O DRIVE DO ALUNO -->
         <section id="secFeedbackAdmin" class="tab-section hidden panel-card">
-          <div class="panel-title">💬 Histórico de Feedbacks & Envios de Fotos</div>
+          <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>💬 Histórico de Feedbacks & Envios de Fotos</span>
+            <button class="btn btn-soft sm" style="border-color:var(--blue); color:#fff; background:#1e3a8a;" onclick="abrirPastaDriveAluno()">
+              📂 Abrir Drive do Aluno
+            </button>
+          </div>
 
           <div class="feedback-chat-container content-box-inner">
             <div id="adminFeedbackHistory" class="feedback-history-list" style="max-height:360px; overflow-y:auto; margin-bottom:12px;"></div>
@@ -235,7 +245,7 @@
           </div>
         </section>
 
-        <!-- ABA: EDITOR DE TREINO (CENTRALIZADO E AJUSTADO) -->
+        <!-- ABA: EDITOR DE TREINO -->
         <section id="secTreino" class="tab-section hidden panel-card">
           <div class="panel-title">🏋️ Editor de Prescrição de Treino</div>
 
