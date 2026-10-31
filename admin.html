@@ -44,18 +44,18 @@
   <!-- APLICATIVO PAINEL ADMIN -->
   <div id="adminApp" class="admin-app hidden">
 
-    <!-- CABEÇALHO PRINCIPAL -->
+    <!-- CABEÇALHO PRINCIPAL REORGANIZADO E CENTRALIZADO -->
     <header class="admin-header">
       <div class="header-brand">
         <span class="brand-title">JHONATA PERSONAL</span>
         <span class="brand-badge">Gestão Central de Alunos</span>
       </div>
 
-      <!-- INFORMAÇÕES DO ALUNO SELECIONADO EM PAINEL COM BOTÕES/TAGS -->
+      <!-- PAINEL CENTRALIZADO DO ALUNO SELECIONADO -->
       <div class="active-student-bar header-student-panel">
         <div class="student-info-group">
-          <span class="student-label">ALUNO SELECIONADO</span>
-          <h3 id="studentName">Selecione um aluno...</h3>
+          <span class="student-label">ALUNO EM FOCO:</span>
+          <h3 id="studentName" class="student-name-hero">Selecione um aluno...</h3>
           <div class="student-credentials">
             <span id="studentCodeDisplay" class="btn-tag">@---</span>
             <span id="studentPassDisplay" class="btn-tag">🔒 Senha protegida</span>
@@ -63,15 +63,15 @@
         </div>
 
         <div class="student-badges-group">
-          <button id="studentStatusPill" class="btn-badge status-pago">STATUS</button>
-          <button id="studentDaysPill" class="btn-badge status-pago">-- DIAS</button>
+          <button id="studentStatusPill" class="btn-badge status-pago">🟢 PAGO</button>
+          <button id="studentDaysPill" class="btn-badge status-pago">⏳ -- DIAS</button>
           <button id="studentVencimentoDisplay" class="btn-badge status-info">📅 Vencimento: --/--/----</button>
         </div>
 
         <div class="header-actions">
-          <button class="btn-action sm" onclick="enviarCredenciaisWhatsApp()">📱 Enviar Acesso WhatsApp</button>
+          <button class="btn-action sm" onclick="enviarCredenciaisWhatsApp()">📱 Enviar WhatsApp</button>
           <button class="btn-action sm" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link App</button>
-          <button class="btn-gold sm" onclick="renovarUmMesAluno()">🔄 +30 Dias (Renovar)</button>
+          <button class="btn-gold sm" onclick="renovarUmMesAluno()">🔄 +30 Dias</button>
           <button class="btn-danger sm" onclick="logoutAdmin()">🚪 Sair</button>
         </div>
       </div>
@@ -83,7 +83,7 @@
       <!-- BARRA LATERAL (SIDEBAR) -->
       <aside id="sidebarConsultoria" class="admin-sidebar">
         
-        <!-- BUSCA E LISTA DE ALUNOS COM ROLAGEM ÚNICA (APROX 5 ALUNOS) -->
+        <!-- BUSCA E LISTA DE ALUNOS COM ROLAGEM ÚNICA (~5 ALUNOS VISÍVEIS) -->
         <div class="panel-card">
           <div class="panel-title">
             <span>👥 Alunos Cadastrados</span>
@@ -105,12 +105,13 @@
           </div>
         </div>
 
-        <!-- BOTOES DE FERRAMENTAS -->
+        <!-- BOTOES DE FERRAMENTAS (INCLUINDO REPOSITÓRIO DE GIFS AQUI) -->
         <div class="panel-card">
           <div class="panel-title">⚡ Ferramentas</div>
-          <button class="btn btn-wpp btn-md full-width" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso do Aluno</button>
-          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link da Anamnese</button>
-          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco de Texto)</button>
+          <button class="btn btn-wpp btn-md full-width" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkAnamnese()">📋 Copiar Link Anamnese</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('gifs')">📹 Repositório de GIFs</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco)</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </div>
 
@@ -123,27 +124,27 @@
 
           <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
             <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
-              Clique no botão para copiar o link de venda/anamnese:
+              Clique no botão para copiar o link:
             </small>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Asaas (Cartão/Pix Auto):</span>
+              <span class="link-nome">Anamnese Asaas:</span>
               <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=asaas')">📋 Copiar Link</button>
             </div>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Especial / Amigos:</span>
+              <span class="link-nome">Anamnese Amigos:</span>
               <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/anamnese.html?origem=amigos')">📋 Copiar Link</button>
             </div>
 
             <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
-              <span class="link-nome">Pasta do Drive (Alunos):</span>
+              <span class="link-nome">Pasta do Drive:</span>
               <button class="btn-link-copy" style="background:#1e3a8a; color:#fff;" onclick="abrirPastaDriveAluno()">📂 Abrir Drive</button>
             </div>
           </div>
         </div>
 
-        <!-- BOTÃO PARA ACESSAR O CAIXA FINANCEIRO -->
+        <!-- BOTÃO CAIXA FINANCEIRO -->
         <div class="sidebar-finance-btn">
           <button id="btnAcessarFinanceiro" class="btn-finance-dashboard" onclick="switchTab('financeiro')">
             💰 CAIXA FINANCEIRO & MÉTRICAS
@@ -152,10 +153,10 @@
 
       </aside>
 
-      <!-- CONTEÚDO PRINCIPAL (ABAS DE TRABALHO) -->
+      <!-- CONTEÚDO PRINCIPAL (ABAS CENTRALIZADAS) -->
       <main class="admin-content">
 
-        <!-- NAVEGAÇÃO DE ABAS DO ALUNO -->
+        <!-- NAVEGAÇÃO DE ABAS RESTRITA E COMPACTA (SEM GIFS) -->
         <nav class="admin-tabs nav-tabs">
           <button id="tab1" class="tab-btn active" onclick="switchTab('resumo')">📊 Resumo do Aluno</button>
           <button id="tab2" class="tab-btn" onclick="switchTab('treino')">🏋️ Editor de Treino</button>
@@ -167,14 +168,11 @@
           </button>
           <button id="tab4" class="tab-btn" onclick="switchTab('cadastro')">⚙️ Dados & Permissões</button>
           <button class="tab-btn" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
-          <button class="tab-btn" onclick="switchTab('gifs')">📹 Repositório GIFs</button>
         </nav>
 
-        <!-- ABA: SEÇÃO FINANCEIRO EXCLUSIVA -->
+        <!-- ABA: CAIXA FINANCEIRO -->
         <section id="secFinanceiro" class="tab-section hidden panel-card">
-          <div class="panel-title">
-            <span>💰 CAIXA FINANCEIRO & MÉTRICAS GERAIS</span>
-          </div>
+          <div class="panel-title">💰 CAIXA FINANCEIRO & MÉTRICAS GERAIS</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:14px;">Visão consolidada do faturamento, cobranças e entradas de novos alunos</p>
           
           <div id="financeiroDashboardContent" class="content-box-inner">
@@ -182,7 +180,7 @@
           </div>
         </section>
 
-        <!-- ABA: RESUMO GERAL DO ALUNO -->
+        <!-- ABA: RESUMO GERAL DO ALUNO (EXIBIÇÃO EXPANSÍVEL NO PRÓPRIO NOME DO TREINO) -->
         <section id="secResumo" class="tab-section panel-card">
           <div class="panel-title">📌 Ficha e Resumo Geral do Aluno</div>
           
@@ -197,21 +195,22 @@
             </div>
           </div>
 
-          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS -->
-          <div class="incomodos-alert-box content-box-inner" style="border-color:var(--accent); margin-bottom:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <h3 style="color:var(--accent); font-size:13px; font-weight:800;">🚨 DORES E OBSERVAÇÕES DO ÚLTIMO TREINO</h3>
-              <button class="btn btn-soft sm" onclick="analisarIncomodosIA()">⚡ Analisar com Auxiliar do Coach</button>
+          <!-- BLOCO DE INCÔMODOS E DORES REPORTADAS COMPACTADO -->
+          <div class="incomodos-alert-box content-box-inner" style="border-color:var(--accent); margin-bottom:16px; padding:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <h3 style="color:var(--accent); font-size:12px; font-weight:800;">🚨 DORES E OBSERVAÇÕES REGISTRADAS</h3>
+              <button class="btn btn-soft sm" onclick="analisarIncomodosIA()">⚡ Analisar via Auxiliar</button>
             </div>
             <div id="incomodosList" style="font-size:12px;">
               <small style="color:var(--muted)">Carregando relatos...</small>
             </div>
-            <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:10px;"></div>
+            <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:8px;"></div>
           </div>
 
-          <!-- CONTAINER DOS TREINOS, DIETA E CARDIO DA VISÃO GERAL -->
-          <div id="workoutOverview" class="content-box-inner"></div>
-          <div id="summaryOverviewContainer" style="margin-top:12px;"></div>
+          <!-- FICHA DO ALUNO: BOTOES CLICÁVEIS NOS TREINOS (LOWER 1, UPPER 1, ETC) -->
+          <div id="workoutOverview" class="content-box-inner">
+            <div id="summaryOverviewContainer"></div>
+          </div>
         </section>
 
         <!-- ABA: ANAMNESE DETALHADA -->
@@ -222,7 +221,7 @@
           </div>
         </section>
 
-        <!-- ABA: FEEDBACK E CHAT DO ALUNO -->
+        <!-- ABA: FEEDBACK DO ALUNO -->
         <section id="secFeedbackAdmin" class="tab-section hidden panel-card">
           <div class="panel-title">💬 Histórico de Feedbacks & Envios de Fotos</div>
 
@@ -236,74 +235,65 @@
           </div>
         </section>
 
-        <!-- ABA: EDITOR DE TREINO INTELIGENTE (DIRETRIZES EM CIMA E AJUSTES EM BAIXO) -->
+        <!-- ABA: EDITOR DE TREINO (CENTRALIZADO E AJUSTADO) -->
         <section id="secTreino" class="tab-section hidden panel-card">
           <div class="panel-title">🏋️ Editor de Prescrição de Treino</div>
 
-          <!-- CAIXA 1: GERADOR DE DIRETRIZES (EM CIMA) -->
+          <!-- GERADOR DE DIRETRIZES DO COACH -->
           <div class="tool-box-ia">
-            <div class="tool-box-header">
-              <span>📋 GERADOR DE DIRETRIZES (AUXILIAR DO COACH)</span>
-            </div>
-            <p style="font-size:12px; color:var(--muted); margin-bottom:10px;">Gere as diretrizes gerais de execução para este protocolo.</p>
+            <div class="tool-box-header">📋 GERADOR DE DIRETRIZES (AUXILIAR DO COACH)</div>
+            <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Gere as diretrizes gerais de execução para este protocolo.</p>
             <button id="btnGerarApenasDiretrizesIA" class="btn btn-gold btn-lg full-width" onclick="gerarApenasDiretrizesIA()">⚡ GERAR DIRETRIZES COM AUXILIAR DO COACH</button>
           </div>
           
-          <!-- CAIXA 2: AJUSTE E COMANDO DA FICHA (EM BAIXO) -->
-          <div class="tool-box-ia" style="margin-top:14px;">
-            <div class="tool-box-header">
-              <span>🛠️ AJUSTE DE FICHA EM TEMPO REAL (AUXILIAR DO COACH)</span>
-            </div>
+          <!-- AJUSTE EM TEMPO REAL VIA AUXILIAR -->
+          <div class="tool-box-ia" style="margin-top:12px;">
+            <div class="tool-box-header">🛠️ AJUSTE DE FICHA EM TEMPO REAL (AUXILIAR DO COACH)</div>
             <label style="margin-top:4px; color:var(--gold);">Comando para a ficha:</label>
             <div style="display:flex; gap:8px; margin-top:6px;">
               <input type="text" id="aiWorkoutCommand" placeholder="Ex: Adicionar 1 série de leg press com back-off no Treino A...">
-              <button id="btnAiCmd" class="btn btn-gold btn-lg" style="width:240px; min-width:240px;" onclick="executarComandoIaTreino()">⚡ APLICAR VIA AUXILIAR</button>
+              <button id="btnAiCmd" class="btn btn-gold btn-lg" style="width:220px; min-width:220px;" onclick="executarComandoIaTreino()">⚡ APLICAR VIA AUXILIAR</button>
             </div>
           </div>
 
-          <div class="editor-grid" style="margin-top:16px;">
-            
-            <!-- TEXTAREA DA FICHA DE TREINO -->
+          <div class="editor-grid" style="margin-top:14px;">
             <div>
               <label for="liveWorkoutText">Texto da Ficha (Texto Puro):</label>
-              <textarea id="liveWorkoutText" rows="16" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto 3x8-10&#10;Crucifixo Inclinado 3x10-12" oninput="lidarEdicaoTreino()"></textarea>
+              <textarea id="liveWorkoutText" rows="15" placeholder="TREINO A - PEITO E TRÍCEPS&#10;Supino Reto 3x8-10" oninput="lidarEdicaoTreino()"></textarea>
 
-              <div style="margin-top:12px;">
+              <div style="margin-top:10px;">
                 <label for="editTrainerGuidelines">📌 Diretrizes de Execução do Treinador:</label>
                 <textarea id="editTrainerGuidelines" rows="4" placeholder="1. Aquecimento geral...&#10;2. Séries de reconhecimento..."></textarea>
               </div>
 
-              <button class="btn btn-lg" style="margin-top:14px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA DE TREINO</button>
+              <button class="btn btn-lg" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarTreinoEditado()">💾 SALVAR FICHA DE TREINO</button>
             </div>
 
-            <!-- PREVIEW EM TEMPO REAL -->
             <div>
               <label>Preview da Ficha Formatada (Ao Vivo):</label>
               <div id="liveWorkoutPreview" class="preview-card"></div>
             </div>
-
           </div>
         </section>
 
-        <!-- ABA: EDITOR DE DIETA COM AUXILIAR DO PROFESSOR -->
+        <!-- ABA: EDITOR DE DIETA -->
         <section id="secDieta" class="tab-section hidden panel-card">
           <div class="panel-title">🥗 Plano Alimentar e Nutrição Cíclica</div>
 
-          <!-- PAINEL DE GERAÇÃO COM AUXILIAR -->
-          <div class="tool-box-ia" style="margin-bottom:14px;">
+          <div class="tool-box-ia" style="margin-bottom:12px;">
             <div class="tool-box-header">🤖 GERAR DIETA COMPLETA (AUXILIAR DO PROFESSOR)</div>
             <div style="display:flex; gap:8px; margin-top:6px;">
-              <input type="text" id="aiDietExtraInstructions" placeholder="Instrução extra (Ex: Sem lactose, foco em déficit calórico 2000kcal...)">
-              <button id="btnRunAnamneseDualAI" class="btn btn-gold btn-lg" style="width:260px; min-width:260px;" onclick="gerarDietaCompletaPorAnamnese()">⚡ GERAR DIETA VIA AUXILIAR</button>
+              <input type="text" id="aiDietExtraInstructions" placeholder="Instrução extra (Ex: Sem lactose, déficit 2000kcal...)">
+              <button id="btnRunAnamneseDualAI" class="btn btn-gold btn-lg" style="width:240px; min-width:240px;" onclick="gerarDietaCompletaPorAnamnese()">⚡ GERAR DIETA VIA AUXILIAR</button>
             </div>
           </div>
 
           <div class="editor-grid">
             <div>
               <label for="dietTextarea">Plano Alimentar Estruturado:</label>
-              <textarea id="dietTextarea" rows="20" placeholder="[RESUMO NUTRICIONAL]&#10;Meta Calórica Diária: 2200 kcal&#10;&#10;---&#10;[ABA] DIETA BASE&#10;REF 1 - CAFÉ DA MANHÃ&#10;- Ovos mexidos 3 unidades" oninput="lidarEdicaoDieta()"></textarea>
+              <textarea id="dietTextarea" rows="18" placeholder="[RESUMO NUTRICIONAL]&#10;Meta Calórica: 2200 kcal" oninput="lidarEdicaoDieta()"></textarea>
 
-              <button class="btn btn-lg" style="margin-top:14px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
+              <button class="btn btn-lg" style="margin-top:12px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; width:100%;" onclick="salvarDieta()">💾 SALVAR PLANO ALIMENTAR</button>
             </div>
 
             <div>
@@ -318,22 +308,22 @@
         <section id="secCorrida" class="tab-section hidden panel-card">
           <div class="panel-title">🏃 Lançamento & Gestão de Treinos de Corrida</div>
 
-          <div class="tool-box-ia" style="margin-bottom:14px;">
+          <div class="tool-box-ia" style="margin-bottom:12px;">
             <div class="tool-box-header">⚡ GERAR CARDIO SEMANAL (AUXILIAR DO COACH)</div>
             <div style="display:flex; gap:8px; margin-top:6px;">
-              <input type="text" id="aiCardioPromptAdmin" placeholder="Prompt para o cardio (Ex: Aluno maratonista, foco em Z2 e tiros nas quartas...)">
-              <button id="btnGerarCardioIA" class="btn btn-gold btn-lg" style="width:240px; min-width:240px;" onclick="gerarSemanaCardioIA()">⚡ GERAR CARDIO VIA AUXILIAR</button>
+              <input type="text" id="aiCardioPromptAdmin" placeholder="Prompt para o cardio (Ex: Foco em Z2 e tiros...)">
+              <button id="btnGerarCardioIA" class="btn btn-gold btn-lg" style="width:220px; min-width:220px;" onclick="gerarSemanaCardioIA()">⚡ GERAR CARDIO VIA AUXILIAR</button>
             </div>
           </div>
 
-          <div class="content-box-inner" style="margin-bottom:16px;">
+          <div class="content-box-inner" style="margin-bottom:14px; padding:12px;">
             <label for="editCardioGuidelines" style="margin-top:0;">📌 Orientação Geral de Cardio:</label>
-            <textarea id="editCardioGuidelines" rows="2" placeholder="Ex: Realizar os cardios preferencialmente em jejum ou pós-treino..."></textarea>
+            <textarea id="editCardioGuidelines" rows="2" placeholder="Ex: Realizar os cardios preferencialmente em jejum..."></textarea>
           </div>
 
           <label>Prescrição Diária Semanal:</label>
-          <div class="run-schedule-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:8px;">
-            <div class="content-box-inner" style="padding:10px;">
+          <div class="run-schedule-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap:8px; margin-top:6px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">SEGUNDA</b>
               <input type="text" id="run_km_seg" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_seg" placeholder="Tempo" style="margin-top:4px;">
@@ -341,7 +331,7 @@
               <input type="text" id="run_desc_seg" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">TERÇA</b>
               <input type="text" id="run_km_ter" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_ter" placeholder="Tempo" style="margin-top:4px;">
@@ -349,7 +339,7 @@
               <input type="text" id="run_desc_ter" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">QUARTA</b>
               <input type="text" id="run_km_qua" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_qua" placeholder="Tempo" style="margin-top:4px;">
@@ -357,7 +347,7 @@
               <input type="text" id="run_desc_qua" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">QUINTA</b>
               <input type="text" id="run_km_qui" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_qui" placeholder="Tempo" style="margin-top:4px;">
@@ -365,7 +355,7 @@
               <input type="text" id="run_desc_qui" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">SEXTA</b>
               <input type="text" id="run_km_sex" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_sex" placeholder="Tempo" style="margin-top:4px;">
@@ -373,7 +363,7 @@
               <input type="text" id="run_desc_sex" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">SÁBADO</b>
               <input type="text" id="run_km_sab" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_sab" placeholder="Tempo" style="margin-top:4px;">
@@ -381,7 +371,7 @@
               <input type="text" id="run_desc_sab" placeholder="Descrição" style="margin-top:4px;">
             </div>
 
-            <div class="content-box-inner" style="padding:10px;">
+            <div class="content-box-inner" style="padding:8px;">
               <b style="color:var(--gold); font-size:11px;">DOMINGO</b>
               <input type="text" id="run_km_dom" placeholder="Km" style="margin-top:4px;">
               <input type="text" id="run_min_dom" placeholder="Tempo" style="margin-top:4px;">
@@ -392,8 +382,8 @@
 
           <button class="btn btn-gold btn-lg full-width" style="margin-top:14px;" onclick="salvarPrescricaoCorridaSemanalAdmin()">💾 SALVAR PRESCRIÇÃO DE CARDIO</button>
 
-          <div style="margin-top:20px;">
-            <label style="color:var(--blue);">📊 Histórico de Corridas Registradas pelo Aluno:</label>
+          <div style="margin-top:16px;">
+            <label style="color:var(--blue);">📊 Histórico de Corridas do Aluno:</label>
             <div id="adminRunHistoryList" class="content-box-inner" style="margin-top:6px;"></div>
           </div>
         </section>
@@ -403,7 +393,7 @@
           <div class="panel-title">⚙️ Configurações & Parâmetros do Aluno</div>
           
           <div class="content-box-inner">
-            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
               
               <div class="form-group">
                 <label for="editName">Nome Completo do Aluno:</label>
@@ -411,12 +401,12 @@
               </div>
 
               <div class="form-group">
-                <label for="editValorMensalidade">Valor da Mensalidade (R$):</label>
+                <label for="editValorMensalidade">Valor Mensalidade (R$):</label>
                 <input type="text" id="editValorMensalidade" placeholder="Ex: 80,00">
               </div>
 
               <div class="form-group">
-                <label for="editDataInicio">📅 Data de Início da Consultoria:</label>
+                <label for="editDataInicio">📅 Início Consultoria:</label>
                 <input type="date" id="editDataInicio">
               </div>
 
@@ -451,17 +441,17 @@
 
             </div>
 
-            <div class="form-group" style="margin-top:12px;">
+            <div class="form-group" style="margin-top:10px;">
               <label for="editPassword">Redefinir Senha do Aluno:</label>
               <div class="senha-row">
                 <div>
                   <input type="text" id="editPassword" placeholder="Deixe em branco para manter a atual">
                 </div>
-                <button type="button" class="btn btn-soft btn-md" style="width:180px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Nova Senha</button>
+                <button type="button" class="btn btn-soft btn-md" style="width:170px;" onclick="gerarNovaSenhaAluno()">🎲 Gerar Senha</button>
               </div>
             </div>
 
-            <div class="config-checkboxes-panel" style="margin-top:14px;">
+            <div class="config-checkboxes-panel" style="margin-top:12px;">
               <div class="checkbox-button-item">
                 <input type="checkbox" id="editIsentoCheckbox">
                 <label for="editIsentoCheckbox">👑 Aluno VIP / Isento de Pagamento</label>
@@ -483,14 +473,14 @@
               </div>
             </div>
 
-            <div class="form-group" style="margin-top:14px;">
-              <label for="editNotasTreinador">📝 Bloco de Notas Privado do Treinador (Apenas você vê):</label>
-              <textarea id="editNotasTreinador" rows="4" placeholder="Anote observações pessoais sobre este aluno..."></textarea>
-              <button class="btn btn-soft sm" style="margin-top:6px;" onclick="salvarNotasTreinadorSozinhas()">💾 Salvar Apenas as Notas</button>
+            <div class="form-group" style="margin-top:12px;">
+              <label for="editNotasTreinador">📝 Bloco de Notas Privado do Treinador:</label>
+              <textarea id="editNotasTreinador" rows="3" placeholder="Anote observações pessoais sobre este aluno..."></textarea>
+              <button class="btn btn-soft sm" style="margin-top:6px;" onclick="salvarNotasTreinadorSozinhas()">💾 Salvar Apenas Notas</button>
             </div>
           </div>
 
-          <div style="display:flex; gap:10px; margin-top:16px;">
+          <div style="display:flex; gap:10px; margin-top:14px;">
             <button class="btn btn-lg" style="flex:2;" onclick="salvarConfiguracoesConta()">💾 SALVAR DADOS DO ALUNO</button>
             <button class="btn btn-danger btn-lg" style="flex:1;" onclick="deletarAluno()">🗑️ EXCLUIR ALUNO</button>
           </div>
@@ -501,7 +491,7 @@
           <div class="panel-title">📋 Cadastrar Aluno via Bloco de Texto</div>
           
           <div class="content-box-inner">
-            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+            <div class="config-form-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
               <div class="form-group">
                 <label for="newName">Nome Completo:*</label>
                 <input type="text" id="newName" placeholder="Ex: João Silva" required>
@@ -523,14 +513,14 @@
               </div>
             </div>
 
-            <label style="margin-top:12px;">Ficha de Treino Inicial (Texto Puro):</label>
-            <textarea id="rawWorkout" rows="6" placeholder="TREINO A&#10;Supino Reto 3x8-10"></textarea>
+            <label style="margin-top:10px;">Ficha de Treino Inicial (Texto Puro):</label>
+            <textarea id="rawWorkout" rows="5" placeholder="TREINO A&#10;Supino Reto 3x8-10"></textarea>
 
-            <label style="margin-top:12px;">Plano Alimentar Inicial (Texto Puro):</label>
-            <textarea id="rawDiet" rows="6" placeholder="REF 1 - CAFÉ DA MANHÃ&#10;- 3 Ovos"></textarea>
+            <label style="margin-top:10px;">Plano Alimentar Inicial (Texto Puro):</label>
+            <textarea id="rawDiet" rows="5" placeholder="REF 1 - CAFÉ DA MANHÃ&#10;- 3 Ovos"></textarea>
           </div>
 
-          <button class="btn btn-wpp btn-lg full-width" style="margin-top:14px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
+          <button class="btn btn-wpp btn-lg full-width" style="margin-top:12px;" onclick="salvarNovoAlunoBloco()">🚀 CRIAR E SALVAR NO BANCO</button>
         </section>
 
         <!-- ABA: CHAT COM AUXILIAR DO TREINADOR -->
@@ -538,15 +528,15 @@
           <div class="panel-title">🧠 Auxiliar do Treinador</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:12px;">Tire dúvidas sobre prescrição de treinos, substituição de exercícios e estratégias de nutrição com seu assistente.</p>
 
-          <div id="adminChatHistory" class="content-box-inner" style="height:340px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+          <div id="adminChatHistory" class="content-box-inner" style="height:320px; overflow-y:auto; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
             <div style="background:#150508; border:1px solid var(--border); padding:10px; border-radius:8px; font-size:13px; color:#fff;">
               <b>Auxiliar do Treinador:</b> Olá, Jhonata! Como posso te ajudar com os alunos hoje?
             </div>
           </div>
 
           <div style="display:flex; gap:8px;">
-            <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Digite sua mensagem para o assistente..." style="resize:none; height:46px; padding:12px 14px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
-            <button class="btn btn-lg" style="width:130px; height:46px;" onclick="sendAdminChatMessage()">Enviar</button>
+            <textarea id="adminChatInput" name="admin-chat-message" rows="1" placeholder="Digite sua mensagem..." style="resize:none; height:44px; padding:10px 14px; width:100%; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:10px;" onkeypress="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendAdminChatMessage(); }"></textarea>
+            <button class="btn btn-lg" style="width:120px; height:44px;" onclick="sendAdminChatMessage()">Enviar</button>
           </div>
         </section>
 
@@ -554,18 +544,18 @@
         <section id="secGifs" class="tab-section hidden panel-card">
           <div class="panel-title">📹 Repositório de GIFs de Execução</div>
           
-          <div class="sidebar-search" style="margin-bottom:14px;">
+          <div class="sidebar-search" style="margin-bottom:12px;">
             <input type="text" id="searchGifInput" placeholder="🔍 Buscar exercício no repositório..." oninput="filtrarGifsAdmin()">
           </div>
 
-          <div id="gifGalleryList" class="gif-gallery-grid content-box-inner" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:12px;"></div>
+          <div id="gifGalleryList" class="gif-gallery-grid content-box-inner" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px;"></div>
         </section>
 
       </main>
     </div>
   </div>
 
-  <!-- MODAL DE GRÁFICO E DETALHES DE EVOLUÇÃO -->
+  <!-- MODAL DE GRÁFICO DE EVOLUÇÃO -->
   <div id="chartModal" class="modal-overlay hidden">
     <div class="modal-chart">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
@@ -581,7 +571,7 @@
         <div id="aiInsightText" style="color:#e0d0d3;">Analisando evolução de cargas e repetições...</div>
       </div>
 
-      <div id="logsDetailList" style="margin-bottom:16px; background:#0d0204; padding:12px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
+      <div id="logsDetailList" style="margin-bottom:14px; background:#0d0204; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:12px;"></div>
 
       <div style="position:relative; height:220px; width:100%;">
         <canvas id="progressChart"></canvas>
