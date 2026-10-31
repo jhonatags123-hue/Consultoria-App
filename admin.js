@@ -6,6 +6,7 @@ let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
 let gifsDatabase = [];
+let isentosExpanded = false; // Controle de abertura da sanfona dos isentos
 
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
@@ -554,6 +555,19 @@ function alunoTemFeedbackPendente(aluno) {
   return ultimaMsg && ultimaMsg.autor === "ALUNO";
 }
 
+/* RENDERIZAÇÃO DA LISTA DE ALUNOS COM SANFONA PARA ISENTOS/VIPS */
+function toggleSanfonaIsentos() {
+  isentosExpanded = !isentosExpanded;
+  const boxContainer = document.getElementById('alunosIsentosListContainer');
+  const iconSeta = document.getElementById('setaIsentosIcon');
+  if (boxContainer) {
+    boxContainer.style.display = isentosExpanded ? 'block' : 'none';
+  }
+  if (iconSeta) {
+    iconSeta.textContent = isentosExpanded ? '▲' : '▼';
+  }
+}
+
 function renderStudentsList(list) {
   const container = document.getElementById('alunosList');
   if (!container) return;
@@ -613,12 +627,12 @@ function renderStudentsList(list) {
   if (alunosVip.length > 0) {
     const headerVip = document.createElement('div');
     headerVip.style.cssText = `
-      margin-top: 18px;
-      margin-bottom: 8px;
-      padding: 6px 10px;
-      background: rgba(220, 170, 58, 0.1);
+      margin-top: 16px;
+      margin-bottom: 6px;
+      padding: 8px 10px;
+      background: rgba(220, 170, 58, 0.12);
       border-left: 3px solid var(--gold);
-      border-radius: 4px;
+      border-radius: 6px;
       color: var(--gold);
       font-size: 11px;
       font-weight: 800;
@@ -626,16 +640,25 @@ function renderStudentsList(list) {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      cursor: pointer;
+      user-select: none;
     `;
+    headerVip.onclick = toggleSanfonaIsentos;
     headerVip.innerHTML = `
-      <span>👑 ALUNOS VIPS / ISENTOS</span>
-      <span style="font-size:10px; opacity:0.8;">(${alunosVip.length})</span>
+      <span>👑 ALUNOS VIPS / ISENTOS (${alunosVip.length})</span>
+      <span id="setaIsentosIcon" style="font-size:12px;">${isentosExpanded ? '▲' : '▼'}</span>
     `;
     container.appendChild(headerVip);
 
+    const boxIsentos = document.createElement('div');
+    boxIsentos.id = "alunosIsentosListContainer";
+    boxIsentos.style.display = isentosExpanded ? 'block' : 'none';
+
     alunosVip.forEach((aluno) => {
-      container.appendChild(criarItemAluno(aluno, -1));
+      boxIsentos.appendChild(criarItemAluno(aluno, -1));
     });
+
+    container.appendChild(boxIsentos);
   }
 
   if (list.length > 0 && !currentStudentCode) carregarAluno(list[0].codigo);
@@ -1119,7 +1142,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-2. Série de Reconhecimento (Feeder Set)
+​2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
