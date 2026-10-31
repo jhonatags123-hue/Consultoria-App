@@ -40,10 +40,11 @@ function showToast(mensagem, tipo = 'info') {
 }
 
 function authHeaders() {
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('adminToken') || '';
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('admin_token') || '';
+  const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
   return { 
     'Content-Type': 'application/json', 
-    'Authorization': `Bearer ${token}` 
+    'Authorization': cleanToken ? `Bearer ${cleanToken}` : '' 
   };
 }
 
@@ -783,9 +784,11 @@ async function analisarIncomodosIA() {
     });
 
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erro no servidor');
+
     box.innerHTML = `<b>🤖 Análise da IA:</b><br>${escapeHtml(data.resumo || 'Sem recomendações no momento.').replace(/\n/g, '<br>')}`;
   } catch(e) {
-    box.innerHTML = "Erro ao conectar com a IA.";
+    box.innerHTML = `Erro ao conectar com a IA: ${e.message}`;
   }
 }
 
@@ -1034,7 +1037,9 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     });
 
     const data = await res.json();
-    if (res.ok && data.resposta) {
+    if (!res.ok) throw new Error(data.error || 'Falha ao processar resposta da IA.');
+
+    if (data.resposta) {
       let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
       const resCardio = JSON.parse(jsonClean);
 
@@ -1058,7 +1063,7 @@ Retorne ESTRITAMENTE um JSON puro no formato:
       showToast("Erro ao processar resposta da IA.", "error");
     }
   } catch (e) {
-    showToast("Erro ao conectar com a IA de Cardio.", "error");
+    showToast(`Erro IA Cardio: ${e.message}`, "error");
   } finally {
     btn.textContent = txtOriginal;
     btn.disabled = false;
@@ -1128,7 +1133,9 @@ ${treinoAtualTexto}`,
     });
 
     const data = await res.json();
-    if (res.ok && data.resposta) {
+    if (!res.ok) throw new Error(data.error || 'Erro ao gerar diretrizes.');
+
+    if (data.resposta) {
       let textoLimpo = data.resposta.replace(/\*/g, '').trim();
       document.getElementById('editTrainerGuidelines').value = textoLimpo;
       showToast("Diretrizes geradas!", "success");
@@ -1136,7 +1143,7 @@ ${treinoAtualTexto}`,
       showToast(data.error || "Não foi possível gerar as diretrizes.", "error");
     }
   } catch (e) {
-    showToast("Erro ao conectar à IA de Diretrizes.", "error");
+    showToast(`Erro IA Diretrizes: ${e.message}`, "error");
   } finally {
     btn.textContent = txtOriginal;
     btn.disabled = false;
@@ -1175,7 +1182,9 @@ ${tx.value}`,
     });
 
     const data = await res.json();
-    if (res.ok && data.resposta) {
+    if (!res.ok) throw new Error(data.error || 'Falha ao executar alteração na ficha.');
+
+    if (data.resposta) {
       let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsedRes = JSON.parse(jsonClean);
 
@@ -1190,7 +1199,7 @@ ${tx.value}`,
       showToast(data.error || "Erro ao alterar ficha.", "error");
     }
   } catch(e) {
-    showToast("Erro ao processar comando na IA.", "error");
+    showToast(`Erro IA Treino: ${e.message}`, "error");
   } finally {
     btn.textContent = txtOriginal;
     btn.disabled = false;
