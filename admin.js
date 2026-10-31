@@ -244,7 +244,7 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
 
 /* NAVEGAÇÃO ENTRE ABAS INTEGRADA COM ADMIN2.JS */
 function switchTab(tab) {
-  const ids = ['secFinanceiro', 'secContasLucros', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
+  const ids = ['secFinanceiro', 'secContasLucros', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secErgogenicos', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
@@ -296,6 +296,11 @@ function switchTab(tab) {
     const el = document.getElementById('secCorrida');
     if (el) el.classList.remove('hidden');
     const tabBtn = document.getElementById('tab5');
+    if (tabBtn) tabBtn.classList.add('active');
+  } else if (tab === 'ergogenicos') {
+    const el = document.getElementById('secErgogenicos');
+    if (el) el.classList.remove('hidden');
+    const tabBtn = document.getElementById('tabErgogenicos');
     if (tabBtn) tabBtn.classList.add('active');
   } else if (tab === 'cadastro') {
     const el = document.getElementById('secCadastro');
@@ -714,6 +719,11 @@ async function carregarAluno(code) {
     document.getElementById('editTrainerGuidelines').value = currentStudentData.trainer_guidelines || currentStudentData.diretrizes_treinador || '';
     document.getElementById('editCardioGuidelines').value = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
     
+    const campoErgo = document.getElementById('editProtocoloErgogenicos');
+    if (campoErgo) {
+      campoErgo.value = currentStudentData.protocoloErgogenicos || currentStudentData.ergogenicos_texto || '';
+    }
+
     document.getElementById('editNotasTreinador').value = currentStudentData.notas_treinador || '';
 
     carregarCamposCorridaAdmin(currentStudentData.prescricao_corrida || {});
@@ -1092,6 +1102,64 @@ function salvarPrescricaoCorridaSemanalAdmin() {
   showToast("Plano de cardio e prescrição salvos!", "success");
 }
 
+/* IA & SALVAMENTO DE ERGOGÊNICOS */
+async function gerarProtocoloErgogenicosIA() {
+  if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+
+  const prompt = document.getElementById('aiErgogenicosPromptAdmin').value.trim();
+  const btn = document.getElementById('btnGerarErgoIA');
+  const txtOriginal = btn.textContent;
+
+  btn.textContent = "⏳ IA Montando...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
+      method: 'POST',
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify({
+        mensagem: `Você é um preparador físico e especialista em fisiologia do exercício e recursos ergogênicos.
+Monte um protocolo detalhado de ergogênicos, posologia, horários de aplicação e protetores de saúde (hepáticos, lipídicos, cardiovascular) com base no pedido.
+Prompt do treinador: "${prompt || 'Protocolo ergogênico estruturado e seguro'}".
+Retorne o texto formatado e direto, sem formatações estranhas.`,
+        contexto: currentStudentData || {}
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Falha ao processar resposta da IA.');
+
+    if (data.resposta) {
+      document.getElementById('editProtocoloErgogenicos').value = data.resposta.trim();
+      showToast("Protocolo de ergogênicos gerado via IA!", "success");
+    } else {
+      showToast("Erro ao processar resposta da IA.", "error");
+    }
+  } catch (e) {
+    showToast(`Erro IA Ergogênicos: ${e.message}`, "error");
+  } finally {
+    btn.textContent = txtOriginal;
+    btn.disabled = false;
+  }
+}
+
+async function salvarProtocoloErgogenicos() {
+  if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+
+  const textoProtocolo = document.getElementById('editProtocoloErgogenicos').value.trim();
+  
+  currentStudentData.protocoloErgogenicos = textoProtocolo;
+  currentStudentData.ergogenicos_texto = textoProtocolo;
+  currentStudentData.liberarErgogenicos = true;
+
+  const chkErgo = document.getElementById('editLiberarErgogenicos');
+  if (chkErgo) chkErgo.checked = true;
+
+  await salvarAlteracoes();
+  showToast("Protocolo de ergogênicos salvo com sucesso!", "success");
+}
+
 async function gerarApenasDiretrizesIA() {
   if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1117,7 +1185,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-2. Série de Reconhecimento (Feeder Set)
+​2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
@@ -2463,6 +2531,7 @@ async function salvarNovoAlunoBloco() {
     notas_treinador: "",
     trainer_guidelines: "",
     cardio_guidelines: "",
+    protocoloErgogenicos: "",
     logs: {},
     weekly_logs: {},
     days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
