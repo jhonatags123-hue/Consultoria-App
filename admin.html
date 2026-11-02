@@ -111,7 +111,7 @@
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </div>
 
-        <!-- PAINEL EXCLUSIVO: GERENCIADOR COMPLETO DE LINKS DE VENDAS -->
+        <!-- PAINEL EXCLUSIVO: GERENCIADOR CATEGORIZADO DE LINKS DE ANAMNESE -->
         <div class="sidebar-links-wrapper">
           <div class="painel-links-header" onclick="togglePainelLinksAdmin()">
             <span>🔗 LINKS DE ANAMNESE E VENDAS</span>
@@ -119,11 +119,11 @@
           </div>
 
           <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
-            <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
-              Clique para copiar os links das 6 variações:
-            </small>
+            <!-- CATEGORIA 1: VENDAS ONLINE ASAAS -->
+            <div style="font-size:11px; font-weight:800; color:var(--gold); margin-bottom:6px; margin-top:4px;">
+              💳 VENDAS ONLINE (CHECKOUT ASAAS)
+            </div>
 
-            <!-- VENDAS ONLINE ASAAS -->
             <div class="link-item-row">
               <span class="link-nome">Completa (Asaas):</span>
               <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('asaas_completa')">📋 Copiar</button>
@@ -134,8 +134,12 @@
               <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('asaas_treino')">📋 Copiar</button>
             </div>
 
-            <!-- AMIGOS / INDICAÇÕES -->
-            <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+            <!-- CATEGORIA 2: AMIGOS / ORGÂNICO -->
+            <div style="font-size:11px; font-weight:800; color:#60a5fa; margin-bottom:6px; margin-top:12px; border-top:1px dashed var(--border); padding-top:8px;">
+              🤝 AMIGOS & INDICAÇÕES (A COMBINAR)
+            </div>
+
+            <div class="link-item-row">
               <span class="link-nome">Completa (Amigos):</span>
               <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('amigos_completa')">📋 Copiar</button>
             </div>
@@ -145,8 +149,12 @@
               <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('amigos_treino')">📋 Copiar</button>
             </div>
 
-            <!-- DUPLAS / PARCERIAS -->
-            <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+            <!-- CATEGORIA 3: DUPLAS / INCLUSO -->
+            <div style="font-size:11px; font-weight:800; color:#25d366; margin-bottom:6px; margin-top:12px; border-top:1px dashed var(--border); padding-top:8px;">
+              👥 DUPLAS & PARCERIAS (INCLUSO)
+            </div>
+
+            <div class="link-item-row">
               <span class="link-nome">Completa (Dupla):</span>
               <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('dupla_completa')">📋 Copiar</button>
             </div>
