@@ -105,42 +105,55 @@
         <div class="panel-card">
           <div class="panel-title">⚡ Ferramentas</div>
           <button class="btn btn-wpp btn-md full-width" onclick="copiarLinkAcessoAluno()">🔗 Copiar Link de Acesso</button>
-          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese')">📋 Copiar Link Anamnese</button>
+          <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="copiarLinkVendaAnamnese('asaas_completa')">📋 Copiar Link Anamnese Asaas</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('gifs')">📹 Repositório de GIFs</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px;" onclick="switchTab('novo')">➕ Criar Aluno (Bloco)</button>
           <button class="btn btn-soft btn-md full-width" style="margin-top:8px; border-color:var(--gold); color:var(--gold);" onclick="switchTab('chatAdmin')">🧠 Auxiliar do Treinador</button>
         </div>
 
-        <!-- PAINEL EXCLUSIVO: LINKS DE VENDAS -->
+        <!-- PAINEL EXCLUSIVO: GERENCIADOR COMPLETO DE LINKS DE VENDAS -->
         <div class="sidebar-links-wrapper">
           <div class="painel-links-header" onclick="togglePainelLinksAdmin()">
-            <span>🔗 LINKS DE VENDAS</span>
+            <span>🔗 LINKS DE ANAMNESE E VENDAS</span>
             <span id="setaPainelLinks">▼</span>
           </div>
 
           <div id="conteudoLinksAdmin" class="painel-links-conteudo hidden">
             <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">
-              Clique no botão para copiar os links de vendas:
+              Clique para copiar os links das 6 variações:
             </small>
 
+            <!-- VENDAS ONLINE ASAAS -->
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Completa (Asaas):</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=asaas')">📋 Copiar Link</button>
+              <span class="link-nome">Completa (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('asaas_completa')">📋 Copiar</button>
             </div>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Apenas Treino (Asaas):</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=asaas')">📋 Copiar Link</button>
+              <span class="link-nome">Apenas Treino (Asaas):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('asaas_treino')">📋 Copiar</button>
             </div>
 
+            <!-- AMIGOS / INDICAÇÕES -->
             <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
-              <span class="link-nome">Anamnese Completa (Amigos):</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos')">📋 Copiar Link</button>
+              <span class="link-nome">Completa (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('amigos_completa')">📋 Copiar</button>
             </div>
 
             <div class="link-item-row">
-              <span class="link-nome">Anamnese Apenas Treino (Amigos):</span>
-              <button class="btn-link-copy" onclick="copiarLinkVenda('https://jhonataconsultoria.com.br/app.html?modo=anamnese_treino&origem=amigos')">📋 Copiar Link</button>
+              <span class="link-nome">Apenas Treino (Amigos):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('amigos_treino')">📋 Copiar</button>
+            </div>
+
+            <!-- DUPLAS / PARCERIAS -->
+            <div class="link-item-row" style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;">
+              <span class="link-nome">Completa (Dupla):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('dupla_completa')">📋 Copiar</button>
+            </div>
+
+            <div class="link-item-row">
+              <span class="link-nome">Apenas Treino (Dupla):</span>
+              <button class="btn-link-copy" onclick="copiarLinkVendaAnamnese('dupla_treino')">📋 Copiar</button>
             </div>
           </div>
         </div>
