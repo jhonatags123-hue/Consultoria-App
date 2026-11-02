@@ -19,17 +19,17 @@ const CHAVE_PIX_DEFAULT = "5551990169026";
 
 // Mapeamento completo dos 6 links de anamnese
 const LINKS_ANAMNESE_GERADOR = {
-  // Integram com o checkout do Asaas no final
+  // 1. Integram com o checkout do Asaas no final
   asaas_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese",
   asaas_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino",
   
-  // Organico / Amigos (Valor a combinar)
+  // 2. Organico / Amigos (Valor a combinar diretamente no Wpp)
   amigos_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos",
   amigos_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos",
   
-  // Dupla / Convidado (Incluso no plano / A combinar)
-  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=dupla",
-  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=dupla"
+  // 3. Dupla / Convidado (Incluso no plano / Parceria)
+  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&origem=dupla",
+  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla"
 };
 
 // Função genérica para copiar qualquer uma das 6 opções
@@ -66,6 +66,7 @@ function obterLinkAnamnese(tipo = 'completa') {
 function copiarLinkAnamnese(tipo = 'completa') {
   copiarLinkAnamneseAsaas(tipo);
 }
+
 /* -------------------------------------------------------------
    UTILITÁRIOS E SEGURANÇA
 ------------------------------------------------------------- */
