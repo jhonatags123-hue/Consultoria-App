@@ -1,31 +1,14 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
+// Links de Checkout Asaas
 const CHECKOUT_LINKS = {
-  COMPLETA_TRIMESTRAL: {
-    cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57",
-    pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"
-  },
-  COMPLETA_SEMESTRAL: {
-    cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat",
-    pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"
-  },
-  COMPLETA_ANUAL: {
-    cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd",
-    pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"
-  },
-  TREINO_ANUAL: {
-    cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u",
-    pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"
-  },
-  COMPLETA_DUPLA: {
-    cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
-    pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"
-  },
-  TREINO_DUPLA: {
-    cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo",
-    pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"
-  }
+  COMPLETA_TRIMESTRAL: { cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57", pix: "https://www.asaas.com/000/c/k9pnu5cry59ts60b" },
+  COMPLETA_SEMESTRAL: { cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat", pix: "https://www.asaas.com/000/c/vmplvn41acefxh6q" },
+  COMPLETA_ANUAL: { cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd", pix: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam" },
+  TREINO_ANUAL: { cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u", pix: "https://www.asaas.com/000/c/3rzicld44lby9g6b" },
+  COMPLETA_DUPLA: { cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu", pix: "https://www.asaas.com/000/c/52mqr2awi4hzl61n" },
+  TREINO_DUPLA: { cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo", pix: "https://www.asaas.com/000/c/ke2r2emle6sfnmif" }
 };
 
 const DETALHES_PLANOS = {
@@ -42,8 +25,11 @@ let loggedUserCode = "";
 let autoSaveTimer = null;
 let currentTreinoDayIdx = 0;
 let activeAlunoDietAbaIndex = null;
+
+// Controles de Modo da Anamnese
 let isApenasTreinoMode = false;
-let isConvidadoDuplaMode = false;
+let isAmigosMode = false;
+let isDuplaMode = false;
 
 let workoutTimerInterval = null;
 let workoutTimerRunning = false;
@@ -126,10 +112,26 @@ function sanitizeExKey(nome) {
 }
 
 function atualizarResumoPrecoAnamnese() {
-  const plano = document.getElementById('anamTipoConsultoria').value;
-  const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
+  const selectPlano = document.getElementById('anamTipoConsultoria');
+  if (!selectPlano) return;
+  const plano = selectPlano.value;
+  
   const elValor = document.getElementById('resumoPlanoValor');
   const elSub = document.getElementById('resumoPlanoSub');
+
+  if (isAmigosMode) {
+    if (elValor) elValor.textContent = 'Valor a Combinar com o Treinador';
+    if (elSub) elSub.textContent = 'Indicação / Amigo: o pagamento e condições serão alinhados diretamente via WhatsApp.';
+    return;
+  }
+
+  if (isDuplaMode) {
+    if (elValor) elValor.textContent = 'Incluso no Plano em Dupla';
+    if (elSub) elSub.textContent = 'Cadastro de convidado (vinculado ao plano do titular já contratado).';
+    return;
+  }
+
+  const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
   if (elValor) elValor.textContent = info.valor;
   if (elSub) elSub.textContent = info.sub;
 }
@@ -141,7 +143,7 @@ function fecharModalSenha() { document.getElementById('modalSenha').classList.ad
 
 function compartilharIndicaoWpp() {
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/anamnese.html%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
+  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
   window.open(`https://wa.me/?text=${msg}`, '_blank');
 }
 
@@ -180,7 +182,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -385,6 +387,9 @@ function authHeaders() {
   return headers;
 }
 
+/* -------------------------------------------------------------
+   INICIALIZAÇÃO & ROTEAMENTO DA ANAMNESE E LOGIN
+------------------------------------------------------------- */
 document.addEventListener("DOMContentLoaded", async () => {
   fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
 
@@ -396,30 +401,50 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const modo = params.get('modo');
   const tipo = params.get('tipo');
+  const origem = params.get('origem');
 
+  // Identificação do tipo de produto (Apenas Treino vs Completa)
   if (tipo === 'treino' || modo === 'anamnese_treino') {
     isApenasTreinoMode = true;
   }
 
-  if (modo === 'anamnese_convidado') {
-    isConvidadoDuplaMode = true;
+  // Identificação do canal/regras de preço
+  if (origem === 'amigos') {
+    isAmigosMode = true;
+  } else if (origem === 'dupla' || modo === 'anamnese_convidado') {
+    isDuplaMode = true;
   }
 
-  if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode) {
+  // Se for qualquer variação do formulário de anamnese
+  if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode || isAmigosMode || isDuplaMode) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.remove('hidden');
 
     const restWidget = document.getElementById('restTimerWidget');
     if (restWidget) restWidget.classList.remove('visible');
 
+    const anamTitle = document.getElementById('anamMainTitle');
+    const anamSub = document.getElementById('anamMainSub');
+
     if (isApenasTreinoMode) {
-      const anamTitle = document.getElementById('anamMainTitle');
-      const anamSub = document.getElementById('anamMainSub');
       if (anamTitle) anamTitle.textContent = "Anamnese de Treino";
       if (anamSub) anamSub.textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
-      
-      const selectPlano = document.getElementById('anamTipoConsultoria');
-      if (selectPlano && !isConvidadoDuplaMode) {
+    }
+
+    const selectPlano = document.getElementById('anamTipoConsultoria');
+
+    if (selectPlano) {
+      if (isDuplaMode) {
+        selectPlano.innerHTML = `<option value="DUPLA_CONVIDADO_INCLUSO" selected>Consultoria em Dupla (Incluso no Plano do Titular)</option>`;
+        selectPlano.disabled = true;
+      } else if (isAmigosMode) {
+        if (isApenasTreinoMode) {
+          selectPlano.innerHTML = `<option value="AMIGOS_TREINO" selected>Plano Apenas Treino — Indicação / Amigos (Valor a Combinar)</option>`;
+        } else {
+          selectPlano.innerHTML = `<option value="AMIGOS_COMPLETA" selected>Consultoria Completa — Indicação / Amigos (Valor a Combinar)</option>`;
+        }
+        selectPlano.disabled = true;
+      } else if (isApenasTreinoMode) {
         selectPlano.innerHTML = `
           <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — R$ 55/mês ou R$ 540 no PIX</option>
           <option value="TREINO_DUPLA">Promocional Treino em Dupla (Anual) — R$ 90/mês ou R$ 960 no PIX</option>
@@ -427,37 +452,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    const planoParam = params.get('plano');
-    const selectPlano = document.getElementById('anamTipoConsultoria');
-
-    if (planoParam && selectPlano && !isConvidadoDuplaMode) {
-      if (CHECKOUT_LINKS[planoParam] || DETALHES_PLANOS[planoParam]) {
-        selectPlano.value = planoParam;
-      }
-      selectPlano.disabled = true;
-      selectPlano.style.opacity = '0.85';
-      selectPlano.style.background = 'var(--panel)';
-    }
-
-    if (isConvidadoDuplaMode) {
-      const selectPagamento = document.getElementById('anamFormaPagamento');
-      const pixBox = document.getElementById('pixDiretoBox');
-
-      if (selectPlano) {
-        selectPlano.innerHTML = `<option value="DUPLA_CONVIDADO_INCLUSO" selected>Consultoria em Dupla (Incluso no Plano do Titular)</option>`;
-        selectPlano.disabled = true;
-      }
-      if (selectPagamento) {
-        selectPagamento.innerHTML = `<option value="INCLUSO_NO_PLANO_DUPLA" selected>Incluso no Plano em Dupla (Já Pago)</option>`;
-        selectPagamento.disabled = true;
-      }
-      if (pixBox) pixBox.classList.add('hidden');
-    }
-
     atualizarResumoPrecoAnamnese();
     return;
   }
 
+  // Caso normal de login do aluno
   const loggedUser = localStorage.getItem('logged_user');
   const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
 
@@ -571,7 +570,47 @@ async function handleLogin(e) {
   tentarConexao(3);
 }
 
+/* -------------------------------------------------------------
+   TELA FINAL DE CHECKOUT DA ANAMNESE (TRATAMENTO DE ORIGEM)
+------------------------------------------------------------- */
 function renderizarCheckoutFinalPlano(tipoConsultoria) {
+  // 1. SE FOR CANAL DE AMIGOS / VALOR A COMBINAR
+  if (isAmigosMode) {
+    return `
+      <div style="text-align:center; padding:24px 10px;">
+        <div style="font-size:48px; margin-bottom:12px;">🎉</div>
+        <h2 style="font-size:24px; font-weight:700; color:var(--ink,#fff); font-family:var(--font-display);">
+          Anamnese Enviada com Sucesso!
+        </h2>
+        <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
+          Seus dados já foram recebidos! Como seu plano é por indicação/combinado, clique abaixo para falar direto no WhatsApp do Personal e acertar os detalhes do seu início:
+        </p>
+        <a href="https://wa.me/5551990169026?text=${encodeURIComponent('Olá Jhonata! Preenchi minha anamnese pelo link de indicação/amigos e gostaria de combinar o início!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
+          💬 Finalizar e Combinar no WhatsApp
+        </a>
+      </div>
+    `;
+  }
+
+  // 2. SE FOR PLANO EM DUPLA INCLUSO
+  if (isDuplaMode) {
+    return `
+      <div style="text-align:center; padding:24px 10px;">
+        <div style="font-size:48px; margin-bottom:12px;">👥</div>
+        <h2 style="font-size:24px; font-weight:700; color:var(--ink,#fff); font-family:var(--font-display);">
+          Cadastro de Dupla Recebido!
+        </h2>
+        <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
+          Sua anamnese foi vinculada com sucesso ao plano do titular. Avise o personal para liberar seu acesso!
+        </p>
+        <a href="https://wa.me/5551990169026?text=${encodeURIComponent('Olá Jhonata! Acabei de enviar minha anamnese da Dupla/Convidado!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
+          📲 Avisar Personal no WhatsApp
+        </a>
+      </div>
+    `;
+  }
+
+  // 3. VENDA ONLINE PADRÃO COM CHECKOUT ASAAS
   const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
 
   return `
@@ -612,7 +651,8 @@ async function sendAnamneseAppDirect() {
   const email = document.getElementById('anamEmail').value.trim();
   const cpf = document.getElementById('anamCpf').value.trim();
   const telefone = document.getElementById('anamTelefone').value.trim();
-  const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
+  const selectConsultoria = document.getElementById('anamTipoConsultoria');
+  const tipoConsultoria = selectConsultoria ? selectConsultoria.value : 'COMPLETA_SEMESTRAL';
   const btn = document.getElementById('btnSubmitAnam');
 
   if (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
@@ -629,6 +669,7 @@ async function sendAnamneseAppDirect() {
     email: email,
     cpf: cpf,
     tipoConsultoria: tipoConsultoria,
+    origem: isAmigosMode ? 'amigos' : (isDuplaMode ? 'dupla' : 'asaas'),
     telefone: telefone,
     peso: document.getElementById('anamPeso').value.trim(),
     altura: document.getElementById('anamAltura').value.trim(),
@@ -671,21 +712,7 @@ async function sendAnamneseAppDirect() {
       body: JSON.stringify(anamneseData)
     });
 
-    if (!isConvidadoDuplaMode) {
-      document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
-    } else {
-      document.getElementById('anamneseScreen').innerHTML = `
-        <div style="text-align:center; padding:24px 10px;">
-          <div style="font-size:48px; margin-bottom:12px;">✅</div>
-          <h2 style="font-size:26px; font-weight:700; color:var(--ink); font-family:var(--font-display);">
-            Anamnese Recebida
-          </h2>
-          <p style="font-size:13.5px; color:#e0d0d3; margin-top:10px; line-height:1.6;">
-            Seu cadastro em dupla foi vinculado com sucesso!
-          </p>
-        </div>
-      `;
-    }
+    document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
   } catch (e) {
     alert("Erro ao conectar.");
     if (btn) {
