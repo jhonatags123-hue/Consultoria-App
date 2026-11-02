@@ -1,4 +1,4 @@
-Const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 let currentStudentCode = "";
 let currentStudentData = null;
 let lastGeneratedPassword = "";
