@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+Const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 let currentStudentCode = "";
 let currentStudentData = null;
 let lastGeneratedPassword = "";
@@ -12,6 +12,17 @@ let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 const CHAVE_PIX_DEFAULT = "5551990169026";
+
+/* LINKS DE ANAMNESE SEM PARÂMETRO DE PREÇO NO FINAL */
+function obterLinkAnamnese(tipo = 'completa') {
+  const baseUrl = "https://jhonataconsultoria.com.br/anamnese.html";
+  return tipo === 'treino' ? `${baseUrl}?tipo=treino` : `${baseUrl}?tipo=completa`;
+}
+
+function copiarLinkAnamnese(tipo = 'completa') {
+  const link = obterLinkAnamnese(tipo);
+  copiarLinkVenda(link);
+}
 
 function sanitizeExKey(nome) {
   if (!nome) return "ex";
@@ -748,6 +759,7 @@ async function carregarAluno(code) {
   }
 }
 
+/* EXIBIÇÃO DE OBSERVAÇÕES E HISTÓRICO TREINO POR TREINO (COM FILTRO DE 7 DIAS) */
 function renderIncomodosAluno() {
   const list = document.getElementById('incomodosList');
   if (!list) return;
@@ -755,25 +767,65 @@ function renderIncomodosAluno() {
   const sessoes = (currentStudentData && currentStudentData.historico_sessoes) || [];
   
   if (sessoes.length === 0) {
-    list.innerHTML = `<span style="color:var(--muted)">Nenhuma sessão de treino finalizada pelo aluno ainda.</span>`;
+    list.innerHTML = `<span style="color:var(--muted); font-size:12px;">Nenhuma sessão de treino finalizada pelo aluno ainda.</span>`;
     return;
   }
 
-  const ultimaSessao = sessoes[sessoes.length - 1];
-  const obs = ultimaSessao.observacoes || [];
-  const minGasto = ultimaSessao.duracaoMinutos || 0;
+  const agora = new Date().getTime();
+  const limite7DiasMs = 7 * 24 * 60 * 60 * 1000;
 
-  let html = `<div style="margin-bottom:6px;">⏱️ <b>Duração do Último Treino:</b> <span style="color:var(--gold); font-weight:800;">${minGasto} minutos</span></div>`;
+  // Filtra sessões dos últimos 7 dias que tenham data válida
+  const sessoesValidas7Dias = [];
 
-  if (obs.length === 0) {
-    html += `<span style="color:var(--muted)">O aluno não digitou observações ou dores no último treino.</span>`;
-  } else {
-    html += `<b>Relatos e Incômodos:</b><ul style="margin-left:18px; margin-top:4px;">`;
-    obs.forEach(o => {
-      html += `<li style="color:#ff6b7f;">${escapeHtml(o)}</li>`;
-    });
-    html += `</ul>`;
+  sessoes.forEach((sessao, idxOriginal) => {
+    const dataSessao = sessao.data ? new Date(sessao.data).getTime() : null;
+    
+    // Se não tiver data salva, assume mantido para não perder registros sem timestamp
+    const dentroDos7Dias = !dataSessao || (agora - dataSessao <= limite7DiasMs);
+
+    if (dentroDos7Dias) {
+      sessoesValidas7Dias.push({
+        ...sessao,
+        numeroTreino: idxOriginal + 1
+      });
+    }
+  });
+
+  if (sessoesValidas7Dias.length === 0) {
+    list.innerHTML = `<span style="color:var(--muted); font-size:12px;">Nenhum relato ou observação nos últimos 7 dias (registros antigos limpos automaticamente).</span>`;
+    return;
   }
+
+  let html = `<b style="color:var(--gold); font-size:13px;">📜 Observações dos Últimos 7 Dias (Por Treino):</b><br><br>`;
+
+  // Exibe da sessão mais recente para a mais antiga
+  const sessoesInvertidas = [...sessoesValidas7Dias].reverse();
+
+  sessoesInvertidas.forEach((sessao) => {
+    const dataTreino = sessao.data ? new Date(sessao.data).toLocaleDateString('pt-BR') : 'Data recente';
+    const duracao = sessao.duracaoMinutos || 0;
+    const obs = sessao.observacoes || [];
+
+    html += `
+      <div style="background:#0d0204; border:1px solid var(--border); border-left:3px solid var(--gold); padding:10px; border-radius:8px; margin-bottom:8px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <b style="color:#fff;">🏋️ Treino ${sessao.numeroTreino} — ${escapeHtml(sessao.treinoTitulo || 'Sessão')}</b>
+          <span style="color:var(--gold); font-weight:700;">⏱️ ${duracao} min | 📅 ${dataTreino}</span>
+        </div>
+    `;
+
+    if (obs.length === 0) {
+      html += `<div style="color:var(--muted); font-size:11px; margin-top:4px;">Sem observações ou dores relatadas nesta sessão.</div>`;
+    } else {
+      html += `<ul style="margin-left:16px; margin-top:4px; color:#ff6b7f;">`;
+      obs.forEach(o => {
+        html += `<li>${escapeHtml(o)}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    html += `</div>`;
+  });
 
   list.innerHTML = html;
 }
