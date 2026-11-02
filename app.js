@@ -1,34 +1,34 @@
-Const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-Const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
+const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
-Const CHECKOUT_LINKS = {
+const CHECKOUT_LINKS = {
   COMPLETA_TRIMESTRAL: {
-    Cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57",
-    Pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"
+    cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57",
+    pix:    "https://www.asaas.com/000/c/k9pnu5cry59ts60b"
   },
   COMPLETA_SEMESTRAL: {
-    Cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat",
-    Pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"
+    cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat",
+    pix:    "https://www.asaas.com/000/c/vmplvn41acefxh6q"
   },
   COMPLETA_ANUAL: {
-    Cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd",
-    Pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"
+    cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd",
+    pix:    "https://www.asaas.com/000/c/d3g2zgxzvigjnpam"
   },
   TREINO_ANUAL: {
-    Cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u",
-    Pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"
+    cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u",
+    pix:    "https://www.asaas.com/000/c/3rzicld44lby9g6b"
   },
   COMPLETA_DUPLA: {
-    Cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
-    Pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"
+    cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu",
+    pix:    "https://www.asaas.com/000/c/52mqr2awi4hzl61n"
   },
   TREINO_DUPLA: {
-    Cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo",
-    Pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"
+    cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo",
+    pix:    "https://www.asaas.com/000/c/ke2r2emle6sfnmif"
   }
 };
 
-Const DETALHES_PLANOS = {
+const DETALHES_PLANOS = {
   'COMPLETA_ANUAL': { valor: 'R$ 85,00/mês no Cartão Recorrente ou R$ 900,00 no PIX', sub: 'Acompanhamento completo individual com treino + dieta.' },
   'COMPLETA_SEMESTRAL': { valor: 'R$ 110,00/mês no Cartão Recorrente ou R$ 600,00 no PIX', sub: 'Protocolo completo semestral com suporte contínuo.' },
   'COMPLETA_TRIMESTRAL': { valor: 'R$ 120,00/mês no Cartão Recorrente ou R$ 330,00 no PIX', sub: 'Acompanhamento trimestral focado em metas rápidas.' },
@@ -37,544 +37,544 @@ Const DETALHES_PLANOS = {
   'TREINO_DUPLA': { valor: 'R$ 90,00/mês no Cartão Recorrente ou R$ 960,00 no PIX', sub: 'Apenas R$ 45,00 por mês por pessoa para treinar em dupla.' }
 };
 
-Let currentData = null;
-Let loggedUserCode = "";
-Let autoSaveTimer = null;
-Let currentTreinoDayIdx = 0;
-Let activeAlunoDietAbaIndex = null;
-Let isApenasTreinoMode = false;
-Let isConvidadoDuplaMode = false;
+let currentData = null;
+let loggedUserCode = "";
+let autoSaveTimer = null;
+let currentTreinoDayIdx = 0;
+let activeAlunoDietAbaIndex = null;
+let isApenasTreinoMode = false;
+let isConvidadoDuplaMode = false;
 
-Let workoutTimerInterval = null;
-Let workoutTimerRunning = false;
-Let selectedFeedbackFiles = [];
+let workoutTimerInterval = null;
+let workoutTimerRunning = false;
+let selectedFeedbackFiles = [];
 
 // Cronômetro de Inatividade (20 Minutos)
-Let inactivityTimer = null;
-Const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
+let inactivityTimer = null;
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
-Function resetInactivityTimer() {
-  If (inactivityTimer) clearTimeout(inactivityTimer);
+function resetInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
 
-  If (workoutTimerRunning) {
-    InactivityTimer = setTimeout(() => {
-      If (workoutTimerRunning) {
-        ToggleWorkoutTimer();
-        Alert("⏱️ O treino foi pausado automaticamente após 20 minutos de inatividade.");
+  if (workoutTimerRunning) {
+    inactivityTimer = setTimeout(() => {
+      if (workoutTimerRunning) {
+        toggleWorkoutTimer();
+        alert("⏱️ O treino foi pausado automaticamente após 20 minutos de inatividade.");
       }
     }, INACTIVITY_LIMIT_MS);
   }
 }
 
 ['click', 'touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => {
-  Window.addEventListener(evt, resetInactivityTimer, { passive: true });
+  window.addEventListener(evt, resetInactivityTimer, { passive: true });
 });
 
-Async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
-  Return new Promise((resolve, reject) => {
-    If (!file) return resolve(null);
+async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
 
-    Const reader = new FileReader();
-    Reader.onload = async function() {
-      Const base64String = reader.result.split(',')[1];
+    const reader = new FileReader();
+    reader.onload = async function() {
+      const base64String = reader.result.split(',')[1];
 
-      Const payload = {
-        Nome: nomeAluno,
-        FileName: customFileName || file.name,
-        MimeType: file.type,
-        FileData: base64String
+      const payload = {
+        nome: nomeAluno,
+        fileName: customFileName || file.name,
+        mimeType: file.type,
+        fileData: base64String
       };
 
-      Try {
-        Const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-          Method: "POST",
-          Body: JSON.stringify(payload)
+      try {
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
         });
-        Const result = await response.json();
-        If (result.success) {
-          Resolve(result.url);
+        const result = await response.json();
+        if (result.success) {
+          resolve(result.url);
         } else {
-          Console.error("Erro no Apps Script:", result.error);
-          Resolve(null);
+          console.error("Erro no Apps Script:", result.error);
+          resolve(null);
         }
       } catch (err) {
-        Console.error("Erro ao enviar arquivo para o Drive:", err);
-        Resolve(null);
+        console.error("Erro ao enviar arquivo para o Drive:", err);
+        resolve(null);
       }
     };
-    Reader.onerror = error => reject(error);
-    Reader.readAsDataURL(file);
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
   });
 }
 
-Function mascaraDataNascimento(input) {
-  Let v = input.value.replace(/\D/g, '');
-  If (v.length > 8) v = v.slice(0, 8);
+function mascaraDataNascimento(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 8) v = v.slice(0, 8);
   
-  If (v.length > 4) {
-    Input.value = `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
+  if (v.length > 4) {
+    input.value = `${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;
   } else if (v.length > 2) {
-    Input.value = `${v.slice(0,2)}/${v.slice(2)}`;
+    input.value = `${v.slice(0,2)}/${v.slice(2)}`;
   } else {
-    Input.value = v;
+    input.value = v;
   }
 }
 
-Function sanitizeExKey(nome) {
-  If (!nome) return "ex";
-  Return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
+function sanitizeExKey(nome) {
+  if (!nome) return "ex";
+  return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
 }
 
-Function atualizarResumoPrecoAnamnese() {
-  Const plano = document.getElementById('anamTipoConsultoria').value;
-  Const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
-  Const elValor = document.getElementById('resumoPlanoValor');
-  Const elSub = document.getElementById('resumoPlanoSub');
-  If (elValor) elValor.textContent = info.valor;
-  If (elSub) elSub.textContent = info.sub;
+function atualizarResumoPrecoAnamnese() {
+  const plano = document.getElementById('anamTipoConsultoria').value;
+  const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
+  const elValor = document.getElementById('resumoPlanoValor');
+  const elSub = document.getElementById('resumoPlanoSub');
+  if (elValor) elValor.textContent = info.valor;
+  if (elSub) elSub.textContent = info.sub;
 }
 
-Function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
-Function fecharModalIndique() { document.getElementById('modalIndique').classList.add('hidden'); }
-Function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
-Function fecharModalSenha() { document.getElementById('modalSenha').classList.add('hidden'); }
+function abrirModalIndique() { document.getElementById('modalIndique').classList.remove('hidden'); }
+function fecharModalIndique() { document.getElementById('modalIndique').classList.add('hidden'); }
+function abrirModalSenha() { document.getElementById('modalSenha').classList.remove('hidden'); }
+function fecharModalSenha() { document.getElementById('modalSenha').classList.add('hidden'); }
 
-Function compartilharIndicaoWpp() {
-  Const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  Const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/anamnese.html%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
-  Window.open(`https://wa.me/?text=${msg}`, '_blank');
+function compartilharIndicaoWpp() {
+  const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/anamnese.html%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
 }
 
-Async function alterarSenhaAlunoModal() {
-  Const novaSenha = document.getElementById('alunoNovaSenhaModal').value.trim();
-  If (!novaSenha) return alert("Digite uma nova senha.");
+async function alterarSenhaAlunoModal() {
+  const novaSenha = document.getElementById('alunoNovaSenhaModal').value.trim();
+  if (!novaSenha) return alert("Digite uma nova senha.");
 
-  CurrentData.senha = novaSenha;
+  currentData.senha = novaSenha;
 
-  Try {
-    Const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-      Method: "POST",
-      Headers: authHeaders(),
-      Cache: 'no-cache',
-      Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+      method: "POST",
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
 
-    If (res.ok) {
-      Alert("Senha alterada com sucesso.");
-      Document.getElementById('alunoNovaSenhaModal').value = "";
-      FecharModalSenha();
+    if (res.ok) {
+      alert("Senha alterada com sucesso.");
+      document.getElementById('alunoNovaSenhaModal').value = "";
+      fecharModalSenha();
     }
   } catch (e) {
-    Alert("Erro ao alterar senha.");
+    alert("Erro ao alterar senha.");
   }
 }
 
-Function escapeHtml(str) {
-  If (!str || typeof str !== 'string') return '';
-  Return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+function escapeHtml(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-Function obterDiaSemanaNormalizado() {
-  Const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-  Return dias[new Date().getDay()];
+function obterDiaSemanaNormalizado() {
+  const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+  return dias[new Date().getDay()];
 }
 
-Function obterNomeDiaSemanaFormatado() {
-  Const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
-  Return dias[new Date().getDay()];
+function obterNomeDiaSemanaFormatado() {
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
+  return dias[new Date().getDay()];
 }
 
-Function calcularPaceTexto(kmNum, minNum) {
-  Const km = parseFloat(kmNum) || 0;
-  Const min = parseFloat(minNum) || 0;
-  If (km <= 0 || min <= 0) return "--'--\"";
-  Const paceFloat = min / km;
-  Const paceMin = Math.floor(paceFloat);
-  Const paceSec = Math.round((paceFloat - paceMin) * 60);
-  Return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
+function calcularPaceTexto(kmNum, minNum) {
+  const km = parseFloat(kmNum) || 0;
+  const min = parseFloat(minNum) || 0;
+  if (km <= 0 || min <= 0) return "--'--\"";
+  const paceFloat = min / km;
+  const paceMin = Math.floor(paceFloat);
+  const paceSec = Math.round((paceFloat - paceMin) * 60);
+  return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
 }
 
-Let restTimerInterval = null;
-Let restSecondsLeft = 0;
-Let audioCtx = null;
+let restTimerInterval = null;
+let restSecondsLeft = 0;
+let audioCtx = null;
 
-Function initAudioContext() {
-  If (!audioCtx) {
-    Const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-    If (AudioContextClass) audioCtx = new AudioContextClass();
+function initAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) audioCtx = new AudioContextClass();
   }
-  If (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-Function playBipSound() {
-  Try {
-    InitAudioContext();
-    If (!audioCtx) return;
-    Const osc = audioCtx.createOscillator();
-    Const gain = audioCtx.createGain();
-    Osc.type = 'sine';
-    Osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-    Gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-    Osc.connect(gain);
-    Gain.connect(audioCtx.destination);
-    Osc.start();
-    Osc.stop(audioCtx.currentTime + 0.4);
+function playBipSound() {
+  try {
+    initAudioContext();
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.4);
   } catch(e){}
 }
 
-Function startRestTimer(seconds) {
-  InitAudioContext();
-  If (restTimerInterval) clearInterval(restTimerInterval);
-  RestSecondsLeft = seconds;
+function startRestTimer(seconds) {
+  initAudioContext();
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  restSecondsLeft = seconds;
 
-  Const widget = document.getElementById('restTimerWidget');
-  If (widget) widget.classList.remove('timer-finished-glow');
+  const widget = document.getElementById('restTimerWidget');
+  if (widget) widget.classList.remove('timer-finished-glow');
 
-  UpdateTimerDisplay();
+  updateTimerDisplay();
 
-  RestTimerInterval = setInterval(() => {
-    RestSecondsLeft--;
-    UpdateTimerDisplay();
+  restTimerInterval = setInterval(() => {
+    restSecondsLeft--;
+    updateTimerDisplay();
 
-    If (restSecondsLeft <= 0) {
-      ClearInterval(restTimerInterval);
-      If (widget) widget.classList.add('timer-finished-glow');
-      PlayBipSound();
-      If (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    if (restSecondsLeft <= 0) {
+      clearInterval(restTimerInterval);
+      if (widget) widget.classList.add('timer-finished-glow');
+      playBipSound();
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 
-      SetTimeout(() => {
-        If (widget) widget.classList.remove('timer-finished-glow');
+      setTimeout(() => {
+        if (widget) widget.classList.remove('timer-finished-glow');
       }, 5000);
     }
   }, 1000);
 }
 
-Function updateTimerDisplay() {
-  Const display = document.getElementById('timerDisplay');
-  If (!display) return;
-  Const m = Math.floor(restSecondsLeft / 60);
-  Const s = restSecondsLeft % 60;
-  Display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+function updateTimerDisplay() {
+  const display = document.getElementById('timerDisplay');
+  if (!display) return;
+  const m = Math.floor(restSecondsLeft / 60);
+  const s = restSecondsLeft % 60;
+  display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-Function checkAndRestoreWorkoutTimer() {
-  Const keyElapsed = `workout_elapsed_${loggedUserCode}`;
-  Const keyStart = `workout_start_time_${loggedUserCode}`;
+function checkAndRestoreWorkoutTimer() {
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+  const keyStart = `workout_start_time_${loggedUserCode}`;
   
-  Const startTimeStr = localStorage.getItem(keyStart);
-  Const btn = document.getElementById('btnWorkoutTimer');
+  const startTimeStr = localStorage.getItem(keyStart);
+  const btn = document.getElementById('btnWorkoutTimer');
 
-  If (startTimeStr) {
-    WorkoutTimerRunning = true;
-    If (btn) {
-      Btn.textContent = "⏹️ PAUSAR";
-      Btn.style.background = "var(--signal-light)";
+  if (startTimeStr) {
+    workoutTimerRunning = true;
+    if (btn) {
+      btn.textContent = "⏹️ PAUSAR";
+      btn.style.background = "var(--signal-light)";
     }
-    SetInputsLockState(false);
+    setInputsLockState(false);
 
-    If (workoutTimerInterval) clearInterval(workoutTimerInterval);
-    WorkoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
-    UpdateWorkoutTimerDisplay();
-    ResetInactivityTimer();
+    if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+    workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
+    updateWorkoutTimerDisplay();
+    resetInactivityTimer();
   } else {
-    WorkoutTimerRunning = false;
-    If (btn) {
-      Btn.textContent = "▶ INICIAR TREINO";
-      Btn.style.background = "var(--good)";
+    workoutTimerRunning = false;
+    if (btn) {
+      btn.textContent = "▶ INICIAR TREINO";
+      btn.style.background = "var(--good)";
     }
-    SetInputsLockState(true);
+    setInputsLockState(true);
     
-    Const elapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
-    RenderClockTime(elapsed);
+    const elapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+    renderClockTime(elapsed);
   }
 }
 
-Function setInputsLockState(locked) {
-  Document.querySelectorAll('.input-log, .btn-check-serie, .btn-check-exercise').forEach(el => {
-    El.disabled = locked;
+function setInputsLockState(locked) {
+  document.querySelectorAll('.input-log, .btn-check-serie, .btn-check-exercise').forEach(el => {
+    el.disabled = locked;
   });
 }
 
-Function toggleWorkoutTimer() {
-  Const btn = document.getElementById('btnWorkoutTimer');
-  Const keyStart = `workout_start_time_${loggedUserCode}`;
-  Const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+function toggleWorkoutTimer() {
+  const btn = document.getElementById('btnWorkoutTimer');
+  const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
 
-  If (!workoutTimerRunning) {
-    WorkoutTimerRunning = true;
-    LocalStorage.setItem(keyStart, Date.now().toString());
+  if (!workoutTimerRunning) {
+    workoutTimerRunning = true;
+    localStorage.setItem(keyStart, Date.now().toString());
 
-    If (btn) {
-      Btn.textContent = "⏹️ PAUSAR";
-      Btn.style.background = "var(--signal-light)";
+    if (btn) {
+      btn.textContent = "⏹️ PAUSAR";
+      btn.style.background = "var(--signal-light)";
     }
 
-    SetInputsLockState(false);
+    setInputsLockState(false);
 
-    If (workoutTimerInterval) clearInterval(workoutTimerInterval);
-    WorkoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
-    UpdateWorkoutTimerDisplay();
-    ResetInactivityTimer();
+    if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+    workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
+    updateWorkoutTimerDisplay();
+    resetInactivityTimer();
   } else {
-    WorkoutTimerRunning = false;
+    workoutTimerRunning = false;
     
-    Const startTimeStr = localStorage.getItem(keyStart);
-    If (startTimeStr) {
-      Const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
-      Const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
-      LocalStorage.setItem(keyElapsed, (prevElapsed + currentRun).toString());
+    const startTimeStr = localStorage.getItem(keyStart);
+    if (startTimeStr) {
+      const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+      const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+      localStorage.setItem(keyElapsed, (prevElapsed + currentRun).toString());
     }
 
-    LocalStorage.removeItem(keyStart);
-    If (workoutTimerInterval) clearInterval(workoutTimerInterval);
-    If (inactivityTimer) clearTimeout(inactivityTimer);
+    localStorage.removeItem(keyStart);
+    if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
 
-    If (btn) {
-      Btn.textContent = "▶ RETOMAR TREINO";
-      Btn.style.background = "var(--good)";
+    if (btn) {
+      btn.textContent = "▶ RETOMAR TREINO";
+      btn.style.background = "var(--good)";
     }
 
-    SetInputsLockState(true);
+    setInputsLockState(true);
   }
 }
 
-Function updateWorkoutTimerDisplay() {
-  Const keyStart = `workout_start_time_${loggedUserCode}`;
-  Const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+function updateWorkoutTimerDisplay() {
+  const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   
-  Const startTimeStr = localStorage.getItem(keyStart);
-  Const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+  const startTimeStr = localStorage.getItem(keyStart);
+  const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
 
-  If (!startTimeStr) {
-    RenderClockTime(prevElapsed);
-    Return;
+  if (!startTimeStr) {
+    renderClockTime(prevElapsed);
+    return;
   }
 
-  Const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
-  Const totalElapsed = prevElapsed + currentRun;
+  const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+  const totalElapsed = prevElapsed + currentRun;
   
-  RenderClockTime(totalElapsed);
+  renderClockTime(totalElapsed);
 }
 
-Function renderClockTime(totalSeconds) {
-  Const clock = document.getElementById('workoutTimerClock');
-  If (!clock) return;
+function renderClockTime(totalSeconds) {
+  const clock = document.getElementById('workoutTimerClock');
+  if (!clock) return;
 
-  Const h = Math.floor(totalSeconds / 3600);
-  Const m = Math.floor((totalSeconds % 3600) / 60);
-  Const s = totalSeconds % 60;
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
 
-  Const fmt = n => String(n).padStart(2, '0');
-  Clock.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+  const fmt = n => String(n).padStart(2, '0');
+  clock.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
 }
 
-Function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
-  If (!workoutTimerRunning) {
-    Alert("⚠️ Clique em '▶ INICIAR TREINO' para registrar cargas!");
-    Return;
+function aplicarCargaBackoff(keyInput, valorCarga, dayIdx, exIdx) {
+  if (!workoutTimerRunning) {
+    alert("⚠️ Clique em '▶ INICIAR TREINO' para registrar cargas!");
+    return;
   }
-  Const el = document.getElementById(`input_${keyInput}`);
-  If (el) el.value = valorCarga;
-  ScheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
+  const el = document.getElementById(`input_${keyInput}`);
+  if (el) el.value = valorCarga;
+  scheduleAutoSave(keyInput, String(valorCarga), dayIdx, exIdx);
 }
 
-Function authHeaders() {
-  Const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
-  Const headers = { 'Content-Type': 'application/json' };
-  If (token) headers['Authorization'] = `Bearer ${token}`;
-  Return headers;
+function authHeaders() {
+  const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return headers;
 }
 
-Document.addEventListener("DOMContentLoaded", async () => {
-  Fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
+document.addEventListener("DOMContentLoaded", async () => {
+  fetch(`${BACKEND_URL}/ping`, { cache: 'no-cache' }).catch(() => {});
 
-  Const params = new URLSearchParams(window.location.search);
-  Const paramAluno = params.get('aluno');
-  If (paramAluno && document.getElementById('loginUser')) {
-    Document.getElementById('loginUser').value = paramAluno;
+  const params = new URLSearchParams(window.location.search);
+  const paramAluno = params.get('aluno');
+  if (paramAluno && document.getElementById('loginUser')) {
+    document.getElementById('loginUser').value = paramAluno;
   }
 
-  Const modo = params.get('modo');
-  Const tipo = params.get('tipo');
+  const modo = params.get('modo');
+  const tipo = params.get('tipo');
 
-  If (tipo === 'treino' || modo === 'anamnese_treino') {
-    IsApenasTreinoMode = true;
+  if (tipo === 'treino' || modo === 'anamnese_treino') {
+    isApenasTreinoMode = true;
   }
 
-  If (modo === 'anamnese_convidado') {
-    IsConvidadoDuplaMode = true;
+  if (modo === 'anamnese_convidado') {
+    isConvidadoDuplaMode = true;
   }
 
-  If (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode) {
-    Document.getElementById('loginScreen').classList.add('hidden');
-    Document.getElementById('anamneseScreen').classList.remove('hidden');
+  if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode) {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.remove('hidden');
 
-    Const restWidget = document.getElementById('restTimerWidget');
-    If (restWidget) restWidget.classList.remove('visible');
+    const restWidget = document.getElementById('restTimerWidget');
+    if (restWidget) restWidget.classList.remove('visible');
 
-    If (isApenasTreinoMode) {
-      Const anamTitle = document.getElementById('anamMainTitle');
-      Const anamSub = document.getElementById('anamMainSub');
-      If (anamTitle) anamTitle.textContent = "Anamnese de Treino";
-      If (anamSub) anamSub.textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
+    if (isApenasTreinoMode) {
+      const anamTitle = document.getElementById('anamMainTitle');
+      const anamSub = document.getElementById('anamMainSub');
+      if (anamTitle) anamTitle.textContent = "Anamnese de Treino";
+      if (anamSub) anamSub.textContent = "Preencha com atenção para a montagem da sua ficha personalizada de treino";
       
-      Const selectPlano = document.getElementById('anamTipoConsultoria');
-      If (selectPlano && !isConvidadoDuplaMode) {
-        SelectPlano.innerHTML = `
+      const selectPlano = document.getElementById('anamTipoConsultoria');
+      if (selectPlano && !isConvidadoDuplaMode) {
+        selectPlano.innerHTML = `
           <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — R$ 55/mês ou R$ 540 no PIX</option>
           <option value="TREINO_DUPLA">Promocional Treino em Dupla (Anual) — R$ 90/mês ou R$ 960 no PIX</option>
         `;
       }
     }
 
-    Const planoParam = params.get('plano');
-    Const selectPlano = document.getElementById('anamTipoConsultoria');
+    const planoParam = params.get('plano');
+    const selectPlano = document.getElementById('anamTipoConsultoria');
 
-    If (planoParam && selectPlano && !isConvidadoDuplaMode) {
-      If (CHECKOUT_LINKS[planoParam] || DETALHES_PLANOS[planoParam]) {
-        SelectPlano.value = planoParam;
+    if (planoParam && selectPlano && !isConvidadoDuplaMode) {
+      if (CHECKOUT_LINKS[planoParam] || DETALHES_PLANOS[planoParam]) {
+        selectPlano.value = planoParam;
       }
-      SelectPlano.disabled = true;
-      SelectPlano.style.opacity = '0.85';
-      SelectPlano.style.background = 'var(--panel)';
+      selectPlano.disabled = true;
+      selectPlano.style.opacity = '0.85';
+      selectPlano.style.background = 'var(--panel)';
     }
 
-    If (isConvidadoDuplaMode) {
-      Const selectPagamento = document.getElementById('anamFormaPagamento');
-      Const pixBox = document.getElementById('pixDiretoBox');
+    if (isConvidadoDuplaMode) {
+      const selectPagamento = document.getElementById('anamFormaPagamento');
+      const pixBox = document.getElementById('pixDiretoBox');
 
-      If (selectPlano) {
-        SelectPlano.innerHTML = `<option value="DUPLA_CONVIDADO_INCLUSO" selected>Consultoria em Dupla (Incluso no Plano do Titular)</option>`;
-        SelectPlano.disabled = true;
+      if (selectPlano) {
+        selectPlano.innerHTML = `<option value="DUPLA_CONVIDADO_INCLUSO" selected>Consultoria em Dupla (Incluso no Plano do Titular)</option>`;
+        selectPlano.disabled = true;
       }
-      If (selectPagamento) {
-        SelectPagamento.innerHTML = `<option value="INCLUSO_NO_PLANO_DUPLA" selected>Incluso no Plano em Dupla (Já Pago)</option>`;
-        SelectPagamento.disabled = true;
+      if (selectPagamento) {
+        selectPagamento.innerHTML = `<option value="INCLUSO_NO_PLANO_DUPLA" selected>Incluso no Plano em Dupla (Já Pago)</option>`;
+        selectPagamento.disabled = true;
       }
-      If (pixBox) pixBox.classList.add('hidden');
+      if (pixBox) pixBox.classList.add('hidden');
     }
 
-    AtualizarResumoPrecoAnamnese();
-    Return;
+    atualizarResumoPrecoAnamnese();
+    return;
   }
 
-  Const loggedUser = localStorage.getItem('logged_user');
-  Const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+  const loggedUser = localStorage.getItem('logged_user');
+  const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
 
-  If (loggedUser && alunoToken) {
-    Try {
-      Const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
-        Headers: authHeaders(),
-        Cache: 'no-cache'
+  if (loggedUser && alunoToken) {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/${loggedUser}`, {
+        headers: authHeaders(),
+        cache: 'no-cache'
       });
-      If (res.ok) {
-        Const data = await res.json();
-        LoggedUserCode = loggedUser;
-        LoadStudentData(data);
+      if (res.ok) {
+        const data = await res.json();
+        loggedUserCode = loggedUser;
+        loadStudentData(data);
       } else {
-        Logout();
+        logout();
       }
     } catch (e) {
-      Logout();
+      logout();
     }
   } else {
-    Document.getElementById('loginScreen').classList.remove('hidden');
-    Document.getElementById('mainContent').classList.add('hidden');
-    Document.getElementById('anamneseScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('mainContent').classList.add('hidden');
+    document.getElementById('anamneseScreen').classList.add('hidden');
 
-    Const restWidget = document.getElementById('restTimerWidget');
-    If (restWidget) restWidget.classList.remove('visible');
+    const restWidget = document.getElementById('restTimerWidget');
+    if (restWidget) restWidget.classList.remove('visible');
   }
 });
 
-Function nextAnamStep(step) {
-  If (isApenasTreinoMode) {
-    If (step === 7 || step === 8) {
-      Step = 9;
+function nextAnamStep(step) {
+  if (isApenasTreinoMode) {
+    if (step === 7 || step === 8) {
+      step = 9;
     }
   }
 
-  For (let i = 1; i <= 10; i++) {
-    Const elStep = document.getElementById(`anamStep${i}`);
-    If (elStep) elStep.classList.add('hidden');
+  for (let i = 1; i <= 10; i++) {
+    const elStep = document.getElementById(`anamStep${i}`);
+    if (elStep) elStep.classList.add('hidden');
   }
-  Const currentStepEl = document.getElementById(`anamStep${step}`);
-  If (currentStepEl) currentStepEl.classList.remove('hidden');
+  const currentStepEl = document.getElementById(`anamStep${step}`);
+  if (currentStepEl) currentStepEl.classList.remove('hidden');
   
-  Const progressBar = document.getElementById('progressBar');
-  Const stepCounter = document.getElementById('stepCounter');
-  If (progressBar) progressBar.style.width = `${(step/10)*100}%`;
-  If (stepCounter) stepCounter.textContent = `Etapa ${step} de 10`;
+  const progressBar = document.getElementById('progressBar');
+  const stepCounter = document.getElementById('stepCounter');
+  if (progressBar) progressBar.style.width = `${(step/10)*100}%`;
+  if (stepCounter) stepCounter.textContent = `Etapa ${step} de 10`;
   
-  Const btnVoltarStep10 = document.getElementById('btnVoltarStep10');
-  If (btnVoltarStep10) {
-    BtnVoltarStep10.setAttribute('onclick', isApenasTreinoMode ? 'nextAnamStep(6)' : 'nextAnamStep(9)');
+  const btnVoltarStep10 = document.getElementById('btnVoltarStep10');
+  if (btnVoltarStep10) {
+    btnVoltarStep10.setAttribute('onclick', isApenasTreinoMode ? 'nextAnamStep(6)' : 'nextAnamStep(9)');
   }
 
-  If (step === 10) atualizarResumoPrecoAnamnese();
+  if (step === 10) atualizarResumoPrecoAnamnese();
 }
 
-Async function handleLogin(e) {
-  E.preventDefault();
-  Const btn = document.getElementById('btnLoginSubmit');
-  Const user = document.getElementById('loginUser').value.trim().toLowerCase();
-  Const pass = document.getElementById('loginPass').value.trim();
-  Const errorDiv = document.getElementById('loginError');
+async function handleLogin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnLoginSubmit');
+  const user = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value.trim();
+  const errorDiv = document.getElementById('loginError');
 
-  ErrorDiv.classList.add('hidden');
-  Btn.textContent = "Conectando ao servidor...";
-  Btn.disabled = true;
+  errorDiv.classList.add('hidden');
+  btn.textContent = "Conectando ao servidor...";
+  btn.disabled = true;
 
-  Const tentarConexao = async (tentativasRestantes) => {
-    Try {
-      Const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
-        Method: 'POST',
-        Headers: { 'Content-Type': 'application/json' },
-        Cache: 'no-cache',
-        Body: JSON.stringify({ codigo: user, senha: pass })
+  const tentarConexao = async (tentativasRestantes) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/aluno/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: user, senha: pass })
       });
 
-      Const result = await res.json();
+      const result = await res.json();
 
-      If (!res.ok) {
-        ErrorDiv.textContent = result.error || "Erro de login.";
-        ErrorDiv.classList.remove('hidden');
-        Btn.textContent = "Entrar";
-        Btn.disabled = false;
-        Return;
+      if (!res.ok) {
+        errorDiv.textContent = result.error || "Erro de login.";
+        errorDiv.classList.remove('hidden');
+        btn.textContent = "Entrar";
+        btn.disabled = false;
+        return;
       }
 
-      LocalStorage.setItem('logged_user', user);
-      LocalStorage.setItem('aluno_token', result.token);
-      LocalStorage.setItem('token', result.token);
-      LocalStorage.setItem('tokenAluno', result.token);
-      LoggedUserCode = user;
+      localStorage.setItem('logged_user', user);
+      localStorage.setItem('aluno_token', result.token);
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('tokenAluno', result.token);
+      loggedUserCode = user;
 
-      If (window.history.replaceState) {
-        Window.history.replaceState({}, document.title, window.location.pathname);
+      if (window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      LoadStudentData(result.data);
+      loadStudentData(result.data);
     } catch (err) {
-      If (tentativasRestantes > 0) {
-        Btn.textContent = "Iniciando servidor, aguarde...";
-        SetTimeout(() => tentarConexao(tentativasRestantes - 1), 3500);
+      if (tentativasRestantes > 0) {
+        btn.textContent = "Iniciando servidor, aguarde...";
+        setTimeout(() => tentarConexao(tentativasRestantes - 1), 3500);
       } else {
-        ErrorDiv.textContent = "O servidor demorou a responder. Aguarde alguns segundos e tente novamente.";
-        ErrorDiv.classList.remove('hidden');
-        Btn.textContent = "Entrar";
-        Btn.disabled = false;
+        errorDiv.textContent = "O servidor demorou a responder. Aguarde alguns segundos e tente novamente.";
+        errorDiv.classList.remove('hidden');
+        btn.textContent = "Entrar";
+        btn.disabled = false;
       }
     }
   };
 
-  TentarConexao(3);
+  tentarConexao(3);
 }
 
-Function renderizarCheckoutFinalPlano(tipoConsultoria) {
-  Const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
+function renderizarCheckoutFinalPlano(tipoConsultoria) {
+  const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
 
-  Return `
+  return `
     <div style="text-align:center; padding:24px 10px;">
       <div style="font-size:48px; margin-bottom:12px;">✅</div>
       <h2 style="font-size:24px; font-weight:700; color:var(--ink,#fff); font-family:var(--font-display);">
@@ -605,76 +605,76 @@ Function renderizarCheckoutFinalPlano(tipoConsultoria) {
   `;
 }
 
-Async function sendAnamneseAppDirect() {
-  Const nome = document.getElementById('anamNome').value.trim();
-  Const nascimento = document.getElementById('anamNascimento').value.trim();
-  Const idade = document.getElementById('anamIdade').value.trim();
-  Const email = document.getElementById('anamEmail').value.trim();
-  Const cpf = document.getElementById('anamCpf').value.trim();
-  Const telefone = document.getElementById('anamTelefone').value.trim();
-  Const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
-  Const btn = document.getElementById('btnSubmitAnam');
+async function sendAnamneseAppDirect() {
+  const nome = document.getElementById('anamNome').value.trim();
+  const nascimento = document.getElementById('anamNascimento').value.trim();
+  const idade = document.getElementById('anamIdade').value.trim();
+  const email = document.getElementById('anamEmail').value.trim();
+  const cpf = document.getElementById('anamCpf').value.trim();
+  const telefone = document.getElementById('anamTelefone').value.trim();
+  const tipoConsultoria = document.getElementById('anamTipoConsultoria').value;
+  const btn = document.getElementById('btnSubmitAnam');
 
-  If (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
-    Return alert("Preencha nome, data de nascimento, idade, e-mail, CPF e WhatsApp.");
+  if (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
+    return alert("Preencha nome, data de nascimento, idade, e-mail, CPF e WhatsApp.");
   }
 
-  Const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
-  Const anamneseData = {
-    Codigo: userCode,
-    Nome: nome,
-    ClientName: nome,
-    Nascimento: nascimento,
-    Idade: idade,
-    Email: email,
-    Cpf: cpf,
-    TipoConsultoria: tipoConsultoria,
-    Telefone: telefone,
-    Peso: document.getElementById('anamPeso').value.trim(),
-    Altura: document.getElementById('anamAltura').value.trim(),
-    Objetivo: document.getElementById('anamObjetivo').value,
-    TempoTreino: document.getElementById('anamTempoTreino').value.trim(),
-    DiasSemana: document.getElementById('anamDiasSemana').value.trim(),
-    PreferenciaDias: document.getElementById('anamPreferenciaDias').value.trim(),
-    TempoTreinoMin: document.getElementById('anamTempoTreinoMin').value.trim(),
-    TempoDescanso: document.getElementById('anamTempoDescanso').value,
-    OutrasAtividades: document.getElementById('anamOutrasAtividades').value.trim(),
-    Lesoes: document.getElementById('anamLesoes').value.trim(),
-    Doencas: document.getElementById('anamDoencas').value.trim(),
-    Rotina: document.getElementById('anamRotina').value.trim(),
-    HorasSono: document.getElementById('anamHorasSono').value.trim(),
-    QualidadeSono: document.getElementById('anamQualidadeSono').value.trim(),
-    Alcool: document.getElementById('anamAlcool').value.trim(),
-    Tabagismo: document.getElementById('anamTabagismo').value.trim(),
-    NumRefeicoes: isApenasTreinoMode ? "" : document.getElementById('anamNumRefeicoes').value.trim(),
-    Alergias: isApenasTreinoMode ? "" : document.getElementById('anamAlergias').value.trim(),
-    AlimentosOdiados: isApenasTreinoMode ? "" : document.getElementById('anamAlimentosOdiados').value.trim(),
-    GostaCarbos: isApenasTreinoMode ? "" : document.getElementById('anamGostaCarbos').value.trim(),
-    GostaProteinas: isApenasTreinoMode ? "" : document.getElementById('anamGostaProteinas').value.trim(),
-    GostaLegumes: isApenasTreinoMode ? "" : document.getElementById('anamGostaLegumes').value.trim(),
-    Orcamento: isApenasTreinoMode ? "" : document.getElementById('anamOrcamento').value.trim(),
-    Suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
-    FimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
-    ApenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
+  const userCode = nome.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+  const anamneseData = {
+    codigo: userCode,
+    nome: nome,
+    clientName: nome,
+    nascimento: nascimento,
+    idade: idade,
+    email: email,
+    cpf: cpf,
+    tipoConsultoria: tipoConsultoria,
+    telefone: telefone,
+    peso: document.getElementById('anamPeso').value.trim(),
+    altura: document.getElementById('anamAltura').value.trim(),
+    objetivo: document.getElementById('anamObjetivo').value,
+    tempoTreino: document.getElementById('anamTempoTreino').value.trim(),
+    diasSemana: document.getElementById('anamDiasSemana').value.trim(),
+    preferenciaDias: document.getElementById('anamPreferenciaDias').value.trim(),
+    tempoTreinoMin: document.getElementById('anamTempoTreinoMin').value.trim(),
+    tempoDescanso: document.getElementById('anamTempoDescanso').value,
+    outrasAtividades: document.getElementById('anamOutrasAtividades').value.trim(),
+    lesoes: document.getElementById('anamLesoes').value.trim(),
+    doencas: document.getElementById('anamDoencas').value.trim(),
+    rotina: document.getElementById('anamRotina').value.trim(),
+    horasSono: document.getElementById('anamHorasSono').value.trim(),
+    qualidadeSono: document.getElementById('anamQualidadeSono').value.trim(),
+    alcool: document.getElementById('anamAlcool').value.trim(),
+    tabagismo: document.getElementById('anamTabagismo').value.trim(),
+    numRefeicoes: isApenasTreinoMode ? "" : document.getElementById('anamNumRefeicoes').value.trim(),
+    alergias: isApenasTreinoMode ? "" : document.getElementById('anamAlergias').value.trim(),
+    alimentosOdiados: isApenasTreinoMode ? "" : document.getElementById('anamAlimentosOdiados').value.trim(),
+    gostaCarbos: isApenasTreinoMode ? "" : document.getElementById('anamGostaCarbos').value.trim(),
+    gostaProteinas: isApenasTreinoMode ? "" : document.getElementById('anamGostaProteinas').value.trim(),
+    gostaLegumes: isApenasTreinoMode ? "" : document.getElementById('anamGostaLegumes').value.trim(),
+    orcamento: isApenasTreinoMode ? "" : document.getElementById('anamOrcamento').value.trim(),
+    suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
+    fimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
+    apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
   };
 
-  If (btn) {
-    Btn.textContent = "Processando...";
-    Btn.disabled = true;
+  if (btn) {
+    btn.textContent = "Processando...";
+    btn.disabled = true;
   }
 
-  Try {
-    Await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
-      Method: "POST",
-      Headers: { "Content-Type": "application/json" },
-      Cache: 'no-cache',
-      Body: JSON.stringify(anamneseData)
+  try {
+    await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: 'no-cache',
+      body: JSON.stringify(anamneseData)
     });
 
-    If (!isConvidadoDuplaMode) {
-      Document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
+    if (!isConvidadoDuplaMode) {
+      document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
     } else {
-      Document.getElementById('anamneseScreen').innerHTML = `
+      document.getElementById('anamneseScreen').innerHTML = `
         <div style="text-align:center; padding:24px 10px;">
           <div style="font-size:48px; margin-bottom:12px;">✅</div>
           <h2 style="font-size:26px; font-weight:700; color:var(--ink); font-family:var(--font-display);">
@@ -687,292 +687,292 @@ Async function sendAnamneseAppDirect() {
       `;
     }
   } catch (e) {
-    Alert("Erro ao conectar.");
-    If (btn) {
-      Btn.textContent = "Finalizar e enviar";
-      Btn.disabled = false;
+    alert("Erro ao conectar.");
+    if (btn) {
+      btn.textContent = "Finalizar e enviar";
+      btn.disabled = false;
     }
   }
 }
 
-Function loadStudentData(data) {
-  Document.getElementById('loginScreen').classList.add('hidden');
-  Document.getElementById('anamneseScreen').classList.add('hidden');
-  Document.getElementById('mainContent').classList.remove('hidden');
-  Document.body.classList.add('app-mode');
+function loadStudentData(data) {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('anamneseScreen').classList.add('hidden');
+  document.getElementById('mainContent').classList.remove('hidden');
+  document.body.classList.add('app-mode');
 
-  CurrentData = data;
+  currentData = data;
 
-  If (currentData.logs) {
+  if (currentData.logs) {
     Object.keys(currentData.logs).forEach(k => {
-      If (k.startsWith('ex_done_')) delete currentData.logs[k];
+      if (k.startsWith('ex_done_')) delete currentData.logs[k];
     });
   }
 
-  Const localLogs = localStorage.getItem(`draft_student_logs_${loggedUserCode}`);
-  If (localLogs) {
-    Try {
-      Const parsed = JSON.parse(localLogs);
+  const localLogs = localStorage.getItem(`draft_student_logs_${loggedUserCode}`);
+  if (localLogs) {
+    try {
+      const parsed = JSON.parse(localLogs);
       Object.keys(parsed).forEach(k => {
-        If (k.startsWith('ex_done_')) delete parsed[k];
+        if (k.startsWith('ex_done_')) delete parsed[k];
       });
-      CurrentData.logs = Object.assign({}, currentData.logs || {}, parsed);
+      currentData.logs = Object.assign({}, currentData.logs || {}, parsed);
     } catch(e) {}
   }
 
-  Document.getElementById('clientName').textContent = data.clientName || 'Aluno';
+  document.getElementById('clientName').textContent = data.clientName || 'Aluno';
 
-  Const btnDieta = document.getElementById('btnDieta');
-  Const btnErgogenicos = document.getElementById('btnErgogenicos');
+  const btnDieta = document.getElementById('btnDieta');
+  const btnErgogenicos = document.getElementById('btnErgogenicos');
 
-  If (data.apenasTreino === true || data.liberarDieta === false) {
-    If (btnDieta) btnDieta.classList.add('hidden');
+  if (data.apenasTreino === true || data.liberarDieta === false) {
+    if (btnDieta) btnDieta.classList.add('hidden');
   } else {
-    If (btnDieta) btnDieta.classList.remove('hidden');
-    RenderDietaAluno(data.refeicoes || data.dieta || []);
+    if (btnDieta) btnDieta.classList.remove('hidden');
+    renderDietaAluno(data.refeicoes || data.dieta || []);
   }
 
-  Const temErgogenicos = data.liberarErgogenicos === true || data.ergogenicos || data.protocolo_ergogenico || data.protocoloErgogenicos || data.ergogenicos_texto;
-  If (temErgogenicos) {
-    If (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
-    RenderErgogenicosAluno(data);
+  const temErgogenicos = data.liberarErgogenicos === true || data.ergogenicos || data.protocolo_ergogenico || data.protocoloErgogenicos || data.ergogenicos_texto;
+  if (temErgogenicos) {
+    if (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
+    renderErgogenicosAluno(data);
   } else {
-    If (btnErgogenicos) btnErgogenicos.classList.add('hidden');
+    if (btnErgogenicos) btnErgogenicos.classList.add('hidden');
   }
 
-  If (data.corredor === true) {
-    Document.getElementById('btnCorrida').classList.remove('hidden');
-    SetupCorrida(data);
+  if (data.corredor === true) {
+    document.getElementById('btnCorrida').classList.remove('hidden');
+    setupCorrida(data);
   } else {
-    Document.getElementById('btnCorrida').classList.add('hidden');
+    document.getElementById('btnCorrida').classList.add('hidden');
   }
 
-  VerificarCardEvolucao(data);
-  VerificarNotificacaoFeedback(data);
-  SetupWorkout(data.days || []);
-  RenderFeedbackHistory();
-  SetupSwipeNavigation();
+  verificarCardEvolucao(data);
+  verificarNotificacaoFeedback(data);
+  setupWorkout(data.days || []);
+  renderFeedbackHistory();
+  setupSwipeNavigation();
 
-  ShowTab('treino');
+  showTab('treino');
 }
 
-Function renderErgogenicosAluno(payloadData) {
-  Const container = document.getElementById('ergogenicosContent') || document.getElementById('ergogenicosBody');
-  If (!container) return;
+function renderErgogenicosAluno(payloadData) {
+  const container = document.getElementById('ergogenicosContent') || document.getElementById('ergogenicosBody');
+  if (!container) return;
 
-  Let textoProtocolo = "";
-  If (typeof payloadData === 'string') {
-    TextoProtocolo = payloadData;
+  let textoProtocolo = "";
+  if (typeof payloadData === 'string') {
+    textoProtocolo = payloadData;
   } else if (payloadData && typeof payloadData === 'object') {
-    TextoProtocolo = payloadData.ergogenicos || 
-                     PayloadData.protocolo_ergogenico || 
-                     PayloadData.protocoloErgogenicos || 
-                     PayloadData.ergogenicos_texto || "";
+    textoProtocolo = payloadData.ergogenicos || 
+                     payloadData.protocolo_ergogenico || 
+                     payloadData.protocoloErgogenicos || 
+                     payloadData.ergogenicos_texto || "";
   }
 
-  If (textoProtocolo && textoProtocolo.trim()) {
-    Container.innerHTML = escapeHtml(textoProtocolo).replace(/\n/g, '<br>');
+  if (textoProtocolo && textoProtocolo.trim()) {
+    container.innerHTML = escapeHtml(textoProtocolo).replace(/\n/g, '<br>');
   } else {
-    Container.innerHTML = `<div style="color:var(--ink-dim); text-align:center; padding:12px;">Nenhum protocolo ou orientação cadastrada no momento.</div>`;
+    container.innerHTML = `<div style="color:var(--ink-dim); text-align:center; padding:12px;">Nenhum protocolo ou orientação cadastrada no momento.</div>`;
   }
 }
 
-Function toggleCheckExercise(btn, dayIdx, exIdx) {
-  Const card = btn.closest('.item');
-  Const isDone = btn.classList.toggle('done');
+function toggleCheckExercise(btn, dayIdx, exIdx) {
+  const card = btn.closest('.item');
+  const isDone = btn.classList.toggle('done');
   
-  If (isDone) {
-    If (!workoutTimerRunning) {
-      Btn.classList.remove('done');
-      Alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
-      Return;
+  if (isDone) {
+    if (!workoutTimerRunning) {
+      btn.classList.remove('done');
+      alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
+      return;
     }
-    Btn.textContent = '✓ Concluído';
-    If (card) card.classList.add('exercise-done');
-    If (navigator.vibrate) navigator.vibrate(50);
+    btn.textContent = '✓ Concluído';
+    if (card) card.classList.add('exercise-done');
+    if (navigator.vibrate) navigator.vibrate(50);
   } else {
-    Btn.textContent = 'Marcar Concluído';
-    If (card) card.classList.remove('exercise-done');
+    btn.textContent = 'Marcar Concluído';
+    if (card) card.classList.remove('exercise-done');
   }
 
-  Const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
-  ScheduleAutoSave(keyExDone, isDone ? 'true' : 'false');
+  const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
+  scheduleAutoSave(keyExDone, isDone ? 'true' : 'false');
 }
 
-Function verificarNotificacaoFeedback(alunoData) {
-  Const feedbacks = alunoData.feedbacks || [];
-  Const notifyBox = document.getElementById('feedbackNotifyBox');
-  Const notifyText = document.getElementById('feedbackNotifyText');
-  If (!notifyBox || feedbacks.length === 0) return;
+function verificarNotificacaoFeedback(alunoData) {
+  const feedbacks = alunoData.feedbacks || [];
+  const notifyBox = document.getElementById('feedbackNotifyBox');
+  const notifyText = document.getElementById('feedbackNotifyText');
+  if (!notifyBox || feedbacks.length === 0) return;
 
-  Const ultimasMensagens = feedbacks.filter(f => f.autor === "PERSONAL");
-  If (ultimasMensagens.length === 0) return;
+  const ultimasMensagens = feedbacks.filter(f => f.autor === "PERSONAL");
+  if (ultimasMensagens.length === 0) return;
 
-  Const ultima = ultimasMensagens[ultimasMensagens.length - 1];
-  Const keyVisto = `fb_last_seen_${loggedUserCode}`;
-  Const vistoId = localStorage.getItem(keyVisto);
-  Const msgId = ultima.data || ultima.mensagem;
+  const ultima = ultimasMensagens[ultimasMensagens.length - 1];
+  const keyVisto = `fb_last_seen_${loggedUserCode}`;
+  const vistoId = localStorage.getItem(keyVisto);
+  const msgId = ultima.data || ultima.mensagem;
 
-  If (vistoId !== msgId) {
-    NotifyText.textContent = `"${ultima.mensagem}"`;
-    NotifyBox.classList.remove('hidden');
-  }
-}
-
-Function dismissFeedbackNotify() {
-  Const notifyBox = document.getElementById('feedbackNotifyBox');
-  If (notifyBox) notifyBox.classList.add('hidden');
-
-  Const feedbacks = (currentData && currentData.feedbacks) || [];
-  Const ultimas = feedbacks.filter(f => f.autor === "PERSONAL");
-  If (ultimas.length > 0) {
-    Const ultima = ultimas[ultimas.length - 1];
-    LocalStorage.setItem(`fb_last_seen_${loggedUserCode}`, ultima.data || ultima.mensagem);
+  if (vistoId !== msgId) {
+    notifyText.textContent = `"${ultima.mensagem}"`;
+    notifyBox.classList.remove('hidden');
   }
 }
 
-Function irParaFeedbackChat() {
-  DismissFeedbackNotify();
-  ShowTab('feedback');
+function dismissFeedbackNotify() {
+  const notifyBox = document.getElementById('feedbackNotifyBox');
+  if (notifyBox) notifyBox.classList.add('hidden');
+
+  const feedbacks = (currentData && currentData.feedbacks) || [];
+  const ultimas = feedbacks.filter(f => f.autor === "PERSONAL");
+  if (ultimas.length > 0) {
+    const ultima = ultimas[ultimas.length - 1];
+    localStorage.setItem(`fb_last_seen_${loggedUserCode}`, ultima.data || ultima.mensagem);
+  }
 }
 
-Function verificarCardEvolucao(data) {
-  If (!data.evolucao_carga_pct || data.evolucao_carga_pct <= 0) return;
+function irParaFeedbackChat() {
+  dismissFeedbackNotify();
+  showTab('feedback');
+}
 
-  Const keyStorage = `congrats_closed_${loggedUserCode}`;
-  Const timestampFechado = localStorage.getItem(keyStorage);
-  Const agora = new Date().getTime();
+function verificarCardEvolucao(data) {
+  if (!data.evolucao_carga_pct || data.evolucao_carga_pct <= 0) return;
 
-  If (timestampFechado && (agora - parseInt(timestampFechado)) < 86400000) {
-    Document.getElementById('congratsBox').classList.add('hidden');
-    Return;
+  const keyStorage = `congrats_closed_${loggedUserCode}`;
+  const timestampFechado = localStorage.getItem(keyStorage);
+  const agora = new Date().getTime();
+
+  if (timestampFechado && (agora - parseInt(timestampFechado)) < 86400000) {
+    document.getElementById('congratsBox').classList.add('hidden');
+    return;
   }
 
-  Document.getElementById('congratsText').textContent = `Parabéns! Você aumentou sua força em média +${data.evolucao_carga_pct}% em relação ao ciclo anterior. Excelente evolução!`;
-  Document.getElementById('congratsBox').classList.remove('hidden');
+  document.getElementById('congratsText').textContent = `Parabéns! Você aumentou sua força em média +${data.evolucao_carga_pct}% em relação ao ciclo anterior. Excelente evolução!`;
+  document.getElementById('congratsBox').classList.remove('hidden');
 }
 
-Function fecharCardEvolucao() {
-  Document.getElementById('congratsBox').classList.add('hidden');
-  LocalStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
+function fecharCardEvolucao() {
+  document.getElementById('congratsBox').classList.add('hidden');
+  localStorage.setItem(`congrats_closed_${loggedUserCode}`, new Date().getTime().toString());
 }
 
-Async function salvarRunDia(diaKey) {
-  If (!currentData) return;
+async function salvarRunDia(diaKey) {
+  if (!currentData) return;
 
-  Const inputKm = document.getElementById(`run_km_${diaKey}`);
-  Const inputMin = document.getElementById(`run_min_${diaKey}`);
+  const inputKm = document.getElementById(`run_km_${diaKey}`);
+  const inputMin = document.getElementById(`run_min_${diaKey}`);
 
-  Const kmVal = inputKm ? InputKm.value.trim() : "";
-  Const minVal = inputMin ? InputMin.value.trim() : "";
+  const kmVal = inputKm ? inputKm.value.trim() : "";
+  const minVal = inputMin ? inputMin.value.trim() : "";
 
-  If (!currentData.registros_corrida) currentData.registros_corrida = {};
+  if (!currentData.registros_corrida) currentData.registros_corrida = {};
 
-  Const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-  If (kmVal || minVal) {
-    CurrentData.registros_corrida[diaKey] = [{
-      Data: dataHoje,
-      Km: kmVal,
-      Min: minVal
+  if (kmVal || minVal) {
+    currentData.registros_corrida[diaKey] = [{
+      data: dataHoje,
+      km: kmVal,
+      min: minVal
     }];
   } else {
-    Delete currentData.registros_corrida[diaKey];
+    delete currentData.registros_corrida[diaKey];
   }
 
-  Const paceStr = (kmVal && minVal) ? CalcularPaceTexto(kmVal, minVal) : "--'--\"";
-  Const displayPace = document.getElementById(`run_pace_display_${diaKey}`);
-  If (displayPace) {
-    DisplayPace.innerHTML = `⏱ Pace do dia: <span>${paceStr}</span> /km`;
+  const paceStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
+  const displayPace = document.getElementById(`run_pace_display_${diaKey}`);
+  if (displayPace) {
+    displayPace.innerHTML = `⏱ Pace do dia: <span>${paceStr}</span> /km`;
   }
 
-  SetupCorrida(currentData);
+  setupCorrida(currentData);
 
-  Const ind = document.getElementById('saveIndicator');
-  If (ind) ind.style.display = 'block';
+  const ind = document.getElementById('saveIndicator');
+  if (ind) ind.style.display = 'block';
 
-  Try {
-    Await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-      Method: "POST",
-      Headers: authHeaders(),
-      Cache: 'no-cache',
-      Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  try {
+    await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+      method: "POST",
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
   } catch (e) {
-    Console.error("Erro ao salvar cardio:", e);
+    console.error("Erro ao salvar cardio:", e);
   } finally {
-    If (ind) ind.style.display = 'none';
+    if (ind) ind.style.display = 'none';
   }
 }
 
-Async function apagarRunDia(diaKey) {
-  If (!confirm(`Deseja apagar o registro de cardio deste dia?`)) return;
+async function apagarRunDia(diaKey) {
+  if (!confirm(`Deseja apagar o registro de cardio deste dia?`)) return;
 
-  Const inputKm = document.getElementById(`run_km_${diaKey}`);
-  Const inputMin = document.getElementById(`run_min_${diaKey}`);
+  const inputKm = document.getElementById(`run_km_${diaKey}`);
+  const inputMin = document.getElementById(`run_min_${diaKey}`);
 
-  If (inputKm) inputKm.value = '';
-  If (inputMin) inputMin.value = '';
+  if (inputKm) inputKm.value = '';
+  if (inputMin) inputMin.value = '';
 
-  If (currentData && currentData.registros_corrida) {
-    Delete currentData.registros_corrida[diaKey];
+  if (currentData && currentData.registros_corrida) {
+    delete currentData.registros_corrida[diaKey];
   }
 
-  Await salvarRunDia(diaKey);
+  await salvarRunDia(diaKey);
 }
 
-Async function resetCardioSemanal() {
-  If (!currentData) return;
+async function resetCardioSemanal() {
+  if (!currentData) return;
 
-  CurrentData.registros_corrida = {};
-  CurrentData.corridas = [];
+  currentData.registros_corrida = {};
+  currentData.corridas = [];
 
-  Const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  Dias.forEach(d => {
-    Const elKm = document.getElementById(`run_km_${d}`);
-    Const elMin = document.getElementById(`run_min_${d}`);
-    Const elPace = document.getElementById(`run_pace_display_${d}`);
+  const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  dias.forEach(d => {
+    const elKm = document.getElementById(`run_km_${d}`);
+    const elMin = document.getElementById(`run_min_${d}`);
+    const elPace = document.getElementById(`run_pace_display_${d}`);
 
-    If (elKm) elKm.value = '';
-    If (elMin) elMin.value = '';
-    If (elPace) elPace.innerHTML = '⏱ Pace do dia: <span>--\'--"</span> /km';
+    if (elKm) elKm.value = '';
+    if (elMin) elMin.value = '';
+    if (elPace) elPace.innerHTML = '⏱ Pace do dia: <span>--\'--"</span> /km';
   });
 
-  SetupCorrida(currentData);
+  setupCorrida(currentData);
 
-  Try {
-    Await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-      Method: "POST",
-      Headers: authHeaders(),
-      Cache: 'no-cache',
-      Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  try {
+    await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+      method: "POST",
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
   } catch (e) {}
 }
 
-Function setupCorrida(data) {
-  Const presContainer = document.getElementById('corridaPrescricaoList');
-  Const histContainer = document.getElementById('corridaHistoryList');
+function setupCorrida(data) {
+  const presContainer = document.getElementById('corridaPrescricaoList');
+  const histContainer = document.getElementById('corridaHistoryList');
 
-  If (!presContainer || !histContainer) return;
+  if (!presContainer || !histContainer) return;
 
-  PresContainer.innerHTML = '';
-  HistContainer.innerHTML = '';
+  presContainer.innerHTML = '';
+  histContainer.innerHTML = '';
 
-  Const cardioContainer = document.getElementById('cardioGoalsBody');
-  If (cardioContainer) {
-    Const customCardio = (data && (data.cardio_guidelines || data.prescricao_cardio)) || '';
-    If (customCardio.trim()) {
-      CardioContainer.innerHTML = escapeHtml(customCardio).replace(/\n/g, '<br>');
+  const cardioContainer = document.getElementById('cardioGoalsBody');
+  if (cardioContainer) {
+    const customCardio = (data && (data.cardio_guidelines || data.prescricao_cardio)) || '';
+    if (customCardio.trim()) {
+      cardioContainer.innerHTML = escapeHtml(customCardio).replace(/\n/g, '<br>');
     } else {
-      CardioContainer.innerHTML = `Aguardando prescrição de cardio pelo treinador.`;
+      cardioContainer.innerHTML = `Aguardando prescrição de cardio pelo treinador.`;
     }
   }
 
-  Const prescricao = data.prescricao_corrida || {};
-  Const registros = data.registros_corrida || data.corridas || {};
+  const prescricao = data.prescricao_corrida || {};
+  const registros = data.registros_corrida || data.corridas || {};
 
-  Const dias = [
+  const dias = [
     { key: 'seg', nome: 'Segunda-Feira' },
     { key: 'ter', nome: 'Terça-Feira' },
     { key: 'qua', nome: 'Quarta-Feira' },
@@ -982,36 +982,36 @@ Function setupCorrida(data) {
     { key: 'dom', nome: 'Domingo' }
   ];
 
-  Let totalKm = 0;
-  Let totalMin = 0;
-  Let totalRegistros = 0;
+  let totalKm = 0;
+  let totalMin = 0;
+  let totalRegistros = 0;
 
-  Dias.forEach(d => {
-    Const pData = prescricao[d.key] || {};
-    Let treinoInstrucao = "Descanso ou treino livre";
+  dias.forEach(d => {
+    const pData = prescricao[d.key] || {};
+    let treinoInstrucao = "Descanso ou treino livre";
     
-    If (typeof pData === 'object' && pData !== null) {
-      If (pData.desc || pData.km || pData.min) {
-        Const infoKm = pData.km ? `${pData.km} km` : '';
-        Const infoMin = pData.min ? `${pData.min} min` : '';
-        Const infoInt = pData.intensidade ? `[${pData.intensidade}]` : '';
-        Const detalhe = pData.desc || '';
-        TreinoInstrucao = `${infoKm} ${infoMin} ${infoInt} - ${detalhe}`.trim();
+    if (typeof pData === 'object' && pData !== null) {
+      if (pData.desc || pData.km || pData.min) {
+        const infoKm = pData.km ? `${pData.km} km` : '';
+        const infoMin = pData.min ? `${pData.min} min` : '';
+        const infoInt = pData.intensidade ? `[${pData.intensidade}]` : '';
+        const detalhe = pData.desc || '';
+        treinoInstrucao = `${infoKm} ${infoMin} ${infoInt} - ${detalhe}`.trim();
       }
     } else if (typeof pData === 'string' && pData.trim() !== '') {
-      TreinoInstrucao = pData;
+      treinoInstrucao = pData;
     }
 
-    Const regDia = registros[d.key] || [];
-    Const ultimoReg = Array.isArray(regDia) ? RegDia[regDia.length - 1] : regDia;
+    const regDia = registros[d.key] || [];
+    const ultimoReg = Array.isArray(regDia) ? regDia[regDia.length - 1] : regDia;
 
-    Const kmVal = ultimoReg?.km || '';
-    Const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
-    Const paceDiaStr = (kmVal && minVal) ? CalcularPaceTexto(kmVal, minVal) : "--'--\"";
+    const kmVal = ultimoReg?.km || '';
+    const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
+    const paceDiaStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
 
-    Const card = document.createElement('div');
-    Card.className = 'run-item';
-    Card.innerHTML = `
+    const card = document.createElement('div');
+    card.className = 'run-item';
+    card.innerHTML = `
       <div class="run-day-title">${d.nome}</div>
       <div class="run-day-desc">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
       <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
@@ -1024,30 +1024,30 @@ Function setupCorrida(data) {
         ⏱ Pace do dia: <span>${paceDiaStr}</span> /km
       </div>
     `;
-    PresContainer.appendChild(card);
+    presContainer.appendChild(card);
   });
 
-  Const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  Const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+  const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const nomesDiasMap = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
 
-  If (typeof registros === 'object') {
-    KeysDias.forEach(key => {
-      Let hDia = registros[key];
-      If (!hDia) return;
-      If (!Array.isArray(hDia)) hDia = [hDia];
+  if (typeof registros === 'object') {
+    keysDias.forEach(key => {
+      let hDia = registros[key];
+      if (!hDia) return;
+      if (!Array.isArray(hDia)) hDia = [hDia];
 
-      HDia.forEach((c) => {
-        Const km = parseFloat(c.km) || 0;
-        Const min = parseFloat(c.min || c.minutos) || 0;
-        TotalKm += km;
-        TotalMin += min;
-        TotalRegistros++;
+      hDia.forEach((c) => {
+        const km = parseFloat(c.km) || 0;
+        const min = parseFloat(c.min || c.minutos) || 0;
+        totalKm += km;
+        totalMin += min;
+        totalRegistros++;
 
-        Const paceStr = calcularPaceTexto(km, min);
+        const paceStr = calcularPaceTexto(km, min);
 
-        Const div = document.createElement('div');
-        Div.className = 'run-item';
-        Div.innerHTML = `
+        const div = document.createElement('div');
+        div.className = 'run-item';
+        div.innerHTML = `
           <div style="display:flex; justify-content:space-between; font-weight:700; font-size:13px; color:var(--ink);">
             <span>🏃 ${nomesDiasMap[key]} (${escapeHtml(c.data || 'Recente')})</span>
             <span style="color:var(--blue); font-size:12px;">Pace: ${paceStr} /km</span>
@@ -1056,211 +1056,211 @@ Function setupCorrida(data) {
             ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${min} min</b>` : 'Treino registrado'}
           </div>
         `;
-        HistContainer.appendChild(div);
+        histContainer.appendChild(div);
       });
     });
   }
 
-  If (totalRegistros === 0) {
-    HistContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida realizada nas últimas 4 semanas.</div>`;
+  if (totalRegistros === 0) {
+    histContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida realizada nas últimas 4 semanas.</div>`;
   }
 
-  Document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
-  Const paceMedioGlobal = calcularPaceTexto(totalKm, totalMin);
-  Document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
+  document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
+  const paceMedioGlobal = calcularPaceTexto(totalKm, totalMin);
+  document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
 }
 
-Function setupWorkout(days) {
-  CurrentData.days = days;
-  RenderTreinoDayList();
+function setupWorkout(days) {
+  currentData.days = days;
+  renderTreinoDayList();
 
-  Const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx) % days.length : 0;
-  SelectTreinoDay(proximoIdx);
+  const proximoIdx = currentData.ultimo_treino_idx !== undefined ? (currentData.ultimo_treino_idx) % days.length : 0;
+  selectTreinoDay(proximoIdx);
 }
 
-Function renderTreinoDayList() {
-  Const listContainer = document.getElementById('treinoDayList');
-  ListContainer.innerHTML = '';
+function renderTreinoDayList() {
+  const listContainer = document.getElementById('treinoDayList');
+  listContainer.innerHTML = '';
 
-  Const days = (currentData && currentData.days) || [];
+  const days = (currentData && currentData.days) || [];
 
-  If (!days || days.length === 0) {
-    ListContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
-    Return;
+  if (!days || days.length === 0) {
+    listContainer.innerHTML = '<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Seu treino está sendo montado pelo personal.</div>';
+    return;
   }
 
-  Days.forEach((day, dayIdx) => {
-    Const card = document.createElement('button');
-    Card.type = 'button';
-    Card.className = 'select-card';
-    Card.innerHTML = `
+  days.forEach((day, dayIdx) => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'select-card';
+    card.innerHTML = `
       <div>
         <div class="select-card-title">${escapeHtml(day.title)}</div>
         <div class="select-card-sub">${(day.exercicios || []).length} Exercícios</div>
       </div>
       <span class="select-card-arrow">›</span>
     `;
-    Card.onclick = () => selectTreinoDay(dayIdx);
-    ListContainer.appendChild(card);
+    card.onclick = () => selectTreinoDay(dayIdx);
+    listContainer.appendChild(card);
   });
 }
 
-Function selectTreinoDay(dayIdx) {
-  CurrentTreinoDayIdx = dayIdx;
-  Document.getElementById('treinoListView').classList.add('hidden');
-  Document.getElementById('treinoDetailView').classList.remove('hidden');
-  RenderTreinoDetail();
+function selectTreinoDay(dayIdx) {
+  currentTreinoDayIdx = dayIdx;
+  document.getElementById('treinoListView').classList.add('hidden');
+  document.getElementById('treinoDetailView').classList.remove('hidden');
+  renderTreinoDetail();
 }
 
-Function openTreinoSelectionMenu() {
-  Document.getElementById('treinoDetailView').classList.add('hidden');
-  Document.getElementById('treinoListView').classList.remove('hidden');
+function openTreinoSelectionMenu() {
+  document.getElementById('treinoDetailView').classList.add('hidden');
+  document.getElementById('treinoListView').classList.remove('hidden');
 }
 
-Function toggleCheckSerie(btn) {
-  If (!workoutTimerRunning) {
-    Alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar a marcar as séries!");
-    Return;
+function toggleCheckSerie(btn) {
+  if (!workoutTimerRunning) {
+    alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar a marcar as séries!");
+    return;
   }
-  Btn.classList.toggle('done');
-  If (btn.classList.contains('done')) {
-    Btn.textContent = "✓ Feito";
+  btn.classList.toggle('done');
+  if (btn.classList.contains('done')) {
+    btn.textContent = "✓ Feito";
   } else {
-    Btn.textContent = "Série " + btn.dataset.num;
+    btn.textContent = "Série " + btn.dataset.num;
   }
 }
 
-Async function concluirTreinoDoDia() {
-  If (!currentData) return;
+async function concluirTreinoDoDia() {
+  if (!currentData) return;
 
-  Const keyStart = `workout_start_time_${loggedUserCode}`;
-  Const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+  const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   
-  Const startTimeStr = localStorage.getItem(keyStart);
-  Const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
-  Let durationSeconds = prevElapsed;
+  const startTimeStr = localStorage.getItem(keyStart);
+  const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
+  let durationSeconds = prevElapsed;
 
-  If (startTimeStr) {
-    DurationSeconds += Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+  if (startTimeStr) {
+    durationSeconds += Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
   }
 
-  LocalStorage.removeItem(keyStart);
-  LocalStorage.removeItem(keyElapsed);
+  localStorage.removeItem(keyStart);
+  localStorage.removeItem(keyElapsed);
 
-  If (workoutTimerInterval) clearInterval(workoutTimerInterval);
-  If (inactivityTimer) clearTimeout(inactivityTimer);
-  WorkoutTimerRunning = false;
+  if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  workoutTimerRunning = false;
 
-  Const m = Math.floor(durationSeconds / 60);
-  Const s = durationSeconds % 60;
-  Const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
+  const m = Math.floor(durationSeconds / 60);
+  const s = durationSeconds % 60;
+  const tempoTexto = m > 0 ? `${m} min e ${s} seg` : `${s} seg`;
 
-  Document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
+  document.getElementById('summaryTimeDisplay').textContent = tempoTexto;
 
-  Const summaryList = document.getElementById('summaryProgressionList');
-  SummaryList.innerHTML = "";
+  const summaryList = document.getElementById('summaryProgressionList');
+  summaryList.innerHTML = "";
 
-  Const day = currentData.days?.[currentTreinoDayIdx];
-  Let evolucoes = [];
-  Let volumeToneladoTotal = 0;
+  const day = currentData.days?.[currentTreinoDayIdx];
+  let evolucoes = [];
+  let volumeToneladoTotal = 0;
 
-  If (day && day.exercicios) {
-    Day.exercicios.forEach((ex, exIdx) => {
-      Const exKeySanitized = sanitizeExKey(ex.nome);
-      Const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
-      Const historico = currentData.weekly_logs?.[exKeySanitized] || currentData.weekly_logs?.[keyLog] || [];
-      Const ultimoReg = historico.length > 0 ? Historico[historico.length - 1] : null;
+  if (day && day.exercicios) {
+    day.exercicios.forEach((ex, exIdx) => {
+      const exKeySanitized = sanitizeExKey(ex.nome);
+      const keyLog = `${currentTreinoDayIdx}_${exIdx}`;
+      const historico = currentData.weekly_logs?.[exKeySanitized] || currentData.weekly_logs?.[keyLog] || [];
+      const ultimoReg = historico.length > 0 ? historico[historico.length - 1] : null;
 
-      Let cMax = 0;
-      Let rTotal = 0;
-      Let seriesCount = 0;
+      let cMax = 0;
+      let rTotal = 0;
+      let seriesCount = 0;
 
-      For (let s = 1; s <= 5; s++) {
-        Const cVal = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
-        Const rVal = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+      for (let s = 1; s <= 5; s++) {
+        const cVal = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
+        const rVal = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_s${s}`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`]);
 
-        If (!isNaN(cVal) && cVal > cMax) cMax = cVal;
-        If (!isNaN(rVal)) { 
-          RTotal += rVal; 
-          SeriesCount++; 
-          If (!isNaN(cVal)) volumeToneladoTotal += (cVal * rVal);
+        if (!isNaN(cVal) && cVal > cMax) cMax = cVal;
+        if (!isNaN(rVal)) { 
+          rTotal += rVal; 
+          seriesCount++; 
+          if (!isNaN(cVal)) volumeToneladoTotal += (cVal * rVal);
         }
       }
 
-      Const cMyo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      Const rMyoAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
-      Const bMyo = parseFloat(currentData.logs?.[`log_b_${exKeySanitized}_myo_blocos`]);
-      Const rMyoBloco = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_myo_repsbloco`]);
+      const cMyo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_ativ`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+      const rMyoAtiv = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_ativ`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_ativ`]);
+      const bMyo = parseFloat(currentData.logs?.[`log_b_${exKeySanitized}_myo_blocos`]);
+      const rMyoBloco = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_myo_repsbloco`]);
 
-      If (!isNaN(cMyo) && cMyo > cMax) cMax = cMyo;
+      if (!isNaN(cMyo) && cMyo > cMax) cMax = cMyo;
 
-      If (!isNaN(rMyoAtiv)) {
-        Let totalRepsMyo = rMyoAtiv;
-        If (!isNaN(bMyo) && !isNaN(rMyoBloco)) {
-          TotalRepsMyo += (bMyo * rMyoBloco);
+      if (!isNaN(rMyoAtiv)) {
+        let totalRepsMyo = rMyoAtiv;
+        if (!isNaN(bMyo) && !isNaN(rMyoBloco)) {
+          totalRepsMyo += (bMyo * rMyoBloco);
         }
-        RTotal += totalRepsMyo;
-        SeriesCount++;
-        If (!isNaN(cMyo)) volumeToneladoTotal += (cMyo * totalRepsMyo);
+        rTotal += totalRepsMyo;
+        seriesCount++;
+        if (!isNaN(cMyo)) volumeToneladoTotal += (cMyo * totalRepsMyo);
       }
 
-      Const cCl = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
-      Const rCl = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
-      If (!isNaN(cCl) && cCl > cMax) cMax = cCl;
-      If (!isNaN(rCl)) { 
-        RTotal += rCl; 
-        SeriesCount++; 
-        If (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
+      const cCl = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_cl_peso`]);
+      const rCl = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_cl_lastreps`]);
+      if (!isNaN(cCl) && cCl > cMax) cMax = cCl;
+      if (!isNaN(rCl)) { 
+        rTotal += rCl; 
+        seriesCount++; 
+        if (!isNaN(cCl)) volumeToneladoTotal += (cCl * rCl);
       }
 
-      Const cBo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_bo`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_bo`]);
-      Const rBo = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_bo`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_bo`]);
-      If (!isNaN(cBo) && cBo > cMax) cMax = cBo;
-      If (!isNaN(rBo)) { 
-        RTotal += rBo; 
-        SeriesCount++; 
-        If (!isNaN(cBo)) volumeToneladoTotal += (cBo * rBo);
+      const cBo = parseFloat(currentData.logs?.[`log_c_${exKeySanitized}_bo`] || currentData.logs?.[`log_c_${currentTreinoDayIdx}_${exIdx}_bo`]);
+      const rBo = parseFloat(currentData.logs?.[`log_r_${exKeySanitized}_bo`] || currentData.logs?.[`log_r_${currentTreinoDayIdx}_${exIdx}_bo`]);
+      if (!isNaN(cBo) && cBo > cMax) cMax = cBo;
+      if (!isNaN(rBo)) { 
+        rTotal += rBo; 
+        seriesCount++; 
+        if (!isNaN(cBo)) volumeToneladoTotal += (cBo * rBo);
       }
 
-      Const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
+      const rMed = seriesCount > 0 ? Math.round(rTotal / seriesCount) : 0;
 
-      If (cMax > 0 || rMed > 0) {
-        Let statusText = "✨ Treino registrado";
-        Let statusColor = "var(--mark)";
+      if (cMax > 0 || rMed > 0) {
+        let statusText = "✨ Treino registrado";
+        let statusColor = "var(--mark)";
 
-        If (ultimoReg) {
-          Const cargaAnt = parseFloat(ultimoReg.cargaMax) || 0;
-          Const repsAnt = Math.round(parseFloat(ultimoReg.repsMed) || 0);
+        if (ultimoReg) {
+          const cargaAnt = parseFloat(ultimoReg.cargaMax) || 0;
+          const repsAnt = Math.round(parseFloat(ultimoReg.repsMed) || 0);
 
-          If (cMax > cargaAnt) {
-            Const diff = (cMax - cargaAnt).toFixed(1);
-            StatusText = `🚀 +${diff}kg de carga!`;
-            StatusColor = "var(--good)";
+          if (cMax > cargaAnt) {
+            const diff = (cMax - cargaAnt).toFixed(1);
+            statusText = `🚀 +${diff}kg de carga!`;
+            statusColor = "var(--good)";
           } else if (cMax === cargaAnt && rMed > repsAnt) {
-            Const diffReps = rMed - repsAnt;
-            StatusText = `📈 +${diffReps} rep${diffReps > 1 ? 's' : ''} com a mesma carga!`;
-            StatusColor = "var(--blue)";
+            const diffReps = rMed - repsAnt;
+            statusText = `📈 +${diffReps} rep${diffReps > 1 ? 's' : ''} com a mesma carga!`;
+            statusColor = "var(--blue)";
           }
         }
 
-        Evolucoes.push({
-          Nome: ex.nome,
-          Carga: cMax,
-          Reps: rMed,
-          Status: statusText,
-          Color: statusColor
+        evolucoes.push({
+          nome: ex.nome,
+          carga: cMax,
+          reps: rMed,
+          status: statusText,
+          color: statusColor
         });
       }
     });
   }
 
-  Document.getElementById('summaryVolumeDisplay').textContent = `${Math.round(volumeToneladoTotal)} kg`;
+  document.getElementById('summaryVolumeDisplay').textContent = `${Math.round(volumeToneladoTotal)} kg`;
 
-  If (evolucoes.length === 0) {
-    SummaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
+  if (evolucoes.length === 0) {
+    summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
   } else {
-    Evolucoes.forEach(item => {
-      SummaryList.innerHTML += `
+    evolucoes.forEach(item => {
+      summaryList.innerHTML += `
         <div class="progression-item">
           <b style="color:var(--ink);">${escapeHtml(item.nome)}</b>
           <span style="color:${item.color}; font-weight:700;">${item.status}</span> 
@@ -1270,288 +1270,288 @@ Async function concluirTreinoDoDia() {
     });
   }
 
-  If (!currentData.historico_sessoes) currentData.historico_sessoes = [];
-  Const obsEl = document.getElementById(`input_obs_${currentTreinoDayIdx}`);
-  Const obsAtualSessao = obsEl ? ObsEl.value.trim() : "";
+  if (!currentData.historico_sessoes) currentData.historico_sessoes = [];
+  const obsEl = document.getElementById(`input_obs_${currentTreinoDayIdx}`);
+  const obsAtualSessao = obsEl ? obsEl.value.trim() : "";
 
-  CurrentData.historico_sessoes.push({
-    Data: new Date().toISOString(),
-    TreinoTitulo: day ? Day.title : "Treino",
-    DuracaoMinutos: m,
-    Observacoes: obsAtualSessao ? [obsAtualSessao] : []
+  currentData.historico_sessoes.push({
+    data: new Date().toISOString(),
+    treinoTitulo: day ? day.title : "Treino",
+    duracaoMinutos: m,
+    observacoes: obsAtualSessao ? [obsAtualSessao] : []
   });
 
-  If (currentData.historico_sessoes.length > 15) {
-    CurrentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
+  if (currentData.historico_sessoes.length > 15) {
+    currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
   }
 
-  If (!currentData.logs) currentData.logs = {};
+  if (!currentData.logs) currentData.logs = {};
 
   Object.keys(currentData.logs).forEach(key => {
-    If (key.startsWith('ex_done_')) delete currentData.logs[key];
+    if (key.startsWith('ex_done_')) delete currentData.logs[key];
   });
 
-  If (day && day.exercicios) {
-    Day.exercicios.forEach((ex, exIdx) => {
-      Const exKeySanitized = sanitizeExKey(ex.nome);
-      Delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
+  if (day && day.exercicios) {
+    day.exercicios.forEach((ex, exIdx) => {
+      const exKeySanitized = sanitizeExKey(ex.nome);
+      delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
       
-      For (let s = 1; s <= 5; s++) {
-        Delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
-        Delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
-        Delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
-        Delete currentData.logs[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`];
+      for (let s = 1; s <= 5; s++) {
+        delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
+        delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
+        delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
+        delete currentData.logs[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`];
       }
-      Delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
-      Delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
-      Delete currentData.logs[`log_b_${exKeySanitized}_myo_blocos`];
-      Delete currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`];
-      Delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
-      Delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
-      Delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
-      Delete currentData.logs[`log_c_${exKeySanitized}_bo`];
-      Delete currentData.logs[`log_r_${exKeySanitized}_bo`];
+      delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
+      delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
+      delete currentData.logs[`log_b_${exKeySanitized}_myo_blocos`];
+      delete currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`];
+      delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
+      delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
+      delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
+      delete currentData.logs[`log_c_${exKeySanitized}_bo`];
+      delete currentData.logs[`log_r_${exKeySanitized}_bo`];
     });
   }
   
-  Delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
+  delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
 
-  If (loggedUserCode) {
-    LocalStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
-    LocalStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
+  if (loggedUserCode) {
+    localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
+    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
   }
 
-  Const totalDays = (currentData.days || []).length;
-  Let proximoTreino = currentTreinoDayIdx;
+  const totalDays = (currentData.days || []).length;
+  let proximoTreino = currentTreinoDayIdx;
 
-  If (totalDays > 0) {
-    ProximoTreino = (currentTreinoDayIdx + 1) % totalDays;
-    If (proximoTreino === 0) {
-      Let semanaAtual = currentData.semana_rotacao || 1;
-      CurrentData.semana_rotacao = (semanaAtual % 5) + 1;
-      Await resetCardioSemanal();
+  if (totalDays > 0) {
+    proximoTreino = (currentTreinoDayIdx + 1) % totalDays;
+    if (proximoTreino === 0) {
+      let semanaAtual = currentData.semana_rotacao || 1;
+      currentData.semana_rotacao = (semanaAtual % 5) + 1;
+      await resetCardioSemanal();
     }
   }
 
-  CurrentData.ultimo_treino_idx = proximoTreino;
+  currentData.ultimo_treino_idx = proximoTreino;
 
-  Document.querySelectorAll('.btn-check-serie').forEach(btn => {
-    Btn.classList.remove('done');
-    Btn.textContent = "Série " + (btn.dataset.num || '');
+  document.querySelectorAll('.btn-check-serie').forEach(btn => {
+    btn.classList.remove('done');
+    btn.textContent = "Série " + (btn.dataset.num || '');
   });
-  Document.querySelectorAll('.btn-check-exercise').forEach(btn => {
-    Btn.classList.remove('done');
-    Btn.textContent = 'Marcar Concluído';
+  document.querySelectorAll('.btn-check-exercise').forEach(btn => {
+    btn.classList.remove('done');
+    btn.textContent = 'Marcar Concluído';
   });
-  Document.querySelectorAll('.item').forEach(card => {
-    Card.classList.remove('exercise-done');
+  document.querySelectorAll('.item').forEach(card => {
+    card.classList.remove('exercise-done');
   });
 
-  Try {
-    Await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-      Method: "POST",
-      Headers: authHeaders(),
-      Cache: 'no-cache',
-      Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  try {
+    await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+      method: "POST",
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
     });
   } catch (e) {
-    Console.error("Erro ao sincronizar término de treino com o servidor:", e);
+    console.error("Erro ao sincronizar término de treino com o servidor:", e);
   }
 
-  Document.getElementById('modalTreinoConcluido').classList.remove('hidden');
+  document.getElementById('modalTreinoConcluido').classList.remove('hidden');
 }
 
-Function fecharModalConclusao() {
-  Document.getElementById('modalTreinoConcluido').classList.add('hidden');
+function fecharModalConclusao() {
+  document.getElementById('modalTreinoConcluido').classList.add('hidden');
   
-  Document.getElementById('workoutTimerClock').textContent = "00:00:00";
-  Document.getElementById('btnWorkoutTimer').textContent = "▶ INICIAR TREINO";
-  Document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
-  SetInputsLockState(true);
+  document.getElementById('workoutTimerClock').textContent = "00:00:00";
+  document.getElementById('btnWorkoutTimer').textContent = "▶ INICIAR TREINO";
+  document.getElementById('btnWorkoutTimer').style.background = "var(--good)";
+  setInputsLockState(true);
 
-  Const proximoIdx = currentData.ultimo_treino_idx !== undefined ? CurrentData.ultimo_treino_idx : 0;
-  SelectTreinoDay(proximoIdx);
+  const proximoIdx = currentData.ultimo_treino_idx !== undefined ? currentData.ultimo_treino_idx : 0;
+  selectTreinoDay(proximoIdx);
 }
 
-Function toggleTrainerGoals() {
-  Const body = document.getElementById('trainerGoalsBody');
-  Const arrow = document.getElementById('arrowGoals');
-  If (!body || !arrow) return;
+function toggleTrainerGoals() {
+  const body = document.getElementById('trainerGoalsBody');
+  const arrow = document.getElementById('arrowGoals');
+  if (!body || !arrow) return;
 
-  Body.classList.toggle('collapsed');
-  Arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+  body.classList.toggle('collapsed');
+  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
 
-Function toggleCardioGoals() {
-  Const body = document.getElementById('cardioGoalsBody');
-  Const arrow = document.getElementById('arrowCardio');
-  If (!body || !arrow) return;
+function toggleCardioGoals() {
+  const body = document.getElementById('cardioGoalsBody');
+  const arrow = document.getElementById('arrowCardio');
+  if (!body || !arrow) return;
 
-  Body.classList.toggle('collapsed');
-  Arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
+  body.classList.toggle('collapsed');
+  arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
 
-Function renderTreinoDetail() {
-  Const days = (currentData && currentData.days) || [];
-  Const day = days[currentTreinoDayIdx];
-  If (!day) return openTreinoSelectionMenu();
+function renderTreinoDetail() {
+  const days = (currentData && currentData.days) || [];
+  const day = days[currentTreinoDayIdx];
+  if (!day) return openTreinoSelectionMenu();
 
-  Document.getElementById('treinoDetailTitle').textContent = day.title;
+  document.getElementById('treinoDetailTitle').textContent = day.title;
 
-  Const goalsContainer = document.getElementById('trainerGoalsBody');
-  If (goalsContainer) {
-    Const customGuidelines = (currentData && (currentData.trainer_guidelines || currentData.diretrizes_treinador)) || '';
-    If (customGuidelines.trim()) {
-      GoalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
+  const goalsContainer = document.getElementById('trainerGoalsBody');
+  if (goalsContainer) {
+    const customGuidelines = (currentData && (currentData.trainer_guidelines || currentData.diretrizes_treinador)) || '';
+    if (customGuidelines.trim()) {
+      goalsContainer.innerHTML = escapeHtml(customGuidelines).replace(/\n/g, '<br>');
     } else {
-      GoalsContainer.innerHTML = `Siga o plano de execução, respeite os tempos de descanso e registre suas cargas.`;
+      goalsContainer.innerHTML = `Siga o plano de execução, respeite os tempos de descanso e registre suas cargas.`;
     }
   }
 
-  Const quickSwitch = document.getElementById('treinoQuickSwitch');
-  QuickSwitch.innerHTML = '';
-  Days.forEach((d, idx) => {
-    Const chip = document.createElement('button');
-    Chip.type = 'button';
-    Chip.className = `quick-switch-chip ${idx === currentTreinoDayIdx ? 'active' : ''}`;
-    Chip.textContent = d.title;
-    Chip.onclick = () => selectTreinoDay(idx);
-    QuickSwitch.appendChild(chip);
+  const quickSwitch = document.getElementById('treinoQuickSwitch');
+  quickSwitch.innerHTML = '';
+  days.forEach((d, idx) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = `quick-switch-chip ${idx === currentTreinoDayIdx ? 'active' : ''}`;
+    chip.textContent = d.title;
+    chip.onclick = () => selectTreinoDay(idx);
+    quickSwitch.appendChild(chip);
   });
 
-  Const exercisesContainer = document.getElementById('exercisesList');
-  ExercisesContainer.innerHTML = '';
-  RenderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+  const exercisesContainer = document.getElementById('exercisesList');
+  exercisesContainer.innerHTML = '';
+  renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
 
-  Const keyObs = `obs_day_${currentTreinoDayIdx}`;
-  Const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
-                   LocalStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
+  const keyObs = `obs_day_${currentTreinoDayIdx}`;
+  const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
+                   localStorage.getItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`) || '';
 
-  Const obsDiv = document.createElement('div');
-  ObsDiv.style.cssText = "margin-top:16px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px;";
-  ObsDiv.innerHTML = `
+  const obsDiv = document.createElement('div');
+  obsDiv.style.cssText = "margin-top:16px; background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px;";
+  obsDiv.innerHTML = `
     <label class="label-fdb" style="color:var(--mark); font-size:12px;">📝 Observações / Como foi a sessão hoje?</label>
     <textarea class="input-field" id="input_obs_${currentTreinoDayIdx}" rows="2" style="font-size:14px; margin-top:4px;" 
-      Placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
-      Oninput="salvarObservacaoTreino('${keyObs}', this.value, ${currentTreinoDayIdx})">${escapeHtml(savedObs)}</textarea>
+      placeholder="Ex: Leve desconforto no ombro, noites mal dormidas, cansaço..." 
+      oninput="salvarObservacaoTreino('${keyObs}', this.value, ${currentTreinoDayIdx})">${escapeHtml(savedObs)}</textarea>
     <div style="font-size:10px; color:var(--ink-dim); margin-top:4px;">Enviado diretamente ao Personal ao finalizar o treino.</div>
   `;
-  ExercisesContainer.appendChild(obsDiv);
+  exercisesContainer.appendChild(obsDiv);
 
-  CheckAndRestoreWorkoutTimer();
+  checkAndRestoreWorkoutTimer();
 }
 
-Function salvarObservacaoTreino(keyObs, valor, dayIdx) {
-  If (!currentData.logs) currentData.logs = {};
-  CurrentData.logs[keyObs] = valor;
+function salvarObservacaoTreino(keyObs, valor, dayIdx) {
+  if (!currentData.logs) currentData.logs = {};
+  currentData.logs[keyObs] = valor;
 
-  If (loggedUserCode) {
-    LocalStorage.setItem(`draft_obs_${loggedUserCode}_${dayIdx}`, valor);
-    LocalStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
+  if (loggedUserCode) {
+    localStorage.setItem(`draft_obs_${loggedUserCode}_${dayIdx}`, valor);
+    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
   }
 
-  Const ind = document.getElementById('saveIndicator');
-  If (ind) ind.style.display = 'block';
+  const ind = document.getElementById('saveIndicator');
+  if (ind) ind.style.display = 'block';
 
-  If (autoSaveTimer) clearTimeout(autoSaveTimer);
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
-  AutoSaveTimer = setTimeout(async () => {
-    Try {
-      Await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        Method: "POST",
-        Headers: authHeaders(),
-        Cache: 'no-cache',
-        Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  autoSaveTimer = setTimeout(async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      If (ind) ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     } catch (e) {
-      If (ind) ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     }
   }, 1200);
 }
 
-Function createLogInputAttr(nameKey) {
-  Return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
+function createLogInputAttr(nameKey) {
+  return `type="text" inputmode="decimal" form="none" name="workout_${nameKey}" autocomplete="off" data-lpignore="true" data-form-type="other" aria-autocomplete="none"`;
 }
 
-Function changeExerciseMode(dayIdx, exIdx, selectedMode) {
-  If (!currentData.exercise_modes) currentData.exercise_modes = {};
-  CurrentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
+function changeExerciseMode(dayIdx, exIdx, selectedMode) {
+  if (!currentData.exercise_modes) currentData.exercise_modes = {};
+  currentData.exercise_modes[`${dayIdx}_${exIdx}`] = selectedMode;
 
-  Const exercisesContainer = document.getElementById('exercisesList');
-  If (exercisesContainer) {
-    ExercisesContainer.innerHTML = '';
-    RenderExercisesForDay(currentData.days[dayIdx], dayIdx, exercisesContainer);
-    ScheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
-    SetInputsLockState(!workoutTimerRunning);
+  const exercisesContainer = document.getElementById('exercisesList');
+  if (exercisesContainer) {
+    exercisesContainer.innerHTML = '';
+    renderExercisesForDay(currentData.days[dayIdx], dayIdx, exercisesContainer);
+    scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
+    setInputsLockState(!workoutTimerRunning);
   }
 }
 
-Function renderExercisesForDay(day, dayIdx, container) {
+function renderExercisesForDay(day, dayIdx, container) {
   (day.exercicios || []).forEach((ex, exIdx) => {
-    Const modeKey = `${dayIdx}_${exIdx}`;
-    Const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
+    const modeKey = `${dayIdx}_${exIdx}`;
+    const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || null;
 
-    Const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
-    Const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
+    const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
+    const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
 
-    Const exName = ex.nome || '';
-    Const exMeta = ex.reps || ex.repeticoes || '';
+    const exName = ex.nome || '';
+    const exMeta = ex.reps || ex.repeticoes || '';
     
-    Const rawSeries = String(ex.series || ex.num_series || '3').toLowerCase().trim();
-    Const matchDigits = rawSeries.match(/\d+/);
-    Let numSeriesPrescritas = matchDigits ? ParseInt(matchDigits[0]) : 3;
-    If (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
+    const rawSeries = String(ex.series || ex.num_series || '3').toLowerCase().trim();
+    const matchDigits = rawSeries.match(/\d+/);
+    let numSeriesPrescritas = matchDigits ? parseInt(matchDigits[0]) : 3;
+    if (isNaN(numSeriesPrescritas) || numSeriesPrescritas <= 0) numSeriesPrescritas = 3;
 
-    Const tem2x = numSeriesPrescritas === 2 || rawSeries.includes('2x');
-    Const isStrict1x = numSeriesPrescritas === 1 || rawSeries.includes('1x');
+    const tem2x = numSeriesPrescritas === 2 || rawSeries.includes('2x');
+    const isStrict1x = numSeriesPrescritas === 1 || rawSeries.includes('1x');
 
-    Const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
-    Let tecnicaAdminFixa = null;
+    const tAdmin = String(ex.tecnica || ex.tecnica_prescrita || '').toLowerCase().trim();
+    let tecnicaAdminFixa = null;
 
-    If (tAdmin.includes('cluster') && tAdmin.includes('back')) {
-      TecnicaAdminFixa = 'cluster_backoff';
+    if (tAdmin.includes('cluster') && tAdmin.includes('back')) {
+      tecnicaAdminFixa = 'cluster_backoff';
     } else if (tAdmin.includes('back')) {
-      TecnicaAdminFixa = 'backoff_2x';
+      tecnicaAdminFixa = 'backoff_2x';
     } else if (tAdmin.includes('cluster')) {
-      TecnicaAdminFixa = 'cluster';
+      tecnicaAdminFixa = 'cluster';
     } else if (tAdmin.includes('myo')) {
-      TecnicaAdminFixa = 'myoreps';
+      tecnicaAdminFixa = 'myoreps';
     } else if (isStrict1x) {
-      TecnicaAdminFixa = 'convencional';
+      tecnicaAdminFixa = 'convencional';
     }
 
-    Const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && !isStrict1x;
+    const podeAlterarTecnica = (currentData.pode_alterar_tecnica === true || currentData.permitirTecnicas === true) && !tecnicaAdminFixa && !isStrict1x;
 
-    Let activeMode = tecnicaAdminFixa ? TecnicaAdminFixa : (savedUserMode || 'convencional');
+    let activeMode = tecnicaAdminFixa ? tecnicaAdminFixa : (savedUserMode || 'convencional');
 
-    Let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+    let cleanName = exName.replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
 
-    Const div = document.createElement('div');
-    Div.className = `item ${isExDone ? 'exercise-done' : ''}`;
+    const div = document.createElement('div');
+    div.className = `item ${isExDone ? 'exercise-done' : ''}`;
 
-    Let selectHtml = '';
+    let selectHtml = '';
 
-    If (tecnicaAdminFixa) {
-      Const nomesExibicao = {
+    if (tecnicaAdminFixa) {
+      const nomesExibicao = {
         'convencional': isStrict1x ? '1 Série Única' : `${numSeriesPrescritas}x Convencional`,
         'backoff_2x': '⚙️ 2x + Back-Off Set',
         'cluster': '⚙ Cluster Set',
         'cluster_backoff': '⚙️ Cluster + Back-Off',
         'myoreps': '⚙ Myo-Reps'
       };
-      Const rotulo = nomesExibicao[activeMode] || 'Técnica Prescrita';
-      SelectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
+      const rotulo = nomesExibicao[activeMode] || 'Técnica Prescrita';
+      selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${rotulo}</span>`;
     } else if (podeAlterarTecnica) {
-      If (tem2x) {
-        SelectHtml = `
+      if (tem2x) {
+        selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>2x Convencional</option>
             <option value="cluster" ${activeMode === 'cluster' ? 'selected' : ''}>Cluster Set</option>
           </select>
         `;
       } else {
-        SelectHtml = `
+        selectHtml = `
           <select class="mode-select" onchange="changeExerciseMode(${dayIdx}, ${exIdx}, this.value)">
             <option value="convencional" ${activeMode === 'convencional' ? 'selected' : ''}>${numSeriesPrescritas}x Convencional</option>
             <option value="backoff_2x" ${activeMode === 'backoff_2x' ? 'selected' : ''}>2x + Back-Off Set</option>
@@ -1561,32 +1561,32 @@ Function renderExercisesForDay(day, dayIdx, container) {
         `;
       }
     } else {
-      Const exibicaoGeral = ex.tecnica || ex.tecnica_prescrita || `${numSeriesPrescritas}x Convencional`;
-      SelectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${escapeHtml(exibicaoGeral)}</span>`;
+      const exibicaoGeral = ex.tecnica || ex.tecnica_prescrita || `${numSeriesPrescritas}x Convencional`;
+      selectHtml = `<span style="font-size:11px; font-weight:700; color:var(--mark); padding:2px 6px; border:1px solid var(--mark-dim); border-radius:4px; background:var(--panel);">${escapeHtml(exibicaoGeral)}</span>`;
     }
 
-    Const exKeySanitized = sanitizeExKey(cleanName);
-    Const keyLog = `${dayIdx}_${exIdx}`;
-    Const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
-    Const ultimoRegistro = historicoEx.length > 0 ? HistoricoEx[historicoEx.length - 1] : null;
+    const exKeySanitized = sanitizeExKey(cleanName);
+    const keyLog = `${dayIdx}_${exIdx}`;
+    const historicoEx = (currentData.weekly_logs && (currentData.weekly_logs[exKeySanitized] || currentData.weekly_logs[keyLog])) || [];
+    const ultimoRegistro = historicoEx.length > 0 ? historicoEx[historicoEx.length - 1] : null;
 
-    Let prevBadgeHtml = "";
-    If (ultimoRegistro) {
-      Const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : '--';
-      Const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '--';
-      Const tAnt = ultimoRegistro.tecnica ? `| Técnica: ${ultimoRegistro.tecnica}` : '';
-      PrevBadgeHtml = `<div class="previous-log-badge">📈 Último treino — Carga: <b>${cAnt}</b> | Média: <b>${rAnt}</b> ${tAnt}</div>`;
+    let prevBadgeHtml = "";
+    if (ultimoRegistro) {
+      const cAnt = ultimoRegistro.cargaMax ? `${ultimoRegistro.cargaMax} kg` : '--';
+      const rAnt = ultimoRegistro.repsMed ? `${ultimoRegistro.repsMed} reps` : '--';
+      const tAnt = ultimoRegistro.tecnica ? `| Técnica: ${ultimoRegistro.tecnica}` : '';
+      prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino — Carga: <b>${cAnt}</b> | Média: <b>${rAnt}</b> ${tAnt}</div>`;
     } else {
-      PrevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
+      prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
     }
 
-    Let html = `
+    let html = `
       <div class="item-header">
         <div class="item-title">${escapeHtml(cleanName)}</div>
         <div style="display:flex; align-items:center; gap:6px;">
           ${selectHtml}
           <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" 
-            Onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
+            onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
             ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
           </button>
         </div>
@@ -1595,18 +1595,18 @@ Function renderExercisesForDay(day, dayIdx, container) {
       <div class="series-container">
     `;
 
-    If (activeMode === 'myoreps') {
-      Const keyAtivC = `log_c_${exKeySanitized}_ativ`;
-      Const keyAtivR = `log_r_${exKeySanitized}_ativ`;
-      Const keyBlocos = `log_b_${exKeySanitized}_myo_blocos`;
-      Const keyRepsBloco = `log_r_${exKeySanitized}_myo_repsbloco`;
+    if (activeMode === 'myoreps') {
+      const keyAtivC = `log_c_${exKeySanitized}_ativ`;
+      const keyAtivR = `log_r_${exKeySanitized}_ativ`;
+      const keyBlocos = `log_b_${exKeySanitized}_myo_blocos`;
+      const keyRepsBloco = `log_r_${exKeySanitized}_myo_repsbloco`;
 
-      Const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
-      Const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
-      Const valBlocos = (currentData.logs && currentData.logs[keyBlocos]) || '';
-      Const valRepsBloco = (currentData.logs && currentData.logs[keyRepsBloco]) || '';
+      const valAtivC = (currentData.logs && currentData.logs[keyAtivC]) || '';
+      const valAtivR = (currentData.logs && currentData.logs[keyAtivR]) || '';
+      const valBlocos = (currentData.logs && currentData.logs[keyBlocos]) || '';
+      const valRepsBloco = (currentData.logs && currentData.logs[keyRepsBloco]) || '';
 
-      Html += `
+      html += `
         <div class="series-row" style="background:var(--mark-dim); border:1px solid var(--mark); border-left:4px solid var(--mark);">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Ativação</button>
           <input id="input_ativ_${exKeySanitized}" ${createLogInputAttr(keyAtivC)} class="input-field input-log" style="width:55px; border-color:var(--mark) !important;" placeholder="Kg" value="${escapeHtml(valAtivC)}" oninput="scheduleAutoSave('${keyAtivC}', this.value, ${dayIdx}, ${exIdx})">
@@ -1628,15 +1628,15 @@ Function renderExercisesForDay(day, dayIdx, container) {
         </div>
       `;
     } else if (activeMode === 'cluster') {
-      Const keyClC = `log_c_${exKeySanitized}_cl_peso`;
-      Const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
-      Const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
+      const keyClC = `log_c_${exKeySanitized}_cl_peso`;
+      const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
+      const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
 
-      Const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-      Const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-      Const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+      const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+      const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+      const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
 
-      Html += `
+      html += `
         <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
           <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Kg" value="${escapeHtml(valClC)}" oninput="scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
@@ -1648,23 +1648,23 @@ Function renderExercisesForDay(day, dayIdx, container) {
         </div>
       `;
     } else if (activeMode === 'cluster_backoff') {
-      Const keyClC = `log_c_${exKeySanitized}_cl_peso`;
-      Const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
-      Const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
-      Const keyBoC = `log_c_${exKeySanitized}_s2`;
-      Const keyBoR = `log_r_${exKeySanitized}_s2`;
+      const keyClC = `log_c_${exKeySanitized}_cl_peso`;
+      const keyClB = `log_b_${exKeySanitized}_cl_blocos`;
+      const keyClR = `log_r_${exKeySanitized}_cl_lastreps`;
+      const keyBoC = `log_c_${exKeySanitized}_s2`;
+      const keyBoR = `log_r_${exKeySanitized}_s2`;
 
-      Const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
-      Const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
-      Const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
-      Const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      Const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+      const valClC = (currentData.logs && currentData.logs[keyClC]) || '';
+      const valClB = (currentData.logs && currentData.logs[keyClB]) || '';
+      const valClR = (currentData.logs && currentData.logs[keyClR]) || '';
+      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
-      Const nCl = parseFloat(valClC) || 0;
-      Let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
-      Let carga30Cl = nCl > 0 ? Math.round(nCl * 0.70) : 0;
+      const nCl = parseFloat(valClC) || 0;
+      let carga20Cl = nCl > 0 ? Math.round(nCl * 0.80) : 0;
+      let carga30Cl = nCl > 0 ? Math.round(nCl * 0.70) : 0;
 
-      Html += `
+      html += `
         <div class="series-row" style="background:var(--good-dim); border:1px solid var(--good); border-left:2px solid var(--good);">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Cluster</button>
           <input ${createLogInputAttr(keyClC)} class="input-field input-log" style="width:55px; border-color:var(--good) !important;" placeholder="Kg" value="${escapeHtml(valClC)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'cl', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyClC}', this.value, ${dayIdx}, ${exIdx})">
@@ -1680,11 +1680,11 @@ Function renderExercisesForDay(day, dayIdx, container) {
             ${nCl > 0 ? `
               <div style="display:flex; gap:4px; width:100%;">
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  Onclick="aplicarCargaBackoff('${keyBoC}',${carga20Cl}, ${dayIdx},${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}',${carga20Cl}, ${dayIdx},${exIdx})">
                   -20% (${carga20Cl}kg)
                 </button>
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  Onclick="aplicarCargaBackoff('${keyBoC}',${carga30Cl}, ${dayIdx},${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}',${carga30Cl}, ${dayIdx},${exIdx})">
                   -30% (${carga30Cl}kg)
                 </button>
               </div>
@@ -1700,27 +1700,27 @@ Function renderExercisesForDay(day, dayIdx, container) {
         </div>
       `;
     } else if (activeMode === 'backoff_2x') {
-      Const keyS1C = `log_c_${exKeySanitized}_s1`;
-      Const keyS1R = `log_r_${exKeySanitized}_s1`;
-      Const keyS2C = `log_c_${exKeySanitized}_s2`;
-      Const keyS2R = `log_r_${exKeySanitized}_s2`;
-      Const keyBoC = `log_c_${exKeySanitized}_bo`;
-      Const keyBoR = `log_r_${exKeySanitized}_bo`;
+      const keyS1C = `log_c_${exKeySanitized}_s1`;
+      const keyS1R = `log_r_${exKeySanitized}_s1`;
+      const keyS2C = `log_c_${exKeySanitized}_s2`;
+      const keyS2R = `log_r_${exKeySanitized}_s2`;
+      const keyBoC = `log_c_${exKeySanitized}_bo`;
+      const keyBoR = `log_r_${exKeySanitized}_bo`;
 
-      Const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
-      Const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
-      Const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
-      Const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
-      Const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
-      Const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
+      const valS1C = (currentData.logs && currentData.logs[keyS1C]) || '';
+      const valS1R = (currentData.logs && currentData.logs[keyS1R]) || '';
+      const valS2C = (currentData.logs && currentData.logs[keyS2C]) || '';
+      const valS2R = (currentData.logs && currentData.logs[keyS2R]) || '';
+      const valBoC = (currentData.logs && currentData.logs[keyBoC]) || '';
+      const valBoR = (currentData.logs && currentData.logs[keyBoR]) || '';
 
-      Const nS1 = parseFloat(valS1C) || 0;
-      Const nS2 = parseFloat(valS2C) || 0;
-      Const maiorCarga = Math.max(nS1, nS2);
-      Let c20 = maiorCarga > 0 ? Math.round(maiorCarga * 0.80) : 0;
-      Let c30 = maiorCarga > 0 ? Math.round(maiorCarga * 0.70) : 0;
+      const nS1 = parseFloat(valS1C) || 0;
+      const nS2 = parseFloat(valS2C) || 0;
+      const maiorCarga = Math.max(nS1, nS2);
+      let c20 = maiorCarga > 0 ? Math.round(maiorCarga * 0.80) : 0;
+      let c30 = maiorCarga > 0 ? Math.round(maiorCarga * 0.70) : 0;
 
-      Html += `
+      html += `
         <div class="series-row">
           <button type="button" class="btn-check-serie" data-num="1" onclick="toggleCheckSerie(this)">Série 1</button>
           <input id="input_log_c_${exKeySanitized}_s1" ${createLogInputAttr(keyS1C)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(valS1C)}" oninput="atualizarBackoffLive('${exKeySanitized}', 'norm', ${dayIdx}, ${exIdx}); scheduleAutoSave('${keyS1C}', this.value, ${dayIdx}, ${exIdx})">
@@ -1741,11 +1741,11 @@ Function renderExercisesForDay(day, dayIdx, container) {
             ${maiorCarga > 0 ? `
               <div style="display:flex; gap:4px; width:100%;">
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-                  Onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
                   -20% (${c20}kg)
                 </button>
                 <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-                  Onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
+                  onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
                   -30% (${c30}kg)
                 </button>
               </div>
@@ -1761,13 +1761,13 @@ Function renderExercisesForDay(day, dayIdx, container) {
         </div>
       `;
     } else {
-      For (let s = 1; s <= numSeriesPrescritas; s++) {
-        Const keyLoad = `log_c_${exKeySanitized}_s${s}`;
-        Const keyReps = `log_r_${exKeySanitized}_s${s}`;
-        Const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
-        Const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+      for (let s = 1; s <= numSeriesPrescritas; s++) {
+        const keyLoad = `log_c_${exKeySanitized}_s${s}`;
+        const keyReps = `log_r_${exKeySanitized}_s${s}`;
+        const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+        const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
 
-        Html += `
+        html += `
           <div class="series-row">
             <button type="button" class="btn-check-serie" data-num="${s}" onclick="toggleCheckSerie(this)">Série ${s}</button>
             <input ${createLogInputAttr(keyLoad)} class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx})">
@@ -1779,396 +1779,396 @@ Function renderExercisesForDay(day, dayIdx, container) {
       }
     }
 
-    Html += `</div>`;
-    Div.innerHTML = html;
-    Container.appendChild(div);
+    html += `</div>`;
+    div.innerHTML = html;
+    container.appendChild(div);
   });
 }
 
-Function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
-  Const box = document.getElementById(`calc_backoff_box_${exKeySanitized}`);
-  If (!box) return;
+function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
+  const box = document.getElementById(`calc_backoff_box_${exKeySanitized}`);
+  if (!box) return;
 
-  Let maiorCarga = 0;
-  Const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
-  Const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
-  Const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
-  Const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
-  MaiorCarga = Math.max(v1, v2);
-  Const keyBoC = `log_c_${exKeySanitized}_bo`;
+  let maiorCarga = 0;
+  const elS1 = document.getElementById(`input_log_c_${exKeySanitized}_s1`);
+  const elS2 = document.getElementById(`input_log_c_${exKeySanitized}_s2`);
+  const v1 = elS1 ? (parseFloat(elS1.value) || 0) : 0;
+  const v2 = elS2 ? (parseFloat(elS2.value) || 0) : 0;
+  maiorCarga = Math.max(v1, v2);
+  const keyBoC = `log_c_${exKeySanitized}_bo`;
 
-  If (maiorCarga > 0) {
-    Const c20 = Math.round(maiorCarga * 0.80);
-    Const c30 = Math.round(maiorCarga * 0.70);
+  if (maiorCarga > 0) {
+    const c20 = Math.round(maiorCarga * 0.80);
+    const c30 = Math.round(maiorCarga * 0.70);
 
-    Box.innerHTML = `
+    box.innerHTML = `
       <div style="display:flex; gap:4px; width:100%;">
         <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--mark); color:var(--mark);" 
-          Onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
+          onclick="aplicarCargaBackoff('${keyBoC}', ${c20}, ${dayIdx}, ${exIdx})">
           -20% (${c20}kg)
         </button>
         <button type="button" class="rest-timer-btn" style="flex:1; padding:4px 6px; font-size:10.5px; background:var(--panel); border-color:var(--signal-light); color:var(--signal-light);" 
-          Onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
+          onclick="aplicarCargaBackoff('${keyBoC}', ${c30}, ${dayIdx}, ${exIdx})">
           -30% (${c30}kg)
         </button>
       </div>
     `;
   } else {
-    Box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`;
+    box.innerHTML = `<span style="font-size:10px; color:var(--ink-dim);">Digite a carga nas séries convencionais para calcular o Back-off</span>`;
   }
 }
 
-Function scheduleAutoSave(key, value, dayIdx, exIdx) {
-  If (!workoutTimerRunning) {
-    Alert("⚠️ Clique em '▶ INICIAR TREINO' antes de registrar dados!");
-    Return;
+function scheduleAutoSave(key, value, dayIdx, exIdx) {
+  if (!workoutTimerRunning) {
+    alert("⚠️ Clique em '▶ INICIAR TREINO' antes de registrar dados!");
+    return;
   }
 
-  If (!currentData.logs) currentData.logs = {};
-  CurrentData.logs[key] = value;
+  if (!currentData.logs) currentData.logs = {};
+  currentData.logs[key] = value;
 
-  If (loggedUserCode) {
-    LocalStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
+  if (loggedUserCode) {
+    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
   }
 
-  If (dayIdx !== undefined && exIdx !== undefined) {
-    CalculateAndStoreWeeklyLog(dayIdx, exIdx);
+  if (dayIdx !== undefined && exIdx !== undefined) {
+    calculateAndStoreWeeklyLog(dayIdx, exIdx);
   }
 
-  Const ind = document.getElementById('saveIndicator');
-  If (ind) ind.style.display = 'block';
+  const ind = document.getElementById('saveIndicator');
+  if (ind) ind.style.display = 'block';
 
-  If (autoSaveTimer) clearTimeout(autoSaveTimer);
+  if (autoSaveTimer) clearTimeout(autoSaveTimer);
 
-  AutoSaveTimer = setTimeout(async () => {
-    Try {
-      Await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
-        Method: "POST",
-        Headers: authHeaders(),
-        Cache: 'no-cache',
-        Body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
+  autoSaveTimer = setTimeout(async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, {
+        method: "POST",
+        headers: authHeaders(),
+        cache: 'no-cache',
+        body: JSON.stringify({ codigo: loggedUserCode, payload: currentData })
       });
-      If (ind) ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     } catch (e) {
-      If (ind) ind.style.display = 'none';
+      if (ind) ind.style.display = 'none';
     }
   }, 1200);
 }
 
-Function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
-  If (!currentData.weekly_logs) currentData.weekly_logs = {};
+function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
+  if (!currentData.weekly_logs) currentData.weekly_logs = {};
   
-  If (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
+  if (!currentData.days || !currentData.days[dayIdx] || !currentData.days[dayIdx].exercicios[exIdx]) return;
 
-  Const exObj = currentData.days[dayIdx].exercicios[exIdx];
-  Const cleanExName = (exObj.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
-  Const exKeySanitized = sanitizeExKey(cleanExName);
-  Const keyLog = `${dayIdx}_${exIdx}`;
+  const exObj = currentData.days[dayIdx].exercicios[exIdx];
+  const cleanExName = (exObj.nome || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+  const exKeySanitized = sanitizeExKey(cleanExName);
+  const keyLog = `${dayIdx}_${exIdx}`;
 
-  Const seriesStr = String(exObj.series || '').toLowerCase();
-  Const isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
-  Const numSeries = isStrict1x ? 1 : (parseInt(exObj.series) || 3);
+  const seriesStr = String(exObj.series || '').toLowerCase();
+  const isStrict1x = seriesStr.includes('1x') || seriesStr.trim() === '1';
+  const numSeries = isStrict1x ? 1 : (parseInt(exObj.series) || 3);
 
-  Const modeKey = `${dayIdx}_${exIdx}`;
-  Const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
+  const modeKey = `${dayIdx}_${exIdx}`;
+  const savedUserMode = (currentData.exercise_modes && currentData.exercise_modes[modeKey]) || 'convencional';
   
-  Const nomesTecnica = {
+  const nomesTecnica = {
     'convencional': isStrict1x ? 'Série Única' : 'Convencional',
     'myoreps': 'Myo-Reps',
     'cluster': 'Cluster Set',
     'cluster_backoff': 'Cluster + Back-Off',
     'backoff_2x': '2x + Back-Off'
   };
-  Const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
+  const tecnicaUsada = nomesTecnica[savedUserMode] || 'Convencional';
 
-  Let maxCarga = 0;
-  Let totalReps = 0;
-  Let seriesPreenchidas = 0;
+  let maxCarga = 0;
+  let totalReps = 0;
+  let seriesPreenchidas = 0;
 
-  For (let s = 1; s <= numSeries + 2; s++) {
-    Const cVal = parseFloat(currentData.logs[`log_c_${exKeySanitized}_s${s}`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
-    Const rVal = parseFloat(currentData.logs[`log_r_${exKeySanitized}_s${s}`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
+  for (let s = 1; s <= numSeries + 2; s++) {
+    const cVal = parseFloat(currentData.logs[`log_c_${exKeySanitized}_s${s}`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_s${s}`]);
+    const rVal = parseFloat(currentData.logs[`log_r_${exKeySanitized}_s${s}`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_s${s}`]);
 
-    If (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
-    If (!isNaN(rVal)) {
-      TotalReps += rVal;
-      SeriesPreenchidas++;
+    if (!isNaN(cVal) && cVal > maxCarga) maxCarga = cVal;
+    if (!isNaN(rVal)) {
+      totalReps += rVal;
+      seriesPreenchidas++;
     }
   }
 
-  Const cMyoAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
-  Const rMyoAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
-  Const rMyoBlocos = parseFloat(currentData.logs[`log_b_${exKeySanitized}_myo_blocos`]);
-  Const rMyoRepsBloco = parseFloat(currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`]);
+  const cMyoAtiv = parseFloat(currentData.logs[`log_c_${exKeySanitized}_ativ`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_ativ`]);
+  const rMyoAtiv = parseFloat(currentData.logs[`log_r_${exKeySanitized}_ativ`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_ativ`]);
+  const rMyoBlocos = parseFloat(currentData.logs[`log_b_${exKeySanitized}_myo_blocos`]);
+  const rMyoRepsBloco = parseFloat(currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`]);
 
-  If (!isNaN(cMyoAtiv) && cMyoAtiv > maxCarga) maxCarga = cMyoAtiv;
-  If (!isNaN(rMyoAtiv)) { 
-    TotalReps += rMyoAtiv; 
-    SeriesPreenchidas++; 
+  if (!isNaN(cMyoAtiv) && cMyoAtiv > maxCarga) maxCarga = cMyoAtiv;
+  if (!isNaN(rMyoAtiv)) { 
+    totalReps += rMyoAtiv; 
+    seriesPreenchidas++; 
   }
-  If (!isNaN(rMyoBlocos) && !isNaN(rMyoRepsBloco)) {
-    TotalReps += (rMyoBlocos * rMyoRepsBloco);
+  if (!isNaN(rMyoBlocos) && !isNaN(rMyoRepsBloco)) {
+    totalReps += (rMyoBlocos * rMyoRepsBloco);
   }
 
-  Const cCl = parseFloat(currentData.logs[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
-  Const rCl = parseFloat(currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
-  If (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
-  If (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
+  const cCl = parseFloat(currentData.logs[`log_c_${exKeySanitized}_cl_peso`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_cl_peso`]);
+  const rCl = parseFloat(currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_cl_lastreps`]);
+  if (!isNaN(cCl) && cCl > maxCarga) maxCarga = cCl;
+  if (!isNaN(rCl)) { totalReps += rCl; seriesPreenchidas++; }
 
-  Const cBo = parseFloat(currentData.logs[`log_c_${exKeySanitized}_bo`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]);
-  Const rBo = parseFloat(currentData.logs[`log_r_${exKeySanitized}_bo`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]);
-  If (!isNaN(cBo) && cBo > maxCarga) maxCarga = cBo;
-  If (!isNaN(rBo)) { totalReps += rBo; seriesPreenchidas++; }
+  const cBo = parseFloat(currentData.logs[`log_c_${exKeySanitized}_bo`] || currentData.logs[`log_c_${dayIdx}_${exIdx}_bo`]);
+  const rBo = parseFloat(currentData.logs[`log_r_${exKeySanitized}_bo`] || currentData.logs[`log_r_${dayIdx}_${exIdx}_bo`]);
+  if (!isNaN(cBo) && cBo > maxCarga) maxCarga = cBo;
+  if (!isNaN(rBo)) { totalReps += rBo; seriesPreenchidas++; }
 
-  If (maxCarga > 0) {
-    Const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
-    Const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  if (maxCarga > 0) {
+    const mediaReps = seriesPreenchidas > 0 ? Math.round(totalReps / seriesPreenchidas) : "-";
+    const dataHoje = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 
-    If (!currentData.weekly_logs[exKeySanitized]) currentData.weekly_logs[exKeySanitized] = [];
+    if (!currentData.weekly_logs[exKeySanitized]) currentData.weekly_logs[exKeySanitized] = [];
 
-    Let hist = currentData.weekly_logs[exKeySanitized];
+    let hist = currentData.weekly_logs[exKeySanitized];
     
-    Const idxHoje = hist.findIndex(item => item.data === dataHoje);
-    If (idxHoje !== -1) {
-      Hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada };
+    const idxHoje = hist.findIndex(item => item.data === dataHoje);
+    if (idxHoje !== -1) {
+      hist[idxHoje] = { data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada };
     } else {
-      Hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
+      hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
     }
 
-    If (hist.length > 4) hist = hist.slice(-4);
-    CurrentData.weekly_logs[exKeySanitized] = hist;
-    CurrentData.weekly_logs[keyLog] = hist;
+    if (hist.length > 4) hist = hist.slice(-4);
+    currentData.weekly_logs[exKeySanitized] = hist;
+    currentData.weekly_logs[keyLog] = hist;
   }
 }
 
-Function parseDietaAluno(rawText) {
-  If (!rawText || !rawText.trim()) return [];
+function parseDietaAluno(rawText) {
+  if (!rawText || !rawText.trim()) return [];
 
-  Const abas = [];
-  Const rawAbas = rawText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
+  const abas = [];
+  const rawAbas = rawText.split(/(?=\[\s*ABA\s*\]|\[\s*CICLO\s*\]|---)/gi);
 
-  RawAbas.forEach((rawAba, abaIdx) => {
-    Const cleanAba = rawAba.trim();
-    If (!cleanAba || cleanAba === '---') return;
+  rawAbas.forEach((rawAba, abaIdx) => {
+    const cleanAba = rawAba.trim();
+    if (!cleanAba || cleanAba === '---') return;
 
-    Let abaNome = "DIETA BASE";
-    Let textContent = cleanAba;
+    let abaNome = "DIETA BASE";
+    let textContent = cleanAba;
 
-    If (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
-      Const linesAba = cleanAba.split('\n');
-      AbaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim() || `Ciclo ${abaIdx + 1}`;
+    if (/^(\[\s*ABA\s*\]|\[\s*CICLO\s*\])/i.test(cleanAba)) {
+      const linesAba = cleanAba.split('\n');
+      abaNome = linesAba[0].replace(/\[\s*ABA\s*\]|\[\s*CICLO\s*\]/gi, '').trim() || `Ciclo ${abaIdx + 1}`;
 
-      Let startIdx = 1;
-      If (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
-        StartIdx = 2;
+      let startIdx = 1;
+      if (linesAba.length > 1 && linesAba[1].toLowerCase().trim().startsWith('dias:')) {
+        startIdx = 2;
       }
-      TextContent = linesAba.slice(startIdx).join('\n').trim();
+      textContent = linesAba.slice(startIdx).join('\n').trim();
     }
 
-    Const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|🍽|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
-    Const rawMeals = textContent.split(regexTitulosRefeicao);
-    Const meals = [];
+    const regexTitulosRefeicao = /(?=\[\s*REFEIÇÃO\s*\]|\[\s*DIETA BASE\s*\]|🍽|\d+ª\s*Refeição|Refeição\s*\d+|REF\s*\d+|CAFÉ DA MANHÃ|ALMOÇO|LANCHE PÓS CORRIDA|CAFÉ DA TARDE|JANTAR|CEIA)/gi;
+    const rawMeals = textContent.split(regexTitulosRefeicao);
+    const meals = [];
 
-    RawMeals.forEach(bloco => {
-      Let clean = bloco.trim();
-      If (!clean) return;
+    rawMeals.forEach(bloco => {
+      let clean = bloco.trim();
+      if (!clean) return;
 
-      Clean = clean.replace(/^\[?\s*REFEIÇÃO\s*\]?\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
+      clean = clean.replace(/^\[?\s*REFEIÇÃO\s*\]?\s*/gi, '').replace(/^REFEIÇÃO\]\s*/gi, '').trim();
 
-      Const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
-      If (lines.length === 0) return;
+      const lines = clean.split('\n').map(l => l.trim()).filter(l => l !== '' && l.toLowerCase() !== 'a gosto' && l.toLowerCase() !== 'qtd');
+      if (lines.length === 0) return;
 
-      Let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
-      Const titleLower = title.toLowerCase();
+      let title = lines[0].replace(/^\[.*?\]\s*/, '').replace(/^🍽\s*/, '').trim();
+      const titleLower = title.toLowerCase();
 
-      If (
-        TitleLower.includes('plano alimentar') || 
-        TitleLower.includes('resumo nutricional') ||
-        TitleLower.includes('meta diaria') ||
-        TitleLower.includes('metas diarias') ||
-        TitleLower.includes('meta diária') ||
-        TitleLower.includes('metas diárias') ||
-        TitleLower.includes('suplemento') ||
-        TitleLower.includes('suplementos') ||
-        TitleLower.includes('suplementação') ||
-        TitleLower.includes('suplementacao') ||
-        TitleLower.includes('gasto estimado')
+      if (
+        titleLower.includes('plano alimentar') || 
+        titleLower.includes('resumo nutricional') ||
+        titleLower.includes('meta diaria') ||
+        titleLower.includes('metas diarias') ||
+        titleLower.includes('meta diária') ||
+        titleLower.includes('metas diárias') ||
+        titleLower.includes('suplemento') ||
+        titleLower.includes('suplementos') ||
+        titleLower.includes('suplementação') ||
+        titleLower.includes('suplementacao') ||
+        titleLower.includes('gasto estimado')
       ) {
-        Return;
+        return;
       }
 
-      Let days = "";
-      Const baseItems = [];
-      Const trocasCarbo = [];
-      Const trocasProt = [];
+      let days = "";
+      const baseItems = [];
+      const trocasCarbo = [];
+      const trocasProt = [];
 
-      Lines.slice(1).forEach(line => {
-        Let lineClean = line.replace(/\[\s*\]/g, '').trim();
-        Const lineLower = lineClean.toLowerCase();
+      lines.slice(1).forEach(line => {
+        let lineClean = line.replace(/\[\s*\]/g, '').trim();
+        const lineLower = lineClean.toLowerCase();
         
-        If (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
-          Days = lineClean.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
-          If (!days.startsWith('📅')) days = '📅 ' + days;
+        if (lineLower.startsWith('dias:') || lineLower.startsWith('dias da semana:')) {
+          days = lineClean.replace(/^dias(\s*da\s*semana)?:/i, '📅 Dias:').trim();
+          if (!days.startsWith('📅')) days = '📅 ' + days;
         } else if (lineClean.includes('↳') || lineClean.includes('(Opção de troca)') || lineClean.includes('(Troca)') || lineClean.includes('Trocas de') || lineClean.includes('Carboidratos:') || lineClean.includes('Proteínas')) {
-          Let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
-          If (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
+          let itemTxt = lineClean.replace(/↳|Opção de Troca|\(Carboidrato\):|\(Proteína\):|\(Opção de troca\)|\(Troca\)/gi, '').replace(/^[-•*]\s*/, '').trim();
+          if (!itemTxt || itemTxt.toLowerCase().includes('trocas de')) return;
           
-          ItemTxt = itemTxt.replace(/\[\s*CARBO\s*\]/gi, '').replace(/\[\s*PROT\s*\]/gi, '').replace(/\[\s*\]/g, '').trim();
+          itemTxt = itemTxt.replace(/\[\s*CARBO\s*\]/gi, '').replace(/\[\s*PROT\s*\]/gi, '').replace(/\[\s*\]/g, '').trim();
 
-          If (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
-            TrocasCarbo.push(itemTxt);
+          if (lineClean.toUpperCase().includes('[CARBO]') || lineClean.toLowerCase().includes('carbo') || lineClean.toLowerCase().includes('carboidrato')) {
+            trocasCarbo.push(itemTxt);
           } else if (lineClean.toUpperCase().includes('[PROT]') || lineLower.includes('prot') || lineLower.includes('proteína') || lineLower.includes('proteina')) {
-            TrocasProt.push(itemTxt);
+            trocasProt.push(itemTxt);
           } else {
-            TrocasCarbo.push(itemTxt);
+            trocasCarbo.push(itemTxt);
           }
         } else {
-          Const cleanItem = lineClean.replace(/^[-•*]\s*/, '').trim();
-          If (cleanItem && cleanItem.toLowerCase() !== 'plano alimentar') {
-            BaseItems.push(cleanItem);
+          const cleanItem = lineClean.replace(/^[-•*]\s*/, '').trim();
+          if (cleanItem && cleanItem.toLowerCase() !== 'plano alimentar') {
+            baseItems.push(cleanItem);
           }
         }
       });
 
-      If (title && (baseItems.length > 0 || trocasCarbo.length > 0 || trocasProt.length > 0)) {
-        Meals.push({
-          MealTitle: title,
-          Days: days,
-          BaseItems: baseItems,
-          TrocasCarbo: trocasCarbo,
-          TrocasProt: trocasProt
+      if (title && (baseItems.length > 0 || trocasCarbo.length > 0 || trocasProt.length > 0)) {
+        meals.push({
+          mealTitle: title,
+          days: days,
+          baseItems: baseItems,
+          trocasCarbo: trocasCarbo,
+          trocasProt: trocasProt
         });
       }
     });
 
-    If (meals.length > 0) {
-      Abas.push({ abaNome: abaNome || `Opção ${abaIdx + 1}`, meals: meals, fullText: cleanAba.toLowerCase() });
+    if (meals.length > 0) {
+      abas.push({ abaNome: abaNome || `Opção ${abaIdx + 1}`, meals: meals, fullText: cleanAba.toLowerCase() });
     }
   });
 
-  Return abas;
+  return abas;
 }
 
-Function trocarAbaDieta(valIndex) {
-  ActiveAlunoDietAbaIndex = parseInt(valIndex) || 0;
-  RenderDietaAluno(currentData.refeicoes || currentData.dieta || []);
+function trocarAbaDieta(valIndex) {
+  activeAlunoDietAbaIndex = parseInt(valIndex) || 0;
+  renderDietaAluno(currentData.refeicoes || currentData.dieta || []);
 }
 
-Function renderDietaAluno(refeicoesData) {
-  Const categoryList = document.getElementById('dietCategoryList');
-  Const selectAba = document.getElementById('dietAbaSelect');
-  Const dayLabel = document.getElementById('dietCurrentDayLabel');
+function renderDietaAluno(refeicoesData) {
+  const categoryList = document.getElementById('dietCategoryList');
+  const selectAba = document.getElementById('dietAbaSelect');
+  const dayLabel = document.getElementById('dietCurrentDayLabel');
 
-  If (!categoryList) return;
-  CategoryList.innerHTML = "";
+  if (!categoryList) return;
+  categoryList.innerHTML = "";
 
-  Let rawText = "";
-  If (Array.isArray(refeicoesData)) {
-    RefeicoesData.forEach(r => {
-      If (typeof r === 'string') {
-        RawText += `${r}\n\n`;
+  let rawText = "";
+  if (Array.isArray(refeicoesData)) {
+    refeicoesData.forEach(r => {
+      if (typeof r === 'string') {
+        rawText += `${r}\n\n`;
       } else if (r.titulo || r.alimentos || r.mealTitle) {
-        Const t = r.titulo || r.mealTitle || 'Refeição';
-        Const a = r.alimentos || (r.baseItems ? R.baseItems.join('\n') : '');
-        RawText += `[REFEIÇÃO] ${t}\n${a}\n\n`;
+        const t = r.titulo || r.mealTitle || 'Refeição';
+        const a = r.alimentos || (r.baseItems ? r.baseItems.join('\n') : '');
+        rawText += `[REFEIÇÃO] ${t}\n${a}\n\n`;
       }
     });
   } else if (typeof refeicoesData === 'string') {
-    RawText = refeicoesData;
+    rawText = refeicoesData;
   }
 
-  Let cleanText = rawText.trim();
-  Let metasTexto = "";
-  Let suplementosList = [];
+  let cleanText = rawText.trim();
+  let metasTexto = "";
+  let suplementosList = [];
 
-  Const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
-  Const matchMetas = cleanText.match(regexMetas);
+  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
+  const matchMetas = cleanText.match(regexMetas);
 
-  If (matchMetas) {
-    Const blocoMetas = matchMetas[0].trim();
-    CleanText = cleanText.replace(blocoMetas, '').trim();
+  if (matchMetas) {
+    const blocoMetas = matchMetas[0].trim();
+    cleanText = cleanText.replace(blocoMetas, '').trim();
 
-    Const linhas = blocoMetas.split('\n').map(l => l.trim()).filter(l => l !== '');
-    Let emSuplementos = false;
+    const linhas = blocoMetas.split('\n').map(l => l.trim()).filter(l => l !== '');
+    let emSuplementos = false;
 
-    Linhas.forEach(linha => {
-      Const linhaLower = linha.toLowerCase().trim();
+    linhas.forEach(linha => {
+      const linhaLower = linha.toLowerCase().trim();
 
-      If (
-        LinhaLower.includes('plano alimentar') || 
-        LinhaLower.includes('refeição]') || 
-        LinhaLower.includes('[refeição]') ||
-        LinhaLower.startsWith('🍽')
+      if (
+        linhaLower.includes('plano alimentar') || 
+        linhaLower.includes('refeição]') || 
+        linhaLower.includes('[refeição]') ||
+        linhaLower.startsWith('🍽')
       ) {
-        Return;
+        return;
       }
 
-      If (
-        LinhaLower.includes('[suplementação diária]') || 
-        LinhaLower.includes('suplementação')
+      if (
+        linhaLower.includes('[suplementação diária]') || 
+        linhaLower.includes('suplementação')
       ) {
-        EmSuplementos = true;
-        Return;
+        emSuplementos = true;
+        return;
       }
 
-      If (emSuplementos) {
-        If (linha.startsWith('-') || linha.startsWith('•')) {
-          SuplementosList.push(linha.replace(/^[-•*]\s*/, '').trim());
+      if (emSuplementos) {
+        if (linha.startsWith('-') || linha.startsWith('•')) {
+          suplementosList.push(linha.replace(/^[-•*]\s*/, '').trim());
         }
       } else {
-        MetasTexto += linha + '\n';
+        metasTexto += linha + '\n';
       }
     });
   }
 
-  Let abas = parseDietaAluno(cleanText);
+  let abas = parseDietaAluno(cleanText);
 
-  If (!abas || abas.length === 0) {
-    CategoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
-    Return;
+  if (!abas || abas.length === 0) {
+    categoryList.innerHTML = `<div style="font-size:13px; color:var(--ink-dim); text-align:center; padding:20px;">Nenhum ciclo alimentar cadastrado para hoje.</div>`;
+    return;
   }
 
-  Const diaHojeKey = obterDiaSemanaNormalizado();
-  Const nomeHojeFmt = obterNomeDiaSemanaFormatado();
-  Let abaIndexHoje = -1;
+  const diaHojeKey = obterDiaSemanaNormalizado();
+  const nomeHojeFmt = obterNomeDiaSemanaFormatado();
+  let abaIndexHoje = -1;
 
-  Abas.forEach((aba, idx) => {
-    Const textoAbaNorm = (aba.fullText || (aba.abaNome + " " + JSON.stringify(aba.meals))).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    If (textoAbaNorm.includes(diaHojeKey)) {
-      AbaIndexHoje = idx;
+  abas.forEach((aba, idx) => {
+    const textoAbaNorm = (aba.fullText || (aba.abaNome + " " + JSON.stringify(aba.meals))).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (textoAbaNorm.includes(diaHojeKey)) {
+      abaIndexHoje = idx;
     }
   });
 
-  If (abaIndexHoje === -1) abaIndexHoje = 0;
+  if (abaIndexHoje === -1) abaIndexHoje = 0;
 
-  If (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
-    ActiveAlunoDietAbaIndex = abaIndexHoje;
+  if (activeAlunoDietAbaIndex === null || activeAlunoDietAbaIndex === undefined || activeAlunoDietAbaIndex >= abas.length) {
+    activeAlunoDietAbaIndex = abaIndexHoje;
   }
 
-  If (dayLabel) {
-    DayLabel.innerHTML = `📅 Hoje (${nomeHojeFmt})`;
+  if (dayLabel) {
+    dayLabel.innerHTML = `📅 Hoje (${nomeHojeFmt})`;
   }
 
-  If (selectAba) {
-    SelectAba.innerHTML = "";
-    Abas.forEach((aba, idx) => {
-      Const option = document.createElement('option');
-      Option.value = idx;
-      Const ehHoje = (idx === abaIndexHoje);
-      Option.textContent = `${aba.abaNome || 'Ciclo ' + (idx + 1)} ${ehHoje ? '📌 (Hoje)' : ''}`;
-      If (idx === activeAlunoDietAbaIndex) option.selected = true;
-      SelectAba.appendChild(option);
+  if (selectAba) {
+    selectAba.innerHTML = "";
+    abas.forEach((aba, idx) => {
+      const option = document.createElement('option');
+      option.value = idx;
+      const ehHoje = (idx === abaIndexHoje);
+      option.textContent = `${aba.abaNome || 'Ciclo ' + (idx + 1)} ${ehHoje ? '📌 (Hoje)' : ''}`;
+      if (idx === activeAlunoDietAbaIndex) option.selected = true;
+      selectAba.appendChild(option);
     });
   }
 
-  If (metasTexto.trim() || suplementosList.length > 0) {
-    Const boxConectado = document.createElement('div');
-    BoxConectado.style.cssText = "background: #0d0204; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;";
+  if (metasTexto.trim() || suplementosList.length > 0) {
+    const boxConectado = document.createElement('div');
+    boxConectado.style.cssText = "background: #0d0204; border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px;";
 
-    Let innerHtml = "";
+    let innerHtml = "";
 
-    If (metasTexto.trim()) {
-      InnerHtml += `
+    if (metasTexto.trim()) {
+      innerHtml += `
         <div style="border-bottom: 1px solid rgba(220,170,58,0.15); padding-bottom: 6px;">
           <div onclick="const el = document.getElementById('sub_metas_app'); if(el) el.classList.toggle('hidden');" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
             <span style="color:var(--mark); font-size:12px; font-weight:800;">📊 METAS DIÁRIAS (CALORIAS & ÁGUA)</span>
@@ -2181,8 +2181,8 @@ Function renderDietaAluno(refeicoesData) {
       `;
     }
 
-    If (suplementosList.length > 0) {
-      InnerHtml += `
+    if (suplementosList.length > 0) {
+      innerHtml += `
         <div>
           <div onclick="const el = document.getElementById('sub_suple_app'); if(el) el.classList.toggle('hidden');" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;">
             <span style="color:#60a5fa; font-size:12px; font-weight:800;">💊 SUPLEMENTAÇÃO DIÁRIA</span>
@@ -2197,19 +2197,19 @@ Function renderDietaAluno(refeicoesData) {
       `;
     }
 
-    BoxConectado.innerHTML = innerHtml;
-    CategoryList.appendChild(boxConectado);
+    boxConectado.innerHTML = innerHtml;
+    categoryList.appendChild(boxConectado);
   }
 
-  Const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
-  If (currentAba && currentAba.meals) {
-    CurrentAba.meals.forEach((meal, idx) => {
-      Const card = document.createElement('div');
-      Card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;";
+  const currentAba = abas[activeAlunoDietAbaIndex] || abas[0];
+  if (currentAba && currentAba.meals) {
+    currentAba.meals.forEach((meal, idx) => {
+      const card = document.createElement('div');
+      card.style.cssText = "background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;";
 
-      Const uniqueId = `trocas_aluno_${activeAlunoDietAbaIndex}_${idx}`;
+      const uniqueId = `trocas_aluno_${activeAlunoDietAbaIndex}_${idx}`;
 
-      Let html = `
+      let html = `
         <div style="border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:8px;">
           <h3 style="color:var(--mark); font-size:14px; font-weight:800; margin:0;">🍽 ${escapeHtml(meal.mealTitle || 'Refeição')}</h3>
           ${meal.days ? `<span style="font-size:10.5px; color:var(--blue); font-weight:700;">${escapeHtml(meal.days)}</span>` : ''}
@@ -2219,13 +2219,13 @@ Function renderDietaAluno(refeicoesData) {
       `;
 
       (meal.baseItems || []).forEach(item => {
-        Html += `<div style="font-size:12.5px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
+        html += `<div style="font-size:12.5px; color:var(--ink); font-weight:600;">• ${escapeHtml(item)}</div>`;
       });
 
-      Html += `</div>`;
+      html += `</div>`;
 
-      If ((meal.trocasCarbo && meal.trocasCarbo.length > 0) || (meal.trocasProt && meal.trocasProt.length > 0)) {
-        Html += `
+      if ((meal.trocasCarbo && meal.trocasCarbo.length > 0) || (meal.trocasProt && meal.trocasProt.length > 0)) {
+        html += `
           <div style="border-top:1px dashed var(--line); padding-top:6px;">
             <button type="button" onclick="const el = document.getElementById('${uniqueId}'); if(el) el.classList.toggle('hidden');" style="background:var(--panel); border:1px solid var(--mark); color:var(--mark); width:100%; padding:6px; border-radius:6px; font-size:10.5px; font-weight:800; cursor:pointer;">
               🔄 VER OPÇÕES DE TROCA ▾
@@ -2234,253 +2234,253 @@ Function renderDietaAluno(refeicoesData) {
             <div id="${uniqueId}" class="hidden" style="margin-top:6px; background:var(--bg); padding:8px; border-radius:6px;">
         `;
 
-        If (meal.trocasCarbo && meal.trocasCarbo.length > 0) {
-          Html += `<div style="font-size:10.5px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
-          Meal.trocasCarbo.forEach(subC => {
-            Html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
+        if (meal.trocasCarbo && meal.trocasCarbo.length > 0) {
+          html += `<div style="font-size:10.5px; color:var(--blue); font-weight:800; margin-bottom:4px;">🌾 Trocas de Carboidratos:</div>`;
+          meal.trocasCarbo.forEach(subC => {
+            html += `<div class="sub-item-box carbo">• ${escapeHtml(subC)}</div>`;
           });
         }
 
-        If (meal.trocasProt && meal.trocasProt.length > 0) {
-          Html += `<div style="font-size:10.5px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
-          Meal.trocasProt.forEach(subP => {
-            Html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
+        if (meal.trocasProt && meal.trocasProt.length > 0) {
+          html += `<div style="font-size:10.5px; color:var(--good); font-weight:800; margin-top:6px; margin-bottom:4px;">🥩 Trocas de Proteínas / Gorduras:</div>`;
+          meal.trocasProt.forEach(subP => {
+            html += `<div class="sub-item-box prot">• ${escapeHtml(subP)}</div>`;
           });
         }
 
-        Html += `</div></div>`;
+        html += `</div></div>`;
       }
 
-      Card.innerHTML = html;
-      CategoryList.appendChild(card);
+      card.innerHTML = html;
+      categoryList.appendChild(card);
     });
   }
 }
 
-Const TAB_ORDER = ['treino', 'dieta', 'corrida', 'ergogenicos', 'feedback'];
+const TAB_ORDER = ['treino', 'dieta', 'corrida', 'ergogenicos', 'feedback'];
 
-Function showTab(tab) {
+function showTab(tab) {
   TAB_ORDER.forEach(t => {
-    Const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-    Const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-    If (el) el.classList.add('hidden');
-    If (btn) btn.classList.remove('active');
+    const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    const btn = document.getElementById(`btn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+    if (el) el.classList.add('hidden');
+    if (btn) btn.classList.remove('active');
   });
 
-  Const activeTab = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-  Const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
-  If (activeTab) activeTab.classList.remove('hidden');
-  If (activeBtn) activeBtn.classList.add('active');
+  const activeTab = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+  const activeBtn = document.getElementById(`btn${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+  if (activeTab) activeTab.classList.remove('hidden');
+  if (activeBtn) activeBtn.classList.add('active');
 
-  Const restWidget = document.getElementById('restTimerWidget');
-  If (restWidget) {
-    If (tab === 'treino') {
-      RestWidget.classList.add('visible');
+  const restWidget = document.getElementById('restTimerWidget');
+  if (restWidget) {
+    if (tab === 'treino') {
+      restWidget.classList.add('visible');
     } else {
-      RestWidget.classList.remove('visible');
+      restWidget.classList.remove('visible');
     }
   }
 }
 
-Let swipeNavReady = false;
+let swipeNavReady = false;
 
-Function setupSwipeNavigation() {
-  If (swipeNavReady) return;
-  SwipeNavReady = true;
+function setupSwipeNavigation() {
+  if (swipeNavReady) return;
+  swipeNavReady = true;
 
-  Const viewport = document.getElementById('swipeViewport');
-  If (!viewport) return;
+  const viewport = document.getElementById('swipeViewport');
+  if (!viewport) return;
 
-  Let startX = 0, startY = 0, tracking = false;
-  Const SWIPE_THRESHOLD = 55;
+  let startX = 0, startY = 0, tracking = false;
+  const SWIPE_THRESHOLD = 55;
 
-  Viewport.addEventListener('touchstart', (e) => {
-    If (e.touches.length !== 1) return;
-    StartX = e.touches[0].clientX;
-    StartY = e.touches[0].clientY;
-    Tracking = true;
+  viewport.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
   }, { passive: true });
 
-  Viewport.addEventListener('touchend', (e) => {
-    If (!tracking) return;
-    Tracking = false;
+  viewport.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    tracking = false;
 
-    Const endX = e.changedTouches[0].clientX;
-    Const endY = e.changedTouches[0].clientY;
-    Const deltaX = endX - startX;
-    Const deltaY = endY - startY;
+    const endX = e.changedTouches[0].clientX;
+    const endY = e.changedTouches[0].clientY;
+    const deltaX = endX - startX;
+    const deltaY = endY - startY;
 
-    If (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
+    if (Math.abs(deltaX) < SWIPE_THRESHOLD || Math.abs(deltaX) < Math.abs(deltaY) * 1.3) return;
 
-    Const activeIdx = TAB_ORDER.findIndex(t => {
-      Const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
-      Return el && !el.classList.contains('hidden');
+    const activeIdx = TAB_ORDER.findIndex(t => {
+      const el = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      return el && !el.classList.contains('hidden');
     });
-    If (activeIdx === -1) return;
+    if (activeIdx === -1) return;
 
-    Let nextIdx = activeIdx;
-    If (deltaX < 0 && activeIdx < TAB_ORDER.length - 1) nextIdx = activeIdx + 1;
-    If (deltaX > 0 && activeIdx > 0) nextIdx = activeIdx - 1;
+    let nextIdx = activeIdx;
+    if (deltaX < 0 && activeIdx < TAB_ORDER.length - 1) nextIdx = activeIdx + 1;
+    if (deltaX > 0 && activeIdx > 0) nextIdx = activeIdx - 1;
 
-    If (nextIdx !== activeIdx) showTab(TAB_ORDER[nextIdx]);
+    if (nextIdx !== activeIdx) showTab(TAB_ORDER[nextIdx]);
   }, { passive: true });
 }
 
-Function previewFeedbackPhotos(event) {
-  Const files = Array.from(event.target.files);
-  Const previewContainer = document.getElementById('feedbackPhotoPreview');
-  If (!previewContainer) return;
+function previewFeedbackPhotos(event) {
+  const files = Array.from(event.target.files);
+  const previewContainer = document.getElementById('feedbackPhotoPreview');
+  if (!previewContainer) return;
 
-  SelectedFeedbackFiles = selectedFeedbackFiles.concat(files);
-  PreviewContainer.innerHTML = '';
+  selectedFeedbackFiles = selectedFeedbackFiles.concat(files);
+  previewContainer.innerHTML = '';
 
-  SelectedFeedbackFiles.forEach((file, index) => {
-    Const reader = new FileReader();
-    Reader.onload = (e) => {
-      Const box = document.createElement('div');
-      Box.style.cssText = 'position:relative; display:inline-block; margin:3px;';
+  selectedFeedbackFiles.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const box = document.createElement('div');
+      box.style.cssText = 'position:relative; display:inline-block; margin:3px;';
 
-      Const img = document.createElement('img');
-      Img.src = e.target.result;
-      Img.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--mark);';
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--mark);';
 
-      Const btnRemove = document.createElement('button');
-      BtnRemove.textContent = '✕';
-      BtnRemove.type = 'button';
-      BtnRemove.style.cssText = 'position:absolute; top:-5px; right:-5px; background:red; color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; cursor:pointer; font-weight:bold;';
-      BtnRemove.onclick = () => {
-        SelectedFeedbackFiles.splice(index, 1);
-        PreviewFeedbackPhotos({ target: { files: [] } });
+      const btnRemove = document.createElement('button');
+      btnRemove.textContent = '✕';
+      btnRemove.type = 'button';
+      btnRemove.style.cssText = 'position:absolute; top:-5px; right:-5px; background:red; color:#fff; border:none; border-radius:50%; width:18px; height:18px; font-size:10px; cursor:pointer; font-weight:bold;';
+      btnRemove.onclick = () => {
+        selectedFeedbackFiles.splice(index, 1);
+        previewFeedbackPhotos({ target: { files: [] } });
       };
 
-      Box.appendChild(img);
-      Box.appendChild(btnRemove);
-      PreviewContainer.appendChild(box);
+      box.appendChild(img);
+      box.appendChild(btnRemove);
+      previewContainer.appendChild(box);
     };
-    Reader.readAsDataURL(file);
+    reader.readAsDataURL(file);
   });
 }
 
-Function renderFeedbackHistory() {
-  Const container = document.getElementById('alunoFeedbackHistory');
-  If (!container) return;
-  Container.innerHTML = '';
+function renderFeedbackHistory() {
+  const container = document.getElementById('alunoFeedbackHistory');
+  if (!container) return;
+  container.innerHTML = '';
 
-  Const feedbacks = (currentData && currentData.feedbacks) || [];
+  const feedbacks = (currentData && currentData.feedbacks) || [];
 
-  If (feedbacks.length === 0) {
-    Container.innerHTML = '<div style="font-size:11.5px; color:var(--ink-dim); text-align:center; padding:12px;">Envie seu primeiro feedback semanal ou foto ao Personal abaixo!</div>';
-    Return;
+  if (feedbacks.length === 0) {
+    container.innerHTML = '<div style="font-size:11.5px; color:var(--ink-dim); text-align:center; padding:12px;">Envie seu primeiro feedback semanal ou foto ao Personal abaixo!</div>';
+    return;
   }
 
-  Feedbacks.forEach(f => {
-    Const isAluno = f.autor === "ALUNO";
-    Container.innerHTML += `
+  feedbacks.forEach(f => {
+    const isAluno = f.autor === "ALUNO";
+    container.innerHTML += `
       <div style="background:${isAluno ? 'var(--signal-dim)' : 'var(--panel-2)'}; padding:8px 12px; border-radius:8px; font-size:12.5px; color:var(--ink); align-self:${isAluno ? 'flex-end' : 'flex-start'}; border:1px solid ${isAluno ? 'var(--signal-light)' : 'var(--line)'}; max-width:85%;">
         <b>${isAluno ? 'Você' : 'Personal Jhonata'}:</b> ${escapeHtml(f.mensagem)}
       </div>
     `;
   });
-  Container.scrollTop = container.scrollHeight;
+  container.scrollTop = container.scrollHeight;
 }
 
-Async function enviarFeedbackAlunoApp() {
-  Const input = document.getElementById('alunoFeedbackInput');
-  Const msg = input ? Input.value.trim() : '';
-  Const btn = document.getElementById('btnSendFeedbackPhotos');
-  Const nomeAluno = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+async function enviarFeedbackAlunoApp() {
+  const input = document.getElementById('alunoFeedbackInput');
+  const msg = input ? input.value.trim() : '';
+  const btn = document.getElementById('btnSendFeedbackPhotos');
+  const nomeAluno = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
 
-  If (!msg && selectedFeedbackFiles.length === 0) {
-    Return alert("Escreva um relato ou selecione ao menos uma foto.");
+  if (!msg && selectedFeedbackFiles.length === 0) {
+    return alert("Escreva um relato ou selecione ao menos uma foto.");
   }
 
-  If (btn) {
-    Btn.disabled = true;
-    Btn.textContent = "Enviando fotos ao Drive...";
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Enviando fotos ao Drive...";
   }
 
-  Let driveUrls = [];
-  If (selectedFeedbackFiles.length > 0) {
-    For (let i = 0; i < selectedFeedbackFiles.length; i++) {
-      Const file = selectedFeedbackFiles[i];
-      Const driveUrl = await enviarArquivoParaGoogleDrive(nomeAluno, file, `Feedback_${new Date().toISOString().split('T')[0]}_Foto_${i + 1}`);
-      If (driveUrl) driveUrls.push(driveUrl);
+  let driveUrls = [];
+  if (selectedFeedbackFiles.length > 0) {
+    for (let i = 0; i < selectedFeedbackFiles.length; i++) {
+      const file = selectedFeedbackFiles[i];
+      const driveUrl = await enviarArquivoParaGoogleDrive(nomeAluno, file, `Feedback_${new Date().toISOString().split('T')[0]}_Foto_${i + 1}`);
+      if (driveUrl) driveUrls.push(driveUrl);
     }
   }
 
-  Try {
-    Const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
-    Const headers = { 'Content-Type': 'application/json' };
-    If (token) headers['Authorization'] = `Bearer ${token}`;
+  try {
+    const token = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    Const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
-      Method: 'POST',
-      Headers: headers,
-      Body: JSON.stringify({
-        Codigo: loggedUserCode,
-        Autor: 'ALUNO',
-        Mensagem: msg + (driveUrls.length > 0 ? `\n\n📷 Fotos no Drive:\n${driveUrls.join('\n')}` : '')
+    const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        codigo: loggedUserCode,
+        autor: 'ALUNO',
+        mensagem: msg + (driveUrls.length > 0 ? `\n\n📷 Fotos no Drive:\n${driveUrls.join('\n')}` : '')
       })
     });
 
-    If (res.ok) {
-      Alert("Feedback e fotos enviados com sucesso!");
-      If (input) input.value = '';
-      SelectedFeedbackFiles = [];
-      Const previewContainer = document.getElementById('feedbackPhotoPreview');
-      If (previewContainer) previewContainer.innerHTML = '';
-      Const photoInput = document.getElementById('feedbackPhotoInput');
-      If (photoInput) photoInput.value = '';
+    if (res.ok) {
+      alert("Feedback e fotos enviados com sucesso!");
+      if (input) input.value = '';
+      selectedFeedbackFiles = [];
+      const previewContainer = document.getElementById('feedbackPhotoPreview');
+      if (previewContainer) previewContainer.innerHTML = '';
+      const photoInput = document.getElementById('feedbackPhotoInput');
+      if (photoInput) photoInput.value = '';
       
-      If (!currentData.feedbacks) currentData.feedbacks = [];
-      CurrentData.feedbacks.push({ autor: "ALUNO", mensagem: msg + (driveUrls.length > 0 ? " (Fotos anexadas no Drive)" : ""), data: new Date().toISOString() });
-      RenderFeedbackHistory();
+      if (!currentData.feedbacks) currentData.feedbacks = [];
+      currentData.feedbacks.push({ autor: "ALUNO", mensagem: msg + (driveUrls.length > 0 ? " (Fotos anexadas no Drive)" : ""), data: new Date().toISOString() });
+      renderFeedbackHistory();
     } else {
-      Alert("Feedback enviado, mas falhou ao sincronizar histórico.");
+      alert("Feedback enviado, mas falhou ao sincronizar histórico.");
     }
   } catch (e) {
-    Alert("Erro na conexão com o servidor ao salvar o feedback.");
+    alert("Erro na conexão com o servidor ao salvar o feedback.");
   } finally {
-    If (btn) {
-      Btn.disabled = false;
-      Btn.textContent = "Enviar Feedback";
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Enviar Feedback";
     }
   }
 }
 
-Function sendWhatsAppFeedback() {
-  Const input = document.getElementById('alunoFeedbackInput');
-  Const text = input ? Input.value.trim() : "";
+function sendWhatsAppFeedback() {
+  const input = document.getElementById('alunoFeedbackInput');
+  const text = input ? input.value.trim() : "";
 
-  Const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  Const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
-  Window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
+  const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
+  const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
+  window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
 }
 
-Function logout() {
-  LocalStorage.removeItem('logged_user');
-  LocalStorage.removeItem('aluno_token');
-  LocalStorage.removeItem('token');
-  LocalStorage.removeItem('tokenAluno');
+function logout() {
+  localStorage.removeItem('logged_user');
+  localStorage.removeItem('aluno_token');
+  localStorage.removeItem('token');
+  localStorage.removeItem('tokenAluno');
   
-  CurrentData = null;
-  LoggedUserCode = "";
-  CurrentTreinoDayIdx = 0;
+  currentData = null;
+  loggedUserCode = "";
+  currentTreinoDayIdx = 0;
 
-  If (inactivityTimer) clearTimeout(inactivityTimer);
+  if (inactivityTimer) clearTimeout(inactivityTimer);
 
-  Const restWidget = document.getElementById('restTimerWidget');
-  If (restWidget) restWidget.classList.remove('visible');
+  const restWidget = document.getElementById('restTimerWidget');
+  if (restWidget) restWidget.classList.remove('visible');
 
-  Document.body.classList.remove('app-mode');
-  Document.getElementById('mainContent').classList.add('hidden');
-  Document.getElementById('anamneseScreen').classList.add('hidden');
-  Document.getElementById('loginScreen').classList.remove('hidden');
+  document.body.classList.remove('app-mode');
+  document.getElementById('mainContent').classList.add('hidden');
+  document.getElementById('anamneseScreen').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
 
-  Const errDiv = document.getElementById('loginError');
-  If (errDiv) errDiv.classList.add('hidden');
+  const errDiv = document.getElementById('loginError');
+  if (errDiv) errDiv.classList.add('hidden');
 
-  If (window.history && window.history.replaceState) {
-    Window.history.replaceState(null, document.title, window.location.pathname);
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, document.title, window.location.pathname);
   }
 }
