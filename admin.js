@@ -1,7 +1,7 @@
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 let currentStudentCode = "";
 let currentStudentData = null;
-let lastGeneratedPassword = "";
+let lastGeneratedPassword = "123456";
 let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
@@ -13,17 +13,46 @@ const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 const CHAVE_PIX_DEFAULT = "5551990169026";
 
-/* LINKS DE ANAMNESE SEM PARÂMETRO DE PREÇO NO FINAL */
-function obterLinkAnamnese(tipo = 'completa') {
+/* -------------------------------------------------------------
+   GERENCIAMENTO DE LINKS DE ANAMNESE (ORGÂNICO VS ASAAS)
+------------------------------------------------------------- */
+
+// 1. Links para Amigos / Parcerias / Orgânico (Sem preço / Preço a combinar)
+function obterLinkAnamneseOrganico(tipo = 'completa') {
   const baseUrl = "https://jhonataconsultoria.com.br/anamnese.html";
-  return tipo === 'treino' ? `${baseUrl}?tipo=treino` : `${baseUrl}?tipo=completa`;
+  const tipoParam = tipo === 'treino' ? 'tipo=treino' : 'tipo=completa';
+  return `${baseUrl}?${tipoParam}&modo=organico&preco=combinar`;
 }
 
-function copiarLinkAnamnese(tipo = 'completa') {
-  const link = obterLinkAnamnese(tipo);
+function copiarLinkAnamneseOrganico(tipo = 'completa') {
+  const link = obterLinkAnamneseOrganico(tipo);
   copiarLinkVenda(link);
 }
 
+// 2. Links com integração Asaas / Checkout Direto no Final
+function obterLinkAnamneseAsaas(tipo = 'completa') {
+  const baseUrl = "https://jhonataconsultoria.com.br/anamnese.html";
+  const tipoParam = tipo === 'treino' ? 'tipo=treino' : 'tipo=completa';
+  return `${baseUrl}?${tipoParam}&checkout=asaas`;
+}
+
+function copiarLinkAnamneseAsaas(tipo = 'completa') {
+  const link = obterLinkAnamneseAsaas(tipo);
+  copiarLinkVenda(link);
+}
+
+// Retrocompatibilidade para chamadas padrão
+function obterLinkAnamnese(tipo = 'completa') {
+  return obterLinkAnamneseOrganico(tipo);
+}
+
+function copiarLinkAnamnese(tipo = 'completa') {
+  copiarLinkAnamneseOrganico(tipo);
+}
+
+/* -------------------------------------------------------------
+   UTILITÁRIOS E SEGURANÇA
+------------------------------------------------------------- */
 function sanitizeExKey(nome) {
   if (!nome) return "ex";
   return nome.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
@@ -69,7 +98,6 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
-/* PARSER RESISTENTE A QUALQUER FORMATO NUMÉRICO */
 function parsePreco(valorRaw) {
   if (valorRaw === null || valorRaw === undefined) return 0;
   if (typeof valorRaw === 'number') return isNaN(valorRaw) ? 0 : valorRaw;
@@ -122,7 +150,6 @@ function copiarLinkVenda(url) {
   }
 }
 
-// 1. GOOGLE DRIVE ÍNTEGRO
 function abrirPastaDriveAluno() {
   if (!currentStudentData && !currentStudentCode) {
     return showToast("Selecione um aluno primeiro.", "error");
@@ -254,7 +281,9 @@ function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isen
   };
 }
 
-/* NAVEGAÇÃO ENTRE ABAS INTEGRADA */
+/* -------------------------------------------------------------
+   NAVEGAÇÃO E AUTENTICAÇÃO
+------------------------------------------------------------- */
 function switchTab(tab) {
   const ids = ['secFinanceiro', 'secContasLucros', 'secResumo', 'secAnamnese', 'secFeedbackAdmin', 'secTreino', 'secDieta', 'secCorrida', 'secErgogenicos', 'secCadastro', 'secNovo', 'secChatAdmin', 'secGifs'];
   ids.forEach(id => {
@@ -328,7 +357,6 @@ function switchTab(tab) {
   }
 }
 
-// 2. CHAT DE FEEDBACK ATUALIZADO E SEM ERROS DE CONSOLE
 function abrirAbaFeedback() {
   const el = document.getElementById('secFeedbackAdmin');
   if (el) el.classList.remove('hidden');
@@ -429,6 +457,7 @@ async function fetchAlunos() {
       const precoCalculado = extrairPrecoAluno(aluno);
       return {
         ...aluno,
+        senha: aluno.senha || "123456",
         valor_mensalidade: precoCalculado,
         valorMensal: precoCalculado
       };
@@ -484,7 +513,6 @@ function toggleSanfonaPendentes() {
   }
 }
 
-/* RENDERIZAÇÃO DAS 3 SEÇÕES (PAGANTES, ISENTOS E PENDENTES) */
 function renderStudentsList(list) {
   const containerPagantes = document.getElementById('alunosList');
   if (!containerPagantes) return;
@@ -555,7 +583,7 @@ function renderStudentsList(list) {
       <div>
         <b>${escapeHtml(aluno.clientName || aluno.nome)}</b> ${badgePendenteHtml}<br>
         <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
-        ${valorMensalExibicao > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibicao.toFixed(2)}/mês</small>` : ''}
+        ${valorMensalExibicao > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibicao.toFixed(2)}/mês</small>` : '<br><small style="color:var(--gold); font-weight:700;">Preço a combinar</small>'}
       </div>
       <div style="text-align:right;">
         <span class="status-pill ${statusClass}">${escapeHtml(statusText.toUpperCase())}</span>
@@ -713,7 +741,9 @@ async function carregarAluno(code) {
     document.getElementById('editName').value = currentStudentData.clientName || '';
     document.getElementById('editStatus').value = stVal;
     document.getElementById('editIsentoCheckbox').checked = currentStudentData.isento === true;
-    document.getElementById('editPassword').value = '';
+    document.getElementById('editPassword').value = currentStudentData.senha || '123456';
+    lastGeneratedPassword = currentStudentData.senha || '123456';
+
     document.getElementById('editDiaVencimento').value = currentStudentData.isento ? '' : (currentStudentData.dia_vencimento || '');
     
     const inputDataInicio = document.getElementById('editDataInicio');
@@ -759,7 +789,6 @@ async function carregarAluno(code) {
   }
 }
 
-/* EXIBIÇÃO DE OBSERVAÇÕES E HISTÓRICO TREINO POR TREINO (COM FILTRO DE 7 DIAS) */
 function renderIncomodosAluno() {
   const list = document.getElementById('incomodosList');
   if (!list) return;
@@ -774,13 +803,10 @@ function renderIncomodosAluno() {
   const agora = new Date().getTime();
   const limite7DiasMs = 7 * 24 * 60 * 60 * 1000;
 
-  // Filtra sessões dos últimos 7 dias que tenham data válida
   const sessoesValidas7Dias = [];
 
   sessoes.forEach((sessao, idxOriginal) => {
     const dataSessao = sessao.data ? new Date(sessao.data).getTime() : null;
-    
-    // Se não tiver data salva, assume mantido para não perder registros sem timestamp
     const dentroDos7Dias = !dataSessao || (agora - dataSessao <= limite7DiasMs);
 
     if (dentroDos7Dias) {
@@ -792,13 +818,11 @@ function renderIncomodosAluno() {
   });
 
   if (sessoesValidas7Dias.length === 0) {
-    list.innerHTML = `<span style="color:var(--muted); font-size:12px;">Nenhum relato ou observação nos últimos 7 dias (registros antigos limpos automaticamente).</span>`;
+    list.innerHTML = `<span style="color:var(--muted); font-size:12px;">Nenhum relato nos últimos 7 dias.</span>`;
     return;
   }
 
-  let html = `<b style="color:var(--gold); font-size:13px;">📜 Observações dos Últimos 7 Dias (Por Treino):</b><br><br>`;
-
-  // Exibe da sessão mais recente para a mais antiga
+  let html = `<b style="color:var(--gold); font-size:13px;">📜 Observações dos Últimos 7 Dias:</b><br><br>`;
   const sessoesInvertidas = [...sessoesValidas7Dias].reverse();
 
   sessoesInvertidas.forEach((sessao) => {
@@ -862,7 +886,6 @@ async function analisarIncomodosIA() {
   }
 }
 
-// 3. RESUMO VISÃO GERAL COM 4 SANFONAS FECHADAS
 function renderResumoVisaoGeral() {
   const container = document.getElementById('summaryOverviewContainer');
   if (!container) return;
@@ -873,8 +896,6 @@ function renderResumoVisaoGeral() {
     return;
   }
 
-  // PREPARAÇÃO DOS CONTEÚDOS INTERNOS
-  // 1. TREINO (COM LINK CLICÁVEL PARA ACOMPANHAR A EVOLUÇÃO)
   let htmlTreino = "";
   const days = currentStudentData.days || [];
   if (days.length === 0) {
@@ -904,7 +925,6 @@ function renderResumoVisaoGeral() {
     });
   }
 
-  // 2. DIETA
   let htmlDieta = "";
   if (currentStudentData.liberarDieta === false) {
     htmlDieta = `<p style="color:var(--muted); font-size:12px;">Aba Dieta bloqueada no app do aluno.</p>`;
@@ -941,7 +961,6 @@ function renderResumoVisaoGeral() {
     }
   }
 
-  // 3. CARDIO
   let htmlCardio = "";
   const cardioGuidelines = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
   const prescricao = currentStudentData.prescricao_corrida || {};
@@ -965,7 +984,6 @@ function renderResumoVisaoGeral() {
   semanaHtml += `</div>`;
   if (temSemana) htmlCardio += semanaHtml;
 
-  // 4. ERGOGÊNICOS
   let htmlErgo = "";
   const protocoloTexto = currentStudentData.protocoloErgogenicos || currentStudentData.ergogenicos_texto || '';
   if (protocoloTexto.trim()) {
@@ -974,10 +992,8 @@ function renderResumoVisaoGeral() {
     htmlErgo = `<p style="color:var(--muted); font-size:12px;">Nenhum protocolo ergogênico cadastrado.</p>`;
   }
 
-  // REMONTAGEM FINAL COM 4 SUPER SANFONAS RECOLHIDAS
   container.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
-      
       <details style="background:#100305; border:1px solid var(--border); border-radius:10px; padding:12px;">
         <summary style="cursor:pointer; font-weight:800; color:var(--gold); font-size:13px; outline:none;">
           🏋️ PROTOCOLO DE TREINAMENTO (CLIQUE PARA EXPANDIR)
@@ -1013,7 +1029,6 @@ function renderResumoVisaoGeral() {
           ${htmlErgo}
         </div>
       </details>
-
     </div>
   `;
 }
@@ -1130,7 +1145,6 @@ function salvarPrescricaoCorridaSemanalAdmin() {
   showToast("Plano de cardio e prescrição salvos!", "success");
 }
 
-/* IA & SALVAMENTO DE ERGOGÊNICOS */
 async function gerarProtocoloErgogenicosIA() {
   if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1365,7 +1379,7 @@ function enviarCredenciaisWhatsApp() {
 
   const nome = currentStudentData.clientName || currentStudentCode;
   const codigo = currentStudentCode;
-  const senha = lastGeneratedPassword || "123456";
+  const senha = lastGeneratedPassword || currentStudentData.senha || "123456";
   const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
 
   const mensagem = 
@@ -1467,9 +1481,7 @@ function renderAnamneseDetails() {
   }
 
   const a = currentStudentData.dadosAnamnese || currentStudentData.anamnese || currentStudentData;
-
   const getVal = (val) => (val && String(val).trim() !== '' && String(val).trim() !== 'undefined') ? String(val).trim() : 'Não informado';
-
   const ehApenasTreino = currentStudentData.apenasTreino === true || currentStudentData.liberarDieta === false;
 
   let htmlAnamnese = `
@@ -1521,11 +1533,11 @@ function renderAnamneseDetails() {
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoTreino || a.experiencia))}</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Frequência Semanal (Quantidade)</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Frequência Semanal</div>
             <div class="anamnese-a" style="font-size:13px; color:var(--green); font-weight:800;">📅 ${escapeHtml(getVal(a.diasSemana || a.diasDisponiveis))} dias por semana</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Dias Escolhidos / Preferenciais da Semana</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Dias Preferenciais</div>
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:700;">📆 ${escapeHtml(getVal(a.preferenciaDias || a.diasTreino))}</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
@@ -1533,11 +1545,11 @@ function renderAnamneseDetails() {
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoTreinoMin || a.horasTreino))} minutos</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Intervalo de Descanso Desejado</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Intervalo de Descanso</div>
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.tempoDescanso))}</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Outras Atividades Físicas / Esportes</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Outras Atividades Físicas</div>
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.outrasAtividades || a.outrosEsportes))}</div>
           </div>
         </div>
@@ -1545,28 +1557,16 @@ function renderAnamneseDetails() {
 
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-          🏥 SAÚDE, LESÕES & ESTILO DE VIDA
+          🏥 SAÚDE & LESÕES
         </div>
         <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Lesões, Dores ou Desconfortos</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Lesões ou Dores</div>
             <div class="anamnese-a" style="font-size:13px; color:var(--accent); font-weight:800;">🚨 ${escapeHtml(getVal(a.lesoes || a.dores))}</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
             <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Doenças Prévias / Condições Médicas</div>
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.doencas || a.patologias))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Rotina Diária (Trabalho / Estudo)</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.rotina || a.profissao))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Horas & Qualidade do Sono</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.horasSono || a.sono))} (${escapeHtml(getVal(a.qualidadeSono))})</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Álcool & Tabagismo</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">Álcool: ${escapeHtml(getVal(a.alcool))} | Cigarro: ${escapeHtml(getVal(a.tabagismo))}</div>
           </div>
         </div>
       </div>
@@ -1576,44 +1576,16 @@ function renderAnamneseDetails() {
     htmlAnamnese += `
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-          🥗 HÁBITOS ALIMENTARES & PREFERÊNCIAS
+          🥗 HÁBITOS ALIMENTARES
         </div>
         <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Número de Refeições Diárias</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Refeições Diárias</div>
             <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.numRefeicoes || a.refeicoesDia))} refeições</div>
           </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Rotina de Final de Semana</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.fimDeSemana))}</div>
-          </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alimentos Odiados / Não Consome</div>
+            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alimentos Odiados</div>
             <div class="anamnese-a" style="font-size:13px; color:#ff6b7f; font-weight:700;">🚫 ${escapeHtml(getVal(a.alimentosOdiados || a.restricoes))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Carboidratos Preferidos</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaCarbos))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Proteínas Preferidas</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaProteinas))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Legumes & Verduras Preferidos</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.gostaLegumes))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alergias / Intolerâncias Alimentares</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.alergias))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Orçamento para Alimentação</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.orcamento))}</div>
-          </div>
-          <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px; grid-column: 1 / -1;">
-            <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Suplementos em Uso</div>
-            <div class="anamnese-a" style="font-size:13px; color:var(--gold); font-weight:600;">💊 ${escapeHtml(getVal(a.suplementos || a.usoSuplementos))}</div>
           </div>
         </div>
       </div>
@@ -1839,7 +1811,6 @@ function atualizarPreviewAoVivo() {
   });
 }
 
-/* EXPOSIÇÃO GLOBAL DO ACOMPANHAMENTO DE PROGRESSÃO DE CARGAS COM GRÁFICO */
 window.verEvolucaoSemanal = async function(nomeEx, seriesStr = '', repsStr = '') {
   const chartModal = document.getElementById('chartModal');
   const chartExName = document.getElementById('chartExName');
@@ -2351,15 +2322,10 @@ async function salvarConfiguracoesConta() {
   currentStudentData.notas_treinador = document.getElementById('editNotasTreinador').value.trim();
 
   const newPass = document.getElementById('editPassword').value.trim();
-  if (newPass) {
-    currentStudentData.senha = newPass;
-    lastGeneratedPassword = newPass;
-  } else {
-    delete currentStudentData.senha;
-  }
+  currentStudentData.senha = newPass || currentStudentData.senha || "123456";
+  lastGeneratedPassword = currentStudentData.senha;
 
   await salvarAlteracoes();
-  document.getElementById('editPassword').value = '';
 }
 
 async function salvarAlteracoes(tipoLimpezaRascunho = null) {
@@ -2573,6 +2539,9 @@ function parseWorkoutText(rawText) {
   return days.filter(d => d.exercicios.length > 0);
 }
 
+/* -------------------------------------------------------------
+   SALVAMENTO E CRIAÇÃO DE ALUNOS COM SENHA 123456
+------------------------------------------------------------- */
 async function salvarNovoAlunoBloco() {
   const nome = document.getElementById('newName').value.trim();
   const codigo = document.getElementById('newCode').value.trim().toLowerCase();
@@ -2595,9 +2564,12 @@ async function salvarNovoAlunoBloco() {
   const mesFmt = String(hoje.getMonth() + 1).padStart(2, '0');
   const diaFmt = String(hoje.getDate()).padStart(2, '0');
 
+  // Senha padrão inicial fixada em 123456 para novos cadastros
+  const senhaPadrao = "123456";
+
   const payload = {
     clientName: nome,
-    senha: codigo,
+    senha: senhaPadrao,
     status_pagamento: 'pago',
     isento: false,
     dia_vencimento: hoje.getDate(),
@@ -2631,8 +2603,8 @@ async function salvarNovoAlunoBloco() {
       body: JSON.stringify({ codigo: codigo, payload: payload })
     });
     if (res.ok) {
-      lastGeneratedPassword = codigo;
-      showToast(`Aluno criado! Senha: ${codigo}`, "success");
+      lastGeneratedPassword = senhaPadrao;
+      showToast(`Aluno criado! Senha padrão: ${senhaPadrao}`, "success");
       await fetchAlunos();
       switchTab('financeiro');
     }
