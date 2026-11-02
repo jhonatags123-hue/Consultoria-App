@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+Const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
 
 const CHECKOUT_LINKS = {
@@ -48,6 +48,27 @@ let isConvidadoDuplaMode = false;
 let workoutTimerInterval = null;
 let workoutTimerRunning = false;
 let selectedFeedbackFiles = [];
+
+// Cronômetro de Inatividade (20 Minutos)
+let inactivityTimer = null;
+const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
+
+function resetInactivityTimer() {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+
+  if (workoutTimerRunning) {
+    inactivityTimer = setTimeout(() => {
+      if (workoutTimerRunning) {
+        toggleWorkoutTimer();
+        alert("⏱️ O treino foi pausado automaticamente após 20 minutos de inatividade.");
+      }
+    }, INACTIVITY_LIMIT_MS);
+  }
+}
+
+['click', 'touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => {
+  window.addEventListener(evt, resetInactivityTimer, { passive: true });
+});
 
 async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
   return new Promise((resolve, reject) => {
@@ -159,7 +180,7 @@ function obterDiaSemanaNormalizado() {
 }
 
 function obterNomeDiaSemanaFormatado() {
-  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sábado'];
+  const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
@@ -254,6 +275,7 @@ function checkAndRestoreWorkoutTimer() {
     if (workoutTimerInterval) clearInterval(workoutTimerInterval);
     workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
     updateWorkoutTimerDisplay();
+    resetInactivityTimer();
   } else {
     workoutTimerRunning = false;
     if (btn) {
@@ -292,6 +314,7 @@ function toggleWorkoutTimer() {
     if (workoutTimerInterval) clearInterval(workoutTimerInterval);
     workoutTimerInterval = setInterval(updateWorkoutTimerDisplay, 1000);
     updateWorkoutTimerDisplay();
+    resetInactivityTimer();
   } else {
     workoutTimerRunning = false;
     
@@ -304,6 +327,7 @@ function toggleWorkoutTimer() {
 
     localStorage.removeItem(keyStart);
     if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
 
     if (btn) {
       btn.textContent = "▶ RETOMAR TREINO";
@@ -706,7 +730,6 @@ function loadStudentData(data) {
     renderDietaAluno(data.refeicoes || data.dieta || []);
   }
 
-  // RENDERIZAÇÃO DOS ERGOGÊNICOS ATUALIZADA (BUSCA FLEXÍVEL)
   const temErgogenicos = data.liberarErgogenicos === true || data.ergogenicos || data.protocolo_ergogenico || data.protocoloErgogenicos || data.ergogenicos_texto;
   if (temErgogenicos) {
     if (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
@@ -753,15 +776,15 @@ function renderErgogenicosAluno(payloadData) {
 }
 
 function toggleCheckExercise(btn, dayIdx, exIdx) {
-  if (!workoutTimerRunning) {
-    alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
-    return;
-  }
-
   const card = btn.closest('.item');
   const isDone = btn.classList.toggle('done');
   
   if (isDone) {
+    if (!workoutTimerRunning) {
+      btn.classList.remove('done');
+      alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
+      return;
+    }
     btn.textContent = '✓ Concluído';
     if (card) card.classList.add('exercise-done');
     if (navigator.vibrate) navigator.vibrate(50);
@@ -1123,6 +1146,7 @@ async function concluirTreinoDoDia() {
   localStorage.removeItem(keyElapsed);
 
   if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+  if (inactivityTimer) clearTimeout(inactivityTimer);
   workoutTimerRunning = false;
 
   const m = Math.floor(durationSeconds / 60);
@@ -2440,6 +2464,8 @@ function logout() {
   currentData = null;
   loggedUserCode = "";
   currentTreinoDayIdx = 0;
+
+  if (inactivityTimer) clearTimeout(inactivityTimer);
 
   const restWidget = document.getElementById('restTimerWidget');
   if (restWidget) restWidget.classList.remove('visible');
