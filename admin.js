@@ -14,42 +14,58 @@ const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
 const CHAVE_PIX_DEFAULT = "5551990169026";
 
 /* -------------------------------------------------------------
-   GERENCIAMENTO DE LINKS DE ANAMNESE (ORGÂNICO VS ASAAS)
+   GERENCIAMENTO DE LINKS DE ANAMNESE (VENDAS ONLINE vs ORGÂNICO)
 ------------------------------------------------------------- */
 
-// 1. Links para Amigos / Parcerias / Orgânico (Sem preço / Preço a combinar)
+// Mapeamento completo dos 6 links de anamnese
+const LINKS_ANAMNESE_GERADOR = {
+  // Integram com o checkout do Asaas no final
+  asaas_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese",
+  asaas_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino",
+  
+  // Organico / Amigos (Valor a combinar)
+  amigos_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos",
+  amigos_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos",
+  
+  // Dupla / Convidado (Incluso no plano / A combinar)
+  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=dupla",
+  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=dupla"
+};
+
+// Função genérica para copiar qualquer uma das 6 opções
+function copiarLinkVendaAnamnese(chave) {
+  const link = LINKS_ANAMNESE_GERADOR[chave];
+  if (link) {
+    copiarLinkVenda(link);
+  } else {
+    showToast("Link não encontrado.", "error");
+  }
+}
+
+// Retrocompatibilidade para manter chamadas antigas funcionando sem erros
 function obterLinkAnamneseOrganico(tipo = 'completa') {
-  const baseUrl = "https://jhonataconsultoria.com.br/anamnese.html";
-  const tipoParam = tipo === 'treino' ? 'tipo=treino' : 'tipo=completa';
-  return `${baseUrl}?${tipoParam}&modo=organico&preco=combinar`;
+  return tipo === 'treino' ? LINKS_ANAMNESE_GERADOR.amigos_treino : LINKS_ANAMNESE_GERADOR.amigos_completa;
 }
 
 function copiarLinkAnamneseOrganico(tipo = 'completa') {
-  const link = obterLinkAnamneseOrganico(tipo);
-  copiarLinkVenda(link);
+  copiarLinkVendaAnamnese(tipo === 'treino' ? 'amigos_treino' : 'amigos_completa');
 }
 
-// 2. Links com integração Asaas / Checkout Direto no Final
 function obterLinkAnamneseAsaas(tipo = 'completa') {
-  const baseUrl = "https://jhonataconsultoria.com.br/anamnese.html";
-  const tipoParam = tipo === 'treino' ? 'tipo=treino' : 'tipo=completa';
-  return `${baseUrl}?${tipoParam}&checkout=asaas`;
+  return tipo === 'treino' ? LINKS_ANAMNESE_GERADOR.asaas_treino : LINKS_ANAMNESE_GERADOR.asaas_completa;
 }
 
 function copiarLinkAnamneseAsaas(tipo = 'completa') {
-  const link = obterLinkAnamneseAsaas(tipo);
-  copiarLinkVenda(link);
+  copiarLinkVendaAnamnese(tipo === 'treino' ? 'asaas_treino' : 'asaas_completa');
 }
 
-// Retrocompatibilidade para chamadas padrão
 function obterLinkAnamnese(tipo = 'completa') {
-  return obterLinkAnamneseOrganico(tipo);
+  return obterLinkAnamneseAsaas(tipo);
 }
 
 function copiarLinkAnamnese(tipo = 'completa') {
-  copiarLinkAnamneseOrganico(tipo);
+  copiarLinkAnamneseAsaas(tipo);
 }
-
 /* -------------------------------------------------------------
    UTILITÁRIOS E SEGURANÇA
 ------------------------------------------------------------- */
