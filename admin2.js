@@ -133,7 +133,22 @@ function renderTelaFinanceiroExclusiva() {
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:10px;">
+    <!-- BLOCO DE NOTIFICAÇÕES DE VENCIMENTOS PRÓXIMOS (2 A 3 DIAS) -->
+    <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
+        <h3 style="color:var(--gold); font-size:14px; margin:0;">
+          ⏰ NOTIFICAÇÕES DE VENCIMENTO (2 A 3 DIAS)
+        </h3>
+        <button class="btn btn-gold sm" onclick="carregarVencimentosProximos()">🔄 Atualizar Vencimentos</button>
+      </div>
+      <div id="listaVencimentosProximos">
+        <div style="font-size:12px; color:var(--muted); text-align:center; padding:8px;">
+          Clique em "Atualizar Vencimentos" para verificar quais alunos estão prestes a vencer.
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:16px;">
       <div style="background:#100305; border:1px solid var(--accent); border-radius:12px; padding:16px;">
         <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
           🚨 ALUNOS COM PAGAMENTO PENDENTE (${listaPendentes.length})
@@ -167,6 +182,85 @@ function renderTelaFinanceiroExclusiva() {
       </div>
     </div>
   `;
+
+  // Carrega automaticamente a lista ao renderizar o painel financeiro
+  carregarVencimentosProximos();
+}
+
+/* ---------------------------------------------------- */
+/* NOTIFICAÇÃO DE VENCIMENTOS PRÓXIMOS (2 A 3 DIAS)    */
+/* ---------------------------------------------------- */
+function carregarVencimentosProximos() {
+  const container = document.getElementById('listaVencimentosProximos');
+  if (!container) return;
+
+  const lista = typeof allStudentsList !== 'undefined' ? allStudentsList : (window.listaAlunosGlobal || []);
+  container.innerHTML = '';
+
+  if (!lista || lista.length === 0) {
+    container.innerHTML = `<div style="font-size:12px; color:var(--muted); text-align:center; padding:10px;">Nenhum aluno carregado na lista.</div>`;
+    return;
+  }
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  let pendentesCount = 0;
+
+  lista.forEach(aluno => {
+    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
+    if (ehIsento) return;
+
+    const dtExpStr = aluno.data_expiracao || aluno.vencimento || aluno.payload?.data_expiracao;
+    const tel = aluno.telefone || aluno.payload?.telefone;
+    if (!dtExpStr || !tel) return;
+
+    let dataExp;
+    if (String(dtExpStr).includes('/')) {
+      const p = String(dtExpStr).split('/');
+      dataExp = new Date(p[2], p[1] - 1, p[0]);
+    } else if (String(dtExpStr).includes('-')) {
+      const p = String(dtExpStr).split('T')[0].split('-');
+      dataExp = new Date(p[0], p[1] - 1, p[2]);
+    }
+
+    if (!dataExp || isNaN(dataExp.getTime())) return;
+    dataExp.setHours(0, 0, 0, 0);
+
+    const diffMs = dataExp.getTime() - hoje.getTime();
+    const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDias === 2 || diffDias === 3) {
+      pendentesCount++;
+
+      const nomeAluno = aluno.clientName || aluno.nome || aluno.payload?.clientName || 'Aluno';
+      const numLimpo = String(tel).replace(/\D/g, '');
+      const numComDDD = numLimpo.startsWith('55') ? numLimpo : `55${numLimpo}`;
+      const dataFmt = dataExp.toLocaleDateString('pt-BR');
+
+      const mensagem = `Olá, ${nomeAluno}! 🏋️‍♂️%0A%0ASua assinatura da *Consultoria Jhonata Personal* vence em *${diffDias} dias* (${dataFmt}).%0A%0AGostaria de renovar seu plano para continuar seus treinos e acompanhamento sem interrupções?`;
+      const urlWpp = `https://wa.me/${numComDDD}?text=${mensagem}`;
+
+      const itemDiv = document.createElement('div');
+      itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#0d0204; border:1px solid rgba(220,170,58,0.3); padding:10px 12px; border-radius:8px; margin-bottom:8px; font-size:12px;";
+      itemDiv.innerHTML = `
+        <div>
+          <b style="color:#fff; font-size:13px;">${escapeHtml(nomeAluno)}</b>
+          <div style="color:var(--muted); font-size:11px; margin-top:2px;">
+            Vencimento: <span style="color:var(--gold); font-weight:800;">${dataFmt} (Faltam ${diffDias} dias)</span>
+          </div>
+        </div>
+        <a href="${urlWpp}" target="_blank" class="btn btn-wpp sm" style="text-decoration:none; padding:6px 12px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+          📲 Enviar Notificação
+        </a>
+      `;
+      container.appendChild(itemDiv);
+    }
+  });
+
+  if (pendentesCount === 0) {
+    container.innerHTML = `<div style="font-size:12px; color:var(--green); text-align:center; padding:10px;">✅ Nenhum aluno com vencimento para daqui a 2 ou 3 dias.</div>`;
+  }
 }
 
 /* ---------------------------------------------------- */
