@@ -243,7 +243,7 @@
             <div id="resumoIncomodosIA" class="hidden ai-insight-box" style="margin-top:8px;"></div>
           </div>
 
-          <!-- FICHA DO ALUNO (COM AS 4 SANFONAS FECHADAS) -->
+          <!-- FICHA DO ALUNO (COM AS SANFONAS) -->
           <div id="workoutOverview" class="content-box-inner">
             <div id="summaryOverviewContainer"></div>
           </div>
@@ -678,7 +678,7 @@
     }
 
     function copiarLinkAcessoAluno() {
-      if (!currentStudentCode) {
+      if (typeof currentStudentCode === 'undefined' || !currentStudentCode) {
         alert("⚠️ Selecione um aluno na lista primeiro.");
         return;
       }
