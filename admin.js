@@ -919,14 +919,22 @@ function renderResumoVisaoGeral() {
     htmlTreino = `<p style="color:var(--muted); font-size:12px;">Nenhum treino cadastrado.</p>`;
   } else {
     days.forEach((day) => {
+      const isRestDay = /descanso|off|recovery/i.test(day.title);
       htmlTreino += `
         <div style="margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-          <b style="color:var(--gold);">🏋️ ${escapeHtml(day.title)}</b>
+          <b style="color:${isRestDay ? 'var(--blue, #60a5fa)' : 'var(--gold)'};">
+            ${isRestDay ? '☕ ' : '🏋️ '}${escapeHtml(day.title)}
+          </b>
           <div style="margin-top:4px;">
             ${(day.exercicios || []).map(ex => {
               const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
               const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
               const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+              
+              if (isRestDay) {
+                return `<div style="font-size:12px; margin-top:3px; padding:3px 6px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
+              }
+
               return `
                 <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
                      style="cursor:pointer; font-size:12px; margin-top:3px; padding:3px 6px; border-radius:4px; background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center;"
@@ -1778,7 +1786,11 @@ function carregarTreinoNoEditorAoVivo() {
   currentStudentData.days.forEach(day => {
     text += `${day.title}\n`;
     (day.exercicios || []).forEach(ex => {
-      text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
+      if (day.isDescanso) {
+        text += `${ex.nome}\n`;
+      } else {
+        text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
+      }
     });
     text += "\n";
   });
@@ -1802,25 +1814,35 @@ function atualizarPreviewAoVivo() {
   }
 
   parsedDays.forEach(day => {
-    let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-      <b style="color:var(--gold); font-size:13px;">🏋️ ${escapeHtml(day.title)}</b><br>`;
+    const isRestDay = day.isDescanso || /descanso|off|recovery/i.test(day.title);
+
+    let html = `
+      <div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; ${isRestDay ? 'border-left:3px solid var(--blue, #60a5fa); padding-left:8px; background:rgba(96,165,250,0.05); border-radius:6px;' : ''}">
+        <b style="color:${isRestDay ? 'var(--blue, #60a5fa)' : 'var(--gold)'}; font-size:13px;">
+          ${isRestDay ? '☕ ' : '🏋️ '}${escapeHtml(day.title)}
+        </b><br>
+    `;
     
     day.exercicios.forEach(ex => {
-      const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
-      const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
-      
-      const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
-      const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
-      const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+      if (isRestDay) {
+        html += `<div style="font-size:12px; margin-top:4px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
+      } else {
+        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
+        const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
+        
+        const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
+        const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
+        const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
 
-      html += `
-        <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
-             style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
-             title="Clique para ver evolução de cargas">
-          <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
-          <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
-        </div>
-      `;
+        html += `
+          <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
+               style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
+               title="Clique para ver evolução de cargas">
+            <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
+            <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+          </div>
+        `;
+      }
     });
 
     html += `</div>`;
@@ -2396,7 +2418,7 @@ function parseWorkoutText(rawText) {
   let globalSeries = "3";
   let globalReps = "8-10";
 
-  const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
+  const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia', 'descanso', 'off', 'recovery'];
 
   lines.forEach(line => {
     const cleanLine = line.trim();
@@ -2417,20 +2439,36 @@ function parseWorkoutText(rawText) {
     const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
 
     const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
-    const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
+    const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b|descanso|off|recovery)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
 
     if (hasDivKeyword || isShortHeader) isDayHeader = true;
 
     if (isDayHeader) {
-      currentDay = { title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), exercicios: [] };
+      const isDescanso = /descanso|off|recovery/i.test(cleanLowerNoBullets);
+      currentDay = { 
+        title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), 
+        isDescanso: isDescanso,
+        exercicios: [] 
+      };
       days.push(currentDay);
     } else {
       if (!currentDay) {
-        currentDay = { title: "TREINO A", exercicios: [] };
+        currentDay = { title: "TREINO A", isDescanso: false, exercicios: [] };
         days.push(currentDay);
       }
 
       let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
+
+      if (currentDay.isDescanso) {
+        currentDay.exercicios.push({
+          nome: name,
+          series: "",
+          reps: "",
+          tecnica: "convencional",
+          isTecnico: false
+        });
+        return;
+      }
 
       const hasMyo = lowerLine.includes('myo');
       const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
@@ -2608,7 +2646,7 @@ async function salvarNovoAlunoBloco() {
     protocoloErgogenicos: "",
     logs: {},
     weekly_logs: {},
-    days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
+    days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", isDescanso: false, exercicios: [] }],
     refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
   };
 
@@ -2665,6 +2703,8 @@ function calcularVolumeMuscularSemanal() {
   const dailyLogs = currentStudentData.logs || {};
 
   currentStudentData.days.forEach((day, dayIdx) => {
+    if (day.isDescanso) return;
+
     (day.exercicios || []).forEach((ex, exIdx) => {
       const exNome = ex.nome.toLowerCase();
       const exKey = sanitizeExKey(ex.nome);
