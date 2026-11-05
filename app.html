@@ -84,7 +84,7 @@
   </div>
 </div>
 
-<!-- CRONÔMETRO DE DESCANSO -->
+<!-- CRONÔMETRO DE DESCANSO FLUTUANTE (WIDGET FIXO) -->
 <div id="restTimerWidget" class="rest-timer-widget">
   <div>
     <span style="font-size:10px; color:var(--ink-dim); display:block; text-transform:uppercase; font-weight:700;">Descanso</span>
@@ -394,6 +394,22 @@
           <div class="trainer-goals-body collapsed" id="trainerGoalsBody"></div>
         </div>
 
+        <!-- NOVO: CARD DE CRONÔMETRO DE DESCANSO ENTRE SÉRIES (DENTRO DA ABA DE TREINO) -->
+        <div class="trainer-goals-card" style="margin-top: 10px; background: var(--panel-2); border: 1px solid var(--line);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+              <span>⏱️ Cronômetro de Descanso entre Séries</span>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <div style="display:flex; gap:6px; flex:1;">
+              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(60)">⏱ 60s</button>
+              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(90)">⏱ 90s</button>
+              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(120)">⏱ 120s</button>
+            </div>
+          </div>
+        </div>
+
         <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
         <div id="exercisesList"></div>
 
@@ -463,7 +479,7 @@
       <div id="corridaHistoryList">Nenhuma corrida registrada nas últimas 4 semanas.</div>
     </div>
 
-    <!-- ABA 4: PROTOCOLOS ERGOGÊNICOS / HORMONAIS (ATUALIZADA) -->
+    <!-- ABA 4: PROTOCOLOS ERGOGÊNICOS / HORMONAIS -->
     <div id="tabErgogenicos" class="card hidden">
       <div class="label-fdb" style="font-size:14px; text-align:center; margin-bottom:6px; color:var(--purple);">💉 Estrutura & Orientação de Ergogênicos</div>
       <div style="font-size:11px; color:var(--ink-dim); text-align:center; margin-bottom:12px;">Acompanhamento e orientações de rotina cadastradas pelo seu Treinador.</div>
