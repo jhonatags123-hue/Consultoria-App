@@ -1117,13 +1117,22 @@ function renderTreinoDayList() {
   }
 
   days.forEach((day, dayIdx) => {
+    const titleLower = String(day.title || '').toLowerCase();
+    const isDescanso = day.isDescanso === true || day.tipo === 'descanso' || titleLower.includes('descanso') || titleLower.includes('off') || titleLower.includes('folga');
+
+    const numEx = (day.exercicios || []).length;
+    let subTexto = `${numEx} Exercício${numEx !== 1 ? 's' : ''}`;
+    if (isDescanso) {
+      subTexto = numEx > 0 ? `💤 Descanso (${numEx} Atividade${numEx !== 1 ? 's' : ''})` : '💤 Recuperação Ativa';
+    }
+
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'select-card';
     card.innerHTML = `
       <div>
-        <div class="select-card-title">${escapeHtml(day.title)}</div>
-        <div class="select-card-sub">${(day.exercicios || []).length} Exercícios</div>
+        <div class="select-card-title">${isDescanso ? '💤 ' : ''}${escapeHtml(day.title)}</div>
+        <div class="select-card-sub">${subTexto}</div>
       </div>
       <span class="select-card-arrow">›</span>
     `;
@@ -1436,19 +1445,58 @@ function renderTreinoDetail() {
   }
 
   const quickSwitch = document.getElementById('treinoQuickSwitch');
-  quickSwitch.innerHTML = '';
-  days.forEach((d, idx) => {
-    const chip = document.createElement('button');
-    chip.type = 'button';
-    chip.className = `quick-switch-chip ${idx === currentTreinoDayIdx ? 'active' : ''}`;
-    chip.textContent = d.title;
-    chip.onclick = () => selectTreinoDay(idx);
-    quickSwitch.appendChild(chip);
-  });
+  if (quickSwitch) {
+    quickSwitch.innerHTML = '';
+    days.forEach((d, idx) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = `quick-switch-chip ${idx === currentTreinoDayIdx ? 'active' : ''}`;
+      chip.textContent = d.title;
+      chip.onclick = () => selectTreinoDay(idx);
+      quickSwitch.appendChild(chip);
+    });
+  }
 
   const exercisesContainer = document.getElementById('exercisesList');
   exercisesContainer.innerHTML = '';
-  renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+
+  // Verificação de Dia de Descanso (Descanso / Off / Folga)
+  const titleLower = String(day.title || '').toLowerCase();
+  const isDescanso = day.isDescanso === true || 
+                     day.tipo === 'descanso' || 
+                     titleLower.includes('descanso') || 
+                     titleLower.includes('off') || 
+                     titleLower.includes('folga');
+
+  if (isDescanso) {
+    // 1. Renderiza o Card Especial de Descanso
+    const cardDescanso = document.createElement('div');
+    cardDescanso.style.cssText = "text-align: center; padding: 24px 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px;";
+    cardDescanso.innerHTML = `
+      <div style="font-size: 44px; margin-bottom: 8px;">🧘‍♂️</div>
+      <h3 style="color: var(--mark); font-size: 19px; font-weight: 800; margin-bottom: 6px;">Dia de Descanso & Recuperação</h3>
+      <p style="color: var(--ink-dim); font-size: 13px; max-width: 320px; margin: 0 auto 12px auto; line-height: 1.4;">
+        A recuperação muscular é essencial para seus resultados. Mantenha a hidratação e siga seu plano alimentar!
+      </p>
+      <div style="display: inline-block; background: rgba(220,170,58,0.1); border: 1px solid var(--mark); color: var(--mark); padding: 6px 14px; border-radius: 20px; font-size: 11.5px; font-weight: 700;">
+        🟢 Foco em Recuperação & Nutrição
+      </div>
+    `;
+    exercisesContainer.appendChild(cardDescanso);
+
+    // 2. Se houver exercícios/atividades cadastrados (ex: Cardio, Abdômen, Panturrilha), renderiza a lista abaixo
+    if (day.exercicios && day.exercicios.length > 0) {
+      const tituloAtividades = document.createElement('div');
+      tituloAtividades.style.cssText = "font-size: 12px; font-weight: 800; color: var(--mark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;";
+      tituloAtividades.textContent = "📋 Atividades do Dia (Cardio / Abdômen / Panturrilha):";
+      exercisesContainer.appendChild(tituloAtividades);
+
+      renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+    }
+  } else {
+    // Treino Normal
+    renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+  }
 
   const keyObs = `obs_day_${currentTreinoDayIdx}`;
   const savedObs = (currentData.logs && currentData.logs[keyObs]) || 
