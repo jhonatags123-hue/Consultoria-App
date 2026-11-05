@@ -1,471 +1,464 @@
-/* ====================================================== */
-/* ADMIN2.JS - GESTÃO FINANCEIRA: CONSULTORIA & PESSOAL   */
-/* ====================================================== */
+/* -------------------------------------------------------------
+   ADMIN2.JS - MÓDULO FINANCEIRO, CONTAS, LUCROS E RELATÓRIOS
+------------------------------------------------------------- */
 
-/* CARREGA DADOS SALVOS DO LOCALSTORAGE (CONTAS PESSOAIS) */
-function carregarDadosContasLucros() {
-  const defaultData = {
-    emp1_nome: "Personal Presencial", emp1_valor: 0, emp1_horas: 0,
-    emp2_nome: "Emprego 2", emp2_valor: 0, emp2_horas: 0,
-    emp3_nome: "Consultoria On-line", emp3_valor: 0, emp3_horas: 0,
-    esposa_nome: "Renda Esposa", esposa_valor: 0,
-    contas: [
-      { nome: "Luz", valor: 150, diaVencimento: 10, paga: false },
-      { nome: "Gasolina", valor: 300, diaVencimento: 5, paga: false }
-    ]
-  };
+let dadosFinanceirosGerais = {
+  despesasFixas: [],
+  despesasVariaveis: [],
+  entradasAvulsas: [],
+  metaFaturamento: 0
+};
 
+/* -------------------------------------------------------------
+   REQUISIÇÕES DA API FINANCEIRA
+------------------------------------------------------------- */
+
+async function carregarDadosFinanceirosServidor() {
   try {
-    const saved = localStorage.getItem('personal_contas_lucros');
-    return saved ? JSON.parse(saved) : defaultData;
+    const res = await fetch(`${BACKEND_URL}/api/admin/financeiro-detalhado`, {
+      headers: authHeaders(),
+      cache: 'no-cache'
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      dadosFinanceirosGerais = {
+        despesasFixas: data.despesasFixas || [],
+        despesasVariaveis: data.despesasVariaveis || [],
+        entradasAvulsas: data.entradasAvulsas || [],
+        metaFaturamento: data.metaFaturamento || 0
+      };
+    }
   } catch (e) {
-    return defaultData;
+    showToast("Não foi possível carregar os dados financeiros adicionais.", "error");
   }
 }
 
-function salvarDadosContasLucros(dados) {
-  localStorage.setItem('personal_contas_lucros', JSON.stringify(dados));
+async function salvarDadosFinanceirosServidor() {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/admin/salvar-financeiro-detalhado`, {
+      method: 'POST',
+      headers: authHeaders(),
+      cache: 'no-cache',
+      body: JSON.stringify(dadosFinanceirosGerais)
+    });
+
+    if (res.ok) {
+      showToast("Dados de contas e lucros atualizados com sucesso!", "success");
+    } else {
+      showToast("Erro ao salvar alterações financeiras no servidor.", "error");
+    }
+  } catch (e) {
+    showToast("Erro de conexão ao salvar financeiro.", "error");
+  }
 }
 
-/* ---------------------------------------------------- */
-/* ABA 1: RENDERIZAÇÃO DA DASHBOARD DO CAIXA CONSULTORIA */
-/* ---------------------------------------------------- */
+/* -------------------------------------------------------------
+   TELA 1: GESTÃO FINANCEIRA EXCLUSIVA (PAGANTES, ATRASADOS E TOTAIS)
+------------------------------------------------------------- */
+
 function renderTelaFinanceiroExclusiva() {
-  const container = document.getElementById('financeiroDashboardContent');
+  const container = document.getElementById('secFinanceiro');
   if (!container) return;
-
-  let totalBruto = 0;
-  let totalRecebido = 0;
-  let totalPendente = 0;
-  let totalPagantes = 0;
-
-  let novosAlunosMesCount = 0;
-  let faturamentoNovosAlunos = 0;
-
-  const listaPendentes = [];
-  const listaIsentos = [];
 
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
   const anoAtual = hoje.getFullYear();
 
-  // Utiliza a variável global allStudentsList carregada pelo admin.js
-  const listaAlunos = typeof allStudentsList !== 'undefined' ? allStudentsList : [];
+  let receitaMensalAlunos = 0;
+  let receitaAnualEstimada = 0;
+  let totalPagantes = 0;
+  let totalIsentos = 0;
+  let totalPendentes = 0;
+  let totalAtrasadosCriticos = 0;
 
-  listaAlunos.forEach(aluno => {
-    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
-    const valor = typeof extrairPrecoAluno === 'function' ? extrairPrecoAluno(aluno) : (parseFloat(aluno.valor_mensalidade) || 0);
+  allStudentsList.forEach(aluno => {
+    const ehIsento = (
+      aluno.isento === true ||
+      aluno.isento === 'true' ||
+      aluno.payload?.isento === true ||
+      String(aluno.status_pagamento).toLowerCase() === 'isento' ||
+      String(aluno.status_pagamento).toLowerCase() === 'vip'
+    );
 
-    const dtCriacaoStr = aluno.data_inicio || aluno.created_at || aluno.data_cadastro || aluno.createdAt || aluno.payload?.data_inicio || aluno.payload?.created_at;
-    if (dtCriacaoStr) {
-      const parteData = String(dtCriacaoStr).split('T')[0].split('-');
-      if (parteData.length === 3) {
-        const anoCad = parseInt(parteData[0], 10);
-        const mesCad = parseInt(parteData[1], 10) - 1;
+    const infoVenc = calcularDiasRestantes(
+      aluno.data_expiracao || aluno.payload?.data_expiracao,
+      aluno.dia_vencimento || aluno.payload?.dia_vencimento,
+      aluno.isento,
+      aluno.status_pagamento
+    );
 
-        if (mesCad === mesAtual && anoCad === anoAtual) {
-          novosAlunosMesCount++;
-          if (!ehIsento) {
-            faturamentoNovosAlunos += valor;
-          }
-        }
-      }
-    }
+    const valor = extrairPrecoAluno(aluno);
 
     if (ehIsento) {
-      listaIsentos.push(aluno);
+      totalIsentos++;
     } else {
-      totalBruto += valor;
-      totalPagantes++;
-
-      const info = typeof calcularDiasRestantes === 'function' 
-        ? calcularDiasRestantes(
-            aluno.data_expiracao || aluno.payload?.data_expiracao, 
-            aluno.dia_vencimento || aluno.payload?.dia_vencimento, 
-            aluno.isento, 
-            aluno.status_pagamento
-          )
-        : { dias: 30 };
-
-      const estaPendente = aluno.status_pagamento === 'pendente' || info.dias <= 0;
-
-      if (estaPendente) {
-        totalPendente += valor;
-        listaPendentes.push({ nome: aluno.clientName || aluno.nome || aluno.payload?.clientName, codigo: aluno.codigo, valor });
+      if (infoVenc.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente') {
+        totalPendentes++;
+        if (infoVenc.dias <= -5) totalAtrasadosCriticos++;
       } else {
-        totalRecebido += valor;
+        totalPagantes++;
+        receitaMensalAlunos += valor;
       }
     }
   });
 
-  const ticketMedio = totalPagantes > 0 ? (totalBruto / totalPagantes) : 0;
+  receitaAnualEstimada = receitaMensalAlunos * 12;
 
-  container.innerHTML = `
-    <div class="fin-grid">
-      <div class="fin-card bruto">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">FATURAMENTO BRUTO ESTIPULADO</small>
-        <div class="fin-val" style="color:var(--gold);">R$ ${totalBruto.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Total contratado (${totalPagantes} pagantes)</small>
+  let html = `
+    <div style="padding:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <h2 style="color:var(--gold); font-size:20px; margin:0;">📊 Painel de Controle Financeiro</h2>
+          <span style="color:var(--muted); font-size:12px;">Visão detalhada de mensalidades, faturamento e cobranças.</span>
+        </div>
+        <button onclick="fetchAlunos()" class="action-btn-secondary" style="font-size:11px; padding:6px 12px;">
+          🔄 Atualizar Dados
+        </button>
       </div>
 
-      <div class="fin-card pago">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">RECEBIDO NO MÊS (PAGO)</small>
-        <div class="fin-val" style="color:var(--green);">R$ ${totalRecebido.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Garantido no caixa</small>
-      </div>
+      <!-- CARDS DE METRICAS PRINCIPAIS -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:20px;">
+        <div style="background:#100305; border:1px solid var(--gold); padding:16px; border-radius:12px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Faturamento Mensal Ativo</span>
+          <div style="font-size:24px; font-weight:800; color:var(--gold); margin-top:4px;">R$ ${receitaMensalAlunos.toFixed(2)}</div>
+          <span style="font-size:10px; color:var(--green);">🟢 Base de alunos pagantes</span>
+        </div>
 
-      <div class="fin-card pendente">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">PENDÊNCIAS / EM ATRASO</small>
-        <div class="fin-val" style="color:var(--accent);">R$ ${totalPendente.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">A receber de pendentes</small>
-      </div>
+        <div style="background:#100305; border:1px solid #3b82f6; padding:16px; border-radius:12px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Projeção Anual Bruta</span>
+          <div style="font-size:24px; font-weight:800; color:#3b82f6; margin-top:4px;">R$ ${receitaAnualEstimada.toFixed(2)}</div>
+          <span style="font-size:10px; color:var(--muted);">📅 Média de 12 meses</span>
+        </div>
 
-      <div class="fin-card novos">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">NOVOS ALUNOS NO MÊS</small>
-        <div class="fin-val" style="color:var(--purple);">+${novosAlunosMesCount}</div>
-        <small style="color:var(--purple); font-size:11px; font-weight:700; margin-top:4px; display:block;">+R$ ${faturamentoNovosAlunos.toFixed(2)} /mês somados</small>
-      </div>
+        <div style="background:#100305; border:1px solid var(--green); padding:16px; border-radius:12px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Alunos Pagantes</span>
+          <div style="font-size:24px; font-weight:800; color:var(--green); margin-top:4px;">${totalPagantes} <small style="font-size:12px; color:var(--muted);">alunos</small></div>
+          <span style="font-size:10px; color:var(--muted);">👑 +${totalIsentos} alunos cortesia/VIP</span>
+        </div>
 
-      <div class="fin-card ticket">
-        <small style="color:var(--muted); font-weight:800; font-size:11px;">TICKET MÉDIO POR ALUNO</small>
-        <div class="fin-val" style="color:var(--blue);">R$ ${ticketMedio.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Média por pagante</small>
-      </div>
-    </div>
-
-    <!-- BLOCO DE NOTIFICAÇÕES DE VENCIMENTOS PRÓXIMOS (2 A 3 DIAS) -->
-    <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px; margin-top:16px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-        <h3 style="color:var(--gold); font-size:14px; margin:0;">
-          ⏰ NOTIFICAÇÕES DE VENCIMENTO (2 A 3 DIAS)
-        </h3>
-        <button class="btn btn-gold sm" onclick="carregarVencimentosProximos()">🔄 Atualizar Vencimentos</button>
-      </div>
-      <div id="listaVencimentosProximos">
-        <div style="font-size:12px; color:var(--muted); text-align:center; padding:8px;">
-          Clique em "Atualizar Vencimentos" para verificar quais alunos estão prestes a vencer.
+        <div style="background:#100305; border:1px solid ${totalPendentes > 0 ? 'var(--accent)' : 'var(--border)'}; padding:16px; border-radius:12px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Pendências / Em Atraso</span>
+          <div style="font-size:24px; font-weight:800; color:${totalPendentes > 0 ? 'var(--accent)' : '#fff'}; margin-top:4px;">${totalPendentes} <small style="font-size:12px; color:var(--muted);">alunos</small></div>
+          <span style="font-size:10px; color:${totalAtrasadosCriticos > 0 ? '#ff4d4d' : 'var(--muted)'};">${totalAtrasadosCriticos} com mais de 5 dias de atraso</span>
         </div>
       </div>
-    </div>
 
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:16px;">
-      <div style="background:#100305; border:1px solid var(--accent); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          🚨 ALUNOS COM PAGAMENTO PENDENTE (${listaPendentes.length})
-        </h3>
-        ${
-          listaPendentes.length === 0 
-          ? '<p style="color:var(--green); font-size:12px;">🎉 Nenhum aluno inadimplente no momento!</p>'
-          : listaPendentes.map(p => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-              <div><b>${escapeHtml(p.nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(p.codigo)})</small></div>
-              <span style="color:var(--accent); font-weight:800;">R$ ${p.valor.toFixed(2)}</span>
-            </div>
-          `).join('')
-        }
+      <!-- BOTÃO DE ATALHO PARA COBRANÇA EM MASSA -->
+      <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b style="color:#fff; font-size:13px;">📲 Lembrete de Cobrança Rápida via WhatsApp</b>
+          <div style="font-size:11px; color:var(--muted); margin-top:2px;">Gere mensagens formatadas de cobrança com chave PIX para os alunos com vencimento pendente.</div>
+        </div>
+        <button onclick="notificarAlunosVencidos()" class="action-btn" style="font-size:12px; padding:8px 16px;">
+          💬 Enviar Lembrete ao Primeiro Pendente
+        </button>
       </div>
 
-      <div style="background:#100305; border:1px solid var(--gold); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--gold); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          👑 ALUNOS VIPS / ISENTOS (${listaIsentos.length})
-        </h3>
-        ${
-          listaIsentos.length === 0 
-          ? '<p style="color:var(--muted); font-size:12px;">Nenhum aluno isento cadastrado.</p>'
-          : listaIsentos.map(i => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-              <div><b>${escapeHtml(i.clientName || i.nome || i.payload?.clientName)}</b> <small style="color:var(--muted)">(@${escapeHtml(i.codigo)})</small></div>
-              <span style="color:var(--gold); font-weight:800; font-size:11px;">CORTESIA / VIP</span>
-            </div>
-          `).join('')
-        }
+      <!-- TABELA DETALHADA DE ALUNOS -->
+      <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+        <h3 style="color:#fff; font-size:14px; margin-bottom:12px;">📋 Lista Completa de Alunos e Mensalidades</h3>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border); color:var(--gold);">
+                <th style="padding:8px;">Aluno</th>
+                <th style="padding:8px;">Código</th>
+                <th style="padding:8px;">Mensalidade</th>
+                <th style="padding:8px;">Vencimento</th>
+                <th style="padding:8px;">Status</th>
+                <th style="padding:8px; text-align:right;">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+  `;
+
+  allStudentsList.forEach(aluno => {
+    const ehVIP = (
+      aluno.isento === true ||
+      aluno.isento === 'true' ||
+      aluno.payload?.isento === true ||
+      String(aluno.status_pagamento).toLowerCase() === 'isento' ||
+      String(aluno.status_pagamento).toLowerCase() === 'vip'
+    );
+
+    const info = calcularDiasRestantes(
+      aluno.data_expiracao || aluno.payload?.data_expiracao,
+      aluno.dia_vencimento || aluno.payload?.dia_vencimento,
+      ehVIP,
+      aluno.status_pagamento
+    );
+
+    const valor = extrairPrecoAluno(aluno);
+    let statusBadge = `<span class="status-pill status-pago">PAGO</span>`;
+
+    if (ehVIP) {
+      statusBadge = `<span class="status-pill status-isento">ISENTO</span>`;
+    } else if (info.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente') {
+      statusBadge = `<span class="status-pill status-pendente">PENDENTE</span>`;
+    }
+
+    html += `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+        <td style="padding:10px; font-weight:700; color:#fff;">${escapeHtml(aluno.clientName || aluno.nome)}</td>
+        <td style="padding:10px; color:var(--muted);">@${escapeHtml(aluno.codigo)}</td>
+        <td style="padding:10px; color:var(--gold); font-weight:700;">R$ ${valor.toFixed(2)}</td>
+        <td style="padding:10px; color:#fff;">${info.dataFormatada}</td>
+        <td style="padding:10px;">${statusBadge}</td>
+        <td style="padding:10px; text-align:right;">
+          <button onclick="carregarAluno('${aluno.codigo}'); switchTab('resumo');" style="background:none; border:1px solid var(--border); color:#fff; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;">
+            ✏️ Editar
+          </button>
+          <button onclick="copiarMensagemCobranca('${aluno.codigo}')" style="background:none; border:1px solid var(--gold); color:var(--gold); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; margin-left:4px;">
+            💬 Cobrar
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   `;
 
-  // Carrega automaticamente a lista ao renderizar o painel financeiro
-  carregarVencimentosProximos();
+  container.innerHTML = html;
 }
 
-/* ---------------------------------------------------- */
-/* NOTIFICAÇÃO DE VENCIMENTOS PRÓXIMOS (2 A 3 DIAS)    */
-/* ---------------------------------------------------- */
-function carregarVencimentosProximos() {
-  const container = document.getElementById('listaVencimentosProximos');
+function copiarMensagemCobranca(codigo) {
+  const aluno = allStudentsList.find(a => a.codigo === codigo);
+  if (!aluno) return showToast("Aluno não encontrado.", "error");
+
+  const nome = aluno.clientName || aluno.nome || codigo;
+  const valor = extrairPrecoAluno(aluno);
+  const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+
+  const msg = 
+`🏋️ *CONSULTORIA JHONATA PERSONAL — LEMBRETE DE RENOVATION*
+
+Olá, *${nome}*! 
+
+Seu ciclo atual de consultoria vence no dia *${info.dataFormatada}*.
+
+💰 *Valor:* R$ ${valor.toFixed(2)}
+🔑 *Chave PIX:* ${CHAVE_PIX_DEFAULT}
+
+Para manter o seu acesso liberado ao app, envio de novas fichas e análise de treinos sem interrupção, favor efetuar o pagamento e enviar o comprovante por aqui! 💪🔥`;
+
+  const fone = aluno.dadosAnamnese?.telefone ? aluno.dadosAnamnese.telefone.replace(/\D/g, '') : '';
+  const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  window.open(urlWpp, '_blank');
+}
+
+function notificarAlunosVencidos() {
+  const pendente = allStudentsList.find(aluno => {
+    const ehVIP = aluno.isento === true || String(aluno.status_pagamento).toLowerCase() === 'isento';
+    if (ehVIP) return false;
+    const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+    return info.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente';
+  });
+
+  if (pendente) {
+    copiarMensagemCobranca(pendente.codigo);
+  } else {
+    showToast("Nenhum aluno pendente encontrado!", "success");
+  }
+}
+
+/* -------------------------------------------------------------
+   TELA 2: CONTAS, DESPESAS FIXAS/VARIÁVEIS E LUCRO LÍQUIDO
+------------------------------------------------------------- */
+
+async function renderTelaContasELucros() {
+  const container = document.getElementById('secContasLucros');
   if (!container) return;
 
-  const lista = typeof allStudentsList !== 'undefined' ? allStudentsList : (window.listaAlunosGlobal || []);
-  container.innerHTML = '';
+  await carregarDadosFinanceirosServidor();
 
-  if (!lista || lista.length === 0) {
-    container.innerHTML = `<div style="font-size:12px; color:var(--muted); text-align:center; padding:10px;">Nenhum aluno carregado na lista.</div>`;
-    return;
-  }
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  let pendentesCount = 0;
-
-  lista.forEach(aluno => {
-    const ehIsento = aluno.isento === true || aluno.status_pagamento === 'isento' || aluno.payload?.isento === true;
-    if (ehIsento) return;
-
-    const dtExpStr = aluno.data_expiracao || aluno.vencimento || aluno.payload?.data_expiracao;
-    const tel = aluno.telefone || aluno.payload?.telefone;
-    if (!dtExpStr || !tel) return;
-
-    let dataExp;
-    if (String(dtExpStr).includes('/')) {
-      const p = String(dtExpStr).split('/');
-      dataExp = new Date(p[2], p[1] - 1, p[0]);
-    } else if (String(dtExpStr).includes('-')) {
-      const p = String(dtExpStr).split('T')[0].split('-');
-      dataExp = new Date(p[0], p[1] - 1, p[2]);
-    }
-
-    if (!dataExp || isNaN(dataExp.getTime())) return;
-    dataExp.setHours(0, 0, 0, 0);
-
-    const diffMs = dataExp.getTime() - hoje.getTime();
-    const diffDias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDias === 2 || diffDias === 3) {
-      pendentesCount++;
-
-      const nomeAluno = aluno.clientName || aluno.nome || aluno.payload?.clientName || 'Aluno';
-      const numLimpo = String(tel).replace(/\D/g, '');
-      const numComDDD = numLimpo.startsWith('55') ? numLimpo : `55${numLimpo}`;
-      const dataFmt = dataExp.toLocaleDateString('pt-BR');
-
-      const mensagem = `Olá, ${nomeAluno}! 🏋️‍♂️%0A%0ASua assinatura da *Consultoria Jhonata Personal* vence em *${diffDias} dias* (${dataFmt}).%0A%0AGostaria de renovar seu plano para continuar seus treinos e acompanhamento sem interrupções?`;
-      const urlWpp = `https://wa.me/${numComDDD}?text=${mensagem}`;
-
-      const itemDiv = document.createElement('div');
-      itemDiv.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#0d0204; border:1px solid rgba(220,170,58,0.3); padding:10px 12px; border-radius:8px; margin-bottom:8px; font-size:12px;";
-      itemDiv.innerHTML = `
-        <div>
-          <b style="color:#fff; font-size:13px;">${escapeHtml(nomeAluno)}</b>
-          <div style="color:var(--muted); font-size:11px; margin-top:2px;">
-            Vencimento: <span style="color:var(--gold); font-weight:800;">${dataFmt} (Faltam ${diffDias} dias)</span>
-          </div>
-        </div>
-        <a href="${urlWpp}" target="_blank" class="btn btn-wpp sm" style="text-decoration:none; padding:6px 12px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
-          📲 Enviar Notificação
-        </a>
-      `;
-      container.appendChild(itemDiv);
+  let totalReceitaBruta = 0;
+  allStudentsList.forEach(a => {
+    const ehIsento = a.isento === true || String(a.status_pagamento).toLowerCase() === 'isento';
+    if (!ehIsento && String(a.status_pagamento).toLowerCase() !== 'pendente') {
+      totalReceitaBruta += extrairPrecoAluno(a);
     }
   });
 
-  if (pendentesCount === 0) {
-    container.innerHTML = `<div style="font-size:12px; color:var(--green); text-align:center; padding:10px;">✅ Nenhum aluno com vencimento para daqui a 2 ou 3 dias.</div>`;
-  }
-}
+  let totalEntradasAvulsas = 0;
+  dadosFinanceirosGerais.entradasAvulsas.forEach(e => totalEntradasAvulsas += parsePreco(e.valor));
 
-/* ---------------------------------------------------- */
-/* ABA 2: RENDERIZAÇÃO DE CONTAS E LUCROS PESSOAIS      */
-/* ---------------------------------------------------- */
-function renderTelaContasELucros() {
-  const container = document.getElementById('contasLucrosContent');
-  if (!container) return;
+  const receitaTotal = totalReceitaBruta + totalEntradasAvulsas;
 
-  const dados = carregarDadosContasLucros();
+  let totalFixas = 0;
+  dadosFinanceirosGerais.despesasFixas.forEach(f => totalFixas += parsePreco(f.valor));
 
-  const emp1Val = parseFloat(dados.emp1_valor) || 0;
-  const emp2Val = parseFloat(dados.emp2_valor) || 0;
-  const emp3Val = parseFloat(dados.emp3_valor) || 0;
-  const esposaVal = parseFloat(dados.esposa_valor) || 0;
+  let totalVariaveis = 0;
+  dadosFinanceirosGerais.despesasVariaveis.forEach(v => totalVariaveis += parsePreco(v.valor));
 
-  const emp1Horas = parseFloat(dados.emp1_horas) || 0;
-  const emp2Horas = parseFloat(dados.emp2_horas) || 0;
-  const emp3Horas = parseFloat(dados.emp3_horas) || 0;
+  const totalDespesas = totalFixas + totalVariaveis;
+  const lucroLiquido = receitaTotal - totalDespesas;
+  const margemLucro = receitaTotal > 0 ? ((lucroLiquido / receitaTotal) * 100).toFixed(1) : 0;
 
-  const totalArrecadacaoSua = emp1Val + emp2Val + emp3Val;
-  const totalArrecadacaoGeral = totalArrecadacaoSua + esposaVal;
-
-  const totalHorasDia = emp1Horas + emp2Horas + emp3Horas;
-  const totalHorasMes = totalHorasDia * 22;
-  const valorPorHora = totalHorasMes > 0 ? (totalArrecadacaoSua / totalHorasMes) : 0;
-
-  const totalGastosContas = dados.contas.reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-  const totalContasPagas = dados.contas.filter(c => c.paga).reduce((acc, c) => acc + (parseFloat(c.valor) || 0), 0);
-  const totalContasPendentes = totalGastosContas - totalContasPagas;
-  const lucroLiquidoSobra = totalArrecadacaoGeral - totalGastosContas;
-
-  container.innerHTML = `
-    <div class="fin-grid" style="margin-bottom:16px;">
-      <div class="fin-card bruto" style="border-color:var(--green);">
-        <small style="color:var(--muted); font-weight:800; font-size:11px; text-transform:uppercase;">💰 TOTAL DE ARRECADAÇÃO</small>
-        <div class="fin-val" style="color:var(--green);">R$ ${totalArrecadacaoGeral.toFixed(2)}</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">
-          Sua Renda: R$ ${totalArrecadacaoSua.toFixed(2)} | Esposa: R$ ${esposaVal.toFixed(2)}
-        </small>
+  let html = `
+    <div style="padding:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <div>
+          <h2 style="color:var(--gold); font-size:20px; margin:0;">💰 Balanço de Contas & Lucro Líquido</h2>
+          <span style="color:var(--muted); font-size:12px;">Gestão de despesas fixas, custos operacionais e margem líquida.</span>
+        </div>
+        <button onclick="salvarDadosFinanceirosServidor()" class="action-btn" style="font-size:11px; padding:6px 12px;">
+          💾 Salvar Alterações
+        </button>
       </div>
 
-      <div class="fin-card pendente" style="border-color:var(--accent);">
-        <small style="color:var(--muted); font-weight:800; font-size:11px; text-transform:uppercase;">💸 TOTAL DE GASTOS (CONTAS)</small>
-        <div class="fin-val" style="color:var(--accent);">R$ ${totalGastosContas.toFixed(2)}</div>
-        <small style="color:var(--accent); font-size:11px; margin-top:4px; display:block;">
-          Pagas: R$ ${totalContasPagas.toFixed(2)} | Pendentes: R$ ${totalContasPendentes.toFixed(2)}
-        </small>
-      </div>
+      <!-- CARDS DE BALANÇO FINANCEIRO -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin-bottom:20px;">
+        <div style="background:#100305; border:1px solid var(--green); padding:14px; border-radius:10px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700;">RECEITA TOTAL (BRUTA)</span>
+          <div style="font-size:22px; font-weight:800; color:var(--green); margin-top:4px;">R$ ${receitaTotal.toFixed(2)}</div>
+          <span style="font-size:10px; color:var(--muted);">Alunos + Entradas Avulsas</span>
+        </div>
 
-      <div class="fin-card pago" style="border-color:var(--gold);">
-        <small style="color:var(--muted); font-weight:800; font-size:11px; text-transform:uppercase;">👑 LUCRO LÍQUIDO LIVRE</small>
-        <div class="fin-val" style="color:var(--gold);">R$ ${lucroLiquidoSobra.toFixed(2)}</div>
-        <small style="color:var(--gold); font-size:11px; margin-top:4px; display:block;">Total Arrecadado - Total de Gastos</small>
-      </div>
+        <div style="background:#100305; border:1px solid var(--accent); padding:14px; border-radius:10px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700;">DESPESAS TOTAIS</span>
+          <div style="font-size:22px; font-weight:800; color:var(--accent); margin-top:4px;">R$ ${totalDespesas.toFixed(2)}</div>
+          <span style="font-size:10px; color:var(--muted);">Fixas: R$ ${totalFixas.toFixed(2)} | Var: R$ ${totalVariaveis.toFixed(2)}</span>
+        </div>
 
-      <div class="fin-card novos" style="border-color:#3b82f6;">
-        <small style="color:var(--muted); font-weight:800; font-size:11px; text-transform:uppercase;">⏱️ VALOR DA SUA HORA</small>
-        <div class="fin-val" style="color:#60a5fa;">R$ ${valorPorHora.toFixed(2)}/h</div>
-        <small style="color:var(--muted); font-size:11px; margin-top:4px; display:block;">Jornada: ${totalHorasDia}h/dia (~${totalHorasMes}h/mês)</small>
-      </div>
-    </div>
-
-    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:16px;">
-      <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--gold); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          💼 MEUS EMPREGOS, CONSULTORIA & ESPOSA
-        </h3>
-
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div style="background:#0d0204; border:1px solid var(--border); padding:10px; border-radius:8px;">
-            <b style="color:#fff; font-size:12px;">EMPREGO 1:</b>
-            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; margin-top:6px;">
-              <input type="text" id="emp1_nome" value="${escapeHtml(dados.emp1_nome)}" placeholder="Nome do emprego">
-              <input type="number" id="emp1_valor" value="${dados.emp1_valor || ''}" placeholder="Ganho R$">
-              <input type="number" id="emp1_horas" value="${dados.emp1_horas || ''}" placeholder="Horas/dia">
-            </div>
-          </div>
-
-          <div style="background:#0d0204; border:1px solid var(--border); padding:10px; border-radius:8px;">
-            <b style="color:#fff; font-size:12px;">EMPREGO 2:</b>
-            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; margin-top:6px;">
-              <input type="text" id="emp2_nome" value="${escapeHtml(dados.emp2_nome)}" placeholder="Nome do emprego">
-              <input type="number" id="emp2_valor" value="${dados.emp2_valor || ''}" placeholder="Ganho R$">
-              <input type="number" id="emp2_horas" value="${dados.emp2_horas || ''}" placeholder="Horas/dia">
-            </div>
-          </div>
-
-          <div style="background:#05140b; border:1px solid var(--green); padding:10px; border-radius:8px;">
-            <b style="color:var(--green); font-size:12px;">EMPREGO 3: CONSULTORIA ON-LINE</b>
-            <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; margin-top:6px;">
-              <input type="text" id="emp3_nome" value="${escapeHtml(dados.emp3_nome || 'Consultoria On-line')}" placeholder="Nome">
-              <input type="number" id="emp3_valor" value="${dados.emp3_valor || ''}" placeholder="Ganho R$">
-              <input type="number" id="emp3_horas" value="${dados.emp3_horas || ''}" placeholder="Horas/dia">
-            </div>
-          </div>
-
-          <div style="background:#15050e; border:1px solid var(--purple); padding:10px; border-radius:8px;">
-            <b style="color:var(--purple); font-size:12px;">👑 RENDA DA ESPOSA:</b>
-            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:6px; margin-top:6px;">
-              <input type="text" id="esposa_nome" value="${escapeHtml(dados.esposa_nome || 'Renda Esposa')}" placeholder="Descrição">
-              <input type="number" id="esposa_valor" value="${dados.esposa_valor || ''}" placeholder="Ganho R$">
-            </div>
-          </div>
-
-          <button class="btn btn-gold btn-md full-width" onclick="salvarEmpregosEHoras()">💾 SALVAR RENDAS E RECALCULAR</button>
+        <div style="background:#100305; border:1px solid var(--gold); padding:14px; border-radius:10px;">
+          <span style="font-size:11px; color:var(--muted); font-weight:700;">LUCRO LÍQUIDO MENSAL</span>
+          <div style="font-size:22px; font-weight:800; color:var(--gold); margin-top:4px;">R$ ${lucroLiquido.toFixed(2)}</div>
+          <span style="font-size:10px; color:var(--green);">Margem Líquida: ${margemLucro}%</span>
         </div>
       </div>
 
-      <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
-        <h3 style="color:var(--accent); font-size:14px; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:12px;">
-          🧾 GERENCIADOR DE CONTAS & GASTOS
-        </h3>
-
-        <div style="display:grid; grid-template-columns: 2fr 1fr 1fr auto; gap:6px; margin-bottom:12px;">
-          <input type="text" id="novaContaNome" placeholder="Conta (Luz, Gasolina...)">
-          <input type="number" id="novaContaValor" placeholder="Valor R$">
-          <input type="number" id="novaContaDia" placeholder="Dia Venc." min="1" max="31">
-          <button class="btn btn-wpp sm" onclick="adicionarNovaConta()">➕ Adicionar</button>
+      <!-- FORMULÁRIOS DE CONTAS E DESPESAS -->
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+        
+        <!-- DESPESAS FIXAS -->
+        <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+          <h3 style="color:var(--gold); font-size:14px; margin-bottom:10px;">📌 Despesas Fixas (Servidores, Apps, Plataformas)</h3>
+          <div id="listaDespesasFixas" style="margin-bottom:12px;"></div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="novaFixaNome" placeholder="Nome (Ex: Render, OpenAI)" style="flex:2; padding:6px; font-size:12px;">
+            <input type="number" id="novaFixaValor" placeholder="R$" style="flex:1; padding:6px; font-size:12px;">
+            <button onclick="adicionarDespesaFixa()" class="action-btn-secondary" style="padding:6px 10px; font-size:12px;">+</button>
+          </div>
         </div>
 
-        <div style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
-          ${
-            dados.contas.length === 0 
-            ? '<small style="color:var(--muted)">Nenhuma conta cadastrada ainda.</small>'
-            : dados.contas.map((conta, index) => `
-              <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; border:1px solid ${conta.paga ? 'var(--green)' : 'var(--border)'}; padding:8px 10px; border-radius:8px; font-size:12px;">
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <input type="checkbox" ${conta.paga ? 'checked' : ''} onchange="alternarStatusConta(${index})" style="width:16px; height:16px; cursor:pointer;">
-                  <div>
-                    <span style="${conta.paga ? 'text-decoration:line-through; color:var(--muted);' : 'color:#fff; font-weight:700;'}">
-                      ${escapeHtml(conta.nome)}
-                    </span>
-                    ${conta.diaVencimento ? `<br><small style="color:var(--gold); font-size:10px;">📅 Vencimento dia ${conta.diaVencimento}</small>` : ''}
-                  </div>
-                </div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <span style="color:${conta.paga ? 'var(--green)' : 'var(--accent)'}; font-weight:800;">R$ ${parseFloat(conta.valor).toFixed(2)}</span>
-                  <button onclick="removerConta(${index})" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:14px; font-weight:800;">✕</button>
-                </div>
-              </div>
-            `).join('')
-          }
+        <!-- DESPESAS VARIÁVEIS -->
+        <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+          <h3 style="color:var(--accent); font-size:14px; margin-bottom:10px;">🛒 Despesas Variáveis / Anúncios / Equipamentos</h3>
+          <div id="listaDespesasVariaveis" style="margin-bottom:12px;"></div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="novaVariavelNome" placeholder="Descrição (Ex: Tráfego Pago)" style="flex:2; padding:6px; font-size:12px;">
+            <input type="number" id="novaVariavelValor" placeholder="R$" style="flex:1; padding:6px; font-size:12px;">
+            <button onclick="adicionarDespesaVariavel()" class="action-btn-secondary" style="padding:6px 10px; font-size:12px;">+</button>
+          </div>
         </div>
+
+        <!-- ENTRADAS AVULSAS -->
+        <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
+          <h3 style="color:var(--green); font-size:14px; margin-bottom:10px;">💵 Entradas Avulsas / Avulso / Venda Direta</h3>
+          <div id="listaEntradasAvulsas" style="margin-bottom:12px;"></div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="novaEntradaNome" placeholder="Descrição (Ex: Anamnese Avulsa)" style="flex:2; padding:6px; font-size:12px;">
+            <input type="number" id="novaEntradaValor" placeholder="R$" style="flex:1; padding:6px; font-size:12px;">
+            <button onclick="adicionarEntradaAvulsa()" class="action-btn-secondary" style="padding:6px 10px; font-size:12px;">+</button>
+          </div>
+        </div>
+
       </div>
     </div>
   `;
+
+  container.innerHTML = html;
+  renderItensDespesas();
 }
 
-function salvarEmpregosEHoras() {
-  const dados = carregarDadosContasLucros();
+function renderItensDespesas() {
+  const boxFixas = document.getElementById('listaDespesasFixas');
+  const boxVariaveis = document.getElementById('listaDespesasVariaveis');
+  const boxEntradas = document.getElementById('listaEntradasAvulsas');
 
-  dados.emp1_nome = document.getElementById('emp1_nome').value.trim() || "Emprego 1";
-  dados.emp1_valor = typeof parsePreco === 'function' ? parsePreco(document.getElementById('emp1_valor').value) : parseFloat(document.getElementById('emp1_valor').value) || 0;
-  dados.emp1_horas = parseFloat(document.getElementById('emp1_horas').value) || 0;
+  if (boxFixas) {
+    boxFixas.innerHTML = dadosFinanceirosGerais.despesasFixas.map((item, index) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
+        <span style="color:#fff;">${escapeHtml(item.nome)}</span>
+        <div>
+          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <span onclick="removerDespesaFixa(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
+        </div>
+      </div>
+    `).join('') || '<small style="color:var(--muted);">Nenhuma despesa fixa cadastrada.</small>';
+  }
 
-  dados.emp2_nome = document.getElementById('emp2_nome').value.trim() || "Emprego 2";
-  dados.emp2_valor = typeof parsePreco === 'function' ? parsePreco(document.getElementById('emp2_valor').value) : parseFloat(document.getElementById('emp2_valor').value) || 0;
-  dados.emp2_horas = parseFloat(document.getElementById('emp2_horas').value) || 0;
+  if (boxVariaveis) {
+    boxVariaveis.innerHTML = dadosFinanceirosGerais.despesasVariaveis.map((item, index) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
+        <span style="color:#fff;">${escapeHtml(item.nome)}</span>
+        <div>
+          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <span onclick="removerDespesaVariavel(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
+        </div>
+      </div>
+    `).join('') || '<small style="color:var(--muted);">Nenhuma despesa variável cadastrada.</small>';
+  }
 
-  dados.emp3_nome = document.getElementById('emp3_nome').value.trim() || "Consultoria On-line";
-  dados.emp3_valor = typeof parsePreco === 'function' ? parsePreco(document.getElementById('emp3_valor').value) : parseFloat(document.getElementById('emp3_valor').value) || 0;
-  dados.emp3_horas = parseFloat(document.getElementById('emp3_horas').value) || 0;
+  if (boxEntradas) {
+    boxEntradas.innerHTML = dadosFinanceirosGerais.entradasAvulsas.map((item, index) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
+        <span style="color:#fff;">${escapeHtml(item.nome)}</span>
+        <div>
+          <b style="color:var(--green); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <span onclick="removerEntradaAvulsa(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
+        </div>
+      </div>
+    `).join('') || '<small style="color:var(--muted);">Nenhuma entrada avulsa cadastrada.</small>';
+  }
+}
 
-  dados.esposa_nome = document.getElementById('esposa_nome').value.trim() || "Renda Esposa";
-  dados.esposa_valor = typeof parsePreco === 'function' ? parsePreco(document.getElementById('esposa_valor').value) : parseFloat(document.getElementById('esposa_valor').value) || 0;
+function adicionarDespesaFixa() {
+  const nome = document.getElementById('novaFixaNome').value.trim();
+  const valor = parsePreco(document.getElementById('novaFixaValor').value);
+  if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
 
-  salvarDadosContasLucros(dados);
+  dadosFinanceirosGerais.despesasFixas.push({ nome, valor });
   renderTelaContasELucros();
-  if (typeof showToast === 'function') showToast("Rendas e horas salvas com sucesso!", "success");
 }
 
-function adicionarNovaConta() {
-  const nome = document.getElementById('novaContaNome').value.trim();
-  const valor = typeof parsePreco === 'function' ? parsePreco(document.getElementById('novaContaValor').value) : parseFloat(document.getElementById('novaContaValor').value) || 0;
-  const dia = parseInt(document.getElementById('novaContaDia').value) || null;
-
-  if (!nome || valor <= 0) {
-    if (typeof showToast === 'function') showToast("Preencha o nome e o valor da conta corretamente.", "error");
-    return;
-  }
-
-  const dados = carregarDadosContasLucros();
-  dados.contas.push({ nome: nome, valor: valor, diaVencimento: dia, paga: false });
-
-  salvarDadosContasLucros(dados);
+function removerDespesaFixa(index) {
+  dadosFinanceirosGerais.despesasFixas.splice(index, 1);
   renderTelaContasELucros();
-  if (typeof showToast === 'function') showToast("Conta adicionada com sucesso!", "success");
 }
 
-function alternarStatusConta(index) {
-  const dados = carregarDadosContasLucros();
-  if (dados.contas[index]) {
-    dados.contas[index].paga = !dados.contas[index].paga;
-    salvarDadosContasLucros(dados);
-    renderTelaContasELucros();
-  }
+function adicionarDespesaVariavel() {
+  const nome = document.getElementById('novaVariavelNome').value.trim();
+  const valor = parsePreco(document.getElementById('novaVariavelValor').value);
+  if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
+
+  dadosFinanceirosGerais.despesasVariaveis.push({ nome, valor });
+  renderTelaContasELucros();
 }
 
-function removerConta(index) {
-  const dados = carregarDadosContasLucros();
-  if (dados.contas[index]) {
-    dados.contas.splice(index, 1);
-    salvarDadosContasLucros(dados);
-    renderTelaContasELucros();
-    if (typeof showToast === 'function') showToast("Conta removida.", "info");
-  }
+function removerDespesaVariavel(index) {
+  dadosFinanceirosGerais.despesasVariaveis.splice(index, 1);
+  renderTelaContasELucros();
+}
+
+function adicionarEntradaAvulsa() {
+  const nome = document.getElementById('novaEntradaNome').value.trim();
+  const valor = parsePreco(document.getElementById('novaEntradaValor').value);
+  if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
+
+  dadosFinanceirosGerais.entradasAvulsas.push({ nome, valor });
+  renderTelaContasELucros();
+}
+
+function removerEntradaAvulsa(index) {
+  dadosFinanceirosGerais.entradasAvulsas.splice(index, 1);
+  renderTelaContasELucros();
 }
