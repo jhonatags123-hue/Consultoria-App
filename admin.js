@@ -408,18 +408,21 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* -------------------------------------------------------------
-   FUNÇÃO DE LOGIN CORRIGIDA (SEM RECARREGAMENTO DE PÁGINA)
+   FUNÇÃO DE LOGIN BLINDADA (EVITA REFRESH EM QUALQUER SITUAÇÃO)
 ------------------------------------------------------------- */
 async function loginAdmin(event) {
-  // Impede o recarregamento automático da página ao enviar o formulário
-  if (event) event.preventDefault();
+  // Captura o evento recebido por parâmetro ou o evento global da janela
+  const e = event || window.event;
+  if (e && typeof e.preventDefault === 'function') {
+    e.preventDefault();
+  }
 
   const userEl = document.getElementById('adminUser');
   const passEl = document.getElementById('adminPass');
   const errorDiv = document.getElementById('loginError');
   const btn = document.getElementById('btnLoginAdmin');
 
-  if (!userEl || !passEl) return;
+  if (!userEl || !passEl) return false;
 
   const user = userEl.value.trim();
   const pass = passEl.value.trim();
@@ -429,7 +432,7 @@ async function loginAdmin(event) {
       errorDiv.textContent = "❌ Por favor, preencha o login e a senha.";
       errorDiv.style.display = 'block';
     }
-    return;
+    return false;
   }
 
   if (errorDiv) errorDiv.style.display = 'none';
@@ -473,9 +476,9 @@ async function loginAdmin(event) {
         errorDiv.style.display = 'block';
       }
     }
-  } catch (e) {
+  } catch (err) {
     if (errorDiv) {
-      errorDiv.textContent = "❌ Erro ao conectar ao servidor: " + e.message;
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor: " + err.message;
       errorDiv.style.display = 'block';
     }
   } finally {
@@ -484,6 +487,8 @@ async function loginAdmin(event) {
       btn.disabled = false;
     }
   }
+
+  return false;
 }
 
 function logoutAdmin() {
