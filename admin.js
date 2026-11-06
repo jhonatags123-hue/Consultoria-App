@@ -407,42 +407,81 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-async function loginAdmin() {
-  const user = document.getElementById('adminUser').value.trim();
-  const pass = document.getElementById('adminPass').value.trim();
+/* -------------------------------------------------------------
+   FUNÇÃO DE LOGIN CORRIGIDA (SEM RECARREGAMENTO E SEM LOOP)
+------------------------------------------------------------- */
+async function loginAdmin(event) {
+  if (event) event.preventDefault();
+
+  const userEl = document.getElementById('adminUser');
+  const passEl = document.getElementById('adminPass');
   const errorDiv = document.getElementById('loginError');
   const btn = document.getElementById('btnLoginAdmin');
 
-  errorDiv.style.display = 'none';
-  btn.textContent = "VALIDANDO...";
-  btn.disabled = true;
+  if (!userEl || !passEl) return;
+
+  const user = userEl.value.trim();
+  const pass = passEl.value.trim();
+
+  if (!user || !pass) {
+    if (errorDiv) {
+      errorDiv.textContent = "❌ Por favor, preencha o login e a senha.";
+      errorDiv.style.display = 'block';
+    }
+    return;
+  }
+
+  if (errorDiv) errorDiv.style.display = 'none';
+  if (btn) {
+    btn.textContent = "VALIDANDO...";
+    btn.disabled = true;
+  }
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       cache: 'no-cache',
       body: JSON.stringify({ user, pass })
     });
-    const data = await res.json();
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (errJson) {
+      data = { error: `Resposta inválida do servidor (${res.status})` };
+    }
+
     if (res.ok && data.token) {
       localStorage.setItem('admin_token', data.token);
       localStorage.setItem('adminToken', data.token);
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('adminApp').classList.remove('hidden');
+
+      const loginScreen = document.getElementById('loginScreen');
+      const adminApp = document.getElementById('adminApp');
+      
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (adminApp) adminApp.classList.remove('hidden');
+
       showToast("Login realizado com sucesso!", "success");
+      
       fetchAlunos();
       carregarGifsAdmin();
     } else {
-      errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
+      if (errorDiv) {
+        errorDiv.textContent = "❌ " + (data.error || "Acesso negado. Usuário ou senha incorretos.");
+        errorDiv.style.display = 'block';
+      }
+    }
+  } catch (e) {
+    if (errorDiv) {
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor: " + e.message;
       errorDiv.style.display = 'block';
     }
-  } catch(e) { 
-    errorDiv.textContent = "❌ Erro ao conectar ao servidor.";
-    errorDiv.style.display = 'block';
   } finally {
-    btn.textContent = "ENTRAR NO PAINEL";
-    btn.disabled = false;
+    if (btn) {
+      btn.textContent = "ENTRAR NO PAINEL";
+      btn.disabled = false;
+    }
   }
 }
 
