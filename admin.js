@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------
+   ADMIN1.js - PAINEL PRINCIPAL & PROTOCOLOS DE ALUNOS
+------------------------------------------------------------- */
+
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 let currentStudentCode = "";
 let currentStudentData = null;
@@ -11,28 +15,20 @@ let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
-const CHAVE_PIX_DEFAULT = "5551990169026";
 
 /* -------------------------------------------------------------
    GERENCIAMENTO DE LINKS DE ANAMNESE (VENDAS ONLINE vs ORGÂNICO)
 ------------------------------------------------------------- */
 
-// Mapeamento completo dos 6 links de anamnese
 const LINKS_ANAMNESE_GERADOR = {
-  // 1. Integram com o checkout do Asaas no final
   asaas_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese",
   asaas_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino",
-  
-  // 2. Organico / Amigos (Valor a combinar diretamente no Wpp)
   amigos_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos",
   amigos_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos",
-  
-  // 3. Dupla / Convidado (Incluso no plano / Parceria)
   dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&origem=dupla",
   dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla"
 };
 
-// Função genérica para copiar qualquer uma das 6 opções
 function copiarLinkVendaAnamnese(chave) {
   const link = LINKS_ANAMNESE_GERADOR[chave];
   if (link) {
@@ -42,7 +38,6 @@ function copiarLinkVendaAnamnese(chave) {
   }
 }
 
-// Retrocompatibilidade para manter chamadas antigas funcionando sem erros
 function obterLinkAnamneseOrganico(tipo = 'completa') {
   return tipo === 'treino' ? LINKS_ANAMNESE_GERADOR.amigos_treino : LINKS_ANAMNESE_GERADOR.amigos_completa;
 }
@@ -2594,9 +2589,6 @@ function parseWorkoutText(rawText) {
   return days.filter(d => d.exercicios.length > 0);
 }
 
-/* -------------------------------------------------------------
-   SALVAMENTO E CRIAÇÃO DE ALUNOS COM SENHA 123456
-------------------------------------------------------------- */
 async function salvarNovoAlunoBloco() {
   const nome = document.getElementById('newName').value.trim();
   const codigo = document.getElementById('newCode').value.trim().toLowerCase();
@@ -2619,7 +2611,6 @@ async function salvarNovoAlunoBloco() {
   const mesFmt = String(hoje.getMonth() + 1).padStart(2, '0');
   const diaFmt = String(hoje.getDate()).padStart(2, '0');
 
-  // Senha padrão inicial fixada em 123456 para novos cadastros
   const senhaPadrao = "123456";
 
   const payload = {
@@ -2661,7 +2652,7 @@ async function salvarNovoAlunoBloco() {
       lastGeneratedPassword = senhaPadrao;
       showToast(`Aluno criado! Senha padrão: ${senhaPadrao}`, "success");
       await fetchAlunos();
-      switchTab('financeiro');
+      switchTab('resumo');
     }
   } catch(e) { showToast("Erro ao criar aluno.", "error"); }
 }
