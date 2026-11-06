@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------
-   ADMIN2.JS - MÓDULO FINANCEIRO, CONTAS, LUCROS E RELATÓRIOS
+   ADMIN2.JS - MÓDULO FINANCEIRO, BALANÇO DE CONTAS & COBRANÇA
 ------------------------------------------------------------- */
 
 let dadosFinanceirosGerais = {
@@ -8,6 +8,204 @@ let dadosFinanceirosGerais = {
   entradasAvulsas: [],
   metaFaturamento: 0
 };
+
+/* -------------------------------------------------------------
+   FUNÇÕES UTILITÁRIAS AUTÔNOMAS DO MÓDULO FINANCEIRO
+------------------------------------------------------------- */
+
+function obterPropriedadeAluno(aluno, chave) {
+  if (!aluno) return null;
+  return aluno[chave] ?? 
+         aluno.payload?.[chave] ?? 
+         aluno.dadosAnamnese?.[chave] ?? 
+         null;
+}
+
+function parsePrecoFin(valorRaw) {
+  if (valorRaw === null || valorRaw === undefined) return 0;
+  if (typeof valorRaw === 'number') return isNaN(valorRaw) ? 0 : valorRaw;
+  
+  let str = String(valorRaw).trim().replace(/[^\d.,]/g, '');
+  if (!str) return 0;
+
+  if (str.includes(',') && !str.includes('.')) {
+    str = str.replace(',', '.');
+  } else if (str.includes(',') && str.includes('.')) {
+    str = str.replace(/\./g, '').replace(',', '.');
+  }
+
+  const num = parseFloat(str);
+  return isNaN(num) ? 0 : num;
+}
+
+function extrairPrecoAlunoFin(aluno) {
+  if (!aluno) return 0;
+  const v = obterPropriedadeAluno(aluno, 'valor_mensalidade') ?? 
+            obterPropriedadeAluno(aluno, 'valorMensal') ?? 
+            obterPropriedadeAluno(aluno, 'valor') ?? 
+            obterPropriedadeAluno(aluno, 'preco') ?? 0;
+  return parsePrecoFin(v);
+}
+
+function calcularDiasRestantesFin(dataExpiracaoStr, diaVencimentoFallback = 7, isento = false, statusPagamento = '') {
+  if (isento === true || statusPagamento === 'isento') {
+    return { dias: 9999, dataFormatada: "Livre (VIP)" };
+  }
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  let targetDate = null;
+
+  if (dataExpiracaoStr) {
+    const partes = String(dataExpiracaoStr).split('T')[0].split('-');
+    if (partes.length === 3) {
+      const ano = parseInt(partes[0], 10);
+      const mes = parseInt(partes[1], 10) - 1;
+      const dia = parseInt(partes[2], 10);
+      targetDate = new Date(ano, mes, dia, 23, 59, 59);
+    }
+  }
+
+  if (!targetDate || isNaN(targetDate.getTime())) {
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+    let dia = parseInt(diaVencimentoFallback) || 7;
+    targetDate = new Date(anoAtual, mesAtual, dia, 23, 59, 59);
+
+    if (targetDate < hoje) {
+      targetDate = new Date(anoAtual, mesAtual + 1, dia, 23, 59, 59);
+    }
+  }
+
+  const diffTempo = targetDate.getTime() - hoje.getTime();
+  const diffDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
+
+  const diaFmt = String(targetDate.getDate()).padStart(2, '0');
+  const mesFmt = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const anoFmt = targetDate.getFullYear();
+
+  return { dias: diffDias, dataFormatada: `${diaFmt}/${mesFmt}/${anoFmt}` };
+}
+
+/* -------------------------------------------------------------
+   DISPARO E LISTAGEM DE ALUNOS COM VENCIMENTO PRÓXIMO (2 a 3 DIAS)
+------------------------------------------------------------- */
+
+function obterAlunosPertoVencimento(diasMin = 2, diasMax = 3) {
+  const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
+  if (lista.length === 0) return [];
+
+  return lista.filter(aluno => {
+    const isentoVal = obterPropriedadeAluno(aluno, 'isento');
+    const stPag = String(obterPropriedadeAluno(aluno, 'status_pagamento') || '').toLowerCase();
+    const planoVal = String(obterPropriedadeAluno(aluno, 'plano') || '').toLowerCase();
+
+    const ehVIP = isentoVal === true || 
+                  isentoVal === 'true' || 
+                  stPag === 'isento' || 
+                  stPag === 'vip' ||
+                  planoVal === 'isento' || 
+                  planoVal === 'vip';
+                  
+    if (ehVIP) return false;
+
+    const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
+    const diaVenc = obterPropriedadeAluno(aluno, 'dia_vencimento');
+
+    const info = calcularDiasRestantesFin(dataExp, diaVenc, false, stPag);
+
+    return info.dias >= diasMin && info.dias <= diasMax;
+  });
+}
+
+async function abrirPainelMensagensVencimentoProximo() {
+  if (typeof fetchAlunos === 'function' && (!allStudentsList || allStudentsList.length === 0)) {
+    await fetchAlunos();
+  }
+
+  const alunosPerto = obterAlunosPertoVencimento(2, 3);
+
+  let modal = document.getElementById('modalMensagensVencimento');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalMensagensVencimento';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  if (alunosPerto.length === 0) {
+    modal.innerHTML = `
+      <div class="modal-card-finish" style="max-width:450px; text-align:center; padding:20px; background:#100305; border:1px solid var(--border); border-radius:12px;">
+        <h3 style="color:#fff; font-size:15px; margin-bottom:6px;">Nenhum aluno vencendo em 2 ou 3 dias</h3>
+        <p style="color:var(--muted); font-size:12px;">Nenhum cadastro encontrado para este intervalo no momento.</p>
+        <button class="btn-login" style="margin-top:14px; background:var(--panel); border:1px solid var(--border); padding:8px 16px; cursor:pointer;" onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')">Fechar</button>
+      </div>
+    `;
+    modal.classList.remove('hidden');
+    return;
+  }
+
+  let htmlLista = '';
+  alunosPerto.forEach(aluno => {
+    const nome = obterPropriedadeAluno(aluno, 'clientName') || 
+                 obterPropriedadeAluno(aluno, 'nome') || 
+                 aluno.codigo || 
+                 "Aluno";
+
+    const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
+    const diaVenc = obterPropriedadeAluno(aluno, 'dia_vencimento');
+    const info = calcularDiasRestantesFin(dataExp, diaVenc, false, obterPropriedadeAluno(aluno, 'status_pagamento'));
+
+    const foneRaw = obterPropriedadeAluno(aluno, 'telefone') || 
+                    obterPropriedadeAluno(aluno, 'whatsapp') || 
+                    aluno.dadosAnamnese?.telefone || 
+                    aluno.dadosAnamnese?.whatsapp || '';
+    const foneClean = String(foneRaw).replace(/\D/g, '');
+
+    const tipoPlano = obterPropriedadeAluno(aluno, 'plano') || 
+                      obterPropriedadeAluno(aluno, 'tipo') || 
+                      (aluno.apenasTreino ? "Treino" : "Consultoria Completa (Treino + Dieta)");
+
+    const valorMensal = extrairPrecoAlunoFin(aluno);
+    const valorFmt = valorMensal > 0 ? `R$ ${valorMensal.toFixed(2).replace('.', ',')}` : "valor a combinar";
+    const diasExtenso = info.dias === 3 ? "três" : "dois";
+
+    // MENSAGEM COM TOM FORMAL DE SECRETARIA
+    const mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para lembrar que faltam ${diasExtenso} dias para o vencimento do seu plano de ${tipoPlano} (valor: ${valorFmt}).\n\nQualquer dúvida ou para o envio do comprovante, estamos à disposição. Tenha um ótimo dia!`;
+
+    const urlWpp = foneClean 
+      ? `https://wa.me/55${foneClean}?text=${encodeURIComponent(mensagem)}` 
+      : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+
+    htmlLista += `
+      <div style="background:#0d0204; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <b style="color:#fff; font-size:14px;">${escapeHtml(nome)}</b><br>
+          <span style="color:var(--gold); font-size:12px; font-weight:700;">Faltam ${info.dias} dias (${info.dataFormatada})</span><br>
+          <small style="color:#60a5fa; font-size:11px; font-weight:600;">Plano: ${escapeHtml(tipoPlano)} (${valorFmt})</small>
+        </div>
+        <a href="${urlWpp}" target="_blank" class="btn-login" style="width:auto; margin:0; padding:8px 14px; font-size:11px; background:#25d366; color:#000; font-weight:800; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center;">
+          📱 Enviar
+        </a>
+      </div>
+    `;
+  });
+
+  modal.innerHTML = `
+    <div class="modal-card-finish" style="max-width:540px; background:#100305; border:1px solid var(--gold); border-radius:12px; padding:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
+        <h3 style="color:var(--gold); font-size:15px; margin:0;">🔔 Notificar Vencimentos (${alunosPerto.length})</h3>
+        <button onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+      </div>
+      <div style="max-height:60vh; overflow-y:auto; padding-right:4px;">
+        ${htmlLista}
+      </div>
+      <button class="btn-login" style="margin-top:14px; width:100%; background:var(--panel); border:1px solid var(--border); padding:8px; cursor:pointer;" onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')">Fechar</button>
+    </div>
+  `;
+
+  modal.classList.remove('hidden');
+}
 
 /* -------------------------------------------------------------
    REQUISIÇÕES DA API FINANCEIRA
@@ -61,9 +259,7 @@ function renderTelaFinanceiroExclusiva() {
   const container = document.getElementById('secFinanceiro');
   if (!container) return;
 
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
+  const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
 
   let receitaMensalAlunos = 0;
   let receitaAnualEstimada = 0;
@@ -72,7 +268,7 @@ function renderTelaFinanceiroExclusiva() {
   let totalPendentes = 0;
   let totalAtrasadosCriticos = 0;
 
-  allStudentsList.forEach(aluno => {
+  lista.forEach(aluno => {
     const ehIsento = (
       aluno.isento === true ||
       aluno.isento === 'true' ||
@@ -81,14 +277,14 @@ function renderTelaFinanceiroExclusiva() {
       String(aluno.status_pagamento).toLowerCase() === 'vip'
     );
 
-    const infoVenc = calcularDiasRestantes(
+    const infoVenc = calcularDiasRestantesFin(
       aluno.data_expiracao || aluno.payload?.data_expiracao,
       aluno.dia_vencimento || aluno.payload?.dia_vencimento,
       aluno.isento,
       aluno.status_pagamento
     );
 
-    const valor = extrairPrecoAluno(aluno);
+    const valor = extrairPrecoAlunoFin(aluno);
 
     if (ehIsento) {
       totalIsentos++;
@@ -144,14 +340,14 @@ function renderTelaFinanceiroExclusiva() {
         </div>
       </div>
 
-      <!-- BOTÃO DE ATALHO PARA COBRANÇA EM MASSA -->
-      <div style="background:#0d0204; border:1px solid var(--border); padding:14px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+      <!-- BOTÃO DE ATALHO PARA COBRANÇA DE VENCIMENTO EM 2 OU 3 DIAS -->
+      <div style="background:#0d0204; border:1px solid var(--gold); padding:14px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <b style="color:#fff; font-size:13px;">📲 Lembrete de Cobrança Rápida via WhatsApp</b>
-          <div style="font-size:11px; color:var(--muted); margin-top:2px;">Gere mensagens formatadas de cobrança com chave PIX para os alunos com vencimento pendente.</div>
+          <b style="color:var(--gold); font-size:13.5px;">📲 Lembrar Alunos Vencendo em 2 ou 3 Dias</b>
+          <div style="font-size:11px; color:var(--muted); margin-top:2px;">Dispare a mensagem formal de secretaria diretamente para o WhatsApp de cada aluno.</div>
         </div>
-        <button onclick="notificarAlunosVencidos()" class="action-btn" style="font-size:12px; padding:8px 16px;">
-          💬 Enviar Lembrete ao Primeiro Pendente
+        <button onclick="abrirPainelMensagensVencimentoProximo()" class="action-btn" style="font-size:12px; padding:8px 16px; background:var(--gold); color:#000; font-weight:800;">
+          🔔 Notificar Vencimentos
         </button>
       </div>
 
@@ -173,7 +369,7 @@ function renderTelaFinanceiroExclusiva() {
             <tbody>
   `;
 
-  allStudentsList.forEach(aluno => {
+  lista.forEach(aluno => {
     const ehVIP = (
       aluno.isento === true ||
       aluno.isento === 'true' ||
@@ -182,14 +378,14 @@ function renderTelaFinanceiroExclusiva() {
       String(aluno.status_pagamento).toLowerCase() === 'vip'
     );
 
-    const info = calcularDiasRestantes(
+    const info = calcularDiasRestantesFin(
       aluno.data_expiracao || aluno.payload?.data_expiracao,
       aluno.dia_vencimento || aluno.payload?.dia_vencimento,
       ehVIP,
       aluno.status_pagamento
     );
 
-    const valor = extrairPrecoAluno(aluno);
+    const valor = extrairPrecoAlunoFin(aluno);
     let statusBadge = `<span class="status-pill status-pago">PAGO</span>`;
 
     if (ehVIP) {
@@ -229,44 +425,30 @@ function renderTelaFinanceiroExclusiva() {
 }
 
 function copiarMensagemCobranca(codigo) {
-  const aluno = allStudentsList.find(a => a.codigo === codigo);
+  const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
+  const aluno = lista.find(a => a.codigo === codigo);
   if (!aluno) return showToast("Aluno não encontrado.", "error");
 
   const nome = aluno.clientName || aluno.nome || codigo;
-  const valor = extrairPrecoAluno(aluno);
-  const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+  const valor = extrairPrecoAlunoFin(aluno);
+  const info = calcularDiasRestantesFin(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
 
   const msg = 
-`🏋️ *CONSULTORIA JHONATA PERSONAL — LEMBRETE DE RENOVATION*
+`🏋️ *CONSULTORIA JHONATA PERSONAL — LEMBRETE DE RENOVAÇÃO*
 
 Olá, *${nome}*! 
 
 Seu ciclo atual de consultoria vence no dia *${info.dataFormatada}*.
 
 💰 *Valor:* R$ ${valor.toFixed(2)}
-🔑 *Chave PIX:* ${CHAVE_PIX_DEFAULT}
+🔑 *Chave PIX:* ${typeof CHAVE_PIX_DEFAULT !== 'undefined' ? CHAVE_PIX_DEFAULT : '5551990169026'}
 
-Para manter o seu acesso liberado ao app, envio de novas fichas e análise de treinos sem interrupção, favor efetuar o pagamento e enviar o comprovante por aqui! 💪🔥`;
+Para manter o seu acesso liberado ao app e análise de treinos sem interrupção, favor efetuar o pagamento e enviar o comprovante por aqui! 💪🔥`;
 
   const fone = aluno.dadosAnamnese?.telefone ? aluno.dadosAnamnese.telefone.replace(/\D/g, '') : '';
   const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
 
   window.open(urlWpp, '_blank');
-}
-
-function notificarAlunosVencidos() {
-  const pendente = allStudentsList.find(aluno => {
-    const ehVIP = aluno.isento === true || String(aluno.status_pagamento).toLowerCase() === 'isento';
-    if (ehVIP) return false;
-    const info = calcularDiasRestantes(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
-    return info.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente';
-  });
-
-  if (pendente) {
-    copiarMensagemCobranca(pendente.codigo);
-  } else {
-    showToast("Nenhum aluno pendente encontrado!", "success");
-  }
 }
 
 /* -------------------------------------------------------------
@@ -280,23 +462,25 @@ async function renderTelaContasELucros() {
   await carregarDadosFinanceirosServidor();
 
   let totalReceitaBruta = 0;
-  allStudentsList.forEach(a => {
+  const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
+  
+  lista.forEach(a => {
     const ehIsento = a.isento === true || String(a.status_pagamento).toLowerCase() === 'isento';
     if (!ehIsento && String(a.status_pagamento).toLowerCase() !== 'pendente') {
-      totalReceitaBruta += extrairPrecoAluno(a);
+      totalReceitaBruta += extrairPrecoAlunoFin(a);
     }
   });
 
   let totalEntradasAvulsas = 0;
-  dadosFinanceirosGerais.entradasAvulsas.forEach(e => totalEntradasAvulsas += parsePreco(e.valor));
+  dadosFinanceirosGerais.entradasAvulsas.forEach(e => totalEntradasAvulsas += parsePrecoFin(e.valor));
 
   const receitaTotal = totalReceitaBruta + totalEntradasAvulsas;
 
   let totalFixas = 0;
-  dadosFinanceirosGerais.despesasFixas.forEach(f => totalFixas += parsePreco(f.valor));
+  dadosFinanceirosGerais.despesasFixas.forEach(f => totalFixas += parsePrecoFin(f.valor));
 
   let totalVariaveis = 0;
-  dadosFinanceirosGerais.despesasVariaveis.forEach(v => totalVariaveis += parsePreco(v.valor));
+  dadosFinanceirosGerais.despesasVariaveis.forEach(v => totalVariaveis += parsePrecoFin(v.valor));
 
   const totalDespesas = totalFixas + totalVariaveis;
   const lucroLiquido = receitaTotal - totalDespesas;
@@ -389,7 +573,7 @@ function renderItensDespesas() {
       <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
         <span style="color:#fff;">${escapeHtml(item.nome)}</span>
         <div>
-          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePrecoFin(item.valor).toFixed(2)}</b>
           <span onclick="removerDespesaFixa(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
         </div>
       </div>
@@ -401,7 +585,7 @@ function renderItensDespesas() {
       <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
         <span style="color:#fff;">${escapeHtml(item.nome)}</span>
         <div>
-          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <b style="color:var(--accent); margin-right:8px;">R$ ${parsePrecoFin(item.valor).toFixed(2)}</b>
           <span onclick="removerDespesaVariavel(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
         </div>
       </div>
@@ -413,7 +597,7 @@ function renderItensDespesas() {
       <div style="display:flex; justify-content:space-between; align-items:center; background:#0d0204; padding:6px 10px; border-radius:6px; margin-bottom:4px; font-size:12px;">
         <span style="color:#fff;">${escapeHtml(item.nome)}</span>
         <div>
-          <b style="color:var(--green); margin-right:8px;">R$ ${parsePreco(item.valor).toFixed(2)}</b>
+          <b style="color:var(--green); margin-right:8px;">R$ ${parsePrecoFin(item.valor).toFixed(2)}</b>
           <span onclick="removerEntradaAvulsa(${index})" style="color:var(--muted); cursor:pointer;">✕</span>
         </div>
       </div>
@@ -423,7 +607,7 @@ function renderItensDespesas() {
 
 function adicionarDespesaFixa() {
   const nome = document.getElementById('novaFixaNome').value.trim();
-  const valor = parsePreco(document.getElementById('novaFixaValor').value);
+  const valor = parsePrecoFin(document.getElementById('novaFixaValor').value);
   if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
 
   dadosFinanceirosGerais.despesasFixas.push({ nome, valor });
@@ -437,7 +621,7 @@ function removerDespesaFixa(index) {
 
 function adicionarDespesaVariavel() {
   const nome = document.getElementById('novaVariavelNome').value.trim();
-  const valor = parsePreco(document.getElementById('novaVariavelValor').value);
+  const valor = parsePrecoFin(document.getElementById('novaVariavelValor').value);
   if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
 
   dadosFinanceirosGerais.despesasVariaveis.push({ nome, valor });
@@ -451,7 +635,7 @@ function removerDespesaVariavel(index) {
 
 function adicionarEntradaAvulsa() {
   const nome = document.getElementById('novaEntradaNome').value.trim();
-  const valor = parsePreco(document.getElementById('novaEntradaValor').value);
+  const valor = parsePrecoFin(document.getElementById('novaEntradaValor').value);
   if (!nome || valor <= 0) return showToast("Preencha o nome e o valor.", "error");
 
   dadosFinanceirosGerais.entradasAvulsas.push({ nome, valor });
