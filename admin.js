@@ -408,9 +408,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* -------------------------------------------------------------
-   FUNÇÃO DE LOGIN CORRIGIDA (SEM RECARREGAMENTO E SEM LOOP)
+   FUNÇÃO DE LOGIN CORRIGIDA (SEM RECARREGAMENTO DE PÁGINA)
 ------------------------------------------------------------- */
 async function loginAdmin(event) {
+  // Impede o recarregamento automático da página ao enviar o formulário
   if (event) event.preventDefault();
 
   const userEl = document.getElementById('adminUser');
