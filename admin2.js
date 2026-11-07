@@ -88,10 +88,10 @@ function calcularDiasRestantesFin(dataExpiracaoStr, diaVencimentoFallback = 7, i
 }
 
 /* -------------------------------------------------------------
-   DISPARO E LISTAGEM DE ALUNOS COM VENCIMENTO PRÓXIMO (2 a 3 DIAS)
+   DISPARO E LISTAGEM DE ALUNOS COM VENCIMENTO PRÓXIMO (1 a 3 DIAS)
 ------------------------------------------------------------- */
 
-function obterAlunosPertoVencimento(diasMin = 2, diasMax = 3) {
+function obterAlunosPertoVencimento(diasMin = 1, diasMax = 3) {
   const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
   if (lista.length === 0) return [];
 
@@ -109,12 +109,19 @@ function obterAlunosPertoVencimento(diasMin = 2, diasMax = 3) {
                   
     if (ehVIP) return false;
 
+    // Se já estiver com status de pendente, é tratado como vencido
+    if (stPag === 'pendente') return false;
+
     const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
     const diaVenc = obterPropriedadeAluno(aluno, 'dia_vencimento');
 
     const info = calcularDiasRestantesFin(dataExp, diaVenc, false, stPag);
 
     return info.dias >= diasMin && info.dias <= diasMax;
+  }).sort((a, b) => {
+    const infoA = calcularDiasRestantesFin(obterPropriedadeAluno(a, 'data_expiracao'), obterPropriedadeAluno(a, 'dia_vencimento'));
+    const infoB = calcularDiasRestantesFin(obterPropriedadeAluno(b, 'data_expiracao'), obterPropriedadeAluno(b, 'dia_vencimento'));
+    return infoA.dias - infoB.dias;
   });
 }
 
@@ -123,7 +130,7 @@ async function abrirPainelMensagensVencimentoProximo() {
     await fetchAlunos();
   }
 
-  const alunosPerto = obterAlunosPertoVencimento(2, 3);
+  const alunosPerto = obterAlunosPertoVencimento(1, 3);
 
   let modal = document.getElementById('modalMensagensVencimento');
   if (!modal) {
@@ -136,7 +143,7 @@ async function abrirPainelMensagensVencimentoProximo() {
   if (alunosPerto.length === 0) {
     modal.innerHTML = `
       <div class="modal-card-finish" style="max-width:450px; text-align:center; padding:20px; background:#100305; border:1px solid var(--border); border-radius:12px;">
-        <h3 style="color:#fff; font-size:15px; margin-bottom:6px;">Nenhum aluno vencendo em 2 ou 3 dias</h3>
+        <h3 style="color:#fff; font-size:15px; margin-bottom:6px;">Nenhum aluno vencendo em 1, 2 ou 3 dias</h3>
         <p style="color:var(--muted); font-size:12px;">Nenhum cadastro encontrado para este intervalo no momento.</p>
         <button class="btn-login" style="margin-top:14px; background:var(--panel); border:1px solid var(--border); padding:8px 16px; cursor:pointer;" onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')">Fechar</button>
       </div>
@@ -168,10 +175,14 @@ async function abrirPainelMensagensVencimentoProximo() {
 
     const valorMensal = extrairPrecoAlunoFin(aluno);
     const valorFmt = valorMensal > 0 ? `R$ ${valorMensal.toFixed(2).replace('.', ',')}` : "valor a combinar";
-    const diasExtenso = info.dias === 3 ? "três" : "dois";
+    
+    let diasExtenso = `${info.dias} dias`;
+    if (info.dias === 1) diasExtenso = "1 dia (amanhã)";
+    else if (info.dias === 2) diasExtenso = "dois dias";
+    else if (info.dias === 3) diasExtenso = "três dias";
 
     // MENSAGEM COM TOM FORMAL DE SECRETARIA
-    const mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para lembrar que faltam ${diasExtenso} dias para o vencimento do seu plano de ${tipoPlano} (valor: ${valorFmt}).\n\nQualquer dúvida ou para o envio do comprovante, estamos à disposição. Tenha um ótimo dia!`;
+    const mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para lembrar que falta(m) ${diasExtenso} para o vencimento do seu plano de ${tipoPlano} (valor: ${valorFmt}).\n\nQualquer dúvida ou para o envio do comprovante, estamos à disposição. Tenha um ótimo dia!`;
 
     const urlWpp = foneClean 
       ? `https://wa.me/55${foneClean}?text=${encodeURIComponent(mensagem)}` 
@@ -181,7 +192,7 @@ async function abrirPainelMensagensVencimentoProximo() {
       <div style="background:#0d0204; border:1px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
         <div>
           <b style="color:#fff; font-size:14px;">${escapeHtml(nome)}</b><br>
-          <span style="color:var(--gold); font-size:12px; font-weight:700;">Faltam ${info.dias} dias (${info.dataFormatada})</span><br>
+          <span style="color:var(--gold); font-size:12px; font-weight:700;">Falta(m) ${info.dias} dia(s) (${info.dataFormatada})</span><br>
           <small style="color:#60a5fa; font-size:11px; font-weight:600;">Plano: ${escapeHtml(tipoPlano)} (${valorFmt})</small>
         </div>
         <a href="${urlWpp}" target="_blank" class="btn-login" style="width:auto; margin:0; padding:8px 14px; font-size:11px; background:#25d366; color:#000; font-weight:800; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center;">
@@ -268,6 +279,11 @@ function renderTelaFinanceiroExclusiva() {
   let totalPendentes = 0;
   let totalAtrasadosCriticos = 0;
 
+  // Separação em grupos para ordenação prioritária na tabela
+  const grupoVencidos = [];
+  const grupoPrestesAVencer = [];
+  const grupoNormais = [];
+
   lista.forEach(aluno => {
     const ehIsento = (
       aluno.isento === true ||
@@ -285,20 +301,44 @@ function renderTelaFinanceiroExclusiva() {
     );
 
     const valor = extrairPrecoAlunoFin(aluno);
+    const stPag = String(aluno.status_pagamento || '').toLowerCase();
+    const isVencido = !ehIsento && (infoVenc.dias <= 0 || stPag === 'pendente');
+    const isPrestesAVencer = !ehIsento && !isVencido && (infoVenc.dias >= 1 && infoVenc.dias <= 3);
+
+    const alunoMeta = {
+      ...aluno,
+      ehIsento,
+      infoVenc,
+      valor,
+      isVencido,
+      isPrestesAVencer
+    };
 
     if (ehIsento) {
       totalIsentos++;
+      grupoNormais.push(alunoMeta);
     } else {
-      if (infoVenc.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente') {
+      if (isVencido) {
         totalPendentes++;
         if (infoVenc.dias <= -5) totalAtrasadosCriticos++;
+        grupoVencidos.push(alunoMeta);
       } else {
         totalPagantes++;
         receitaMensalAlunos += valor;
+        if (isPrestesAVencer) {
+          grupoPrestesAVencer.push(alunoMeta);
+        } else {
+          grupoNormais.push(alunoMeta);
+        }
       }
     }
   });
 
+  // Ordenação interna dos grupos prioritários por urgência
+  grupoVencidos.sort((a, b) => a.infoVenc.dias - b.infoVenc.dias);
+  grupoPrestesAVencer.sort((a, b) => a.infoVenc.dias - b.infoVenc.dias);
+
+  const listaOrdenada = [...grupoVencidos, ...grupoPrestesAVencer, ...grupoNormais];
   receitaAnualEstimada = receitaMensalAlunos * 12;
 
   let html = `
@@ -340,10 +380,10 @@ function renderTelaFinanceiroExclusiva() {
         </div>
       </div>
 
-      <!-- BOTÃO DE ATALHO PARA COBRANÇA DE VENCIMENTO EM 2 OU 3 DIAS -->
+      <!-- BOTÃO DE ATALHO PARA COBRANÇA DE VENCIMENTO EM 1 A 3 DIAS -->
       <div style="background:#0d0204; border:1px solid var(--gold); padding:14px; border-radius:10px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <b style="color:var(--gold); font-size:13.5px;">📲 Lembrar Alunos Vencendo em 2 ou 3 Dias</b>
+          <b style="color:var(--gold); font-size:13.5px;">📲 Lembrar Alunos Vencendo em 1, 2 ou 3 Dias</b>
           <div style="font-size:11px; color:var(--muted); margin-top:2px;">Dispare a mensagem formal de secretaria diretamente para o WhatsApp de cada aluno.</div>
         </div>
         <button onclick="abrirPainelMensagensVencimentoProximo()" class="action-btn" style="font-size:12px; padding:8px 16px; background:var(--gold); color:#000; font-weight:800;">
@@ -351,7 +391,7 @@ function renderTelaFinanceiroExclusiva() {
         </button>
       </div>
 
-      <!-- TABELA DETALHADA DE ALUNOS -->
+      <!-- TABELA DETALHADA DE ALUNOS (ORDENADA POR VENCIDOS E A VENCER NO TOPO) -->
       <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <h3 style="color:#fff; font-size:14px; margin-bottom:12px;">📋 Lista Completa de Alunos e Mensalidades</h3>
         <div style="overflow-x:auto;">
@@ -369,37 +409,28 @@ function renderTelaFinanceiroExclusiva() {
             <tbody>
   `;
 
-  lista.forEach(aluno => {
-    const ehVIP = (
-      aluno.isento === true ||
-      aluno.isento === 'true' ||
-      aluno.payload?.isento === true ||
-      String(aluno.status_pagamento).toLowerCase() === 'isento' ||
-      String(aluno.status_pagamento).toLowerCase() === 'vip'
-    );
-
-    const info = calcularDiasRestantesFin(
-      aluno.data_expiracao || aluno.payload?.data_expiracao,
-      aluno.dia_vencimento || aluno.payload?.dia_vencimento,
-      ehVIP,
-      aluno.status_pagamento
-    );
-
-    const valor = extrairPrecoAlunoFin(aluno);
+  listaOrdenada.forEach(aluno => {
     let statusBadge = `<span class="status-pill status-pago">PAGO</span>`;
+    let estiloLinha = 'border-bottom:1px solid rgba(255,255,255,0.04);';
 
-    if (ehVIP) {
+    if (aluno.ehIsento) {
       statusBadge = `<span class="status-pill status-isento">ISENTO</span>`;
-    } else if (info.dias <= 0 || String(aluno.status_pagamento).toLowerCase() === 'pendente') {
-      statusBadge = `<span class="status-pill status-pendente">PENDENTE</span>`;
+    } else if (aluno.isVencido) {
+      estiloLinha += ' background: rgba(255, 77, 77, 0.12); border-left: 4px solid var(--accent);';
+      const atraso = Math.abs(aluno.infoVenc.dias);
+      const textoAtraso = aluno.infoVenc.dias === 0 ? 'Venceu hoje' : `${atraso}d atraso`;
+      statusBadge = `<span class="status-pill status-pendente">🚨 PENDENTE (${textoAtraso})</span>`;
+    } else if (aluno.isPrestesAVencer) {
+      estiloLinha += ' background: rgba(220, 170, 58, 0.12); border-left: 4px solid var(--gold);';
+      statusBadge = `<span class="status-pill status-alerta">⏰ VENCE EM ${aluno.infoVenc.dias} DIA(S)</span>`;
     }
 
     html += `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+      <tr style="${estiloLinha}">
         <td style="padding:10px; font-weight:700; color:#fff;">${escapeHtml(aluno.clientName || aluno.nome)}</td>
         <td style="padding:10px; color:var(--muted);">@${escapeHtml(aluno.codigo)}</td>
-        <td style="padding:10px; color:var(--gold); font-weight:700;">R$ ${valor.toFixed(2)}</td>
-        <td style="padding:10px; color:#fff;">${info.dataFormatada}</td>
+        <td style="padding:10px; color:var(--gold); font-weight:700;">R$ ${aluno.valor.toFixed(2)}</td>
+        <td style="padding:10px; color:#fff;">${aluno.infoVenc.dataFormatada}</td>
         <td style="padding:10px;">${statusBadge}</td>
         <td style="padding:10px; text-align:right;">
           <button onclick="carregarAluno('${aluno.codigo}'); switchTab('resumo');" style="background:none; border:1px solid var(--border); color:#fff; font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer;">
@@ -432,18 +463,36 @@ function copiarMensagemCobranca(codigo) {
   const nome = aluno.clientName || aluno.nome || codigo;
   const valor = extrairPrecoAlunoFin(aluno);
   const info = calcularDiasRestantesFin(aluno.data_expiracao, aluno.dia_vencimento, aluno.isento, aluno.status_pagamento);
+  const stPag = String(aluno.status_pagamento || '').toLowerCase();
+  
+  let msg = '';
+  
+  // Mensagem adaptada para quem está vencido vs quem vai vencer
+  if (info.dias <= 0 || stPag === 'pendente') {
+    msg = 
+`🏋️ *CONSULTORIA JHONATA PERSONAL — AVISO DE COBRANÇA*
 
-  const msg = 
+Olá, *${nome}*! Tudo bem?
+
+Passando para informar que a sua mensalidade da consultoria venceu no dia *${info.dataFormatada}*.
+
+💰 *Valor:* R$ ${valor.toFixed(2)}
+🔑 *Chave PIX:* ${typeof CHAVE_PIX_DEFAULT !== 'undefined' ? CHAVE_PIX_DEFAULT : '5551990169026'}
+
+Para manter seu acesso liberado aos treinos e ao aplicativo sem interrupções, por favor efetue o pagamento e nos envie o comprovante por aqui. Qualquer dúvida estou à disposição! 💪🔥`;
+  } else {
+    msg = 
 `🏋️ *CONSULTORIA JHONATA PERSONAL — LEMBRETE DE RENOVAÇÃO*
 
-Olá, *${nome}*! 
+Olá, *${nome}*! Tudo bem?
 
-Seu ciclo atual de consultoria vence no dia *${info.dataFormatada}*.
+Seu ciclo atual de consultoria vence em *${info.dias} dia(s)* (no dia *${info.dataFormatada}*).
 
 💰 *Valor:* R$ ${valor.toFixed(2)}
 🔑 *Chave PIX:* ${typeof CHAVE_PIX_DEFAULT !== 'undefined' ? CHAVE_PIX_DEFAULT : '5551990169026'}
 
 Para manter o seu acesso liberado ao app e análise de treinos sem interrupção, favor efetuar o pagamento e enviar o comprovante por aqui! 💪🔥`;
+  }
 
   const fone = aluno.dadosAnamnese?.telefone ? aluno.dadosAnamnese.telefone.replace(/\D/g, '') : '';
   const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
