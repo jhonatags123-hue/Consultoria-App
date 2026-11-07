@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------
-   ADMIN1.js - PAINEL PRINCIPAL & PROTOCOLOS DE ALUNOS
+   ADMIN.js - PAINEL PRINCIPAL & PROTOCOLOS DE ALUNOS
 ------------------------------------------------------------- */
 
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
@@ -408,10 +408,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* -------------------------------------------------------------
-   FUNÇÃO DE LOGIN BLINDADA (EVITA REFRESH EM QUALQUER SITUAÇÃO)
+   FUNÇÃO DE LOGIN CORRIGIDA E BLINDADA
 ------------------------------------------------------------- */
 async function loginAdmin(event) {
-  // Captura o evento recebido por parâmetro ou o evento global da janela
   const e = event || window.event;
   if (e && typeof e.preventDefault === 'function') {
     e.preventDefault();
@@ -420,7 +419,7 @@ async function loginAdmin(event) {
   const userEl = document.getElementById('adminUser');
   const passEl = document.getElementById('adminPass');
   const errorDiv = document.getElementById('loginError');
-  const btn = document.getElementById('btnLoginAdmin');
+  const btn = document.getElementById('btnLogin') || document.getElementById('btnLoginAdmin');
 
   if (!userEl || !passEl) return false;
 
@@ -1292,7 +1291,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-2. Série de Reconhecimento (Feeder Set)
+​2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
