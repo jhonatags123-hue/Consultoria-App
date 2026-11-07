@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>painel do treinador | consultoria jhonata</title>
+    <title>Painel do Treinador | Consultoria Jhonata</title>
 
     <!-- css e fontes -->
     <link rel="stylesheet" href="admin.css" />
@@ -28,7 +28,8 @@
           <h2>🏋️ jhonata personal</h2>
           <p>acesso restrito do treinador</p>
         </div>
-        <form onsubmit="event.preventdefault(); loginadmin();">
+        <!-- CORRIGIDO: event.preventDefault() com 'D' maiúsculo e return loginAdmin(event) -->
+        <form onsubmit="event.preventDefault(); return loginAdmin(event);">
           <div class="form-group">
             <label for="adminuser">usuário administrador:</label>
             <input
@@ -1337,7 +1338,7 @@
     </div>
 
     <!-- script principal do painel de alunos -->
-    <script src="admin.js"></script>
+    <script src="ADMIN1.js"></script>
     <!-- script da gestão financeira exclusiva & contas pessoais -->
     <script src="admin2.js"></script>
 
@@ -1359,56 +1360,3 @@
               )
             )
             .catch(() => fallbackcopiartexto(texto, mensagensucesso));
-        } else {
-          fallbackcopiartexto(texto, mensagensucesso);
-        }
-      }
-
-      function fallbackcopiartexto(texto, mensagensucesso) {
-        const tempinput = document.createelement('input');
-        tempinput.style.position = 'absolute';
-        tempinput.style.left = '-9999px';
-        tempinput.value = texto;
-        document.body.appendchild(tempinput);
-        tempinput.select();
-        tempinput.setselectionrange(0, 99999);
-
-        try {
-          document.execcommand('copy');
-          alert(
-            mensagensucesso || '✅ link copiado para a área de transferência!'
-          );
-        } catch (err) {
-          alert(
-            '❌ não foi possível copiar o link automaticamente. o link é:\n\n' +
-              texto
-          );
-        } finally {
-          document.body.removechild(tempinput);
-        }
-      }
-
-      function copiarlinkacessoaluno() {
-        if (
-          typeof currentstudentcode === 'undefined' ||
-          !currentstudentcode
-        ) {
-          alert('⚠️ selecione um aluno na lista primeiro.');
-          return;
-        }
-        const linkaluno = `https://jhonataconsultoria.com.br/app.html?aluno=${currentstudentcode}`;
-        copiartextoparaclipboard(
-          linkaluno,
-          `✅ link de acesso para @${currentstudentcode} copiado!\n\n${linkaluno}`
-        );
-      }
-
-      function copiarlinkvenda(link) {
-        copiartextoparaclipboard(
-          link,
-          `✅ link copiado com sucesso!\n\n${link}`
-        );
-      }
-    </script>
-  </body>
-</html>
