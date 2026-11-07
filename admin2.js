@@ -100,39 +100,52 @@ function calcularDiasRestantesFin(dataExpiracaoStr, diaVencimentoFallback = 7, i
 }
 
 /* -------------------------------------------------------------
-   DISPARO E LISTAGEM DE ALUNOS COM VENCIMENTO PRÓXIMO E VENCIDOS
+   DISPARO DA SECRETARIA: VARRE DIRETAMENTE A LISTA GLOBAL DE ALUNOS
 ------------------------------------------------------------- */
 
-function obterAlunosPertoVencimento(diasMax = 3) {
+function obterAlunosParaSecretaria() {
   const lista = (typeof allStudentsList !== 'undefined' && Array.isArray(allStudentsList)) ? allStudentsList : [];
   if (lista.length === 0) return [];
 
-  return lista.filter(aluno => {
-    const isentoVal = obterPropriedadeAluno(aluno, 'isento');
-    const stPag = String(obterPropriedadeAluno(aluno, 'status_pagamento') || '').toLowerCase();
-    const planoVal = String(obterPropriedadeAluno(aluno, 'plano') || '').toLowerCase();
+  const alunosAlerta = [];
 
-    const ehVIP = isentoVal === true || 
-                  isentoVal === 'true' || 
-                  stPag === 'isento' || 
-                  stPag === 'vip' ||
-                  planoVal === 'isento' || 
-                  planoVal === 'vip';
-                  
-    if (ehVIP) return false;
+  lista.forEach(aluno => {
+    const ehIsento = (
+      aluno.isento === true ||
+      aluno.isento === 'true' ||
+      aluno.payload?.isento === true ||
+      String(aluno.status_pagamento).toLowerCase() === 'isento' ||
+      String(aluno.status_pagamento).toLowerCase() === 'vip'
+    );
 
-    const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
-    const diaVenc = obterPropriedadeAluno(aluno, 'dia_vencimento');
+    if (ehIsento) return; // Pula os VIPs/Isentos
 
-    const info = calcularDiasRestantesFin(dataExp, diaVenc, false, stPag);
+    const infoVenc = calcularDiasRestantesFin(
+      aluno.data_expiracao || aluno.payload?.data_expiracao,
+      aluno.dia_vencimento || aluno.payload?.dia_vencimento,
+      aluno.isento,
+      aluno.status_pagamento
+    );
 
-    // PEGA TODOS OS ALUNOS VENCIDOS (dias <= 0 ou status 'pendente') E OS A VENCER (1 a 3 dias)
-    return info.dias <= diasMax || stPag === 'pendente';
-  }).sort((a, b) => {
-    const infoA = calcularDiasRestantesFin(obterPropriedadeAluno(a, 'data_expiracao'), obterPropriedadeAluno(a, 'dia_vencimento'));
-    const infoB = calcularDiasRestantesFin(obterPropriedadeAluno(b, 'data_expiracao'), obterPropriedadeAluno(b, 'dia_vencimento'));
-    return infoA.dias - infoB.dias;
+    const stPag = String(aluno.status_pagamento || '').toLowerCase();
+    const isVencido = (infoVenc.dias <= 0 || stPag === 'pendente');
+    const isPrestesAVencer = (!isVencido && infoVenc.dias >= 1 && infoVenc.dias <= 3);
+
+    if (isVencido || isPrestesAVencer) {
+      alunosAlerta.push({
+        ...aluno,
+        diasRestantes: infoVenc.dias,
+        dataFormatada: infoVenc.dataFormatada,
+        isVencido,
+        isPrestesAVencer
+      });
+    }
   });
+
+  // Ordena: primeiro os mais atrasados / vencidos hoje, depois os próximos a vencer
+  alunosAlerta.sort((a, b) => a.diasRestantes - b.diasRestantes);
+
+  return alunosAlerta;
 }
 
 async function abrirPainelMensagensVencimentoProximo() {
@@ -140,7 +153,7 @@ async function abrirPainelMensagensVencimentoProximo() {
     await fetchAlunos();
   }
 
-  const alunosNotificar = obterAlunosPertoVencimento(3);
+  const alunosNotificar = obterAlunosParaSecretaria();
 
   let modal = document.getElementById('modalMensagensVencimento');
   if (!modal) {
@@ -154,7 +167,7 @@ async function abrirPainelMensagensVencimentoProximo() {
     modal.innerHTML = `
       <div class="modal-card-finish" style="max-width:450px; text-align:center; padding:20px; background:#100305; border:1px solid var(--border); border-radius:12px;">
         <h3 style="color:#fff; font-size:15px; margin-bottom:6px;">Nenhum aluno pendente ou a vencer! 🎉</h3>
-        <p style="color:var(--muted); font-size:12px;">Todos os alunos estão em dia com os pagamentos no momento.</p>
+        <p style="color:var(--muted); font-size:12px;">Todos os cadastros estão em dia no momento.</p>
         <button class="btn-login" style="margin-top:14px; background:var(--panel); border:1px solid var(--border); padding:8px 16px; cursor:pointer;" onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')">Fechar</button>
       </div>
     `;
@@ -164,48 +177,33 @@ async function abrirPainelMensagensVencimentoProximo() {
 
   let htmlLista = '';
   alunosNotificar.forEach(aluno => {
-    const nome = obterPropriedadeAluno(aluno, 'clientName') || 
-                 obterPropriedadeAluno(aluno, 'nome') || 
-                 aluno.codigo || 
-                 "Aluno";
-
-    const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
-    const diaVenc = obterPropriedadeAluno(aluno, 'dia_vencimento');
-    const stPag = String(obterPropriedadeAluno(aluno, 'status_pagamento') || '').toLowerCase();
-    const info = calcularDiasRestantesFin(dataExp, diaVenc, false, stPag);
-
-    const foneRaw = obterPropriedadeAluno(aluno, 'telefone') || 
-                    obterPropriedadeAluno(aluno, 'whatsapp') || 
-                    aluno.dadosAnamnese?.telefone || 
-                    aluno.dadosAnamnese?.whatsapp || '';
+    const nome = aluno.clientName || aluno.nome || aluno.codigo || "Aluno";
+    const codigo = aluno.codigo || '';
+    const valor = extrairPrecoAlunoFin(aluno);
+    const valorFmt = valor > 0 ? `R$ ${valor.toFixed(2).replace('.', ',')}` : "valor a combinar";
+    
+    const foneRaw = aluno.telefone || aluno.whatsapp || aluno.dadosAnamnese?.telefone || aluno.dadosAnamnese?.whatsapp || '';
     const foneClean = String(foneRaw).replace(/\D/g, '');
 
-    const tipoPlano = obterPropriedadeAluno(aluno, 'plano') || 
-                      obterPropriedadeAluno(aluno, 'tipo') || 
-                      (aluno.apenasTreino ? "Treino" : "Consultoria Completa (Treino + Dieta)");
+    const tipoPlano = aluno.plano || aluno.tipo || (aluno.apenasTreino ? "Treino" : "Consultoria Completa (Treino + Dieta)");
 
-    const valorMensal = extrairPrecoAlunoFin(aluno);
-    const valorFmt = valorMensal > 0 ? `R$ ${valorMensal.toFixed(2).replace('.', ',')}` : "valor a combinar";
-    
     let mensagem = '';
     let badgeTexto = '';
     let corBorda = 'var(--gold)';
 
-    // SE JÁ VENCEU OU VENCE HOJE
-    if (info.dias <= 0 || stPag === 'pendente') {
-      const atraso = Math.abs(info.dias);
-      badgeTexto = info.dias === 0 ? "🚨 VENCEU HOJE" : `🚨 VENCIDO HÁ ${atraso} DIA(S)`;
+    if (aluno.isVencido) {
+      const atraso = Math.abs(aluno.diasRestantes);
+      badgeTexto = aluno.diasRestantes === 0 ? "🚨 VENCEU HOJE" : `🚨 VENCIDO HÁ ${atraso} DIA(S)`;
       corBorda = 'var(--accent)';
       
-      mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para informar que o seu plano de ${tipoPlano} venceu no dia *${info.dataFormatada}* (valor: ${valorFmt}).\n\nPara manter seu acesso liberado aos treinos e ao aplicativo sem interrupções, por favor nos envie o comprovante de renovação assim que possível. Tendo qualquer dúvida, estamos à disposição! 💪🔥`;
+      mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para informar que o seu plano de ${tipoPlano} venceu no dia *${aluno.dataFormatada}* (valor: ${valorFmt}).\n\nPara manter seu acesso liberado aos treinos e ao aplicativo sem interrupções, por favor nos envie o comprovante de renovação assim que possível. Tendo qualquer dúvida, estamos à disposição! 💪🔥`;
     } else {
-      // SE VAI VENCER NOS PRÓXIMOS 1, 2 OU 3 DIAS
-      let diasExtenso = `${info.dias} dias`;
-      if (info.dias === 1) diasExtenso = "1 dia (amanhã)";
-      else if (info.dias === 2) diasExtenso = "dois dias";
-      else if (info.dias === 3) diasExtenso = "três dias";
+      let diasExtenso = `${aluno.diasRestantes} dias`;
+      if (aluno.diasRestantes === 1) diasExtenso = "1 dia (amanhã)";
+      else if (aluno.diasRestantes === 2) diasExtenso = "dois dias";
+      else if (aluno.diasRestantes === 3) diasExtenso = "três dias";
 
-      badgeTexto = `⏳ VENCE EM ${info.dias} DIA(S)`;
+      badgeTexto = `⏳ VENCE EM ${aluno.diasRestantes} DIA(S)`;
       corBorda = 'var(--gold)';
 
       mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para lembrar que falta(m) ${diasExtenso} para o vencimento do seu plano de ${tipoPlano} (valor: ${valorFmt}).\n\nQualquer dúvida ou para o envio do comprovante, estamos à disposição. Tenha um ótimo dia!`;
@@ -218,8 +216,8 @@ async function abrirPainelMensagensVencimentoProximo() {
     htmlLista += `
       <div style="background:#0d0204; border:1px solid ${corBorda}; border-radius:10px; padding:12px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
         <div>
-          <b style="color:#fff; font-size:14px;">${escapeHtml(nome)}</b><br>
-          <span style="color:${corBorda}; font-size:12px; font-weight:700;">${badgeTexto} (${info.dataFormatada})</span><br>
+          <b style="color:#fff; font-size:14px;">${escapeHtml(nome)}</b> <small style="color:var(--muted)">(@${escapeHtml(codigo)})</small><br>
+          <span style="color:${corBorda}; font-size:12px; font-weight:700;">${badgeTexto} (${aluno.dataFormatada})</span><br>
           <small style="color:#60a5fa; font-size:11px; font-weight:600;">Plano: ${escapeHtml(tipoPlano)} (${valorFmt})</small>
         </div>
         <a href="${urlWpp}" target="_blank" class="btn-login" style="width:auto; margin:0; padding:8px 14px; font-size:11px; background:#25d366; color:#000; font-weight:800; text-decoration:none; border-radius:6px; display:inline-flex; align-items:center;">
@@ -232,7 +230,7 @@ async function abrirPainelMensagensVencimentoProximo() {
   modal.innerHTML = `
     <div class="modal-card-finish" style="max-width:540px; background:#100305; border:1px solid var(--gold); border-radius:12px; padding:18px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px dashed var(--border); padding-bottom:8px;">
-        <h3 style="color:var(--gold); font-size:15px; margin:0;">🔔 Notificar Vencidos e A Vencer (${alunosNotificar.length})</h3>
+        <h3 style="color:var(--gold); font-size:15px; margin:0;">🔔 Secretaria: Vencidos e A Vencer (${alunosNotificar.length})</h3>
         <button onclick="document.getElementById('modalMensagensVencimento').classList.add('hidden')" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
       </div>
       <div style="max-height:60vh; overflow-y:auto; padding-right:4px;">
