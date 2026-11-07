@@ -1,3 +1,7 @@
+/* -------------------------------------------------------------
+   ADMIN.js - PAINEL PRINCIPAL & PROTOCOLOS DE ALUNOS
+------------------------------------------------------------- */
+
 const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
 let currentStudentCode = "";
 let currentStudentData = null;
@@ -11,28 +15,20 @@ let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 
 const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
 const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
-const CHAVE_PIX_DEFAULT = "5551990169026";
 
 /* -------------------------------------------------------------
    GERENCIAMENTO DE LINKS DE ANAMNESE (VENDAS ONLINE vs ORGÂNICO)
 ------------------------------------------------------------- */
 
-// Mapeamento completo dos 6 links de anamnese
 const LINKS_ANAMNESE_GERADOR = {
-  // Integram com o checkout do Asaas no final
   asaas_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese",
   asaas_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino",
-  
-  // Organico / Amigos (Valor a combinar)
   amigos_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos",
   amigos_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos",
-  
-  // Dupla / Convidado (Incluso no plano / A combinar)
-  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=dupla",
-  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=dupla"
+  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&origem=dupla",
+  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla"
 };
 
-// Função genérica para copiar qualquer uma das 6 opções
 function copiarLinkVendaAnamnese(chave) {
   const link = LINKS_ANAMNESE_GERADOR[chave];
   if (link) {
@@ -42,7 +38,6 @@ function copiarLinkVendaAnamnese(chave) {
   }
 }
 
-// Retrocompatibilidade para manter chamadas antigas funcionando sem erros
 function obterLinkAnamneseOrganico(tipo = 'completa') {
   return tipo === 'treino' ? LINKS_ANAMNESE_GERADOR.amigos_treino : LINKS_ANAMNESE_GERADOR.amigos_completa;
 }
@@ -66,6 +61,7 @@ function obterLinkAnamnese(tipo = 'completa') {
 function copiarLinkAnamnese(tipo = 'completa') {
   copiarLinkAnamneseAsaas(tipo);
 }
+
 /* -------------------------------------------------------------
    UTILITÁRIOS E SEGURANÇA
 ------------------------------------------------------------- */
@@ -411,43 +407,87 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-async function loginAdmin() {
-  const user = document.getElementById('adminUser').value.trim();
-  const pass = document.getElementById('adminPass').value.trim();
-  const errorDiv = document.getElementById('loginError');
-  const btn = document.getElementById('btnLoginAdmin');
+/* -------------------------------------------------------------
+   FUNÇÃO DE LOGIN CORRIGIDA E BLINDADA
+------------------------------------------------------------- */
+async function loginAdmin(event) {
+  const e = event || window.event;
+  if (e && typeof e.preventDefault === 'function') {
+    e.preventDefault();
+  }
 
-  errorDiv.style.display = 'none';
-  btn.textContent = "VALIDANDO...";
-  btn.disabled = true;
+  const userEl = document.getElementById('adminUser');
+  const passEl = document.getElementById('adminPass');
+  const errorDiv = document.getElementById('loginError');
+  const btn = document.getElementById('btnLogin') || document.getElementById('btnLoginAdmin');
+
+  if (!userEl || !passEl) return false;
+
+  const user = userEl.value.trim();
+  const pass = passEl.value.trim();
+
+  if (!user || !pass) {
+    if (errorDiv) {
+      errorDiv.textContent = "❌ Por favor, preencha o login e a senha.";
+      errorDiv.style.display = 'block';
+    }
+    return false;
+  }
+
+  if (errorDiv) errorDiv.style.display = 'none';
+  if (btn) {
+    btn.textContent = "VALIDANDO...";
+    btn.disabled = true;
+  }
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       cache: 'no-cache',
       body: JSON.stringify({ user, pass })
     });
-    const data = await res.json();
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch (errJson) {
+      data = { error: `Resposta inválida do servidor (${res.status})` };
+    }
+
     if (res.ok && data.token) {
       localStorage.setItem('admin_token', data.token);
       localStorage.setItem('adminToken', data.token);
-      document.getElementById('loginScreen').classList.add('hidden');
-      document.getElementById('adminApp').classList.remove('hidden');
+
+      const loginScreen = document.getElementById('loginScreen');
+      const adminApp = document.getElementById('adminApp');
+      
+      if (loginScreen) loginScreen.classList.add('hidden');
+      if (adminApp) adminApp.classList.remove('hidden');
+
       showToast("Login realizado com sucesso!", "success");
+      
       fetchAlunos();
       carregarGifsAdmin();
     } else {
-      errorDiv.textContent = "❌ " + (data.error || "Acesso negado.");
+      if (errorDiv) {
+        errorDiv.textContent = "❌ " + (data.error || "Acesso negado. Usuário ou senha incorretos.");
+        errorDiv.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    if (errorDiv) {
+      errorDiv.textContent = "❌ Erro ao conectar ao servidor: " + err.message;
       errorDiv.style.display = 'block';
     }
-  } catch(e) { 
-    errorDiv.textContent = "❌ Erro ao conectar ao servidor.";
-    errorDiv.style.display = 'block';
   } finally {
-    btn.textContent = "ENTRAR NO PAINEL";
-    btn.disabled = false;
+    if (btn) {
+      btn.textContent = "ENTRAR NO PAINEL";
+      btn.disabled = false;
+    }
   }
+
+  return false;
 }
 
 function logoutAdmin() {
@@ -918,14 +958,22 @@ function renderResumoVisaoGeral() {
     htmlTreino = `<p style="color:var(--muted); font-size:12px;">Nenhum treino cadastrado.</p>`;
   } else {
     days.forEach((day) => {
+      const isRestDay = /descanso|off|recovery/i.test(day.title);
       htmlTreino += `
         <div style="margin-bottom:8px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-          <b style="color:var(--gold);">🏋️ ${escapeHtml(day.title)}</b>
+          <b style="color:${isRestDay ? 'var(--blue, #60a5fa)' : 'var(--gold)'};">
+            ${isRestDay ? '☕ ' : '🏋️ '}${escapeHtml(day.title)}
+          </b>
           <div style="margin-top:4px;">
             ${(day.exercicios || []).map(ex => {
               const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
               const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
               const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+              
+              if (isRestDay) {
+                return `<div style="font-size:12px; margin-top:3px; padding:3px 6px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
+              }
+
               return `
                 <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
                      style="cursor:pointer; font-size:12px; margin-top:3px; padding:3px 6px; border-radius:4px; background:rgba(255,255,255,0.03); display:flex; justify-content:space-between; align-items:center;"
@@ -1243,7 +1291,7 @@ Sua única função é gerar as DIRETRIZES DE EXECUÇÃO DE TREINO para o aluno 
 
 MANTENHA O TEXTO RESUMIDO E SIMPLES:
 1. Aquecimento Geral / Articular
-2. Série de Reconhecimento (Feeder Set)
+​2. Série de Reconhecimento (Feeder Set)
 3. PAP / Ativação Neural (Ramp-up)
 4. Séries de Trabalho (Working Sets)
 
@@ -1777,7 +1825,11 @@ function carregarTreinoNoEditorAoVivo() {
   currentStudentData.days.forEach(day => {
     text += `${day.title}\n`;
     (day.exercicios || []).forEach(ex => {
-      text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
+      if (day.isDescanso) {
+        text += `${ex.nome}\n`;
+      } else {
+        text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
+      }
     });
     text += "\n";
   });
@@ -1801,25 +1853,35 @@ function atualizarPreviewAoVivo() {
   }
 
   parsedDays.forEach(day => {
-    let html = `<div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px;">
-      <b style="color:var(--gold); font-size:13px;">🏋️ ${escapeHtml(day.title)}</b><br>`;
+    const isRestDay = day.isDescanso || /descanso|off|recovery/i.test(day.title);
+
+    let html = `
+      <div style="margin-bottom:12px; border-bottom:1px solid var(--border); padding-bottom:8px; ${isRestDay ? 'border-left:3px solid var(--blue, #60a5fa); padding-left:8px; background:rgba(96,165,250,0.05); border-radius:6px;' : ''}">
+        <b style="color:${isRestDay ? 'var(--blue, #60a5fa)' : 'var(--gold)'}; font-size:13px;">
+          ${isRestDay ? '☕ ' : '🏋️ '}${escapeHtml(day.title)}
+        </b><br>
+    `;
     
     day.exercicios.forEach(ex => {
-      const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
-      const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
-      
-      const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
-      const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
-      const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
+      if (isRestDay) {
+        html += `<div style="font-size:12px; margin-top:4px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
+      } else {
+        const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
+        const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
+        
+        const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
+        const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
+        const safeReps = escapeHtml(ex.reps).replace(/'/g, "\\'");
 
-      html += `
-        <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
-             style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
-             title="Clique para ver evolução de cargas">
-          <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
-          <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
-        </div>
-      `;
+        html += `
+          <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
+               style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
+               title="Clique para ver evolução de cargas">
+            <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
+            <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+          </div>
+        `;
+      }
     });
 
     html += `</div>`;
@@ -2395,7 +2457,7 @@ function parseWorkoutText(rawText) {
   let globalSeries = "3";
   let globalReps = "8-10";
 
-  const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia'];
+  const divKeywords = ['upper', 'lower', 'torso', 'limbs', 'fullbody', 'push', 'pull', 'legs', 'anterior', 'posterior', 'treino', 'dia', 'descanso', 'off', 'recovery'];
 
   lines.forEach(line => {
     const cleanLine = line.trim();
@@ -2416,20 +2478,36 @@ function parseWorkoutText(rawText) {
     const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
 
     const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
-    const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
+    const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b|descanso|off|recovery)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
 
     if (hasDivKeyword || isShortHeader) isDayHeader = true;
 
     if (isDayHeader) {
-      currentDay = { title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), exercicios: [] };
+      const isDescanso = /descanso|off|recovery/i.test(cleanLowerNoBullets);
+      currentDay = { 
+        title: cleanLine.toUpperCase().replace(/^[•\-\*\s]+/, ''), 
+        isDescanso: isDescanso,
+        exercicios: [] 
+      };
       days.push(currentDay);
     } else {
       if (!currentDay) {
-        currentDay = { title: "TREINO A", exercicios: [] };
+        currentDay = { title: "TREINO A", isDescanso: false, exercicios: [] };
         days.push(currentDay);
       }
 
       let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
+
+      if (currentDay.isDescanso) {
+        currentDay.exercicios.push({
+          nome: name,
+          series: "",
+          reps: "",
+          tecnica: "convencional",
+          isTecnico: false
+        });
+        return;
+      }
 
       const hasMyo = lowerLine.includes('myo');
       const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
@@ -2555,9 +2633,6 @@ function parseWorkoutText(rawText) {
   return days.filter(d => d.exercicios.length > 0);
 }
 
-/* -------------------------------------------------------------
-   SALVAMENTO E CRIAÇÃO DE ALUNOS COM SENHA 123456
-------------------------------------------------------------- */
 async function salvarNovoAlunoBloco() {
   const nome = document.getElementById('newName').value.trim();
   const codigo = document.getElementById('newCode').value.trim().toLowerCase();
@@ -2580,7 +2655,6 @@ async function salvarNovoAlunoBloco() {
   const mesFmt = String(hoje.getMonth() + 1).padStart(2, '0');
   const diaFmt = String(hoje.getDate()).padStart(2, '0');
 
-  // Senha padrão inicial fixada em 123456 para novos cadastros
   const senhaPadrao = "123456";
 
   const payload = {
@@ -2607,7 +2681,7 @@ async function salvarNovoAlunoBloco() {
     protocoloErgogenicos: "",
     logs: {},
     weekly_logs: {},
-    days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", exercicios: [] }],
+    days: parsedDays.length > 0 ? parsedDays : [{ title: "TREINO A", isDescanso: false, exercicios: [] }],
     refeicoes: [{ titulo: "Plano Alimentar", alimentos: rawD }]
   };
 
@@ -2622,7 +2696,7 @@ async function salvarNovoAlunoBloco() {
       lastGeneratedPassword = senhaPadrao;
       showToast(`Aluno criado! Senha padrão: ${senhaPadrao}`, "success");
       await fetchAlunos();
-      switchTab('financeiro');
+      switchTab('resumo');
     }
   } catch(e) { showToast("Erro ao criar aluno.", "error"); }
 }
@@ -2664,6 +2738,8 @@ function calcularVolumeMuscularSemanal() {
   const dailyLogs = currentStudentData.logs || {};
 
   currentStudentData.days.forEach((day, dayIdx) => {
+    if (day.isDescanso) return;
+
     (day.exercicios || []).forEach((ex, exIdx) => {
       const exNome = ex.nome.toLowerCase();
       const exKey = sanitizeExKey(ex.nome);
