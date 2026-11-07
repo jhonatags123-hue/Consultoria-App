@@ -48,21 +48,34 @@ function extrairPrecoAlunoFin(aluno) {
 }
 
 function calcularDiasRestantesFin(dataExpiracaoStr, diaVencimentoFallback = 7, isento = false, statusPagamento = '') {
-  if (isento === true || statusPagamento === 'isento') {
+  if (isento === true || isento === 'true' || statusPagamento === 'isento' || statusPagamento === 'vip') {
     return { dias: 9999, dataFormatada: "Livre (VIP)" };
   }
 
+  // Data de hoje zerada no fuso local
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
+
   let targetDate = null;
 
   if (dataExpiracaoStr) {
-    const partes = String(dataExpiracaoStr).split('T')[0].split('-');
-    if (partes.length === 3) {
-      const ano = parseInt(partes[0], 10);
-      const mes = parseInt(partes[1], 10) - 1;
-      const dia = parseInt(partes[2], 10);
-      targetDate = new Date(ano, mes, dia, 23, 59, 59);
+    const strLimpa = String(dataExpiracaoStr).split('T')[0];
+    if (strLimpa.includes('-')) {
+      const partes = strLimpa.split('-');
+      if (partes.length === 3) {
+        const ano = parseInt(partes[0], 10);
+        const mes = parseInt(partes[1], 10) - 1;
+        const dia = parseInt(partes[2], 10);
+        targetDate = new Date(ano, mes, dia, 0, 0, 0, 0);
+      }
+    } else if (strLimpa.includes('/')) {
+      const partesBarra = strLimpa.split('/');
+      if (partesBarra.length === 3) {
+        const dia = parseInt(partesBarra[0], 10);
+        const mes = parseInt(partesBarra[1], 10) - 1;
+        const ano = parseInt(partesBarra[2], 10);
+        targetDate = new Date(ano, mes, dia, 0, 0, 0, 0);
+      }
     }
   }
 
@@ -70,15 +83,16 @@ function calcularDiasRestantesFin(dataExpiracaoStr, diaVencimentoFallback = 7, i
     const mesAtual = hoje.getMonth();
     const anoAtual = hoje.getFullYear();
     let dia = parseInt(diaVencimentoFallback) || 7;
-    targetDate = new Date(anoAtual, mesAtual, dia, 23, 59, 59);
+    targetDate = new Date(anoAtual, mesAtual, dia, 0, 0, 0, 0);
 
     if (targetDate < hoje) {
-      targetDate = new Date(anoAtual, mesAtual + 1, dia, 23, 59, 59);
+      targetDate = new Date(anoAtual, mesAtual + 1, dia, 0, 0, 0, 0);
     }
   }
 
+  // Diferença em dias inteiros usando Math.round para desconsiderar variações de segundos/horas
   const diffTempo = targetDate.getTime() - hoje.getTime();
-  const diffDias = Math.ceil(diffTempo / (1000 * 3600 * 24));
+  const diffDias = Math.round(diffTempo / (1000 * 3600 * 24));
 
   const diaFmt = String(targetDate.getDate()).padStart(2, '0');
   const mesFmt = String(targetDate.getMonth() + 1).padStart(2, '0');
@@ -108,8 +122,6 @@ function obterAlunosPertoVencimento(diasMin = 1, diasMax = 3) {
                   planoVal === 'vip';
                   
     if (ehVIP) return false;
-
-    // Se já estiver com status de pendente, é tratado como vencido
     if (stPag === 'pendente') return false;
 
     const dataExp = obterPropriedadeAluno(aluno, 'data_expiracao');
@@ -181,7 +193,6 @@ async function abrirPainelMensagensVencimentoProximo() {
     else if (info.dias === 2) diasExtenso = "dois dias";
     else if (info.dias === 3) diasExtenso = "três dias";
 
-    // MENSAGEM COM TOM FORMAL DE SECRETARIA
     const mensagem = `Olá, ${nome}! Tudo bem?\n\nPassando em nome da consultoria para lembrar que falta(m) ${diasExtenso} para o vencimento do seu plano de ${tipoPlano} (valor: ${valorFmt}).\n\nQualquer dúvida ou para o envio do comprovante, estamos à disposição. Tenha um ótimo dia!`;
 
     const urlWpp = foneClean 
@@ -279,7 +290,6 @@ function renderTelaFinanceiroExclusiva() {
   let totalPendentes = 0;
   let totalAtrasadosCriticos = 0;
 
-  // Separação em grupos para ordenação prioritária na tabela
   const grupoVencidos = [];
   const grupoPrestesAVencer = [];
   const grupoNormais = [];
@@ -334,7 +344,7 @@ function renderTelaFinanceiroExclusiva() {
     }
   });
 
-  // Ordenação interna dos grupos prioritários por urgência
+  // Ordenação prioritária no topo
   grupoVencidos.sort((a, b) => a.infoVenc.dias - b.infoVenc.dias);
   grupoPrestesAVencer.sort((a, b) => a.infoVenc.dias - b.infoVenc.dias);
 
@@ -391,7 +401,7 @@ function renderTelaFinanceiroExclusiva() {
         </button>
       </div>
 
-      <!-- TABELA DETALHADA DE ALUNOS (ORDENADA POR VENCIDOS E A VENCER NO TOPO) -->
+      <!-- TABELA DETALHADA DE ALUNOS -->
       <div style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <h3 style="color:#fff; font-size:14px; margin-bottom:12px;">📋 Lista Completa de Alunos e Mensalidades</h3>
         <div style="overflow-x:auto;">
@@ -467,7 +477,6 @@ function copiarMensagemCobranca(codigo) {
   
   let msg = '';
   
-  // Mensagem adaptada para quem está vencido vs quem vai vencer
   if (info.dias <= 0 || stPag === 'pendente') {
     msg = 
 `🏋️ *CONSULTORIA JHONATA PERSONAL — AVISO DE COBRANÇA*
