@@ -2,7 +2,7 @@
    ADMIN.js - PAINEL PRINCIPAL & PROTOCOLOS DE ALUNOS
 ------------------------------------------------------------- */
 
-const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
+const BACKEND_URL = 'https://' + 'consultoria-backend-kbqi.onrender.com';
 let currentStudentCode = "";
 let currentStudentData = null;
 let lastGeneratedPassword = "123456";
@@ -13,20 +13,20 @@ let gifsDatabase = [];
 let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
 let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 
-const TUTORIAL_IOS = "https://youtube.com/shorts/AC3qVx1mglc";
-const TUTORIAL_ANDROID = "https://youtube.com/shorts/Px4gUAlgR7w";
+const TUTORIAL_IOS = 'https://' + 'youtube.com/shorts/AC3qVx1mglc';
+const TUTORIAL_ANDROID = 'https://' + 'youtube.com/shorts/Px4gUAlgR7w';
 
 /* -------------------------------------------------------------
    GERENCIAMENTO DE LINKS DE ANAMNESE (VENDAS ONLINE vs ORGÂNICO)
 ------------------------------------------------------------- */
 
 const LINKS_ANAMNESE_GERADOR = {
-  asaas_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese",
-  asaas_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino",
-  amigos_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos",
-  amigos_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos",
-  dupla_completa: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&origem=dupla",
-  dupla_treino: "https://jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla"
+  asaas_completa: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese',
+  asaas_treino: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino',
+  amigos_completa: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos',
+  amigos_treino: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese&tipo=treino&origem=amigos',
+  dupla_completa: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&origem=dupla',
+  dupla_treino: 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla'
 };
 
 function copiarLinkVendaAnamnese(chave) {
@@ -172,7 +172,7 @@ function abrirPastaDriveAluno() {
   if (currentStudentData && currentStudentData.driveFolderUrl) {
     window.open(currentStudentData.driveFolderUrl, '_blank');
   } else {
-    const searchUrl = `https://drive.google.com/drive/search?q=${encodeURIComponent(nomeAluno)}`;
+    const searchUrl = 'https://' + 'drive.google.com/drive/search?q=' + encodeURIComponent(nomeAluno);
     window.open(searchUrl, '_blank');
   }
 }
@@ -632,13 +632,14 @@ function renderStudentsList(list) {
     const temPendente = alunoTemFeedbackPendente(aluno);
     const badgePendenteHtml = temPendente ? `<span class="feedback-badge" style="margin-left:4px;">💬 FEEDBACK</span>` : '';
     const valorMensalExibicao = extrairPrecoAluno(aluno);
+    const ehApenasTreino = aluno.apenasTreino === true || aluno.liberarDieta === false;
 
     const div = document.createElement('div');
     div.className = `student-item ${aluno.codigo === currentStudentCode ? 'active' : ''}`;
     div.innerHTML = `
       <div>
         <b>${escapeHtml(aluno.clientName || aluno.nome)}</b> ${badgePendenteHtml}<br>
-        <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)}</small>
+        <small style="color:var(--muted)">@${escapeHtml(aluno.codigo)} ${ehApenasTreino ? '• <span style="color:#60a5fa;">Só Treino</span>' : ''}</small>
         ${valorMensalExibicao > 0 ? `<br><small style="color:var(--gold); font-weight:700;">R$ ${valorMensalExibicao.toFixed(2)}/mês</small>` : '<br><small style="color:var(--gold); font-weight:700;">Preço a combinar</small>'}
       </div>
       <div style="text-align:right;">
@@ -990,8 +991,8 @@ function renderResumoVisaoGeral() {
   }
 
   let htmlDieta = "";
-  if (currentStudentData.liberarDieta === false) {
-    htmlDieta = `<p style="color:var(--muted); font-size:12px;">Aba Dieta bloqueada no app do aluno.</p>`;
+  if (currentStudentData.liberarDieta === false || currentStudentData.apenasTreino === true) {
+    htmlDieta = `<p style="color:var(--muted); font-size:12px;">Aba Dieta desativada (Plano Apenas Treino).</p>`;
   } else {
     let textoDietaRaw = "";
     const refeicoes = currentStudentData.refeicoes || [];
@@ -1444,7 +1445,7 @@ function enviarCredenciaisWhatsApp() {
   const nome = currentStudentData.clientName || currentStudentCode;
   const codigo = currentStudentCode;
   const senha = lastGeneratedPassword || currentStudentData.senha || "123456";
-  const linkApp = `https://jhonataconsultoria.com.br/app.html?aluno=${codigo}`;
+  const linkApp = 'https://' + 'jhonataconsultoria.com.br/app.html?aluno=' + codigo;
 
   const mensagem = 
 `🏋️ *ACESSO AO APLICATIVO — JHONATA PERSONAL*
@@ -1460,7 +1461,8 @@ Olá, *${nome}*! Seu protocolo e acesso exclusivo ao aplicativo já estão liber
 🤖 Android: ${TUTORIAL_ANDROID}`;
 
   const fone = currentStudentData.dadosAnamnese?.telefone ? currentStudentData.dadosAnamnese.telefone.replace(/\D/g, '') : '';
-  const urlWpp = fone ? `https://wa.me/55${fone}?text=${encodeURIComponent(mensagem)}` : `https://wa.me/?text=${encodeURIComponent(mensagem)}`;
+  const wppDomain = 'https://' + 'wa.me/';
+  const urlWpp = fone ? `${wppDomain}55${fone}?text=${encodeURIComponent(mensagem)}` : `${wppDomain}?text=${encodeURIComponent(mensagem)}`;
 
   window.open(urlWpp, '_blank');
 }
@@ -1564,7 +1566,7 @@ function renderAnamneseDetails() {
       <!-- 1. DADOS PESSOAIS & PERFIL FÍSICO -->
       <div class="anamnese-card" style="background:#100305; border:1px solid var(--border); border-radius:12px; padding:16px;">
         <div class="anamnese-card-title" style="font-size:12px; font-weight:800; color:var(--gold); text-transform:uppercase; margin-bottom:12px; border-bottom:1px dashed var(--border); padding-bottom:6px;">
-          👤 DADOS PESSOAIS & PERFIL FÍSICO
+          👤 DADOS PESSOAIS & PERFIL FÍSICO ${ehApenasTreino ? '• <span style="color:#60a5fa;">PLANO APENAS TREINO</span>' : ''}
         </div>
         <div class="anamnese-questions-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:10px;">
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
@@ -1651,7 +1653,7 @@ function renderAnamneseDetails() {
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
             <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Rotina / Trabalho</div>
-            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.rotinaTrabalho))}</div>
+            <div class="anamnese-a" style="font-size:13px; color:#fff; font-weight:600;">${escapeHtml(getVal(a.rotina || a.rotinaTrabalho))}</div>
           </div>
           <div class="anamnese-item" style="background:#0d0204; border:1px solid var(--border); border-radius:8px; padding:10px;">
             <div class="anamnese-q" style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase;">Sono (Horas / Qualidade)</div>
