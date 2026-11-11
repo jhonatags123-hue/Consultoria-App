@@ -39,6 +39,17 @@ let selectedFeedbackFiles = [];
 let inactivityTimer = null;
 const INACTIVITY_LIMIT_MS = 20 * 60 * 1000;
 
+function isDayDescanso(day) {
+  if (!day) return false;
+  const titleLower = String(day.title || '').toLowerCase();
+  return day.isDescanso === true ||
+         day.tipo === 'descanso' ||
+         titleLower.includes('descanso') ||
+         titleLower.includes('off') ||
+         titleLower.includes('folga') ||
+         titleLower.includes('recovery');
+}
+
 function resetInactivityTimer() {
   if (inactivityTimer) clearTimeout(inactivityTimer);
 
@@ -283,6 +294,10 @@ function checkAndRestoreWorkoutTimer() {
   const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   const keyStart = `workout_start_time_${loggedUserCode}`;
   
+  const days = (currentData && currentData.days) || [];
+  const day = days[currentTreinoDayIdx];
+  const ehDiaDescanso = isDayDescanso(day);
+
   const startTimeStr = localStorage.getItem(keyStart);
   const btn = document.getElementById('btnWorkoutTimer');
 
@@ -304,7 +319,8 @@ function checkAndRestoreWorkoutTimer() {
       btn.textContent = "▶ INICIAR TREINO";
       btn.style.background = "var(--good)";
     }
-    setInputsLockState(true);
+    // No dia de descanso, libera os inputs/botões das atividades extras sem exigir iniciar treino
+    setInputsLockState(!ehDiaDescanso);
     
     const elapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
     renderClockTime(elapsed);
@@ -313,7 +329,11 @@ function checkAndRestoreWorkoutTimer() {
 
 function setInputsLockState(locked) {
   document.querySelectorAll('.input-log, .btn-check-serie, .btn-check-exercise').forEach(el => {
-    el.disabled = locked;
+    if (el.dataset.restFree === 'true') {
+      el.disabled = false;
+    } else {
+      el.disabled = locked;
+    }
   });
 }
 
@@ -423,19 +443,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tipo = params.get('tipo');
   const origem = params.get('origem');
 
-  // Identificação do tipo de produto (Apenas Treino vs Completa)
   if (tipo === 'treino' || modo === 'anamnese_treino') {
     isApenasTreinoMode = true;
   }
 
-  // Identificação do canal/regras de preço
   if (origem === 'amigos') {
     isAmigosMode = true;
   } else if (origem === 'dupla' || modo === 'anamnese_convidado') {
     isDuplaMode = true;
   }
 
-  // Se for qualquer variação do formulário de anamnese
   if (modo === 'anamnese' || modo === 'anamnese_treino' || modo === 'anamnese_convidado' || isApenasTreinoMode || isAmigosMode || isDuplaMode) {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('anamneseScreen').classList.remove('hidden');
@@ -476,7 +493,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // Caso normal de login do aluno
   const loggedUser = localStorage.getItem('logged_user');
   const alunoToken = localStorage.getItem('aluno_token') || localStorage.getItem('token') || localStorage.getItem('tokenAluno');
 
@@ -846,9 +862,10 @@ function renderErgogenicosAluno(payloadData) {
 function toggleCheckExercise(btn, dayIdx, exIdx) {
   const card = btn.closest('.item');
   const isDone = btn.classList.toggle('done');
+  const isFree = btn.dataset.restFree === 'true';
   
   if (isDone) {
-    if (!workoutTimerRunning) {
+    if (!workoutTimerRunning && !isFree) {
       btn.classList.remove('done');
       alert("⚠️ Clique em '▶ INICIAR TREINO' antes de marcar o exercício!");
       return;
@@ -862,7 +879,7 @@ function toggleCheckExercise(btn, dayIdx, exIdx) {
   }
 
   const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
-  scheduleAutoSave(keyExDone, isDone ? 'true' : 'false');
+  scheduleAutoSave(keyExDone, isDone ? 'true' : 'false', undefined, undefined, isFree);
 }
 
 function verificarNotificacaoFeedback(alunoData) {
@@ -1224,12 +1241,10 @@ function renderTreinoDayList() {
   }
 
   days.forEach((day, dayIdx) => {
-    const titleLower = String(day.title || '').toLowerCase();
-    const isDescanso = day.isDescanso === true || day.tipo === 'descanso' || titleLower.includes('descanso') || titleLower.includes('off') || titleLower.includes('folga');
-
+    const ehDescanso = isDayDescanso(day);
     const numEx = (day.exercicios || []).length;
     let subTexto = `${numEx} Exercício${numEx !== 1 ? 's' : ''}`;
-    if (isDescanso) {
+    if (ehDescanso) {
       subTexto = numEx > 0 ? `💤 Descanso (${numEx} Atividade${numEx !== 1 ? 's' : ''})` : '💤 Recuperação Ativa';
     }
 
@@ -1238,7 +1253,7 @@ function renderTreinoDayList() {
     card.className = 'select-card';
     card.innerHTML = `
       <div>
-        <div class="select-card-title">${isDescanso ? '💤 ' : ''}${escapeHtml(day.title)}</div>
+        <div class="select-card-title">${ehDescanso ? '💤 ' : ''}${escapeHtml(day.title)}</div>
         <div class="select-card-sub">${subTexto}</div>
       </div>
       <span class="select-card-arrow">›</span>
@@ -1261,7 +1276,8 @@ function openTreinoSelectionMenu() {
 }
 
 function toggleCheckSerie(btn) {
-  if (!workoutTimerRunning) {
+  const isFree = btn.dataset.restFree === 'true';
+  if (!workoutTimerRunning && !isFree) {
     alert("⚠️ Clique em '▶ INICIAR TREINO' antes de começar a marcar as séries!");
     return;
   }
@@ -1400,7 +1416,7 @@ async function concluirTreinoDoDia() {
   document.getElementById('summaryVolumeDisplay').textContent = `${Math.round(volumeToneladoTotal)} kg`;
 
   if (evolucoes.length === 0) {
-    summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Preencha suas cargas para visualizar a evolução!</div>`;
+    summaryList.innerHTML = `<div style="color:var(--ink-dim); font-size:12px; text-align:center;">Sessão registrada com sucesso!</div>`;
   } else {
     evolucoes.forEach(item => {
       summaryList.innerHTML += `
@@ -1534,6 +1550,112 @@ function toggleCardioGoals() {
   arrow.textContent = body.classList.contains('collapsed') ? '▼' : '▲';
 }
 
+/* -------------------------------------------------------------
+   RENDERIZAÇÃO DO DETALHE DO TREINO / DIA DE DESCANSO
+------------------------------------------------------------- */
+function renderRestDayActivities(day, dayIdx, container) {
+  (day.exercicios || []).forEach((ex, exIdx) => {
+    const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
+    const isExDone = (currentData.logs && currentData.logs[keyExDone]) === 'true';
+
+    const rawName = ex.nome || '';
+    const rawSeries = String(ex.series || '').trim();
+    const rawReps = String(ex.reps || '').trim();
+
+    // Verifica se tem séries/reps prescritas (ex: "Abdominal na Polia 3x8-10") ou se é atividade livre (ex: "Cardio Mais Longo")
+    const matchSeriesInline = rawName.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
+    const matchSeriesProp = rawSeries.match(/(\d+)/);
+
+    const hasSeries = Boolean(matchSeriesInline || matchSeriesProp);
+    let numSeries = 0;
+    let metaReps = rawReps;
+    let cleanTitle = rawName;
+
+    if (matchSeriesInline) {
+      numSeries = parseInt(matchSeriesInline[1], 10);
+      if (!metaReps && matchSeriesInline[2]) metaReps = matchSeriesInline[2];
+      cleanTitle = rawName.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
+    } else if (matchSeriesProp) {
+      numSeries = parseInt(matchSeriesProp[1], 10);
+    }
+
+    const exKeySanitized = sanitizeExKey(cleanTitle);
+
+    // Identifica ícone amigável baseado no nome da atividade
+    const lowerTitle = cleanTitle.toLowerCase();
+    let iconAtiv = '⚡';
+    if (lowerTitle.includes('cardio') || lowerTitle.includes('esteira') || lowerTitle.includes('bike') || lowerTitle.includes('caminhada') || lowerTitle.includes('corrida')) {
+      iconAtiv = '🏃‍♂️';
+    } else if (lowerTitle.includes('abdom') || lowerTitle.includes('prancha') || lowerTitle.includes('core')) {
+      iconAtiv = '🔥';
+    } else if (lowerTitle.includes('panturrilha') || lowerTitle.includes('gêmeos') || lowerTitle.includes('gemeos')) {
+      iconAtiv = '🦵';
+    } else if (lowerTitle.includes('alonga') || lowerTitle.includes('mobilidade') || lowerTitle.includes('libera')) {
+      iconAtiv = '🧘‍♂️';
+    }
+
+    const div = document.createElement('div');
+    div.className = `item ${isExDone ? 'exercise-done' : ''}`;
+    div.style.cssText = "border-left: 3px solid var(--blue, #60a5fa);";
+
+    // CASO 1: Atividade livre sem séries (Ex: "Cardio Mais Longo", "Alongamento")
+    if (!hasSeries || numSeries <= 0) {
+      div.innerHTML = `
+        <div class="item-header" style="margin-bottom:0;">
+          <div>
+            <div class="item-title" style="font-size:14px;">${iconAtiv} ${escapeHtml(cleanTitle)}</div>
+            <div style="font-size:11px; color:var(--ink-dim); margin-top:2px;">Atividade complementar do dia de recuperação</div>
+          </div>
+          <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" data-rest-free="true"
+            onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
+            ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
+          </button>
+        </div>
+      `;
+      container.appendChild(div);
+      return;
+    }
+
+    // CASO 2: Exercício extra localizado com séries (Ex: "Abdominal na Polia 3x8-10")
+    let html = `
+      <div class="item-header">
+        <div>
+          <div class="item-title" style="font-size:14px;">${iconAtiv} ${escapeHtml(cleanTitle)}</div>
+          <div style="font-size:11px; color:var(--mark); font-weight:700; margin-top:2px;">
+            Meta: ${numSeries} séries ${metaReps ? `(${escapeHtml(metaReps)} reps)` : ''}
+          </div>
+        </div>
+        <button type="button" class="btn-check-exercise ${isExDone ? 'done' : ''}" data-rest-free="true"
+          onclick="toggleCheckExercise(this, ${dayIdx}, ${exIdx})">
+          ${isExDone ? '✓ Concluído' : 'Marcar Concluído'}
+        </button>
+      </div>
+      <div class="series-container" style="margin-top:8px;">
+    `;
+
+    for (let s = 1; s <= numSeries; s++) {
+      const keyLoad = `log_c_${exKeySanitized}_s${s}`;
+      const keyReps = `log_r_${exKeySanitized}_s${s}`;
+      const savedLoad = (currentData.logs && currentData.logs[keyLoad]) || '';
+      const savedReps = (currentData.logs && currentData.logs[keyReps]) || '';
+
+      html += `
+        <div class="series-row">
+          <button type="button" class="btn-check-serie" data-num="${s}" data-rest-free="true" onclick="toggleCheckSerie(this)">Série ${s}</button>
+          <input ${createLogInputAttr(keyLoad)} data-rest-free="true" class="input-field input-log" style="width:55px;" placeholder="Kg" value="${escapeHtml(savedLoad)}" oninput="scheduleAutoSave('${keyLoad}', this.value, ${dayIdx}, ${exIdx}, true)">
+          <span class="unit">kg</span>
+          <input ${createLogInputAttr(keyReps)} data-rest-free="true" class="input-field input-log" style="width:65px;" placeholder="${escapeHtml(metaReps || 'Reps')}" value="${escapeHtml(savedReps)}" oninput="scheduleAutoSave('${keyReps}', this.value, ${dayIdx}, ${exIdx}, true)">
+          <span class="unit">reps</span>
+        </div>
+      `;
+    }
+
+    html += `</div>`;
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
 function renderTreinoDetail() {
   const days = (currentData && currentData.days) || [];
   const day = days[currentTreinoDayIdx];
@@ -1567,14 +1689,19 @@ function renderTreinoDetail() {
   const exercisesContainer = document.getElementById('exercisesList');
   exercisesContainer.innerHTML = '';
 
-  const titleLower = String(day.title || '').toLowerCase();
-  const isDescanso = day.isDescanso === true || 
-                     day.tipo === 'descanso' || 
-                     titleLower.includes('descanso') || 
-                     titleLower.includes('off') || 
-                     titleLower.includes('folga');
+  const ehDescanso = isDayDescanso(day);
 
-  if (isDescanso) {
+  // Esconde cronômetros de musculação no Dia de Descanso para deixar a tela limpa
+  const restWidget = document.getElementById('restTimerWidget');
+  const workoutClock = document.getElementById('workoutTimerClock');
+  const timerBox = workoutClock ? workoutClock.closest('.card, .panel, .timer-box, div') : null;
+
+  if (ehDescanso) {
+    if (restWidget) restWidget.classList.remove('visible');
+    if (timerBox && timerBox.id !== 'treinoDetailView' && timerBox.id !== 'tabTreino') {
+      timerBox.classList.add('hidden');
+    }
+
     const cardDescanso = document.createElement('div');
     cardDescanso.style.cssText = "text-align: center; padding: 24px 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px;";
     cardDescanso.innerHTML = `
@@ -1592,12 +1719,15 @@ function renderTreinoDetail() {
     if (day.exercicios && day.exercicios.length > 0) {
       const tituloAtividades = document.createElement('div');
       tituloAtividades.style.cssText = "font-size: 12px; font-weight: 800; color: var(--mark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;";
-      tituloAtividades.textContent = "📋 Atividades do Dia (Cardio / Abdômen / Panturrilha):";
+      tituloAtividades.textContent = "📋 Atividades Extras do Dia:";
       exercisesContainer.appendChild(tituloAtividades);
 
-      renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+      renderRestDayActivities(day, currentTreinoDayIdx, exercisesContainer);
     }
   } else {
+    if (restWidget) restWidget.classList.add('visible');
+    if (timerBox) timerBox.classList.remove('hidden');
+
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
   }
 
@@ -1996,8 +2126,8 @@ function atualizarBackoffLive(exKeySanitized, tipo, dayIdx, exIdx) {
   }
 }
 
-function scheduleAutoSave(key, value, dayIdx, exIdx) {
-  if (!workoutTimerRunning) {
+function scheduleAutoSave(key, value, dayIdx, exIdx, isRestFree = false) {
+  if (!workoutTimerRunning && !isRestFree) {
     alert("⚠️ Clique em '▶ INICIAR TREINO' antes de registrar dados!");
     return;
   }
@@ -2209,12 +2339,12 @@ function parseDietaAluno(rawText) {
       });
 
       if (title && (baseItems.length > 0 || trocasCarbo.length > 0 || trocasProt.length > 0)) {
-        meals.push({
-          mealTitle: title,
-          days: days,
-          baseItems: baseItems,
-          trocasCarbo: trocasCarbo,
-          trocasProt: trocasProt
+        meals.push({ 
+          mealTitle: title, 
+          days: days, 
+          baseItems: baseItems, 
+          trocasCarbo: trocasCarbo, 
+          trocasProt: trocasProt 
         });
       }
     });
@@ -2259,7 +2389,7 @@ function renderDietaAluno(refeicoesData) {
   let metasTexto = "";
   let suplementosList = [];
 
-  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|[SUPLEMENTAÇÃO DIÁRIA])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
+  const regexMetas = /(?:🎯|Meta Calórica|Gasto Estimado|Gorduras:|Meta Hídrica:|\[SUPLEMENTAÇÃO DIÁRIA\])[\s\S]*?(?=(?:🍽\s*REF|\n\s*REF\s*\d+|\[\s*ABA\s*\]|$))/i;
   const matchMetas = cleanText.match(regexMetas);
 
   if (matchMetas) {
@@ -2452,7 +2582,9 @@ function showTab(tab) {
 
   const restWidget = document.getElementById('restTimerWidget');
   if (restWidget) {
-    if (tab === 'treino') {
+    const days = (currentData && currentData.days) || [];
+    const currentDay = days[currentTreinoDayIdx];
+    if (tab === 'treino' && !isDayDescanso(currentDay)) {
       restWidget.classList.add('visible');
     } else {
       restWidget.classList.remove('visible');
