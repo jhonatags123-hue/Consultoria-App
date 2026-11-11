@@ -196,6 +196,24 @@ function calcularPaceTexto(kmNum, minNum) {
   return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
 }
 
+// CONVERSOR ROBUSTO DE TEMPO PARA SUPORTAR CARDIO SUPERIOR A 1 HORA (ex: 1h15min, 1h 10, 75 min, etc)
+function parseTempoCardioMinutos(tempoStr) {
+  if (!tempoStr) return 0;
+  const str = String(tempoStr).toLowerCase().trim();
+  let totalMinutos = 0;
+  
+  const matchHoras = str.match(/(\d+)\s*h/);
+  const matchMin = str.match(/(\d+)\s*m/);
+
+  if (matchHoras) totalMinutos += parseInt(matchHoras[1], 10) * 60;
+  if (matchMin) totalMinutos += parseInt(matchMin[1], 10);
+
+  if (!matchHoras && !matchMin) {
+    totalMinutos = parseInt(str.replace(/\D/g, ''), 10) || 0;
+  }
+  return totalMinutos;
+}
+
 let restTimerInterval = null;
 let restSecondsLeft = 0;
 let audioCtx = null;
@@ -574,7 +592,6 @@ async function handleLogin(e) {
    TELA FINAL DE CHECKOUT DA ANAMNESE (TRATAMENTO DE ORIGEM)
 ------------------------------------------------------------- */
 function renderizarCheckoutFinalPlano(tipoConsultoria) {
-  // 1. SE FOR CANAL DE AMIGOS / VALOR A COMBINAR
   if (isAmigosMode) {
     return `
       <div style="text-align:center; padding:24px 10px;">
@@ -592,7 +609,6 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
     `;
   }
 
-  // 2. SE FOR PLANO EM DUPLA INCLUSO
   if (isDuplaMode) {
     return `
       <div style="text-align:center; padding:24px 10px;">
@@ -610,7 +626,6 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
     `;
   }
 
-  // 3. VENDA ONLINE PADRÃO COM CHECKOUT ASAAS
   const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
 
   return `
@@ -948,6 +963,68 @@ async function apagarRunDia(diaKey) {
   await salvarRunDia(diaKey);
 }
 
+// MODAL E LÓGICA DE SUBSTITUIÇÃO INSTANTÂNEA DE CARDIO PELO ALUNO
+function abrirModalTrocaCardioNaHora(diaKey) {
+  let modal = document.getElementById('modalTrocaCardioInstante');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalTrocaCardioInstante';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div class="modal-card-finish" style="max-width:400px; background:#100305; border:1px solid var(--gold); border-radius:12px; padding:18px;">
+      <h3 style="color:var(--gold); font-size:15px; margin-bottom:8px;">🔄 Substituir Cardio Agora</h3>
+      <p style="color:var(--muted); font-size:12px; margin-bottom:12px;">Escolha a nova opção. O cardio será atualizado na hora para você e um aviso será enviado ao seu personal.</p>
+
+      <label style="font-size:12px; color:#fff; display:block; margin-bottom:4px;">Novo Exercício:</label>
+      <select id="selectNovoCardio" style="width:100%; padding:8px; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:6px; margin-bottom:10px;">
+        <option value="Bicicleta Ergométrica">🚴‍♂️ Bicicleta Ergométrica (Bike)</option>
+        <option value="Elíptico">🏃‍♂️ Elíptico</option>
+        <option value="Escada">🪜 Escada</option>
+        <option value="Caminhada Leve">🚶‍♂️ Caminhada Leve</option>
+      </select>
+
+      <label style="font-size:12px; color:#fff; display:block; margin-bottom:4px;">Motivo / Recado (Ex: Dor no joelho):</label>
+      <input type="text" id="motivoTrocaRapida" placeholder="Ex: Tive que trocar pq tava com dor no joelho" style="width:100%; padding:8px; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:6px; margin-bottom:14px;">
+
+      <div style="display:flex; gap:8px;">
+        <button onclick="confirmarTrocaCardioNaHora('${diaKey}')" class="btn-login" style="flex:1; background:var(--gold); color:#000; font-weight:800; padding:8px;">Aplicar e Avisar</button>
+        <button onclick="document.getElementById('modalTrocaCardioInstante').classList.add('hidden')" class="btn-login" style="flex:1; background:transparent; border:1px solid var(--border); color:#fff; padding:8px;">Cancelar</button>
+      </div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+}
+
+async function confirmarTrocaCardioNaHora(diaKey) {
+  const novoExercicio = document.getElementById('selectNovoCardio').value;
+  const motivo = document.getElementById('motivoTrocaRapida').value.trim() || "Substituído pelo aluno no app";
+
+  if (!currentData.prescricao_corrida) currentData.prescricao_corrida = {};
+  if (!currentData.prescricao_corrida[diaKey]) currentData.prescricao_corrida[diaKey] = {};
+
+  if (typeof currentData.prescricao_corrida[diaKey] === 'string') {
+    currentData.prescricao_corrida[diaKey] = { desc: currentData.prescricao_corrida[diaKey] };
+  }
+  currentData.prescricao_corrida[diaKey].desc = `Substituído para: ${novoExercicio} (${motivo})`;
+
+  setupCorrida(currentData);
+  document.getElementById('modalTrocaCardioInstante').classList.add('hidden');
+  alert(`✅ Cardio alterado para ${novoExercicio}! O aviso foi enviado ao treinador.`);
+
+  const mensagemAviso = `[AVISO DE TROCA DE CARDIO PELO ALUNO]\n\n• Dia: ${diaKey.toUpperCase()}\n• Novo exercício: ${novoExercicio}\n• Motivo informado: "${motivo}"`;
+
+  try {
+    await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ codigo: loggedUserCode, autor: 'ALUNO', mensagem: mensagemAviso })
+    });
+  } catch (e) {}
+}
+
 async function resetCardioSemanal() {
   if (!currentData) return;
 
@@ -1034,16 +1111,24 @@ function setupCorrida(data) {
 
     const kmVal = ultimoReg?.km || '';
     const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
+
+    // CONTAGEM DE MINUTOS ROBUSTA COM PARSER DE SUPORTE A MAIS DE 1 HORA
+    totalMin += parseTempoCardioMinutos(minVal);
+    totalKm += parseFloat(kmVal) || 0;
+
     const paceDiaStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
 
     const card = document.createElement('div');
     card.className = 'run-item';
     card.innerHTML = `
-      <div class="run-day-title">${d.nome}</div>
-      <div class="run-day-desc">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="run-day-title">${d.nome}</div>
+        <button type="button" onclick="abrirModalTrocaCardioNaHora('${d.key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); font-size:10.5px; padding:2px 6px; border-radius:4px; cursor:pointer;">🔄 Substituir</button>
+      </div>
+      <div class="run-day-desc" style="margin-top:4px;">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
       <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
         <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
-        <input type="number" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min (Ex: 25)" value="${escapeHtml(minVal)}">
+        <input type="text" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min ou 1h10" value="${escapeHtml(minVal)}">
         <button type="button" class="btn-login btn-blue" style="width:70px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
         <button type="button" class="btn-login" style="width:36px; min-height:36px; padding:0; font-size:12px; margin-top:0; background:var(--panel); border:1px solid var(--line); color:var(--signal-light);" title="Apagar registro do dia" onclick="apagarRunDia('${d.key}')">🗑️</button>
       </div>
@@ -1065,12 +1150,11 @@ function setupCorrida(data) {
 
       hDia.forEach((c) => {
         const km = parseFloat(c.km) || 0;
-        const min = parseFloat(c.min || c.minutos) || 0;
-        totalKm += km;
-        totalMin += min;
+        const minStr = c.min || c.minutos || '';
+        const minParsed = parseTempoCardioMinutos(minStr);
         totalRegistros++;
 
-        const paceStr = calcularPaceTexto(km, min);
+        const paceStr = calcularPaceTexto(km, minParsed);
 
         const div = document.createElement('div');
         div.className = 'run-item';
@@ -1080,7 +1164,7 @@ function setupCorrida(data) {
             <span style="color:var(--blue); font-size:12px;">Pace: ${paceStr} /km</span>
           </div>
           <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-            ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${min} min</b>` : 'Treino registrado'}
+            ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${minStr}</b>` : 'Treino registrado'}
           </div>
         `;
         histContainer.appendChild(div);
@@ -1460,7 +1544,6 @@ function renderTreinoDetail() {
   const exercisesContainer = document.getElementById('exercisesList');
   exercisesContainer.innerHTML = '';
 
-  // Verificação de Dia de Descanso (Descanso / Off / Folga)
   const titleLower = String(day.title || '').toLowerCase();
   const isDescanso = day.isDescanso === true || 
                      day.tipo === 'descanso' || 
@@ -1469,7 +1552,6 @@ function renderTreinoDetail() {
                      titleLower.includes('folga');
 
   if (isDescanso) {
-    // 1. Renderiza o Card Especial de Descanso
     const cardDescanso = document.createElement('div');
     cardDescanso.style.cssText = "text-align: center; padding: 24px 16px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 16px; margin-bottom: 16px;";
     cardDescanso.innerHTML = `
@@ -1484,7 +1566,6 @@ function renderTreinoDetail() {
     `;
     exercisesContainer.appendChild(cardDescanso);
 
-    // 2. Se houver exercícios/atividades cadastrados (ex: Cardio, Abdômen, Panturrilha), renderiza a lista abaixo
     if (day.exercicios && day.exercicios.length > 0) {
       const tituloAtividades = document.createElement('div');
       tituloAtividades.style.cssText = "font-size: 12px; font-weight: 800; color: var(--mark); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;";
@@ -1494,7 +1575,6 @@ function renderTreinoDetail() {
       renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
     }
   } else {
-    // Treino Normal
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
   }
 
