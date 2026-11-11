@@ -1,14 +1,14 @@
-const BACKEND_URL = "https://consultoria-backend-kbqi.onrender.com";
-const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec";
+const BACKEND_URL = 'https://' + 'consultoria-backend-kbqi.onrender.com';
+const GOOGLE_APPS_SCRIPT_URL = 'https://' + 'script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec';
 
 // Links de Checkout Asaas
 const CHECKOUT_LINKS = {
-  COMPLETA_TRIMESTRAL: { cartao: "https://www.asaas.com/000/c/lvfk6qle0ufq0t57", pix: "https://www.asaas.com/000/c/k9pnu5cry59ts60b" },
-  COMPLETA_SEMESTRAL: { cartao: "https://www.asaas.com/000/c/oky8it88u28d4vat", pix: "https://www.asaas.com/000/c/vmplvn41acefxh6q" },
-  COMPLETA_ANUAL: { cartao: "https://www.asaas.com/000/c/5gd9tb7c0szjdwbd", pix: "https://www.asaas.com/000/c/d3g2zgxzvigjnpam" },
-  TREINO_ANUAL: { cartao: "https://www.asaas.com/000/c/v36oz63i4jg0cg2u", pix: "https://www.asaas.com/000/c/3rzicld44lby9g6b" },
-  COMPLETA_DUPLA: { cartao: "https://www.asaas.com/000/c/z4zlsoe009fz8tgu", pix: "https://www.asaas.com/000/c/52mqr2awi4hzl61n" },
-  TREINO_DUPLA: { cartao: "https://www.asaas.com/000/c/omsltaq25btnizvo", pix: "https://www.asaas.com/000/c/ke2r2emle6sfnmif" }
+  COMPLETA_TRIMESTRAL: { cartao: 'https://' + 'www.asaas.com/000/c/lvfk6qle0ufq0t57', pix: 'https://' + 'www.asaas.com/000/c/k9pnu5cry59ts60b' },
+  COMPLETA_SEMESTRAL: { cartao: 'https://' + 'www.asaas.com/000/c/oky8it88u28d4vat', pix: 'https://' + 'www.asaas.com/000/c/vmplvn41acefxh6q' },
+  COMPLETA_ANUAL: { cartao: 'https://' + 'www.asaas.com/000/c/5gd9tb7c0szjdwbd', pix: 'https://' + 'www.asaas.com/000/c/d3g2zgxzvigjnpam' },
+  TREINO_ANUAL: { cartao: 'https://' + 'www.asaas.com/000/c/v36oz63i4jg0cg2u', pix: 'https://' + 'www.asaas.com/000/c/3rzicld44lby9g6b' },
+  COMPLETA_DUPLA: { cartao: 'https://' + 'www.asaas.com/000/c/z4zlsoe009fz8tgu', pix: 'https://' + 'www.asaas.com/000/c/52mqr2awi4hzl61n' },
+  TREINO_DUPLA: { cartao: 'https://' + 'www.asaas.com/000/c/omsltaq25btnizvo', pix: 'https://' + 'www.asaas.com/000/c/ke2r2emle6sfnmif' }
 };
 
 const DETALHES_PLANOS = {
@@ -143,8 +143,10 @@ function fecharModalSenha() { document.getElementById('modalSenha').classList.ad
 
 function compartilharIndicaoWpp() {
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
-  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0Ahttps://jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
-  window.open(`https://wa.me/?text=${msg}`, '_blank');
+  const linkIndicacao = 'https://' + 'jhonataconsultoria.com.br/app.html?modo=anamnese&origem=amigos';
+  const msg = `*CONSULTORIA JHONATA PERSONAL*%0A%0AOlá! Estou treinando com a consultoria do Jhonata Personal e recomendo demais. Acesse o link para conhecer e fazer sua anamnese:%0A${linkIndicacao}%0A%0A_Indicação do aluno: ${encodeURIComponent(nome)}_`;
+  const wppUrl = 'https://' + 'wa.me/?text=' + msg;
+  window.open(wppUrl, '_blank');
 }
 
 async function alterarSenhaAlunoModal() {
@@ -592,6 +594,8 @@ async function handleLogin(e) {
    TELA FINAL DE CHECKOUT DA ANAMNESE (TRATAMENTO DE ORIGEM)
 ------------------------------------------------------------- */
 function renderizarCheckoutFinalPlano(tipoConsultoria) {
+  const wppBase = 'https://' + 'wa.me/5551990169026?text=';
+
   if (isAmigosMode) {
     return `
       <div style="text-align:center; padding:24px 10px;">
@@ -602,7 +606,7 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
         <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
           Seus dados já foram recebidos! Como seu plano é por indicação/combinado, clique abaixo para falar direto no WhatsApp do Personal e acertar os detalhes do seu início:
         </p>
-        <a href="https://wa.me/5551990169026?text=${encodeURIComponent('Olá Jhonata! Preenchi minha anamnese pelo link de indicação/amigos e gostaria de combinar o início!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
+        <a href="${wppBase}${encodeURIComponent('Olá Jhonata! Preenchi minha anamnese pelo link de indicação/amigos e gostaria de combinar o início!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
           💬 Finalizar e Combinar no WhatsApp
         </a>
       </div>
@@ -619,7 +623,7 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
         <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
           Sua anamnese foi vinculada com sucesso ao plano do titular. Avise o personal para liberar seu acesso!
         </p>
-        <a href="https://wa.me/5551990169026?text=${encodeURIComponent('Olá Jhonata! Acabei de enviar minha anamnese da Dupla/Convidado!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
+        <a href="${wppBase}${encodeURIComponent('Olá Jhonata! Acabei de enviar minha anamnese da Dupla/Convidado!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none; padding:14px; border-radius:12px; font-weight:800;">
           📲 Avisar Personal no WhatsApp
         </a>
       </div>
@@ -652,7 +656,7 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
 
       </div>
 
-      <a href="https://wa.me/5551990169026?text=${encodeURIComponent('Olá Jhonata! Acabei de preencher minha Anamnese!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
+      <a href="${wppBase}${encodeURIComponent('Olá Jhonata! Acabei de preencher minha Anamnese!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
           Falar com o personal no WhatsApp
       </a>
     </div>
@@ -715,26 +719,46 @@ async function sendAnamneseAppDirect() {
   };
 
   if (btn) {
-    btn.textContent = "Processando...";
+    btn.textContent = "Salvando anamnese...";
     btn.disabled = true;
   }
 
-  try {
-    await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      cache: 'no-cache',
-      body: JSON.stringify(anamneseData)
-    });
+  const enviarComRetentativa = async (tentativasRestantes) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/anamnese/iniciar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: 'no-cache',
+        body: JSON.stringify(anamneseData)
+      });
 
-    document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
-  } catch (e) {
-    alert("Erro ao conectar.");
-    if (btn) {
-      btn.textContent = "Finalizar e enviar";
-      btn.disabled = false;
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Não foi possível salvar a anamnese. Verifique seus dados e tente novamente.");
+        if (btn) {
+          btn.textContent = "Finalizar e enviar";
+          btn.disabled = false;
+        }
+        return;
+      }
+
+      document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
+    } catch (e) {
+      if (tentativasRestantes > 0) {
+        if (btn) btn.textContent = "Conectando ao servidor, aguarde...";
+        setTimeout(() => enviarComRetentativa(tentativasRestantes - 1), 3500);
+      } else {
+        alert("Erro ao conectar com o servidor. Aguarde alguns segundos e clique em enviar novamente.");
+        if (btn) {
+          btn.textContent = "Finalizar e enviar";
+          btn.disabled = false;
+        }
+      }
     }
-  }
+  };
+
+  enviarComRetentativa(2);
 }
 
 function loadStudentData(data) {
@@ -1112,7 +1136,6 @@ function setupCorrida(data) {
     const kmVal = ultimoReg?.km || '';
     const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
 
-    // CONTAGEM DE MINUTOS ROBUSTA COM PARSER DE SUPORTE A MAIS DE 1 HORA
     totalMin += parseTempoCardioMinutos(minVal);
     totalKm += parseFloat(kmVal) || 0;
 
@@ -2609,7 +2632,8 @@ function sendWhatsAppFeedback() {
 
   const nome = currentData ? (currentData.clientName || loggedUserCode) : loggedUserCode;
   const msg = `*MENSAGEM DE FEEDBACK — ALUNO*%0A%0A*Aluno:* ${nome}%0A*Relatório:*%0A${encodeURIComponent(text || 'Olá Jhonata, gostaria de tirar uma dúvida!')}`;
-  window.open(`https://wa.me/5551990169026?text=${msg}`, '_blank');
+  const wppUrl = 'https://' + 'wa.me/5551990169026?text=' + msg;
+  window.open(wppUrl, '_blank');
 }
 
 function logout() {
