@@ -194,24 +194,20 @@ function obterDiaSemanaNormalizado() {
   return dias[new Date().getDay()];
 }
 
+function obterDiaSemanaCurto() {
+  const dias = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sab'];
+  return dias[new Date().getDay()];
+}
+
 function obterNomeDiaSemanaFormatado() {
   const dias = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
   return dias[new Date().getDay()];
 }
 
-function calcularPaceTexto(kmNum, minNum) {
-  const km = parseFloat(kmNum) || 0;
-  const min = parseFloat(minNum) || 0;
-  if (km <= 0 || min <= 0) return "--'--\"";
-  const paceFloat = min / km;
-  const paceMin = Math.floor(paceFloat);
-  const paceSec = Math.round((paceFloat - paceMin) * 60);
-  return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
-}
-
 // CONVERSOR ROBUSTO DE TEMPO PARA SUPORTAR CARDIO SUPERIOR A 1 HORA (ex: 1h15min, 1h 10, 75 min, etc)
 function parseTempoCardioMinutos(tempoStr) {
   if (!tempoStr) return 0;
+  if (typeof tempoStr === 'number') return tempoStr;
   const str = String(tempoStr).toLowerCase().trim();
   let totalMinutos = 0;
   
@@ -222,9 +218,22 @@ function parseTempoCardioMinutos(tempoStr) {
   if (matchMin) totalMinutos += parseInt(matchMin[1], 10);
 
   if (!matchHoras && !matchMin) {
-    totalMinutos = parseInt(str.replace(/\D/g, ''), 10) || 0;
+    totalMinutos = parseFloat(str.replace(',', '.').replace(/[^\d.]/g, '')) || 0;
   }
   return totalMinutos;
+}
+
+function calcularPaceTexto(kmNum, minInput) {
+  const km = parseFloat(String(kmNum).replace(',', '.')) || 0;
+  const min = parseTempoCardioMinutos(minInput);
+  if (km <= 0 || min <= 0) return "--'--\"";
+  const paceFloat = min / km;
+  const paceMin = Math.floor(paceFloat);
+  const paceSec = Math.round((paceFloat - paceMin) * 60);
+  if (paceSec === 60) {
+    return `${paceMin + 1}'00"`;
+  }
+  return `${paceMin}'${paceSec < 10 ? '0' : ''}${paceSec}"`;
 }
 
 let restTimerInterval = null;
@@ -1116,6 +1125,7 @@ function setupCorrida(data) {
 
   const prescricao = data.prescricao_corrida || {};
   const registros = data.registros_corrida || data.corridas || {};
+  const diaHojeCurto = obterDiaSemanaCurto();
 
   const dias = [
     { key: 'seg', nome: 'Segunda-Feira' },
@@ -1133,18 +1143,37 @@ function setupCorrida(data) {
 
   dias.forEach(d => {
     const pData = prescricao[d.key] || {};
-    let treinoInstrucao = "Descanso ou treino livre";
-    
+    const ehHoje = d.key === diaHojeCurto;
+
+    let badgeIntensidade = '';
+    let pillsMeta = [];
+    let detalheTexto = 'Descanso ou cardio livre leve';
+
     if (typeof pData === 'object' && pData !== null) {
-      if (pData.desc || pData.km || pData.min) {
-        const infoKm = pData.km ? `${pData.km} km` : '';
-        const infoMin = pData.min ? `${pData.min} min` : '';
-        const infoInt = pData.intensidade ? `[${pData.intensidade}]` : '';
-        const detalhe = pData.desc || '';
-        treinoInstrucao = `${infoKm} ${infoMin} ${infoInt} - ${detalhe}`.trim();
+      const kmPresc = String(pData.km || '').trim();
+      const minPresc = String(pData.min || '').trim();
+      const intPresc = String(pData.intensidade || '').trim();
+      const descPresc = String(pData.desc || '').trim();
+
+      if (intPresc) {
+        badgeIntensidade = `<span style="background:rgba(220,170,58,0.15); border:1px solid var(--mark); color:var(--mark); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">⚡ ${escapeHtml(intPresc)}</span>`;
+      }
+      if (kmPresc && kmPresc !== '0') {
+        const kmFmt = kmPresc.toLowerCase().includes('km') ? kmPresc : `${kmPresc} km`;
+        pillsMeta.push(`📍 <b>${escapeHtml(kmFmt)}</b>`);
+      }
+      if (minPresc && minPresc !== '0') {
+        const minFmt = (minPresc.toLowerCase().includes('min') || minPresc.toLowerCase().includes('h')) ? minPresc : `${minPresc} min`;
+        pillsMeta.push(`⏱️ <b>${escapeHtml(minFmt)}</b>`);
+      }
+
+      if (descPresc) {
+        detalheTexto = escapeHtml(descPresc);
+      } else if (pillsMeta.length > 0 || intPresc) {
+        detalheTexto = 'Seguir meta de volume e zona prescrita acima.';
       }
     } else if (typeof pData === 'string' && pData.trim() !== '') {
-      treinoInstrucao = pData;
+      detalheTexto = escapeHtml(pData.trim());
     }
 
     const regDia = registros[d.key] || [];
@@ -1154,19 +1183,36 @@ function setupCorrida(data) {
     const minVal = ultimoReg?.min || ultimoReg?.minutos || '';
 
     totalMin += parseTempoCardioMinutos(minVal);
-    totalKm += parseFloat(kmVal) || 0;
+    totalKm += parseFloat(String(kmVal).replace(',', '.')) || 0;
 
     const paceDiaStr = (kmVal && minVal) ? calcularPaceTexto(kmVal, minVal) : "--'--\"";
 
     const card = document.createElement('div');
     card.className = 'run-item';
+    if (ehHoje) {
+      card.style.border = '1.5px solid var(--mark)';
+      card.style.boxShadow = '0 0 12px rgba(220, 170, 58, 0.12)';
+    }
+
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div class="run-day-title">${d.nome}</div>
-        <button type="button" onclick="abrirModalTrocaCardioNaHora('${d.key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); font-size:10.5px; padding:2px 6px; border-radius:4px; cursor:pointer;">🔄 Substituir</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="run-day-title">${d.nome}</div>
+          ${ehHoje ? `<span style="background:var(--mark); color:#1a0b02; font-size:9.5px; font-weight:900; padding:2px 6px; border-radius:4px;">📌 HOJE</span>` : ''}
+        </div>
+        <button type="button" onclick="abrirModalTrocaCardioNaHora('${d.key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); font-size:10.5px; padding:2px 7px; border-radius:4px; cursor:pointer;">🔄 Substituir</button>
       </div>
-      <div class="run-day-desc" style="margin-top:4px;">📋 <b>Orientação:</b> ${escapeHtml(treinoInstrucao)}</div>
-      <div style="display:flex; gap:6px; align-items:center; margin-top:8px;">
+
+      ${(pillsMeta.length > 0 || badgeIntensidade) ? `
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:6px;">
+          ${badgeIntensidade}
+          ${pillsMeta.map(p => `<span style="font-size:11.5px; color:var(--ink); background:var(--panel); border:1px solid var(--line); padding:2px 7px; border-radius:6px;">${p}</span>`).join('')}
+        </div>
+      ` : ''}
+
+      <div class="run-day-desc" style="margin-top:6px; line-height:1.45;">📋 <b>Treino:</b> ${detalheTexto}</div>
+
+      <div style="display:flex; gap:6px; align-items:center; margin-top:9px;">
         <input type="number" step="0.1" id="run_km_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Km (Ex: 5.0)" value="${escapeHtml(kmVal)}">
         <input type="text" id="run_min_${d.key}" class="input-field" style="font-size:12px; padding:6px; height:36px;" placeholder="Min ou 1h10" value="${escapeHtml(minVal)}">
         <button type="button" class="btn-login btn-blue" style="width:70px; min-height:36px; padding:0; font-size:11px; margin-top:0;" onclick="salvarRunDia('${d.key}')">Salvar</button>
@@ -1189,7 +1235,7 @@ function setupCorrida(data) {
       if (!Array.isArray(hDia)) hDia = [hDia];
 
       hDia.forEach((c) => {
-        const km = parseFloat(c.km) || 0;
+        const km = parseFloat(String(c.km || '0').replace(',', '.')) || 0;
         const minStr = c.min || c.minutos || '';
         const minParsed = parseTempoCardioMinutos(minStr);
         totalRegistros++;
@@ -1204,7 +1250,7 @@ function setupCorrida(data) {
             <span style="color:var(--blue); font-size:12px;">Pace: ${paceStr} /km</span>
           </div>
           <div style="font-size:11.5px; color:var(--ink-dim); margin-top:4px;">
-            ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${minStr}</b>` : 'Treino registrado'}
+            ${km > 0 ? `Distância: <b>${km} km</b> | Tempo: <b>${escapeHtml(String(minStr))}</b>` : (minStr ? `Tempo registrado: <b>${escapeHtml(String(minStr))}</b>` : 'Treino registrado')}
           </div>
         `;
         histContainer.appendChild(div);
@@ -1213,12 +1259,13 @@ function setupCorrida(data) {
   }
 
   if (totalRegistros === 0) {
-    histContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida realizada nas últimas 4 semanas.</div>`;
+    histContainer.innerHTML = `<div style="font-size:12px; color:var(--ink-dim); text-align:center; padding:14px;">Nenhuma corrida ou cardio registrado nesta semana.</div>`;
   }
 
-  document.getElementById('runTotalKm').textContent = `${totalKm.toFixed(1)} km`;
-  const paceMedioGlobal = calcularPaceTexto(totalKm, totalMin);
-  document.getElementById('runPaceMedio').textContent = paceMedioGlobal;
+  const elTotalKm = document.getElementById('runTotalKm');
+  const elPaceMedio = document.getElementById('runPaceMedio');
+  if (elTotalKm) elTotalKm.textContent = `${totalKm.toFixed(1)} km`;
+  if (elPaceMedio) elPaceMedio.textContent = calcularPaceTexto(totalKm, totalMin);
 }
 
 function setupWorkout(days) {
@@ -1562,7 +1609,6 @@ function renderRestDayActivities(day, dayIdx, container) {
     const rawSeries = String(ex.series || '').trim();
     const rawReps = String(ex.reps || '').trim();
 
-    // Verifica se tem séries/reps prescritas (ex: "Abdominal na Polia 3x8-10") ou se é atividade livre (ex: "Cardio Mais Longo")
     const matchSeriesInline = rawName.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
     const matchSeriesProp = rawSeries.match(/(\d+)/);
 
@@ -1581,7 +1627,6 @@ function renderRestDayActivities(day, dayIdx, container) {
 
     const exKeySanitized = sanitizeExKey(cleanTitle);
 
-    // Identifica ícone amigável baseado no nome da atividade
     const lowerTitle = cleanTitle.toLowerCase();
     let iconAtiv = '⚡';
     if (lowerTitle.includes('cardio') || lowerTitle.includes('esteira') || lowerTitle.includes('bike') || lowerTitle.includes('caminhada') || lowerTitle.includes('corrida')) {
@@ -1598,7 +1643,6 @@ function renderRestDayActivities(day, dayIdx, container) {
     div.className = `item ${isExDone ? 'exercise-done' : ''}`;
     div.style.cssText = "border-left: 3px solid var(--blue, #60a5fa);";
 
-    // CASO 1: Atividade livre sem séries (Ex: "Cardio Mais Longo", "Alongamento")
     if (!hasSeries || numSeries <= 0) {
       div.innerHTML = `
         <div class="item-header" style="margin-bottom:0;">
@@ -1616,7 +1660,6 @@ function renderRestDayActivities(day, dayIdx, container) {
       return;
     }
 
-    // CASO 2: Exercício extra localizado com séries (Ex: "Abdominal na Polia 3x8-10")
     let html = `
       <div class="item-header">
         <div>
@@ -1691,7 +1734,6 @@ function renderTreinoDetail() {
 
   const ehDescanso = isDayDescanso(day);
 
-  // Esconde cronômetros de musculação no Dia de Descanso para deixar a tela limpa
   const restWidget = document.getElementById('restTimerWidget');
   const workoutClock = document.getElementById('workoutTimerClock');
   const timerBox = workoutClock ? workoutClock.closest('.card, .panel, .timer-box, div') : null;
