@@ -335,17 +335,17 @@
           </div>
         </section>
 
-        <!-- ABA: CARDIO E CORRIDA (ATUALIZADA) -->
+        <!-- ABA: CARDIO E CORRIDA (TREINO + DIA DA SEMANA) -->
         <section id="secCorrida" class="tab-section hidden panel-card">
           <div class="panel-title">🏃 Prescrição de Cardio & Planilha de Corrida</div>
 
           <div class="tool-box-ia" style="margin-bottom:14px;">
-            <div class="tool-box-header">⚡ MONTAR SEMANA DE CARDIO & CORRIDA (AUXILIAR DO COACH)</div>
+            <div class="tool-box-header">⚡ MONTAR CARDIO POR TREINO & DIA (AUXILIAR DO COACH)</div>
             <p style="font-size:11.5px; color:var(--muted); margin-top:4px; margin-bottom:8px;">
-              Descreva a estratégia desejada (ex: "4x na semana 30 min esteira Z2 pós-treino" ou "Planilha 5km 3x/sem com tiros e longão").
+              Descreva o protocolo por divisão de treino e dia da semana (ex: "Upper Segunda: Caminhada Leve; Lower Terça: Bike 15 min; Off Quarta: Tiro 1 min correndo / 1 min andando — 45 min").
             </p>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <input type="text" id="aiCardioPromptAdmin" style="flex:1; min-width:220px;" placeholder="Ex: Cardio moderado Z2 pós-treino 4x/semana + longão sábado...">
+              <input type="text" id="aiCardioPromptAdmin" style="flex:1; min-width:220px;" placeholder="Ex: Upper Segunda Caminhada Leve, Lower Terça Bike 15min, Off Quarta Tiros 45min...">
               <button id="btnGerarCardioIA" class="btn btn-gold btn-lg" style="width:230px; min-width:230px;" onclick="gerarSemanaCardioIA()">⚡ GERAR VIA AUXILIAR</button>
             </div>
           </div>
@@ -355,77 +355,8 @@
             <textarea id="editCardioGuidelines" rows="2" placeholder="Ex: Manter FC entre 130-145 bpm (Zona 2). Realizar preferencialmente após o treino de musculação ou em horário separado..."></textarea>
           </div>
 
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-            <label style="margin:0; font-size:13px; font-weight:800; color:var(--gold);">📅 Planejamento Semanal Detalhado:</label>
-            <button type="button" class="btn btn-soft sm" onclick="['seg','ter','qua','qui','sex','sab','dom'].forEach(d=>{ ['km','min','int','desc'].forEach(f=>{ const el=document.getElementById('run_'+f+'_'+d); if(el) el.value=''; }); }); showToast('Campos semanais limpos.', 'info');">
-              🧹 Limpar Semana
-            </button>
-          </div>
-
-          <div class="run-schedule-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap:10px;">
-            <!-- SEGUNDA -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--gold);">
-              <div style="font-weight:800; color:var(--gold); font-size:11.5px; margin-bottom:6px;">SEGUNDA-FEIRA</div>
-              <input type="text" id="run_km_seg" placeholder="Distância (ex: 5.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_seg" placeholder="Tempo (ex: 30 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_seg" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_seg" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- TERÇA -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--gold);">
-              <div style="font-weight:800; color:var(--gold); font-size:11.5px; margin-bottom:6px;">TERÇA-FEIRA</div>
-              <input type="text" id="run_km_ter" placeholder="Distância (ex: 5.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_ter" placeholder="Tempo (ex: 30 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_ter" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_ter" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- QUARTA -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--gold);">
-              <div style="font-weight:800; color:var(--gold); font-size:11.5px; margin-bottom:6px;">QUARTA-FEIRA</div>
-              <input type="text" id="run_km_qua" placeholder="Distância (ex: 5.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_qua" placeholder="Tempo (ex: 30 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_qua" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_qua" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- QUINTA -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--gold);">
-              <div style="font-weight:800; color:var(--gold); font-size:11.5px; margin-bottom:6px;">QUINTA-FEIRA</div>
-              <input type="text" id="run_km_qui" placeholder="Distância (ex: 5.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_qui" placeholder="Tempo (ex: 30 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_qui" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_qui" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- SEXTA -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--gold);">
-              <div style="font-weight:800; color:var(--gold); font-size:11.5px; margin-bottom:6px;">SEXTA-FEIRA</div>
-              <input type="text" id="run_km_sex" placeholder="Distância (ex: 5.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_sex" placeholder="Tempo (ex: 30 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_sex" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_sex" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- SÁBADO -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--blue, #60a5fa);">
-              <div style="font-weight:800; color:var(--blue, #60a5fa); font-size:11.5px; margin-bottom:6px;">SÁBADO</div>
-              <input type="text" id="run_km_sab" placeholder="Distância (ex: 8.0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_sab" placeholder="Tempo (ex: 45 min)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_sab" placeholder="Zona / Intensidade" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_sab" rows="2" placeholder="Descrição do treino..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-
-            <!-- DOMINGO -->
-            <div class="content-box-inner" style="padding:10px; border-top:2px solid var(--blue, #60a5fa);">
-              <div style="font-weight:800; color:var(--blue, #60a5fa); font-size:11.5px; margin-bottom:6px;">DOMINGO</div>
-              <input type="text" id="run_km_dom" placeholder="Distância (ex: 0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_min_dom" placeholder="Tempo (ex: 0)" style="margin-bottom:5px; font-size:12px;">
-              <input type="text" id="run_int_dom" placeholder="Zona / OFF" style="margin-bottom:5px; font-size:12px;">
-              <textarea id="run_desc_dom" rows="2" placeholder="Descrição / Descanso..." style="font-size:11.5px; resize:vertical;"></textarea>
-            </div>
-          </div>
+          <!-- EDITOR DINÂMICO DE SESSÕES (TREINO + DIA DA SEMANA) -->
+          <div id="cardioSessoesBuilderContainer"></div>
 
           <button class="btn btn-lg full-width" style="margin-top:14px; background:linear-gradient(135deg, var(--green), #1fae55); color:#04210f; font-weight:800;" onclick="salvarPrescricaoCorridaSemanalAdmin()">
             💾 SALVAR PRESCRIÇÃO DE CARDIO & CORRIDA
