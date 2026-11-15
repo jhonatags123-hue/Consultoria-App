@@ -12,6 +12,7 @@ let activeDietAbaIndex = 0;
 let gifsDatabase = [];
 let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
 let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
+let cardioSessoesAdmin = [];   // Lista dinâmica de sessões de cardio (Treino + Dia)
 
 const TUTORIAL_IOS = 'https://' + 'youtube.com/shorts/AC3qVx1mglc';
 const TUTORIAL_ANDROID = 'https://' + 'youtube.com/shorts/Px4gUAlgR7w';
@@ -347,6 +348,7 @@ function switchTab(tab) {
     if (el) el.classList.remove('hidden');
     const tabBtn = document.getElementById('tab5');
     if (tabBtn) tabBtn.classList.add('active');
+    renderEditorSessoesCardioAdmin();
   } else if (tab === 'ergogenicos') {
     const el = document.getElementById('secErgogenicos');
     if (el) el.classList.remove('hidden');
@@ -1036,25 +1038,30 @@ function renderResumoVisaoGeral() {
   `;
 
   const diasNomes = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+  const sessoesResumo = Array.isArray(prescricao.sessoes) && prescricao.sessoes.length > 0
+    ? prescricao.sessoes
+    : Object.keys(diasNomes).map(d => prescricao[d] ? { ...prescricao[d], dia: d } : null).filter(Boolean);
+
   let temSemana = false;
-  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap:6px;">`;
-  Object.keys(diasNomes).forEach(d => {
-    const p = prescricao[d];
-    if (p && (p.km || p.min || p.intensidade || p.desc)) {
+  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:6px;">`;
+  sessoesResumo.forEach(p => {
+    if (p && (p.treino || p.km || p.min || p.intensidade || p.desc)) {
       temSemana = true;
       const ehOff = String(p.intensidade || p.desc || '').toLowerCase().includes('off') || String(p.desc || '').toLowerCase().includes('descanso');
       const minFmt = p.min ? (String(p.min).toLowerCase().includes('min') ? p.min : `${p.min} min`) : '';
       const kmFmt = p.km && String(p.km) !== '0' ? `${p.km} km` : '';
       const metricas = [kmFmt, minFmt].filter(Boolean).join(' • ');
+      const diaLabel = diasNomes[p.dia] || p.dia || '';
+      const tituloCabecalho = [p.treino, diaLabel].filter(Boolean).join(' • ');
 
       semanaHtml += `
         <div style="background:#0d0204; border:1px solid ${ehOff ? 'var(--border)' : 'rgba(96,165,250,0.35)'}; padding:7px 8px; border-radius:6px; font-size:11px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-            <b style="color:${ehOff ? 'var(--muted)' : 'var(--blue, #60a5fa)'};">${diasNomes[d]}</b>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; gap:4px;">
+            <b style="color:${ehOff ? 'var(--muted)' : 'var(--blue, #60a5fa)'};">${escapeHtml(tituloCabecalho || 'Sessão')}</b>
             ${p.intensidade ? `<span style="font-size:9.5px; font-weight:800; padding:1px 5px; border-radius:4px; background:${ehOff ? 'rgba(255,255,255,0.05)' : 'rgba(220,170,58,0.15)'}; color:${ehOff ? 'var(--muted)' : 'var(--gold)'};">${escapeHtml(p.intensidade)}</span>` : ''}
           </div>
           ${metricas ? `<div style="color:#fff; font-weight:700; margin-bottom:2px;">⏱️ ${escapeHtml(metricas)}</div>` : ''}
-          ${p.desc ? `<div style="color:var(--muted); line-height:1.3;">${escapeHtml(p.desc)}</div>` : ''}
+          ${p.desc ? `<div style="color:var(--muted); line-height:1.35;">${escapeHtml(p.desc)}</div>` : ''}
         </div>
       `;
     }
@@ -1121,31 +1128,225 @@ function toggleResumoAccordion(elementId) {
 }
 
 /* -------------------------------------------------------------
-   SEÇÃO CARDIO & CORRIDA (ATUALIZADA)
+   SEÇÃO CARDIO & CORRIDA (POR TREINO + DIA DA SEMANA)
 ------------------------------------------------------------- */
-function carregarCamposCorridaAdmin(prescricao) {
-  const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  const dados = prescricao || {};
+function garantirContainerEditorCardioAdmin() {
+  const secCorrida = document.getElementById('secCorrida');
+  if (!secCorrida) return null;
 
-  dias.forEach(d => {
-    const item = dados[d] || {};
-    const elKm = document.getElementById(`run_km_${d}`);
-    const elMin = document.getElementById(`run_min_${d}`);
-    const elInt = document.getElementById(`run_int_${d}`);
-    const elDesc = document.getElementById(`run_desc_${d}`);
-
-    if (typeof item === 'object' && item !== null) {
-      if (elKm) elKm.value = item.km ?? '';
-      if (elMin) elMin.value = item.min ?? item.minutos ?? '';
-      if (elInt) elInt.value = item.intensidade ?? item.zona ?? '';
-      if (elDesc) elDesc.value = item.desc ?? item.descricao ?? '';
-    } else {
-      if (elKm) elKm.value = '';
-      if (elMin) elMin.value = '';
-      if (elInt) elInt.value = '';
-      if (elDesc) elDesc.value = item ? String(item) : '';
+  let container = document.getElementById('cardioSessoesBuilderContainer');
+  if (!container) {
+    const legacyInput = document.getElementById('run_km_seg') || document.getElementById('run_desc_seg');
+    if (legacyInput) {
+      let parentGrid = legacyInput.parentElement;
+      while (parentGrid && parentGrid !== secCorrida && !parentGrid.querySelector('#run_desc_dom')) {
+        parentGrid = parentGrid.parentElement;
+      }
+      if (parentGrid && parentGrid !== secCorrida) {
+        parentGrid.style.display = 'none';
+        container = document.createElement('div');
+        container.id = 'cardioSessoesBuilderContainer';
+        parentGrid.parentNode.insertBefore(container, parentGrid);
+      }
     }
+  }
+
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'cardioSessoesBuilderContainer';
+    const historyEl = document.getElementById('adminRunHistoryList');
+    if (historyEl && historyEl.parentNode) {
+      historyEl.parentNode.insertBefore(container, historyEl);
+    } else {
+      secCorrida.appendChild(container);
+    }
+  }
+
+  return container;
+}
+
+function carregarCamposCorridaAdmin(prescricao) {
+  const dados = prescricao || {};
+  const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+
+  if (Array.isArray(dados.sessoes) && dados.sessoes.length > 0) {
+    cardioSessoesAdmin = dados.sessoes.map(s => ({
+      treino: s.treino || '',
+      dia: s.dia || 'seg',
+      km: s.km ?? '',
+      min: s.min ?? s.minutos ?? '',
+      intensidade: s.intensidade ?? s.zona ?? '',
+      desc: s.desc ?? s.descricao ?? ''
+    }));
+  } else {
+    const listaConvertida = [];
+    dias.forEach(d => {
+      const item = dados[d];
+      if (item && typeof item === 'object') {
+        if (item.treino || item.km || item.min || item.intensidade || item.desc) {
+          listaConvertida.push({
+            treino: item.treino || '',
+            dia: d,
+            km: item.km ?? '',
+            min: item.min ?? item.minutos ?? '',
+            intensidade: item.intensidade ?? item.zona ?? '',
+            desc: item.desc ?? item.descricao ?? ''
+          });
+        }
+      } else if (typeof item === 'string' && item.trim()) {
+        listaConvertida.push({
+          treino: '',
+          dia: d,
+          km: '',
+          min: '',
+          intensidade: '',
+          desc: item.trim()
+        });
+      }
+    });
+
+    if (listaConvertida.length > 0) {
+      cardioSessoesAdmin = listaConvertida;
+    } else {
+      cardioSessoesAdmin = [
+        { treino: 'Upper', dia: 'seg', km: '', min: '', intensidade: '', desc: '' },
+        { treino: 'Lower', dia: 'ter', km: '', min: '', intensidade: '', desc: '' },
+        { treino: 'Off', dia: 'qua', km: '', min: '', intensidade: '', desc: '' }
+      ];
+    }
+  }
+
+  renderEditorSessoesCardioAdmin();
+}
+
+function renderEditorSessoesCardioAdmin() {
+  const container = garantirContainerEditorCardioAdmin();
+  if (!container) return;
+
+  const opcoesDias = [
+    { val: 'seg', label: 'Segunda-feira' },
+    { val: 'ter', label: 'Terça-feira' },
+    { val: 'qua', label: 'Quarta-feira' },
+    { val: 'qui', label: 'Quinta-feira' },
+    { val: 'sex', label: 'Sexta-feira' },
+    { val: 'sab', label: 'Sábado' },
+    { val: 'dom', label: 'Domingo' }
+  ];
+
+  let cardsHtml = '';
+  cardioSessoesAdmin.forEach((s, idx) => {
+    const selectDiaOpts = opcoesDias.map(op =>
+      `<option value="${op.val}" ${s.dia === op.val ? 'selected' : ''}>${op.label}</option>`
+    ).join('');
+
+    cardsHtml += `
+      <div style="background:#0d0204; border:1px solid var(--border); border-left:3px solid var(--blue, #60a5fa); border-radius:10px; padding:12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:800; color:var(--gold); text-transform:uppercase;">🏃 Sessão #${idx + 1}</span>
+          <button type="button" onclick="removerSessaoCardioAdmin(${idx})" style="background:rgba(255,77,77,0.12); border:1px solid var(--accent); color:var(--accent); border-radius:6px; padding:3px 8px; font-size:10.5px; font-weight:700; cursor:pointer;">🗑️ Remover</button>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1.3fr 1fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Treino / Divisão (Ex: Upper, Lower, Off)</label>
+            <input type="text" value="${escapeHtml(s.treino)}" oninput="atualizarCampoSessaoCardio(${idx}, 'treino', this.value)" placeholder="Ex: Upper / Lower / Off" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Dia da Semana</label>
+            <select onchange="atualizarCampoSessaoCardio(${idx}, 'dia', this.value)" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px;">
+              ${selectDiaOpts}
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1.2fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Distância (km)</label>
+            <input type="text" value="${escapeHtml(s.km)}" oninput="atualizarCampoSessaoCardio(${idx}, 'km', this.value)" placeholder="Ex: 5 ou 0" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Tempo (min)</label>
+            <input type="text" value="${escapeHtml(s.min)}" oninput="atualizarCampoSessaoCardio(${idx}, 'min', this.value)" placeholder="Ex: 15 ou 45" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px;">
+          </div>
+          <div>
+            <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Intensidade / Zona</label>
+            <input type="text" value="${escapeHtml(s.intensidade)}" oninput="atualizarCampoSessaoCardio(${idx}, 'intensidade', this.value)" placeholder="Ex: Leve / Tiros / Z2" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px;">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block; font-size:10.5px; color:var(--muted); font-weight:700; margin-bottom:3px;">Protocolo / Descrição do Cardio</label>
+          <textarea rows="2" oninput="atualizarCampoSessaoCardio(${idx}, 'desc', this.value)" placeholder="Ex: Tiro 1 min correndo / 1 min andando — 45 min (5' aquece + 25' tiro + 10' caminhada)" style="width:100%; background:#140408; border:1px solid var(--border); color:#fff; padding:8px; border-radius:6px; font-size:12px; resize:vertical;">${escapeHtml(s.desc)}</textarea>
+        </div>
+      </div>
+    `;
   });
+
+  container.innerHTML = `
+    <div style="margin: 12px 0; padding: 12px; background: #100305; border: 1px solid var(--border); border-radius: 10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <div>
+          <div style="font-size:13px; font-weight:800; color:var(--blue, #60a5fa);">📅 Sessões de Cardio (Treino + Dia)</div>
+          <div style="font-size:11px; color:var(--muted);">Monte cada sessão vinculando o nome do treino e o dia da semana.</div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" onclick="puxarTreinosFichaParaCardio()" style="background:rgba(220,170,58,0.14); border:1px solid var(--gold); color:var(--gold); padding:6px 10px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">🔄 Puxar Treinos da Ficha</button>
+          <button type="button" onclick="adicionarSessaoCardioAdmin()" style="background:rgba(96,165,250,0.14); border:1px solid var(--blue, #60a5fa); color:var(--blue, #60a5fa); padding:6px 10px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">➕ Adicionar Sessão</button>
+        </div>
+      </div>
+      ${cardsHtml}
+    </div>
+  `;
+}
+
+function atualizarCampoSessaoCardio(idx, campo, valor) {
+  if (!cardioSessoesAdmin[idx]) return;
+  cardioSessoesAdmin[idx][campo] = valor;
+}
+
+function adicionarSessaoCardioAdmin() {
+  const ordemDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const proximoDia = ordemDias[cardioSessoesAdmin.length % ordemDias.length];
+  cardioSessoesAdmin.push({
+    treino: '',
+    dia: proximoDia,
+    km: '',
+    min: '',
+    intensidade: '',
+    desc: ''
+  });
+  renderEditorSessoesCardioAdmin();
+}
+
+function removerSessaoCardioAdmin(idx) {
+  if (cardioSessoesAdmin.length <= 1) {
+    cardioSessoesAdmin[0] = { treino: '', dia: 'seg', km: '', min: '', intensidade: '', desc: '' };
+  } else {
+    cardioSessoesAdmin.splice(idx, 1);
+  }
+  renderEditorSessoesCardioAdmin();
+}
+
+function puxarTreinosFichaParaCardio() {
+  if (!currentStudentData || !Array.isArray(currentStudentData.days) || currentStudentData.days.length === 0) {
+    return showToast("Este aluno ainda não tem treinos cadastrados na ficha.", "error");
+  }
+
+  const ordemDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  cardioSessoesAdmin = currentStudentData.days.map((day, idx) => {
+    const existente = cardioSessoesAdmin[idx] || {};
+    return {
+      treino: day.title || `Treino ${idx + 1}`,
+      dia: existente.dia || ordemDias[idx % ordemDias.length],
+      km: existente.km || '',
+      min: existente.min || '',
+      intensidade: existente.intensidade || '',
+      desc: existente.desc || ''
+    };
+  });
+
+  renderEditorSessoesCardioAdmin();
+  showToast("✅ Divisões da ficha importadas para o cardio!", "success");
 }
 
 async function gerarSemanaCardioIA() {
@@ -1161,6 +1362,8 @@ async function gerarSemanaCardioIA() {
     btn.disabled = true;
   }
 
+  const divisoesTreino = (currentStudentData?.days || []).map(d => d.title).join(', ');
+
   try {
     const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
       method: 'POST',
@@ -1168,27 +1371,24 @@ async function gerarSemanaCardioIA() {
       cache: 'no-cache',
       body: JSON.stringify({
         mensagem: `Você é um preparador físico especialista em fisiologia aeróbia, corrida de rua e prescrição de cardio para hipertrofia/emagrecimento.
-Monte um protocolo semanal de cardio dividido rigorosamente nas chaves: seg, ter, qua, qui, sex, sab, dom e escreva uma orientação geral prática (cardio_guidelines) considerando o objetivo, rotina e possíveis lesões do aluno no contexto.
-Solicitação do treinador: "${prompt || 'Cardio estratégico e equilibrado alinhado ao objetivo e nível do aluno'}".
+Monte um protocolo semanal de cardio dividido por TREINO + DIA DA SEMANA (ex: Upper na Segunda, Lower na Terça, Off na Quarta) e escreva uma orientação geral prática (cardio_guidelines).
+Divisões de treino atuais do aluno: ${divisoesTreino || 'Não informadas'}.
+Solicitação do treinador: "${prompt || 'Cardio estratégico e equilibrado alinhado aos treinos e objetivo do aluno'}".
 
 REGRAS OBRIGATÓRIAS:
 - Retorne ESTRITAMENTE um JSON válido, sem markdown, sem textos antes ou depois.
-- Use "0" em km e min nos dias de descanso (OFF).
-- Em "intensidade", use termos claros e curtos (ex: "Leve Z2", "Moderada", "HIIT / Tiros", "Ritmo / Tempo", "Longão Z2", "OFF").
-- Em "desc", seja objetivo e claro (ex: "25 min esteira inclinada (12%) em Z2" ou "1km aquec + 8x400m forte (1min pausa) + 1km desaquec").
+- Em "dia", use obrigatoriamente uma das chaves: "seg", "ter", "qua", "qui", "sex", "sab", "dom".
+- Em "treino", informe a sessão correspondente (ex: "Upper", "Lower", "Off", "Push", "Pull", "Legs").
+- Em "desc", descreva exatamente o protocolo (ex: "Caminhada Leve", "Bike 15 min", "Tiro 1 min correndo / 1 min andando — 45 min (5' aquece + 25' tiro + 10' caminhada)").
 
 Formato exato:
 {
   "cardio_guidelines": "Orientação geral clara sobre FC alvo, hidratação e horário ideal (ex: pós-treino ou turno separado).",
-  "semana": {
-    "seg": {"km": "0", "min": "25", "intensidade": "Leve Z2", "desc": "Esteira inclinada pós-treino"},
-    "ter": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km ritmo constante + 1km leve"},
-    "qua": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso total de cardio"},
-    "qui": {"km": "6.0", "min": "35", "intensidade": "HIIT / Tiros", "desc": "1km aquec + 10x400m forte (1min pausa) + 1km leve"},
-    "sex": {"km": "0", "min": "20", "intensidade": "Regenerativo", "desc": "Bike ergométrica leve"},
-    "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Corrida contínua em ritmo confortável"},
-    "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
-  }
+  "sessoes": [
+    {"treino": "Upper", "dia": "seg", "km": "0", "min": "20", "intensidade": "Leve", "desc": "Caminhada Leve pós-treino"},
+    {"treino": "Lower", "dia": "ter", "km": "0", "min": "15", "intensidade": "Moderada", "desc": "Bike 15 min"},
+    {"treino": "Off", "dia": "qua", "km": "0", "min": "45", "intensidade": "HIIT / Tiros", "desc": "Tiro 1 min correndo / 1 min andando — 45 min (5' aquece + 25' tiro + 10' caminhada)"}
+  ]
 }`,
         contexto: currentStudentData || {}
       })
@@ -1211,33 +1411,17 @@ Formato exato:
         elGuidelines.value = String(resCardio.cardio_guidelines || resCardio.orientacao).trim();
       }
 
-      const semana = resCardio.semana || resCardio;
-      const mapaDias = {
-        seg: ['seg', 'segunda'],
-        ter: ['ter', 'terca', 'terça'],
-        qua: ['qua', 'quarta'],
-        qui: ['qui', 'quinta'],
-        sex: ['sex', 'sexta'],
-        sab: ['sab', 'sabado', 'sábado'],
-        dom: ['dom', 'domingo']
-      };
-
-      Object.keys(mapaDias).forEach(d => {
-        const chaveEncontrada = mapaDias[d].find(k => semana[k]);
-        const diaObj = chaveEncontrada ? semana[chaveEncontrada] : null;
-
-        if (diaObj) {
-          const elKm = document.getElementById(`run_km_${d}`);
-          const elMin = document.getElementById(`run_min_${d}`);
-          const elInt = document.getElementById(`run_int_${d}`);
-          const elDesc = document.getElementById(`run_desc_${d}`);
-
-          if (elKm) elKm.value = diaObj.km !== undefined ? String(diaObj.km) : '';
-          if (elMin) elMin.value = diaObj.min !== undefined ? String(diaObj.min) : (diaObj.minutos !== undefined ? String(diaObj.minutos) : '');
-          if (elInt) elInt.value = diaObj.intensidade || diaObj.zona || '';
-          if (elDesc) elDesc.value = diaObj.desc || diaObj.descricao || '';
-        }
-      });
+      if (Array.isArray(resCardio.sessoes) && resCardio.sessoes.length > 0) {
+        cardioSessoesAdmin = resCardio.sessoes.map(s => ({
+          treino: s.treino || '',
+          dia: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].includes(s.dia) ? s.dia : 'seg',
+          km: s.km !== undefined ? String(s.km) : '',
+          min: s.min !== undefined ? String(s.min) : '',
+          intensidade: s.intensidade || '',
+          desc: s.desc || ''
+        }));
+        renderEditorSessoesCardioAdmin();
+      }
 
       showToast("✅ Protocolo de cardio montado! Clique em Salvar para publicar.", "success");
     } else {
@@ -1256,21 +1440,42 @@ Formato exato:
 async function salvarPrescricaoCorridaSemanalAdmin() {
   if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno.", "error");
 
+  const sessoesLimpas = cardioSessoesAdmin
+    .map(s => ({
+      treino: String(s.treino || '').trim(),
+      dia: String(s.dia || 'seg').trim(),
+      km: String(s.km || '').trim(),
+      min: String(s.min || '').trim(),
+      intensidade: String(s.intensidade || '').trim(),
+      desc: String(s.desc || '').trim()
+    }))
+    .filter(s => s.treino || s.km || s.min || s.intensidade || s.desc);
+
+  const prescricaoCompleta = {
+    sessoes: sessoesLimpas
+  };
+
+  // Mantém também o mapeamento por dia para retrocompatibilidade com o App do Aluno e Resumo
   const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  const prescricaoCompleta = {};
-
   dias.forEach(d => {
-    const elKm = document.getElementById(`run_km_${d}`);
-    const elMin = document.getElementById(`run_min_${d}`);
-    const elInt = document.getElementById(`run_int_${d}`);
-    const elDesc = document.getElementById(`run_desc_${d}`);
+    const sessoesDoDia = sessoesLimpas.filter(s => s.dia === d);
+    if (sessoesDoDia.length > 0) {
+      const primeira = sessoesDoDia[0];
+      const descCombinada = sessoesDoDia
+        .map(s => `${s.treino ? `[${s.treino}] ` : ''}${s.desc}`.trim())
+        .filter(Boolean)
+        .join(' | ');
 
-    prescricaoCompleta[d] = {
-      km: elKm ? elKm.value.trim() : '',
-      min: elMin ? elMin.value.trim() : '',
-      intensidade: elInt ? elInt.value.trim() : '',
-      desc: elDesc ? elDesc.value.trim() : ''
-    };
+      prescricaoCompleta[d] = {
+        treino: sessoesDoDia.map(s => s.treino).filter(Boolean).join(' + '),
+        km: primeira.km,
+        min: primeira.min,
+        intensidade: primeira.intensidade,
+        desc: descCombinada
+      };
+    } else {
+      prescricaoCompleta[d] = { treino: '', km: '', min: '', intensidade: '', desc: '' };
+    }
   });
 
   const elGuidelines = document.getElementById('editCardioGuidelines');
@@ -1281,7 +1486,7 @@ async function salvarPrescricaoCorridaSemanalAdmin() {
   currentStudentData.prescricao_cardio = guidelinesTexto;
 
   await salvarAlteracoes();
-  showToast("✅ Plano de cardio e prescrição salvos com sucesso!", "success");
+  showToast("✅ Plano de cardio por treino e dia salvo com sucesso!", "success");
 }
 
 function renderCorridaAdmin() {
@@ -1304,11 +1509,14 @@ function renderCorridaAdmin() {
 
     if (historicoDia.length > 0) {
       encontrouTreino = true;
+      const sessaoVinculada = cardioSessoesAdmin.find(s => s.dia === key && s.treino);
+      const tagTreino = sessaoVinculada ? ` (${escapeHtml(sessaoVinculada.treino)})` : '';
+
       const box = document.createElement('div');
       box.style.cssText = "background:#100305; border:1px solid var(--border); border-left:3px solid var(--blue, #60a5fa); padding:10px 12px; border-radius:8px; margin-bottom:8px; font-size:12px;";
 
       let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <b style="color:var(--blue, #60a5fa); font-size:12.5px;">🏃 ${nomesDias[key]}</b>
+        <b style="color:var(--blue, #60a5fa); font-size:12.5px;">🏃 ${nomesDias[key]}${tagTreino}</b>
         <span style="font-size:10.5px; color:var(--muted);">Últimos ${historicoDia.length} registro(s)</span>
       </div>`;
 
