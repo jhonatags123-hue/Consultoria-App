@@ -1029,25 +1029,42 @@ function renderResumoVisaoGeral() {
   let htmlCardio = "";
   const cardioGuidelines = currentStudentData.cardio_guidelines || currentStudentData.prescricao_cardio || '';
   const prescricao = currentStudentData.prescricao_corrida || {};
-  htmlCardio += `<div style="font-size:12px; margin-bottom:6px;"><b>📌 Orientação:</b> ${escapeHtml(cardioGuidelines || 'Sem diretrizes.')}</div>`;
+  htmlCardio += `
+    <div style="font-size:12px; margin-bottom:8px; padding:6px 8px; background:rgba(220,170,58,0.06); border-left:2px solid var(--gold); border-radius:4px;">
+      <b style="color:var(--gold);">📌 Diretriz Geral:</b> <span style="color:#fff;">${escapeHtml(cardioGuidelines || 'Sem diretrizes cadastradas.')}</span>
+    </div>
+  `;
 
   const diasNomes = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
   let temSemana = false;
-  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:6px;">`;
+  let semanaHtml = `<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap:6px;">`;
   Object.keys(diasNomes).forEach(d => {
     const p = prescricao[d];
-    if (p && (p.km || p.min || p.desc)) {
+    if (p && (p.km || p.min || p.intensidade || p.desc)) {
       temSemana = true;
+      const ehOff = String(p.intensidade || p.desc || '').toLowerCase().includes('off') || String(p.desc || '').toLowerCase().includes('descanso');
+      const minFmt = p.min ? (String(p.min).toLowerCase().includes('min') ? p.min : `${p.min} min`) : '';
+      const kmFmt = p.km && String(p.km) !== '0' ? `${p.km} km` : '';
+      const metricas = [kmFmt, minFmt].filter(Boolean).join(' • ');
+
       semanaHtml += `
-        <div style="background:#0d0204; border:1px solid var(--border); padding:6px; border-radius:6px; font-size:11px;">
-          <b style="color:var(--blue);">${diasNomes[d]}:</b> ${p.km ? p.km + 'km' : ''} ${p.min ? '| ' + p.min : ''}<br>
-          <span style="color:var(--muted);">${escapeHtml(p.desc || '')}</span>
+        <div style="background:#0d0204; border:1px solid ${ehOff ? 'var(--border)' : 'rgba(96,165,250,0.35)'}; padding:7px 8px; border-radius:6px; font-size:11px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+            <b style="color:${ehOff ? 'var(--muted)' : 'var(--blue, #60a5fa)'};">${diasNomes[d]}</b>
+            ${p.intensidade ? `<span style="font-size:9.5px; font-weight:800; padding:1px 5px; border-radius:4px; background:${ehOff ? 'rgba(255,255,255,0.05)' : 'rgba(220,170,58,0.15)'}; color:${ehOff ? 'var(--muted)' : 'var(--gold)'};">${escapeHtml(p.intensidade)}</span>` : ''}
+          </div>
+          ${metricas ? `<div style="color:#fff; font-weight:700; margin-bottom:2px;">⏱️ ${escapeHtml(metricas)}</div>` : ''}
+          ${p.desc ? `<div style="color:var(--muted); line-height:1.3;">${escapeHtml(p.desc)}</div>` : ''}
         </div>
       `;
     }
   });
   semanaHtml += `</div>`;
-  if (temSemana) htmlCardio += semanaHtml;
+  if (temSemana) {
+    htmlCardio += semanaHtml;
+  } else {
+    htmlCardio += `<p style="color:var(--muted); font-size:11.5px; margin-top:4px;">Nenhuma sessão semanal estruturada.</p>`;
+  }
 
   let htmlErgo = "";
   const protocoloTexto = currentStudentData.protocoloErgogenicos || currentStudentData.ergogenicos_texto || '';
@@ -1103,17 +1120,30 @@ function toggleResumoAccordion(elementId) {
   if (el) el.classList.toggle('hidden');
 }
 
+/* -------------------------------------------------------------
+   SEÇÃO CARDIO & CORRIDA (ATUALIZADA)
+------------------------------------------------------------- */
 function carregarCamposCorridaAdmin(prescricao) {
   const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const dados = prescricao || {};
+
   dias.forEach(d => {
-    const item = prescricao[d] || {};
-    if (typeof item === 'object') {
-      if (document.getElementById(`run_km_${d}`)) document.getElementById(`run_km_${d}`).value = item.km || '';
-      if (document.getElementById(`run_min_${d}`)) document.getElementById(`run_min_${d}`).value = item.min || '';
-      if (document.getElementById(`run_int_${d}`)) document.getElementById(`run_int_${d}`).value = item.intensidade || '';
-      if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = item.desc || '';
+    const item = dados[d] || {};
+    const elKm = document.getElementById(`run_km_${d}`);
+    const elMin = document.getElementById(`run_min_${d}`);
+    const elInt = document.getElementById(`run_int_${d}`);
+    const elDesc = document.getElementById(`run_desc_${d}`);
+
+    if (typeof item === 'object' && item !== null) {
+      if (elKm) elKm.value = item.km ?? '';
+      if (elMin) elMin.value = item.min ?? item.minutos ?? '';
+      if (elInt) elInt.value = item.intensidade ?? item.zona ?? '';
+      if (elDesc) elDesc.value = item.desc ?? item.descricao ?? '';
     } else {
-      if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = item;
+      if (elKm) elKm.value = '';
+      if (elMin) elMin.value = '';
+      if (elInt) elInt.value = '';
+      if (elDesc) elDesc.value = item ? String(item) : '';
     }
   });
 }
@@ -1121,12 +1151,15 @@ function carregarCamposCorridaAdmin(prescricao) {
 async function gerarSemanaCardioIA() {
   if (!currentStudentCode) return showToast("Selecione um aluno primeiro.", "error");
 
-  const prompt = document.getElementById('aiCardioPromptAdmin').value.trim();
+  const promptEl = document.getElementById('aiCardioPromptAdmin');
+  const prompt = promptEl ? promptEl.value.trim() : '';
   const btn = document.getElementById('btnGerarCardioIA');
-  const txtOriginal = btn.textContent;
+  const txtOriginal = btn ? btn.textContent : 'Gerar via IA';
 
-  btn.textContent = "⏳ IA Montando...";
-  btn.disabled = true;
+  if (btn) {
+    btn.textContent = "⏳ IA Montando Cardio...";
+    btn.disabled = true;
+  }
 
   try {
     const res = await fetch(`${BACKEND_URL}/api/admin/chat-ia`, {
@@ -1134,19 +1167,26 @@ async function gerarSemanaCardioIA() {
       headers: authHeaders(),
       cache: 'no-cache',
       body: JSON.stringify({
-        mensagem: `Você é um preparador físico especializado em cardio/corrida.
-Monte uma semana de cardio dividida por dias (seg, ter, qua, qui, sex, sab, dom) e adicione uma orientação geral de prescrição de cardio.
-Prompt do treinador: "${prompt || 'Cardio equilibrado focado no objetivo do aluno'}".
-Retorne ESTRITAMENTE um JSON puro no formato:
+        mensagem: `Você é um preparador físico especialista em fisiologia aeróbia, corrida de rua e prescrição de cardio para hipertrofia/emagrecimento.
+Monte um protocolo semanal de cardio dividido rigorosamente nas chaves: seg, ter, qua, qui, sex, sab, dom e escreva uma orientação geral prática (cardio_guidelines) considerando o objetivo, rotina e possíveis lesões do aluno no contexto.
+Solicitação do treinador: "${prompt || 'Cardio estratégico e equilibrado alinhado ao objetivo e nível do aluno'}".
+
+REGRAS OBRIGATÓRIAS:
+- Retorne ESTRITAMENTE um JSON válido, sem markdown, sem textos antes ou depois.
+- Use "0" em km e min nos dias de descanso (OFF).
+- Em "intensidade", use termos claros e curtos (ex: "Leve Z2", "Moderada", "HIIT / Tiros", "Ritmo / Tempo", "Longão Z2", "OFF").
+- Em "desc", seja objetivo e claro (ex: "25 min esteira inclinada (12%) em Z2" ou "1km aquec + 8x400m forte (1min pausa) + 1km desaquec").
+
+Formato exato:
 {
-  "cardio_guidelines": "Orientação geral de cardio",
+  "cardio_guidelines": "Orientação geral clara sobre FC alvo, hidratação e horário ideal (ex: pós-treino ou turno separado).",
   "semana": {
-    "seg": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km moderado + 1km leve"},
-    "ter": {"km": "0", "min": "20", "intensidade": "Leve", "desc": "Bike regenerativa"},
-    "qua": {"km": "6.0", "min": "35", "intensidade": "Tiros", "desc": "10x400m forte com 1min pausa"},
-    "qui": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso Total"},
-    "sex": {"km": "4.0", "min": "25", "intensidade": "Ritmo", "desc": "Pace constante"},
-    "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Manter ritmo confortável"},
+    "seg": {"km": "0", "min": "25", "intensidade": "Leve Z2", "desc": "Esteira inclinada pós-treino"},
+    "ter": {"km": "5.0", "min": "30", "intensidade": "Moderada", "desc": "1km leve + 3km ritmo constante + 1km leve"},
+    "qua": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso total de cardio"},
+    "qui": {"km": "6.0", "min": "35", "intensidade": "HIIT / Tiros", "desc": "1km aquec + 10x400m forte (1min pausa) + 1km leve"},
+    "sex": {"km": "0", "min": "20", "intensidade": "Regenerativo", "desc": "Bike ergométrica leve"},
+    "sab": {"km": "8.0", "min": "50", "intensidade": "Longão Z2", "desc": "Corrida contínua em ritmo confortável"},
     "dom": {"km": "0", "min": "0", "intensidade": "OFF", "desc": "Descanso"}
   }
 }`,
@@ -1158,58 +1198,162 @@ Retorne ESTRITAMENTE um JSON puro no formato:
     if (!res.ok) throw new Error(data.error || 'Falha ao processar resposta da IA.');
 
     if (data.resposta) {
-      let jsonClean = data.resposta.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonMatch = data.resposta.match(/\{[\s\S]*\}/);
+      const jsonClean = (jsonMatch ? jsonMatch[0] : data.resposta)
+        .replace(/```json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+
       const resCardio = JSON.parse(jsonClean);
 
-      if (resCardio.cardio_guidelines) {
-        document.getElementById('editCardioGuidelines').value = resCardio.cardio_guidelines;
+      const elGuidelines = document.getElementById('editCardioGuidelines');
+      if (elGuidelines && (resCardio.cardio_guidelines || resCardio.orientacao)) {
+        elGuidelines.value = String(resCardio.cardio_guidelines || resCardio.orientacao).trim();
       }
 
       const semana = resCardio.semana || resCardio;
-      const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-      dias.forEach(d => {
-        if (semana[d]) {
-          if (document.getElementById(`run_km_${d}`)) document.getElementById(`run_km_${d}`).value = semana[d].km || '';
-          if (document.getElementById(`run_min_${d}`)) document.getElementById(`run_min_${d}`).value = semana[d].min || '';
-          if (document.getElementById(`run_int_${d}`)) document.getElementById(`run_int_${d}`).value = semana[d].intensidade || '';
-          if (document.getElementById(`run_desc_${d}`)) document.getElementById(`run_desc_${d}`).value = semana[d].desc || '';
+      const mapaDias = {
+        seg: ['seg', 'segunda'],
+        ter: ['ter', 'terca', 'terça'],
+        qua: ['qua', 'quarta'],
+        qui: ['qui', 'quinta'],
+        sex: ['sex', 'sexta'],
+        sab: ['sab', 'sabado', 'sábado'],
+        dom: ['dom', 'domingo']
+      };
+
+      Object.keys(mapaDias).forEach(d => {
+        const chaveEncontrada = mapaDias[d].find(k => semana[k]);
+        const diaObj = chaveEncontrada ? semana[chaveEncontrada] : null;
+
+        if (diaObj) {
+          const elKm = document.getElementById(`run_km_${d}`);
+          const elMin = document.getElementById(`run_min_${d}`);
+          const elInt = document.getElementById(`run_int_${d}`);
+          const elDesc = document.getElementById(`run_desc_${d}`);
+
+          if (elKm) elKm.value = diaObj.km !== undefined ? String(diaObj.km) : '';
+          if (elMin) elMin.value = diaObj.min !== undefined ? String(diaObj.min) : (diaObj.minutos !== undefined ? String(diaObj.minutos) : '');
+          if (elInt) elInt.value = diaObj.intensidade || diaObj.zona || '';
+          if (elDesc) elDesc.value = diaObj.desc || diaObj.descricao || '';
         }
       });
 
-      showToast("Cardio e Prescrição gerados pela IA!", "success");
+      showToast("✅ Protocolo de cardio montado! Clique em Salvar para publicar.", "success");
     } else {
       showToast("Erro ao processar resposta da IA.", "error");
     }
   } catch (e) {
     showToast(`Erro IA Cardio: ${e.message}`, "error");
   } finally {
-    btn.textContent = txtOriginal;
-    btn.disabled = false;
+    if (btn) {
+      btn.textContent = txtOriginal;
+      btn.disabled = false;
+    }
   }
 }
 
-function salvarPrescricaoCorridaSemanalAdmin() {
+async function salvarPrescricaoCorridaSemanalAdmin() {
   if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno.", "error");
 
   const dias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
   const prescricaoCompleta = {};
 
   dias.forEach(d => {
+    const elKm = document.getElementById(`run_km_${d}`);
+    const elMin = document.getElementById(`run_min_${d}`);
+    const elInt = document.getElementById(`run_int_${d}`);
+    const elDesc = document.getElementById(`run_desc_${d}`);
+
     prescricaoCompleta[d] = {
-      km: document.getElementById(`run_km_${d}`).value.trim(),
-      min: document.getElementById(`run_min_${d}`).value.trim(),
-      intensidade: document.getElementById(`run_int_${d}`).value.trim(),
-      desc: document.getElementById(`run_desc_${d}`).value.trim()
+      km: elKm ? elKm.value.trim() : '',
+      min: elMin ? elMin.value.trim() : '',
+      intensidade: elInt ? elInt.value.trim() : '',
+      desc: elDesc ? elDesc.value.trim() : ''
     };
   });
 
-  currentStudentData.prescricao_corrida = prescricaoCompleta;
-  currentStudentData.cardio_guidelines = document.getElementById('editCardioGuidelines').value.trim();
+  const elGuidelines = document.getElementById('editCardioGuidelines');
+  const guidelinesTexto = elGuidelines ? elGuidelines.value.trim() : '';
 
-  salvarAlteracoes();
-  showToast("Plano de cardio e prescrição salvos!", "success");
+  currentStudentData.prescricao_corrida = prescricaoCompleta;
+  currentStudentData.cardio_guidelines = guidelinesTexto;
+  currentStudentData.prescricao_cardio = guidelinesTexto;
+
+  await salvarAlteracoes();
+  showToast("✅ Plano de cardio e prescrição salvos com sucesso!", "success");
 }
 
+function renderCorridaAdmin() {
+  const list = document.getElementById('adminRunHistoryList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const registros = (currentStudentData && currentStudentData.registros_corrida) || {};
+  const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
+  const nomesDias = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
+
+  let encontrouTreino = false;
+
+  keysDias.forEach(key => {
+    let historicoDia = registros[key];
+    if (!historicoDia) return;
+
+    if (!Array.isArray(historicoDia)) historicoDia = [historicoDia];
+    if (historicoDia.length > 4) historicoDia = historicoDia.slice(-4);
+
+    if (historicoDia.length > 0) {
+      encontrouTreino = true;
+      const box = document.createElement('div');
+      box.style.cssText = "background:#100305; border:1px solid var(--border); border-left:3px solid var(--blue, #60a5fa); padding:10px 12px; border-radius:8px; margin-bottom:8px; font-size:12px;";
+
+      let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <b style="color:var(--blue, #60a5fa); font-size:12.5px;">🏃 ${nomesDias[key]}</b>
+        <span style="font-size:10.5px; color:var(--muted);">Últimos ${historicoDia.length} registro(s)</span>
+      </div>`;
+
+      historicoDia.forEach((reg, i) => {
+        const dataStr = reg.data ? escapeHtml(reg.data) : 'Recente';
+        const modalidade = reg.modalidade ? ` (${escapeHtml(reg.modalidade)})` : '';
+        const kmStr = reg.km ? `${escapeHtml(reg.km)} km` : '';
+        const minStr = reg.min ? (String(reg.min).toLowerCase().includes('min') ? escapeHtml(reg.min) : `${escapeHtml(reg.min)} min`) : '';
+        const paceStr = reg.pace ? ` • Pace: ${escapeHtml(reg.pace)}` : '';
+        const obsStr = reg.obs || reg.observacao ? `<div style="color:var(--muted); font-size:11px; margin-top:2px;">💬 ${escapeHtml(reg.obs || reg.observacao)}</div>` : '';
+
+        let splitsHtml = '';
+        if (reg.splits && typeof reg.splits === 'object' && Object.keys(reg.splits).length > 0) {
+          const listaSplits = Object.entries(reg.splits)
+            .map(([kmKey, tempo]) => `<span style="background:rgba(96,165,250,0.12); color:#93c5fd; padding:2px 6px; border-radius:4px; font-size:10.5px; font-weight:700;">Km ${escapeHtml(kmKey)}: ${escapeHtml(tempo)}</span>`)
+            .join(' ');
+          splitsHtml = `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:4px;">${listaSplits}</div>`;
+        }
+
+        const resumoPrincipal = [kmStr, minStr].filter(Boolean).join(' em ');
+
+        html += `
+          <div style="margin-top:6px; padding-top:6px; border-top:1px dashed var(--border); color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+              <span>• <b style="color:var(--gold);">Sessão ${i + 1} (${dataStr})${modalidade}:</b> ${resumoPrincipal || 'Treino concluído'}${paceStr}</span>
+            </div>
+            ${splitsHtml}
+            ${obsStr}
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
+      list.appendChild(box);
+    }
+  });
+
+  if (!encontrouTreino) {
+    list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum registro de cardio/corrida enviado por este aluno ainda.</p>`;
+  }
+}
+
+/* -------------------------------------------------------------
+   SEÇÃO ERGOGÊNICOS & DIRETRIZES
+------------------------------------------------------------- */
 async function gerarProtocoloErgogenicosIA() {
   if (!currentStudentCode || !currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
 
@@ -1490,50 +1634,6 @@ async function gerarNovaSenhaAluno() {
     }
   } catch (e) {
     showToast("Erro ao conectar ao servidor.", "error");
-  }
-}
-
-function renderCorridaAdmin() {
-  const list = document.getElementById('adminRunHistoryList');
-  if (!list) return;
-  list.innerHTML = '';
-
-  const registros = (currentStudentData && currentStudentData.registros_corrida) || {};
-  const keysDias = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'];
-  const nomesDias = { seg: 'Segunda', ter: 'Terça', qua: 'Quarta', qui: 'Quinta', sex: 'Sexta', sab: 'Sábado', dom: 'Domingo' };
-
-  let encontrouTreino = false;
-
-  keysDias.forEach(key => {
-    let historicoDia = registros[key];
-    if (!historicoDia) return;
-
-    if (!Array.isArray(historicoDia)) historicoDia = [historicoDia];
-    if (historicoDia.length > 4) historicoDia = historicoDia.slice(-4);
-
-    if (historicoDia.length > 0) {
-      encontrouTreino = true;
-      const box = document.createElement('div');
-      box.style.cssText = "background:#100305; border:1px solid var(--border); border-left:3px solid var(--blue); padding:10px; border-radius:8px; margin-bottom:8px; font-size:12px;";
-
-      let html = `<b style="color:var(--blue); font-size:12px;">🏃 ${nomesDias[key]} (Últimos ${historicoDia.length} registros):</b><br>`;
-
-      historicoDia.forEach((reg, i) => {
-        if (reg.splits) {
-          const numKms = Object.keys(reg.splits).length;
-          html += `<div style="margin-top:4px; color:#fff;">• <b>Semana ${i+1} (${reg.data || 'Recente'}):</b> ${numKms} Kms fracionados inseridos</div>`;
-        } else if (reg.km || reg.min) {
-          html += `<div style="margin-top:4px; color:#fff;">• <b>Semana ${i+1} (${reg.data || 'Recente'}):</b> ${reg.km ? reg.km + ' km' : ''} ${reg.min ? 'em ' + reg.min : ''}</div>`;
-        }
-      });
-
-      box.innerHTML = html;
-      list.appendChild(box);
-    }
-  });
-
-  if (!encontrouTreino) {
-    list.innerHTML = `<p style="color:var(--muted); font-size:12px;">Nenhum registro de corrida encontrado para este aluno.</p>`;
   }
 }
 
