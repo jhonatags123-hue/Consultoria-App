@@ -573,8 +573,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         // Plano escolhido no site já vem selecionado (?plano=TREINO_ANUAL)
         const planoUrl = String(params.get('plano') || '').toUpperCase();
-        const planoEscolhido = PLANOS[planoUrl] ? planoUrl : (isApenasTreinoMode ? 'TREINO_ANUAL' : PLANO_PADRAO);
-        selectPlano.innerHTML = opcoesPlanosHtml(isApenasTreinoMode ? 'treino' : null, planoEscolhido);
+        if (PLANOS[planoUrl]) {
+          // Veio do site com plano escolhido: trava nesse plano (não dá para trocar na avaliação)
+          selectPlano.innerHTML = `<option value="${planoUrl}" selected>${PLANOS[planoUrl].nome}</option>`;
+          selectPlano.disabled = true;
+          selectPlano.style.opacity = '1';
+          selectPlano.style.cursor = 'default';
+        } else {
+          selectPlano.innerHTML = opcoesPlanosHtml(isApenasTreinoMode ? 'treino' : null, isApenasTreinoMode ? 'TREINO_ANUAL' : PLANO_PADRAO);
+        }
       }
     }
 
