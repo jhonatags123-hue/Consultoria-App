@@ -9,7 +9,9 @@ let lastGeneratedPassword = "123456";
 let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
-let gifsDatabase = [];
+let gifsDatabase = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS.slice() : [];
+const GOOGLE_APPS_SCRIPT_URL = 'https://' + 'script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec';
+let midiaModalExNome = '';     // Exercício cuja mídia está sendo escolhida no modal
 let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
 let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 let cardioSessoesAdmin = [];   // Lista dinâmica de sessões de cardio (Treino + Dia)
@@ -189,12 +191,20 @@ function carregarGifsAdmin() {
   fetch(`${BACKEND_URL}/api/exercicios/gifs`, { headers: authHeaders() })
     .then(res => res.json())
     .then(data => {
-      gifsDatabase = data || [];
+      const doServidor = (Array.isArray(data) ? data : [])
+        .filter(g => g && g.nome && typeof g.url === 'string' && /^https?:\/\//i.test(g.url) && !g.url.includes('...'));
+      const catalogo = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS : [];
+      // GIFs do servidor (seus) têm prioridade sobre o catálogo padrão
+      gifsDatabase = [...doServidor, ...catalogo];
       renderGifsAdmin(gifsDatabase);
+      if (currentStudentData) atualizarPreviewAoVivo();
+      const modal = document.getElementById('midiaModal');
+      if (modal && !modal.classList.contains('hidden')) { renderMidiaAtualModal(); filtrarMidiaModal(); }
     })
     .catch(() => {
-      const gallery = document.getElementById('gifGalleryList');
-      if (gallery) gallery.innerHTML = `<div style="color:var(--accent); font-size:12px; grid-column: 1/-1;">Não foi possível carregar a lista de GIFs.</div>`;
+      // Sem servidor: continua funcionando só com o catálogo padrão
+      gifsDatabase = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS.slice() : [];
+      renderGifsAdmin(gifsDatabase);
     });
 }
 
@@ -226,12 +236,372 @@ function filtrarGifsAdmin() {
   renderGifsAdmin(filtrados);
 }
 
-function buscarGifExercicio(nomeEx) {
-  if (!nomeEx || !gifsDatabase.length) return null;
-  const key = sanitizeExKey(nomeEx);
-  const ex = gifsDatabase.find(g => sanitizeExKey(g.nome) === key || key.includes(sanitizeExKey(g.nome)) || sanitizeExKey(g.nome).includes(key));
-  return ex ? ex.url : null;
+/* -------------------------------------------------------------
+   RECONHECIMENTO AUTOMÁTICO DO EXERCÍCIO (nome → GIF)
+------------------------------------------------------------- */
+const MIDIA_STOPWORDS = new Set(['com', 'de', 'da', 'do', 'das', 'dos', 'na', 'no', 'nas', 'nos', 'em', 'a', 'o', 'as', 'os', 'e', 'para', 'pra', 'c', 'p', 'ou', 'tipo', 'estilo', 'exercicio', 'variacao']);
+
+// Expressões de várias palavras que viram um termo só (aplicadas antes de separar as palavras)
+const MIDIA_FRASES = [
+  [/leg\s*press/g, 'legpress'],
+  [/peck\s*deck|pec\s*deck|peckdeck|voador|fly\s*maquina|crucifixo\s*maquina|crucifixo\s*no\s*voador/g, 'crucifixo maquina'],
+  [/cross\s*over/g, 'crossover'],
+  [/pull\s*down/g, 'puxada'],
+  [/pull\s*over/g, 'pullover'],
+  [/face\s*pull/g, 'facepull'],
+  [/hack\s*squat|hack/g, 'hack'],
+  [/agachamento\s*bulgaro|bulgaro/g, 'bulgaro'],
+  [/levantamento\s*terra|deadlift/g, 'terra'],
+  [/stiff|sldl|rdl|romeno/g, 'stiff'],
+  [/mesa\s*flexora|flexora\s*deitad[oa]|flexora\s*mesa/g, 'flexora mesa'],
+  [/cadeira\s*flexora/g, 'flexora cadeira'],
+  [/cadeira\s*extensora|extensora/g, 'extensora'],
+  [/cadeira\s*abdutora|abdutora|abducao/g, 'abdutora'],
+  [/cadeira\s*adutora|adutora|aducao/g, 'adutora'],
+  [/elevacao\s*pelvica|hip\s*thrust/g, 'pelvica'],
+  [/triceps\s*testa|testa/g, 'testa triceps'],
+  [/triceps\s*frances|frances/g, 'frances triceps'],
+  [/remada\s*cavalinho|cavalinho|t\s*bar/g, 'cavalinho remada'],
+  [/barra\s*fixa|pull\s*up|chin\s*up/g, 'barrafixa'],
+  [/paralelas?|dips?/g, 'paralela'],
+  [/w\s*\/?\s*ez|barra\s*w\b|barra\s*ez\b|\bw\b|\bez\b/g, 'barraw'],
+  [/serrote/g, 'remada unilateral halter serrote']
+];
+
+// Sinônimos de uma palavra → termo padrão
+const MIDIA_SINONIMOS = {
+  halteres: 'halter', halter: 'halter', haltere: 'halter', dumbbell: 'halter', db: 'halter',
+  maq: 'maquina', maquina: 'maquina', aparelho: 'maquina', articulado: 'maquina', articulada: 'maquina',
+  polia: 'polia', cabo: 'polia', cabos: 'polia', crossover: 'polia', cross: 'polia',
+  puxador: 'puxada', puxada: 'puxada', pulley: 'puxada',
+  desenv: 'desenvolvimento', desenvolvimento: 'desenvolvimento',
+  incl: 'inclinado', inclinado: 'inclinado', inclinada: 'inclinado',
+  decl: 'declinado', declinado: 'declinado', declinada: 'declinado',
+  reto: 'reto', reta: 'reto', horizontal: 'reto', plano: 'reto',
+  unil: 'unilateral', unilateral: 'unilateral',
+  smith: 'smith', guiado: 'smith', guiada: 'smith',
+  agacho: 'agachamento', agachamento: 'agachamento', squat: 'agachamento',
+  abd: 'abdominal', abdomen: 'abdominal', abdominal: 'abdominal', abs: 'abdominal',
+  gemeos: 'panturrilha', panturrilha: 'panturrilha', calf: 'panturrilha',
+  fly: 'crucifixo', crucifixo: 'crucifixo',
+  voador: 'voador', tricep: 'triceps', triceps: 'triceps', bicep: 'biceps', biceps: 'biceps',
+  elev: 'elevacao', elevacao: 'elevacao', lateral: 'lateral', laterais: 'lateral',
+  frontal: 'frontal', frente: 'frente', pronada: 'pronada', supinada: 'supinada',
+  aberto: 'aberto', aberta: 'aberto', fechado: 'fechado', fechada: 'fechado',
+  corda: 'corda', banco: 'banco', sentado: 'sentado', sentada: 'sentado', pe: 'pe', deitado: 'deitado', deitada: 'deitado'
+};
+
+// "Supino Inclinado Máquina/Halter" → ["Supino Inclinado Máquina", "Supino Inclinado Halter"]
+function alternativasDoExercicio(nome) {
+  const limpo = String(nome || '').replace(/\b([cspCSP])\//g, '$1 '); // ignora "c/", "s/", "p/"
+  if (!limpo.includes('/')) return [];
+  const partes = limpo.split('/').map(p => p.trim()).filter(Boolean);
+  if (partes.length < 2) return [];
+  const base = partes[0].split(/\s+/);
+  const lista = [{ nome: partes[0], rotulo: '' }];
+  partes.slice(1).forEach(p => {
+    const palavras = p.split(/\s+/);
+    if (palavras.length < base.length) {
+      lista.push({ nome: base.slice(0, base.length - palavras.length).concat(palavras).join(' '), rotulo: p });
+      if (!lista[0].rotulo) lista[0].rotulo = base.slice(base.length - palavras.length).join(' ');
+    } else {
+      lista.push({ nome: p, rotulo: p });
+    }
+  });
+  if (!lista[0].rotulo) lista[0].rotulo = partes[0];
+  return lista;
 }
+
+function tokensExercicio(nome) {
+  let t = String(nome || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  t = t.replace(/[()\[\]]/g, ' ');
+  MIDIA_FRASES.forEach(([re, rep]) => { t = t.replace(re, ` ${rep} `); });
+  const tokens = new Set();
+  t.split(/[^a-z0-9]+/).forEach(w => {
+    if (!w || MIDIA_STOPWORDS.has(w)) return;
+    let termo = MIDIA_SINONIMOS[w];
+    if (!termo) {
+      // plural simples: "remadas" → "remada"
+      termo = (w.length > 4 && w.endsWith('s') && MIDIA_SINONIMOS[w.slice(0, -1)]) || (w.length > 4 && w.endsWith('s') ? w.slice(0, -1) : w);
+      termo = MIDIA_SINONIMOS[termo] || termo;
+    }
+    tokens.add(termo);
+  });
+  return tokens;
+}
+
+// Nota de 0 a 1 de quão parecidos são dois nomes de exercício
+function similaridadeExercicio(tokA, tokB) {
+  if (!tokA.size || !tokB.size) return 0;
+  let comuns = 0;
+  tokA.forEach(t => { if (tokB.has(t)) comuns++; });
+  if (!comuns) return 0;
+  return (2 * comuns) / (tokA.size + tokB.size);
+}
+
+// Mídias que o treinador já escolheu manualmente (valem para todos os alunos)
+function obterMidiaAprendida() {
+  const mapa = {};
+  (allStudentsList || []).forEach(a => {
+    const m = a && (a.midia_exercicios || (a.payload && a.payload.midia_exercicios));
+    if (m && typeof m === 'object') Object.keys(m).forEach(k => { if (m[k]) mapa[k] = m[k]; });
+  });
+  try {
+    const local = JSON.parse(localStorage.getItem('midia_aprendida') || '{}');
+    Object.keys(local).forEach(k => { if (local[k]) mapa[k] = local[k]; });
+  } catch (e) {}
+  return mapa;
+}
+
+function aprenderMidia(nomeEx, url) {
+  if (!nomeEx || !url) return;
+  try {
+    const local = JSON.parse(localStorage.getItem('midia_aprendida') || '{}');
+    local[sanitizeExKey(nomeEx)] = url;
+    localStorage.setItem('midia_aprendida', JSON.stringify(local));
+  } catch (e) {}
+}
+
+function buscarGifExercicio(nomeEx) {
+  if (!nomeEx) return null;
+  const key = sanitizeExKey(nomeEx);
+
+  // 1º: o que você já escolheu antes para esse exercício (qualquer aluno)
+  const aprendida = obterMidiaAprendida()[key];
+  if (aprendida) return aprendida;
+
+  if (!gifsDatabase.length) return null;
+
+  // 2º: nome idêntico no repositório
+  const exato = gifsDatabase.find(g => sanitizeExKey(g.nome) === key);
+  if (exato) return exato.url;
+
+  // 3º: nome parecido (entende sinônimos, abreviações, plural e ordem das palavras)
+  const tokEx = tokensExercicio(nomeEx);
+  let melhor = null;
+  let melhorNota = 0;
+  gifsDatabase.forEach(g => {
+    if (!g._tokens) g._tokens = tokensExercicio(g.nome);
+    let nota = similaridadeExercicio(tokEx, g._tokens);
+    // bônus se todas as palavras do GIF estão no nome digitado (ex.: GIF "Supino Reto" para "Supino reto pegada aberta")
+    let todas = true;
+    g._tokens.forEach(t => { if (!tokEx.has(t)) todas = false; });
+    if (todas) nota += 0.15;
+    if (nota > melhorNota) { melhorNota = nota; melhor = g; }
+  });
+  return melhor && melhorNota >= 0.6 ? melhor.url : null;
+}
+
+/* -------------------------------------------------------------
+   MÍDIA DOS EXERCÍCIOS (GIF / FOTO / VÍDEO DO EQUIPAMENTO)
+------------------------------------------------------------- */
+// Converte links de compartilhamento do Google Drive em link direto de imagem
+function normalizarUrlMidia(url) {
+  if (!url) return '';
+  const u = String(url).trim();
+  if (/drive\.google\.com|docs\.google\.com/i.test(u)) {
+    const m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+  }
+  return u;
+}
+
+function isVideoUrl(url) {
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || ''));
+}
+
+// Imagens do catálogo têm 2 fotos (início/fim): .../0.jpg e .../1.jpg
+function segundaFotoCatalogo(url) {
+  const u = String(url || '');
+  return /free-exercise-db.*\/0\.jpg$/i.test(u) ? u.replace(/0\.jpg$/i, '1.jpg') : '';
+}
+
+function midiaHtml(url, estilo = '', animar = false) {
+  const safe = escapeHtml(url);
+  const foto2 = animar ? segundaFotoCatalogo(url) : '';
+  if (foto2) {
+    return `<span class="midia-anim" style="display:block; position:relative; ${estilo}">
+      <img src="${safe}" alt="Início do movimento" loading="lazy" style="${estilo}">
+      <img src="${escapeHtml(foto2)}" alt="Fim do movimento" loading="lazy" class="midia-anim-2" style="${estilo}">
+    </span>`;
+  }
+  if (isVideoUrl(url)) {
+    return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
+  }
+  return `<img src="${safe}" alt="Mídia do exercício" loading="lazy" style="${estilo}">`;
+}
+
+// Mapa de mídias escolhidas manualmente pelo treinador, por aluno (chave = nome sanitizado)
+// Valor '' significa "sem mídia" (desativa o GIF automático).
+function obterMidiaOverrides() {
+  if (!currentStudentData) return null;
+  if (!currentStudentData.midia_exercicios || typeof currentStudentData.midia_exercicios !== 'object') {
+    currentStudentData.midia_exercicios = {};
+  }
+  return currentStudentData.midia_exercicios;
+}
+
+// Mídias já salvas na ficha atual (evita perder GIFs se o repositório não carregar)
+function obterMidiasAnteriores() {
+  const mapa = {};
+  if (!currentStudentData || !Array.isArray(currentStudentData.days)) return mapa;
+  currentStudentData.days.forEach(d => (d.exercicios || []).forEach(ex => {
+    if (ex && ex.gifUrl) mapa[sanitizeExKey(ex.nome)] = ex.gifUrl;
+  }));
+  return mapa;
+}
+
+function midiaAtualDoExercicio(nomeEx) {
+  const key = sanitizeExKey(nomeEx);
+  const overrides = obterMidiaOverrides() || {};
+  if (Object.prototype.hasOwnProperty.call(overrides, key)) return { url: overrides[key], origem: 'manual' };
+  const aprendida = obterMidiaAprendida()[key];
+  if (aprendida) return { url: aprendida, origem: 'aprendida' };
+  const auto = buscarGifExercicio(nomeEx);
+  if (auto) return { url: auto, origem: 'auto' };
+  const anterior = obterMidiasAnteriores()[key];
+  if (anterior) return { url: anterior, origem: 'salva' };
+  return { url: '', origem: 'nenhuma' };
+}
+
+window.abrirSeletorMidia = function(nomeEx) {
+  if (!currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+  const modal = document.getElementById('midiaModal');
+  if (!modal) return;
+  midiaModalExNome = nomeEx;
+  document.getElementById('midiaModalExName').textContent = nomeEx;
+  document.getElementById('midiaUrlInput').value = '';
+  document.getElementById('midiaSearchInput').value = nomeEx;
+  const fileInput = document.getElementById('midiaFileInput');
+  if (fileInput) fileInput.value = '';
+  if (!gifsDatabase.length) carregarGifsAdmin();
+  renderMidiaAtualModal();
+  filtrarMidiaModal();
+  modal.classList.remove('hidden');
+};
+
+window.fecharSeletorMidia = function() {
+  const modal = document.getElementById('midiaModal');
+  if (modal) modal.classList.add('hidden');
+  midiaModalExNome = '';
+};
+
+function renderMidiaAtualModal() {
+  const box = document.getElementById('midiaAtualPreview');
+  if (!box) return;
+  const { url, origem } = midiaAtualDoExercicio(midiaModalExNome);
+  const rotulos = {
+    manual: '✅ Escolhida por você',
+    auto: '🤖 Reconhecida automaticamente pelo nome',
+    aprendida: '🧠 Automática (você escolheu antes para outro aluno)',
+    salva: '💾 Salva anteriormente',
+    nenhuma: ''
+  };
+  if (!url) {
+    box.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:14px; text-align:center;">${origem === 'manual' ? '🚫 Sem mídia (desativada para este exercício)' : 'Nenhuma mídia para este exercício.'}</div>`;
+    return;
+  }
+  box.innerHTML = `
+    ${midiaHtml(url, 'width:100%; max-height:220px; object-fit:contain; border-radius:8px; background:#000;', true)}
+    <div style="font-size:11px; color:var(--gold); margin-top:6px; font-weight:700;">${rotulos[origem]}</div>
+  `;
+}
+
+function aplicarMidiaExercicio(valor) {
+  const overrides = obterMidiaOverrides();
+  if (!overrides || !midiaModalExNome) return;
+  const key = sanitizeExKey(midiaModalExNome);
+  if (valor === null) {
+    delete overrides[key]; // volta para o automático
+  } else {
+    overrides[key] = valor;
+    aprenderMidia(midiaModalExNome, valor); // próximos alunos recebem essa mídia automaticamente
+  }
+  renderMidiaAtualModal();
+  atualizarPreviewAoVivo();
+  showToast("Mídia atualizada. Clique em salvar o treino para enviar ao aluno.", "info");
+}
+
+window.selecionarMidiaRepositorio = function(idx) {
+  const item = gifsDatabase[idx];
+  if (item) aplicarMidiaExercicio(item.url);
+};
+
+window.usarLinkMidia = function() {
+  const input = document.getElementById('midiaUrlInput');
+  const url = normalizarUrlMidia(input ? input.value : '');
+  if (!/^https?:\/\//i.test(url)) return showToast("Cole um link válido (começando com http).", "error");
+  aplicarMidiaExercicio(url);
+  input.value = '';
+};
+
+window.removerMidiaExercicio = function() { aplicarMidiaExercicio(''); };
+window.midiaAutomaticaExercicio = function() { aplicarMidiaExercicio(null); };
+
+window.filtrarMidiaModal = function() {
+  const grid = document.getElementById('midiaGrid');
+  if (!grid) return;
+  const termo = sanitizeExKey(document.getElementById('midiaSearchInput').value || '');
+  const lista = gifsDatabase
+    .map((g, idx) => ({ ...g, idx }))
+    .filter(g => !termo || termo === 'ex' || sanitizeExKey(g.nome).includes(termo) || termo.includes(sanitizeExKey(g.nome)))
+    .slice(0, 60);
+
+  if (!gifsDatabase.length) {
+    grid.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column:1/-1;">Carregando repositório... (se não carregar, use um link ou envie uma foto)</div>`;
+    return;
+  }
+  if (!lista.length) {
+    grid.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column:1/-1;">Nenhum GIF encontrado. Tente outro termo, cole um link ou envie uma foto.</div>`;
+    return;
+  }
+  grid.innerHTML = lista.map(g => `
+    <div class="gif-card" style="cursor:pointer;" onclick="selecionarMidiaRepositorio(${g.idx})">
+      <img src="${escapeHtml(g.url)}" alt="${escapeHtml(g.nome)}" loading="lazy">
+      <span>${escapeHtml(g.nome)}</span>
+    </div>
+  `).join('');
+};
+
+window.enviarFotoMidia = async function(inputEl) {
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) return;
+  if (file.size > 15 * 1024 * 1024) {
+    inputEl.value = '';
+    return showToast("Arquivo muito grande (máx. 15 MB).", "error");
+  }
+  const status = document.getElementById('midiaUploadStatus');
+  if (status) status.textContent = '⏳ Enviando para o Google Drive...';
+
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const res = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        nome: 'EQUIPAMENTOS',
+        fileName: `Equip_${sanitizeExKey(midiaModalExNome)}_${Date.now()}.${ext}`,
+        mimeType: file.type,
+        fileData: base64
+      })
+    });
+    const result = await res.json();
+    if (!result.success || !result.url) throw new Error(result.error || 'sem URL');
+    aplicarMidiaExercicio(normalizarUrlMidia(result.url));
+    if (status) status.textContent = '✅ Foto enviada! Confira se aparece na prévia acima.';
+  } catch (e) {
+    console.error('Erro ao enviar mídia:', e);
+    if (status) status.textContent = '❌ Falha ao enviar. Tente colar um link da imagem.';
+    showToast("Falha ao enviar a foto.", "error");
+  } finally {
+    inputEl.value = '';
+  }
+};
 
 function atualizarCampoNotasMemoria() {
   if (currentStudentData) {
@@ -1785,7 +2155,8 @@ function salvarTreinoEditado() {
   const raw = document.getElementById('liveWorkoutText').value;
   const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
 
-  currentStudentData.days = parseWorkoutText(raw);
+  const midiaCtx = { overrides: obterMidiaOverrides(), anteriores: obterMidiasAnteriores() };
+  currentStudentData.days = parseWorkoutText(raw, midiaCtx);
   currentStudentData.trainer_guidelines = guidelinesText;
 
   salvarAlteracoes('workout');
@@ -2231,9 +2602,22 @@ function atualizarPreviewAoVivo() {
   if (!tx || !container) return;
 
   const raw = tx.value;
-  const parsedDays = parseWorkoutText(raw);
+  const midiaCtx = currentStudentData ? { overrides: obterMidiaOverrides(), anteriores: obterMidiasAnteriores() } : null;
+  const parsedDays = parseWorkoutText(raw, midiaCtx);
 
   container.innerHTML = "";
+  let totalEx = 0, comMidia = 0;
+  parsedDays.forEach(d => {
+    if (d.isDescanso || /descanso|off|recovery/i.test(d.title)) return;
+    (d.exercicios || []).forEach(ex => { totalEx++; if (ex.gifUrl) comMidia++; });
+  });
+  if (totalEx > 0) {
+    const faltam = totalEx - comMidia;
+    container.innerHTML = `<div style="font-size:12px; margin-bottom:10px; padding:8px 10px; border-radius:8px; background:${faltam ? 'rgba(220,170,58,0.08)' : 'rgba(34,197,94,0.08)'}; border:1px solid ${faltam ? 'var(--gold)' : 'var(--green)'}; color:#fff;">
+      🎥 <b>${comMidia}/${totalEx}</b> exercícios com GIF/foto automático.
+      ${faltam ? `Toque no <b>➕</b> ${faltam === 1 ? 'do exercício restante' : `dos ${faltam} restantes`} para escolher (só precisa fazer uma vez — depois o sistema lembra para todos os alunos).` : 'Tudo certo!'}
+    </div>`;
+  }
   if (parsedDays.length === 0) {
     container.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhum treino reconhecido. Digite divisões claras.</div>`;
     return;
@@ -2254,7 +2638,12 @@ function atualizarPreviewAoVivo() {
         html += `<div style="font-size:12px; margin-top:4px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
       } else {
         const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
-        const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
+        const midiaBtn = `
+          <button type="button" data-ex="${escapeHtml(ex.nome)}" onclick="event.stopPropagation(); abrirSeletorMidia(this.dataset.ex)"
+                  title="${ex.gifUrl ? 'Trocar GIF/foto do equipamento' : 'Adicionar GIF/foto do equipamento'}"
+                  style="flex-shrink:0; width:34px; height:34px; padding:0; border-radius:6px; overflow:hidden; cursor:pointer; background:#0d0204; border:1px solid ${ex.gifUrl ? 'var(--green)' : 'var(--border)'}; color:var(--muted); font-size:14px;">
+            ${ex.gifUrl ? midiaHtml(ex.gifUrl, 'width:100%; height:100%; object-fit:cover;') : '➕'}
+          </button>`;
         
         const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
         const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
@@ -2264,8 +2653,8 @@ function atualizarPreviewAoVivo() {
           <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
                style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
                title="Clique para ver evolução de cargas">
-            <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
-            <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+            <span style="display:flex; align-items:center; gap:8px; min-width:0;">${midiaBtn}<span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${ex.midias && ex.midias.length > 1 ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 ${ex.midias.length} opções</span>` : ''}</span></span>
+            <span style="color:var(--muted); font-weight:700; text-align:right;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
           </div>
         `;
       }
@@ -2834,7 +3223,8 @@ async function salvarAlteracoes(tipoLimpezaRascunho = null) {
   }
 }
 
-function parseWorkoutText(rawText) {
+function parseWorkoutText(rawText, midiaCtx = null) {
+  // midiaCtx = { overrides, anteriores } — mídias escolhidas/salvas do aluno atual
   if (!rawText || !rawText.trim()) return [];
 
   const lines = rawText.split('\n');
@@ -3010,8 +3400,26 @@ function parseWorkoutText(rawText) {
         }
       }
 
-      const foundGifUrl = buscarGifExercicio(exObj.nome);
-      if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+      const keyMidia = sanitizeExKey(exObj.nome);
+      const overrides = (midiaCtx && midiaCtx.overrides) || {};
+      if (Object.prototype.hasOwnProperty.call(overrides, keyMidia)) {
+        if (overrides[keyMidia]) exObj.gifUrl = overrides[keyMidia];
+      } else {
+        // Exercício com opções ("Máquina/Halter"): uma mídia para cada opção
+        const alternativas = alternativasDoExercicio(exObj.nome);
+        const opcoes = [];
+        alternativas.forEach(alt => {
+          const url = buscarGifExercicio(alt.nome);
+          if (url && !opcoes.some(o => o.url === url)) opcoes.push({ rotulo: alt.rotulo, url });
+        });
+        if (opcoes.length >= 2) {
+          exObj.midias = opcoes;
+          exObj.gifUrl = opcoes[0].url;
+        } else {
+          const foundGifUrl = (opcoes[0] && opcoes[0].url) || buscarGifExercicio(exObj.nome) || (midiaCtx && midiaCtx.anteriores && midiaCtx.anteriores[keyMidia]);
+          if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+        }
+      }
 
       currentDay.exercicios.push(exObj);
     }

@@ -189,6 +189,83 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+/* -------------------------------------------------------------
+   MÍDIA DO EXERCÍCIO (GIF / FOTO / VÍDEO DO EQUIPAMENTO)
+------------------------------------------------------------- */
+function isVideoUrl(url) {
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || ''));
+}
+
+function midiaExercicioHtml(url) {
+  const safe = escapeHtml(url);
+  const estilo = 'display:block; width:100%; max-height:300px; object-fit:contain; border-radius:10px; background:#000;';
+  // Imagens do catálogo: alterna foto de início e fim do movimento
+  if (/free-exercise-db.*\/0\.jpg$/i.test(url)) {
+    const foto2 = escapeHtml(url.replace(/0\.jpg$/i, '1.jpg'));
+    return `<span class="midia-anim" style="display:block; position:relative; border-radius:10px;">
+      <img src="${safe}" alt="Início do movimento" style="${estilo}">
+      <img src="${foto2}" alt="Fim do movimento" class="midia-anim-2" style="${estilo}">
+    </span>`;
+  }
+  if (isVideoUrl(url)) {
+    return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
+  }
+  return `<img src="${safe}" alt="Execução / equipamento" style="${estilo}" onerror="this.outerHTML='<div style=&quot;font-size:12px; color:var(--ink-dim); padding:12px; text-align:center;&quot;>Não foi possível carregar a mídia. Avise seu treinador.</div>'">`;
+}
+
+// Abre/fecha a mídia sob demanda (só baixa o GIF quando o aluno pedir, economizando dados)
+// Abre a foto do exercício numa janela por cima do treino (só baixa quando o aluno toca)
+window.abrirFotoExercicio = function(btn) {
+  let opcoes = [];
+  try { opcoes = JSON.parse(btn.dataset.opcoes || '[]'); } catch (e) {}
+  if (!Array.isArray(opcoes) || opcoes.length < 2) opcoes = [{ rotulo: '', url: btn.dataset.url }];
+
+  let modal = document.getElementById('modalFotoExercicio');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalFotoExercicio';
+    modal.className = 'modal-overlay hidden';
+    modal.style.cursor = 'pointer';
+    modal.addEventListener('click', () => fecharFotoExercicio());
+    document.body.appendChild(modal);
+  }
+
+  const conteudo = opcoes.map((o, i) => `
+    ${o.rotulo ? `<div style="font-size:13px; font-weight:700; color:var(--mark); margin:${i ? '12px' : '0'} 0 6px;">Opção ${i + 1}: ${escapeHtml(String(o.rotulo))}</div>` : ''}
+    ${midiaExercicioHtml(String(o.url || ''))}
+  `).join('');
+
+  modal.innerHTML = `
+    <div style="width:100%; max-width:480px; max-height:90vh; overflow-y:auto; background:var(--panel, #15171c); border:1px solid var(--line, #2a2d35); border-radius:14px; padding:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
+        <div style="font-weight:700; font-size:15px; color:var(--ink, #fff);">${escapeHtml(btn.dataset.nome || 'Exercício')}</div>
+        <button type="button" aria-label="Fechar" style="background:none; border:none; color:var(--ink, #fff); font-size:22px; line-height:1; cursor:pointer; padding:4px 8px;">✕</button>
+      </div>
+      ${conteudo}
+      <div style="font-size:11.5px; color:var(--ink-dim, #999); text-align:center; margin-top:10px;">Toque em qualquer lugar para voltar ao treino</div>
+    </div>
+  `;
+  modal.classList.remove('hidden');
+
+  // Botão "voltar" do celular fecha a foto em vez de sair do app
+  if (!(history.state && history.state.fotoExercicio)) {
+    try { history.pushState({ fotoExercicio: true }, ''); } catch (e) {}
+  }
+};
+
+window.fecharFotoExercicio = function(viaVoltar = false) {
+  const modal = document.getElementById('modalFotoExercicio');
+  if (!modal || modal.classList.contains('hidden')) return;
+  modal.classList.add('hidden');
+  modal.innerHTML = ''; // para a animação e libera memória
+  if (!viaVoltar && history.state && history.state.fotoExercicio) {
+    try { history.back(); } catch (e) {}
+  }
+};
+
+window.addEventListener('popstate', () => fecharFotoExercicio(true));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharFotoExercicio(); });
+
 function obterDiaSemanaNormalizado() {
   const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
   return dias[new Date().getDay()];
@@ -1930,6 +2007,14 @@ function renderExercisesForDay(day, dayIdx, container) {
       prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
     }
 
+    const midiaUrl = typeof ex.gifUrl === 'string' && /^https?:\/\//i.test(ex.gifUrl) ? ex.gifUrl : '';
+    const midiaOpcoes = (Array.isArray(ex.midias) ? ex.midias : []).filter(o => o && /^https?:\/\//i.test(String(o.url || '')));
+    const midiaBlocoHtml = midiaUrl ? `
+      <div style="margin:-2px 0 8px;">
+        <button type="button" class="btn-foto-exercicio" data-url="${escapeHtml(midiaUrl)}" data-nome="${escapeHtml(cleanName)}" data-opcoes="${escapeHtml(JSON.stringify(midiaOpcoes))}" onclick="abrirFotoExercicio(this)"
+          style="padding:4px 10px; font-size:11.5px; font-weight:700; border-radius:999px; cursor:pointer; background:transparent; color:var(--mark); border:1px solid var(--mark-dim, var(--line));">📷 Ver foto do exercício${midiaOpcoes.length > 1 ? ` (${midiaOpcoes.length} opções)` : ''}</button>
+      </div>` : '';
+
     let html = `
       <div class="item-header">
         <div class="item-title">${escapeHtml(cleanName)}</div>
@@ -1941,6 +2026,7 @@ function renderExercisesForDay(day, dayIdx, container) {
           </button>
         </div>
       </div>
+      ${midiaBlocoHtml}
       ${prevBadgeHtml}
       <div class="series-container">
     `;

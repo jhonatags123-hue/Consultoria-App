@@ -577,7 +577,45 @@
     </div>
   </div>
 
+  <!-- MODAL DE MÍDIA DO EXERCÍCIO (GIF / FOTO DO EQUIPAMENTO) -->
+  <div id="midiaModal" class="modal-overlay hidden" onclick="if(event.target===this) fecharSeletorMidia()">
+    <div class="modal-chart">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;">
+        <div>
+          <h3 id="midiaModalExName" style="color:#fff; font-size:16px;">Exercício</h3>
+          <span style="font-size:12px; color:var(--gold);">🎥 GIF / foto do equipamento que o aluno deve usar</span>
+        </div>
+        <button onclick="fecharSeletorMidia()" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+      </div>
+
+      <div id="midiaAtualPreview" style="background:#0d0204; border:1px solid var(--border); border-radius:10px; padding:8px; text-align:center; margin-bottom:10px;"></div>
+
+      <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;">
+        <button class="btn btn-soft btn-md" style="flex:1;" onclick="midiaAutomaticaExercicio()">🤖 Automático</button>
+        <button class="btn btn-soft btn-md" style="flex:1;" onclick="removerMidiaExercicio()">🚫 Sem mídia</button>
+      </div>
+
+      <label for="midiaUrlInput" style="font-size:12px; color:var(--muted); font-weight:700;">Colar link (GIF, foto, vídeo .mp4 ou link do Google Drive):</label>
+      <div style="display:flex; gap:6px; margin:4px 0 12px;">
+        <input type="url" id="midiaUrlInput" placeholder="https://..." style="flex:1; min-width:0;" onkeypress="if(event.key==='Enter'){ event.preventDefault(); usarLinkMidia(); }">
+        <button class="btn btn-md" onclick="usarLinkMidia()">Usar</button>
+      </div>
+
+      <label for="midiaFileInput" style="font-size:12px; color:var(--muted); font-weight:700;">Ou enviar foto/GIF do equipamento (vai para o Google Drive):</label>
+      <input type="file" id="midiaFileInput" accept="image/*,video/mp4" onchange="enviarFotoMidia(this)" style="display:block; margin:4px 0 4px; font-size:12px; color:var(--muted);">
+      <div id="midiaUploadStatus" style="font-size:11px; color:var(--muted); min-height:14px; margin-bottom:12px;"></div>
+
+      <div style="font-size:12px; color:var(--muted); font-weight:700; margin-bottom:4px;">Ou escolher do repositório de GIFs:</div>
+      <div class="sidebar-search">
+        <input type="text" id="midiaSearchInput" placeholder="🔍 Buscar exercício..." oninput="filtrarMidiaModal()">
+      </div>
+      <div id="midiaGrid" class="gif-gallery-grid" style="max-height:320px;"></div>
+    </div>
+  </div>
+
   <!-- SCRIPT PRINCIPAL DO PAINEL DE ALUNOS -->
+  <!-- CATÁLOGO DE EXERCÍCIOS EM PORTUGUÊS (imagens de execução) -->
+  <script src="exercicios-catalogo.js"></script>
   <script src="admin.js"></script>
   <!-- SCRIPT DA GESTÃO FINANCEIRA EXCLUSIVA & CONTAS PESSOAIS -->
   <script src="admin2.js"></script>

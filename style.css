@@ -347,3 +347,9 @@ textarea.input-field { resize:none; font-family:var(--font-body); }
 .run-item { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--blue); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
 .run-day-title { font-weight:800; color:var(--blue); font-size:13px; text-transform:uppercase; margin-bottom:4px; }
 .run-day-desc { font-size:12px; color:var(--ink); margin-bottom:8px; line-height:1.4; }
+
+/* Animação das imagens de execução (alterna foto de início e fim do movimento) */
+.midia-anim { overflow:hidden; }
+.midia-anim img { display:block; }
+.midia-anim .midia-anim-2 { position:absolute; inset:0; animation: midiaAlterna 1.6s steps(1, end) infinite; }
+@keyframes midiaAlterna { 0% { opacity:0; } 50% { opacity:1; } }
