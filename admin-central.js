@@ -715,11 +715,100 @@
     if (tab === 'treino') { garantirFerramentasTreino(); atualizarSelectsTreino(); }
   };
 
+  /* ---------------- BUSCA AUTOMÁTICA DE FOTOS COM IA ---------------- */
+  // Exercícios que o catálogo não reconheceu são procurados pela IA no banco completo (876)
+  const tentadosIA = new Set();
+  let timerBuscaIA = null, buscandoIA = false, statusIA = null;
+
+  function mostrarStatusIA() {
+    const prev = document.getElementById('liveWorkoutPreview');
+    if (!prev || !statusIA || agora() - statusIA.quando > 15000) return;
+    let el = document.getElementById('iaBuscaStatus');
+    if (!el) { el = document.createElement('div'); el.id = 'iaBuscaStatus'; prev.insertBefore(el, prev.firstChild); }
+    el.className = `ia-busca-status ${statusIA.tipo}`;
+    el.textContent = statusIA.texto;
+  }
+  function definirStatusIA(texto, tipo) { statusIA = { texto, tipo, quando: agora() }; mostrarStatusIA(); }
+
+  function agendarBuscaIA() {
+    clearTimeout(timerBuscaIA);
+    timerBuscaIA = setTimeout(buscarFaltantesIA, 1500);
+  }
+
+  async function buscarFaltantesIA() {
+    if (buscandoIA) return agendarBuscaIA();
+    const prev = document.getElementById('liveWorkoutPreview');
+    if (!prev) return;
+    const nomes = [];
+    prev.querySelectorAll('button[data-ex]').forEach(b => {
+      if (b.querySelector('img, video')) return;
+      const nome = (b.dataset.ex || '').trim();
+      const k = nome && sanitizeExKey(nome);
+      if (!k || tentadosIA.has(k) || nomes.some(n => sanitizeExKey(n) === k)) return;
+      nomes.push(nome);
+    });
+    if (!nomes.length) return;
+    const lote = nomes.slice(0, 25);
+    lote.forEach(n => tentadosIA.add(sanitizeExKey(n)));
+    buscandoIA = true;
+    definirStatusIA(`🔎 Procurando foto para ${lote.length} exercício${lote.length > 1 ? 's' : ''} com IA...`, 'buscando');
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/exercicios/buscar-ia`, {
+        method: 'POST', headers: authHeaders(), cache: 'no-cache', body: JSON.stringify({ nomes: lote })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'falha');
+      const achados = (data.resultados || []).filter(r => r.url);
+      achados.forEach(r => {
+        gifsDatabase = [{ nome: r.nome, url: r.url }, ...gifsDatabase.filter(g => sanitizeExKey(g.nome) !== sanitizeExKey(r.nome))];
+      });
+      const faltou = lote.length - achados.length;
+      definirStatusIA(achados.length
+        ? `🧠 IA encontrou foto para ${achados.length} de ${lote.length}.${faltou ? ` Para ${faltou === 1 ? 'o outro' : `os outros ${faltou}`}, use o ➕.` : ''}`
+        : `A IA não achou foto parecida para ${lote.length === 1 ? 'esse exercício' : 'esses exercícios'}. Use o ➕ para escolher ou enviar uma.`, achados.length ? 'ok' : 'aviso');
+      if (achados.length && typeof atualizarPreviewAoVivo === 'function') atualizarPreviewAoVivo();
+      if (nomes.length > lote.length) agendarBuscaIA();
+    } catch (err) {
+      lote.forEach(n => tentadosIA.delete(sanitizeExKey(n)));
+      definirStatusIA('Não foi possível buscar com IA agora. Tente de novo em instantes ou use o ➕.', 'aviso');
+    } finally {
+      buscandoIA = false;
+    }
+  }
+
+  // Botão "Buscar com IA" dentro da janela do ➕
+  function garantirBotaoIAModal() {
+    const auto = document.querySelector('#midiaModal [onclick="midiaAutomaticaExercicio()"]');
+    if (!auto || document.getElementById('btnMidiaIA')) return;
+    const b = document.createElement('button');
+    b.id = 'btnMidiaIA'; b.type = 'button'; b.className = 'btn btn-gold btn-md'; b.style.flex = '1';
+    b.textContent = '🧠 Buscar com IA';
+    auto.parentElement.insertBefore(b, auto);
+    b.onclick = async () => {
+      if (!midiaModalExNome) return;
+      b.disabled = true; const txt = b.textContent; b.textContent = '🔎 Buscando...';
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/exercicios/buscar-ia`, {
+          method: 'POST', headers: authHeaders(), cache: 'no-cache', body: JSON.stringify({ nomes: [midiaModalExNome], forcar: true })
+        });
+        const data = await res.json().catch(() => ({}));
+        const r = (data.resultados || [])[0];
+        if (!res.ok || !r) throw new Error('falha');
+        if (r.url) { aplicarMidiaExercicio(r.url); showToast('A IA encontrou uma foto. Confira na prévia.', 'success'); }
+        else showToast('A IA não achou nada parecido. Cole um link ou envie uma foto.', 'error');
+      } catch (err) {
+        showToast('Não foi possível buscar com IA agora.', 'error');
+      } finally { b.disabled = false; b.textContent = txt; }
+    };
+  }
+
   if (typeof window.atualizarPreviewAoVivo === 'function') {
     const previewOriginal = window.atualizarPreviewAoVivo;
     window.atualizarPreviewAoVivo = function (...args) {
       const r = previewOriginal.apply(this, args);
       aplicarBadgesEvolucao(document.getElementById('liveWorkoutPreview'), currentStudentData);
+      mostrarStatusIA();
+      agendarBuscaIA();
       return r;
     };
   }
@@ -764,6 +853,7 @@
     garantirFerramentasFeedback();
     garantirFerramentasTreino();
     atualizarLinksVenda();
+    garantirBotaoIAModal();
   });
 
   window.renderCentralSemana = renderCentralSemana;
