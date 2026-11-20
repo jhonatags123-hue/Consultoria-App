@@ -231,24 +231,138 @@ function filtrarGifsAdmin() {
   renderGifsAdmin(filtrados);
 }
 
+/* -------------------------------------------------------------
+   RECONHECIMENTO AUTOMÁTICO DO EXERCÍCIO (nome → GIF)
+------------------------------------------------------------- */
+const MIDIA_STOPWORDS = new Set(['com', 'de', 'da', 'do', 'das', 'dos', 'na', 'no', 'nas', 'nos', 'em', 'a', 'o', 'as', 'os', 'e', 'para', 'pra', 'c', 'p', 'ou', 'tipo', 'estilo', 'exercicio', 'variacao']);
+
+// Expressões de várias palavras que viram um termo só (aplicadas antes de separar as palavras)
+const MIDIA_FRASES = [
+  [/leg\s*press/g, 'legpress'],
+  [/peck\s*deck|pec\s*deck|peckdeck|voador|fly\s*maquina|crucifixo\s*maquina|crucifixo\s*no\s*voador/g, 'crucifixo maquina'],
+  [/cross\s*over/g, 'crossover'],
+  [/pull\s*down/g, 'puxada'],
+  [/pull\s*over/g, 'pullover'],
+  [/face\s*pull/g, 'facepull'],
+  [/hack\s*squat|hack/g, 'hack'],
+  [/agachamento\s*bulgaro|bulgaro/g, 'bulgaro'],
+  [/levantamento\s*terra|deadlift/g, 'terra'],
+  [/stiff|sldl|rdl|romeno/g, 'stiff'],
+  [/mesa\s*flexora|flexora\s*deitad[oa]|flexora\s*mesa/g, 'flexora mesa'],
+  [/cadeira\s*flexora/g, 'flexora cadeira'],
+  [/cadeira\s*extensora|extensora/g, 'extensora'],
+  [/cadeira\s*abdutora|abdutora|abducao/g, 'abdutora'],
+  [/cadeira\s*adutora|adutora|aducao/g, 'adutora'],
+  [/elevacao\s*pelvica|hip\s*thrust/g, 'pelvica'],
+  [/triceps\s*testa|testa/g, 'testa triceps'],
+  [/triceps\s*frances|frances/g, 'frances triceps'],
+  [/remada\s*cavalinho|cavalinho|t\s*bar/g, 'cavalinho remada'],
+  [/barra\s*fixa|pull\s*up|chin\s*up/g, 'barrafixa'],
+  [/paralelas?|dips?/g, 'paralela'],
+  [/w\s*\/?\s*ez|barra\s*w|barra\s*ez/g, 'barraw']
+];
+
+// Sinônimos de uma palavra → termo padrão
+const MIDIA_SINONIMOS = {
+  halteres: 'halter', halter: 'halter', haltere: 'halter', dumbbell: 'halter', db: 'halter',
+  maq: 'maquina', maquina: 'maquina', aparelho: 'maquina', articulado: 'maquina', articulada: 'maquina',
+  polia: 'polia', cabo: 'polia', cabos: 'polia', crossover: 'polia', cross: 'polia',
+  puxador: 'puxada', puxada: 'puxada', pulley: 'puxada',
+  desenv: 'desenvolvimento', desenvolvimento: 'desenvolvimento',
+  incl: 'inclinado', inclinado: 'inclinado', inclinada: 'inclinado',
+  decl: 'declinado', declinado: 'declinado', declinada: 'declinado',
+  reto: 'reto', reta: 'reto', horizontal: 'reto', plano: 'reto',
+  unil: 'unilateral', unilateral: 'unilateral',
+  smith: 'smith', guiado: 'smith', guiada: 'smith',
+  agacho: 'agachamento', agachamento: 'agachamento', squat: 'agachamento',
+  abd: 'abdominal', abdomen: 'abdominal', abdominal: 'abdominal', abs: 'abdominal',
+  gemeos: 'panturrilha', panturrilha: 'panturrilha', calf: 'panturrilha',
+  fly: 'crucifixo', crucifixo: 'crucifixo',
+  voador: 'voador', tricep: 'triceps', triceps: 'triceps', bicep: 'biceps', biceps: 'biceps',
+  elev: 'elevacao', elevacao: 'elevacao', lateral: 'lateral', laterais: 'lateral',
+  frontal: 'frontal', frente: 'frente', pronada: 'pronada', supinada: 'supinada',
+  aberto: 'aberto', aberta: 'aberto', fechado: 'fechado', fechada: 'fechado',
+  corda: 'corda', banco: 'banco', sentado: 'sentado', sentada: 'sentado', pe: 'pe', deitado: 'deitado', deitada: 'deitado'
+};
+
+function tokensExercicio(nome) {
+  let t = String(nome || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  t = t.replace(/[()\[\]]/g, ' ');
+  MIDIA_FRASES.forEach(([re, rep]) => { t = t.replace(re, ` ${rep} `); });
+  const tokens = new Set();
+  t.split(/[^a-z0-9]+/).forEach(w => {
+    if (!w || MIDIA_STOPWORDS.has(w)) return;
+    let termo = MIDIA_SINONIMOS[w];
+    if (!termo) {
+      // plural simples: "remadas" → "remada"
+      termo = (w.length > 4 && w.endsWith('s') && MIDIA_SINONIMOS[w.slice(0, -1)]) || (w.length > 4 && w.endsWith('s') ? w.slice(0, -1) : w);
+      termo = MIDIA_SINONIMOS[termo] || termo;
+    }
+    tokens.add(termo);
+  });
+  return tokens;
+}
+
+// Nota de 0 a 1 de quão parecidos são dois nomes de exercício
+function similaridadeExercicio(tokA, tokB) {
+  if (!tokA.size || !tokB.size) return 0;
+  let comuns = 0;
+  tokA.forEach(t => { if (tokB.has(t)) comuns++; });
+  if (!comuns) return 0;
+  return (2 * comuns) / (tokA.size + tokB.size);
+}
+
+// Mídias que o treinador já escolheu manualmente (valem para todos os alunos)
+function obterMidiaAprendida() {
+  const mapa = {};
+  (allStudentsList || []).forEach(a => {
+    const m = a && a.midia_exercicios;
+    if (m && typeof m === 'object') Object.keys(m).forEach(k => { if (m[k]) mapa[k] = m[k]; });
+  });
+  try {
+    const local = JSON.parse(localStorage.getItem('midia_aprendida') || '{}');
+    Object.keys(local).forEach(k => { if (local[k]) mapa[k] = local[k]; });
+  } catch (e) {}
+  return mapa;
+}
+
+function aprenderMidia(nomeEx, url) {
+  if (!nomeEx || !url) return;
+  try {
+    const local = JSON.parse(localStorage.getItem('midia_aprendida') || '{}');
+    local[sanitizeExKey(nomeEx)] = url;
+    localStorage.setItem('midia_aprendida', JSON.stringify(local));
+  } catch (e) {}
+}
+
 function buscarGifExercicio(nomeEx) {
-  if (!nomeEx || !gifsDatabase.length) return null;
+  if (!nomeEx) return null;
   const key = sanitizeExKey(nomeEx);
-  // 1º: nome idêntico
+
+  // 1º: o que você já escolheu antes para esse exercício (qualquer aluno)
+  const aprendida = obterMidiaAprendida()[key];
+  if (aprendida) return aprendida;
+
+  if (!gifsDatabase.length) return null;
+
+  // 2º: nome idêntico no repositório
   const exato = gifsDatabase.find(g => sanitizeExKey(g.nome) === key);
   if (exato) return exato.url;
-  // 2º: correspondência parcial, priorizando o nome mais parecido em tamanho
+
+  // 3º: nome parecido (entende sinônimos, abreviações, plural e ordem das palavras)
+  const tokEx = tokensExercicio(nomeEx);
   let melhor = null;
-  let melhorDiff = Infinity;
+  let melhorNota = 0;
   gifsDatabase.forEach(g => {
-    const gk = sanitizeExKey(g.nome);
-    if (!gk) return;
-    if (key.includes(gk) || gk.includes(key)) {
-      const diff = Math.abs(gk.length - key.length);
-      if (diff < melhorDiff) { melhor = g; melhorDiff = diff; }
-    }
+    if (!g._tokens) g._tokens = tokensExercicio(g.nome);
+    let nota = similaridadeExercicio(tokEx, g._tokens);
+    // bônus se todas as palavras do GIF estão no nome digitado (ex.: GIF "Supino Reto" para "Supino reto pegada aberta")
+    let todas = true;
+    g._tokens.forEach(t => { if (!tokEx.has(t)) todas = false; });
+    if (todas) nota += 0.15;
+    if (nota > melhorNota) { melhorNota = nota; melhor = g; }
   });
-  return melhor ? melhor.url : null;
+  return melhor && melhorNota >= 0.6 ? melhor.url : null;
 }
 
 /* -------------------------------------------------------------
@@ -301,6 +415,8 @@ function midiaAtualDoExercicio(nomeEx) {
   const key = sanitizeExKey(nomeEx);
   const overrides = obterMidiaOverrides() || {};
   if (Object.prototype.hasOwnProperty.call(overrides, key)) return { url: overrides[key], origem: 'manual' };
+  const aprendida = obterMidiaAprendida()[key];
+  if (aprendida) return { url: aprendida, origem: 'aprendida' };
   const auto = buscarGifExercicio(nomeEx);
   if (auto) return { url: auto, origem: 'auto' };
   const anterior = obterMidiasAnteriores()[key];
@@ -336,7 +452,8 @@ function renderMidiaAtualModal() {
   const { url, origem } = midiaAtualDoExercicio(midiaModalExNome);
   const rotulos = {
     manual: '✅ Escolhida por você',
-    auto: '🤖 Automática (repositório)',
+    auto: '🤖 Reconhecida automaticamente pelo nome',
+    aprendida: '🧠 Automática (você escolheu antes para outro aluno)',
     salva: '💾 Salva anteriormente',
     nenhuma: ''
   };
@@ -358,6 +475,7 @@ function aplicarMidiaExercicio(valor) {
     delete overrides[key]; // volta para o automático
   } else {
     overrides[key] = valor;
+    aprenderMidia(midiaModalExNome, valor); // próximos alunos recebem essa mídia automaticamente
   }
   renderMidiaAtualModal();
   atualizarPreviewAoVivo();
@@ -2448,6 +2566,18 @@ function atualizarPreviewAoVivo() {
   const parsedDays = parseWorkoutText(raw, midiaCtx);
 
   container.innerHTML = "";
+  let totalEx = 0, comMidia = 0;
+  parsedDays.forEach(d => {
+    if (d.isDescanso || /descanso|off|recovery/i.test(d.title)) return;
+    (d.exercicios || []).forEach(ex => { totalEx++; if (ex.gifUrl) comMidia++; });
+  });
+  if (totalEx > 0) {
+    const faltam = totalEx - comMidia;
+    container.innerHTML = `<div style="font-size:12px; margin-bottom:10px; padding:8px 10px; border-radius:8px; background:${faltam ? 'rgba(220,170,58,0.08)' : 'rgba(34,197,94,0.08)'}; border:1px solid ${faltam ? 'var(--gold)' : 'var(--green)'}; color:#fff;">
+      🎥 <b>${comMidia}/${totalEx}</b> exercícios com GIF/foto automático.
+      ${faltam ? `Toque no <b>➕</b> ${faltam === 1 ? 'do exercício restante' : `dos ${faltam} restantes`} para escolher (só precisa fazer uma vez — depois o sistema lembra para todos os alunos).` : 'Tudo certo!'}
+    </div>`;
+  }
   if (parsedDays.length === 0) {
     container.innerHTML = `<div style="background:#20050c; border:1px solid var(--accent); padding:10px; border-radius:8px; color:#ff6b7f; font-size:12px;">⚠️ Nenhum treino reconhecido. Digite divisões claras.</div>`;
     return;
