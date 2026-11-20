@@ -57,6 +57,7 @@ function resetInactivityTimer() {
   if (inactivityTimer) clearTimeout(inactivityTimer);
 
   if (workoutTimerRunning) {
+    registrarAtividadeTreino();
     inactivityTimer = setTimeout(() => {
       if (workoutTimerRunning) {
         toggleWorkoutTimer();
@@ -69,6 +70,117 @@ function resetInactivityTimer() {
 ['click', 'touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => {
   window.addEventListener(evt, resetInactivityTimer, { passive: true });
 });
+
+/* -------------------------------------------------------------
+   TREINO ESQUECIDO (aluno não clicou em "Finalizar")
+------------------------------------------------------------- */
+const TREINO_ESQUECIDO_MS = 3 * 60 * 60 * 1000; // 3h sem usar o app com treino aberto
+let ultimaGravacaoAtividade = 0;
+let avisoEsquecidoAberto = false;
+
+function chaveTreinoLocal(nome) { return `workout_${nome}_${loggedUserCode}`; }
+
+// Guarda o momento da última interação durante o treino (no máx. a cada 15s)
+function registrarAtividadeTreino(forcar = false) {
+  if (!loggedUserCode) return;
+  const agora = Date.now();
+  if (!forcar && agora - ultimaGravacaoAtividade < 15000) return;
+  ultimaGravacaoAtividade = agora;
+  try { localStorage.setItem(chaveTreinoLocal('last_activity'), String(agora)); } catch (e) {}
+}
+
+// Fim "real" do treino: se o aluno ficou mais de 20 min parado, conta só até a última interação
+function fimEfetivoTreino() {
+  const ultima = parseInt(localStorage.getItem(chaveTreinoLocal('last_activity')) || '0', 10);
+  const agora = Date.now();
+  if (ultima && agora - ultima > INACTIVITY_LIMIT_MS) return ultima;
+  return agora;
+}
+
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') verificarTreinoEsquecido();
+});
+
+function verificarTreinoEsquecido() {
+  if (avisoEsquecidoAberto || !loggedUserCode || !currentData || !Array.isArray(currentData.days)) return;
+  const keyStart = `workout_start_time_${loggedUserCode}`;
+  const keyElapsed = `workout_elapsed_${loggedUserCode}`;
+  const inicio = parseInt(localStorage.getItem(keyStart) || '0', 10);
+  const acumulado = parseInt(localStorage.getItem(keyElapsed) || '0', 10);
+  if (!inicio && !acumulado) return;
+
+  const ultima = parseInt(localStorage.getItem(chaveTreinoLocal('last_activity')) || '0', 10) || inicio;
+  if (!ultima || Date.now() - ultima < TREINO_ESQUECIDO_MS) return;
+
+  avisoEsquecidoAberto = true;
+
+  // Para o cronômetro no momento em que o aluno parou de usar o app
+  let totalSeg = acumulado;
+  if (inicio) {
+    totalSeg += Math.max(0, Math.floor((ultima - inicio) / 1000));
+    localStorage.setItem(keyElapsed, String(totalSeg));
+    localStorage.removeItem(keyStart);
+  }
+  workoutTimerRunning = false;
+  if (workoutTimerInterval) clearInterval(workoutTimerInterval);
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  renderClockTime(totalSeg);
+  const btnTimer = document.getElementById('btnWorkoutTimer');
+  if (btnTimer) { btnTimer.textContent = "▶ RETOMAR TREINO"; btnTimer.style.background = "var(--good)"; }
+  setInputsLockState(true);
+
+  const idxSalvo = parseInt(localStorage.getItem(chaveTreinoLocal('day_idx')) || '', 10);
+  const dayIdx = currentData.days[idxSalvo] ? idxSalvo : currentTreinoDayIdx;
+  const day = currentData.days[dayIdx] || {};
+  const total = (day.exercicios || []).length;
+  const feitos = (day.exercicios || []).filter((_, i) => (currentData.logs || {})[`ex_done_${dayIdx}_${i}`] === 'true').length;
+  const dataTexto = new Date(ultima).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+  const minutos = Math.max(1, Math.round(totalSeg / 60));
+
+  let modal = document.getElementById('modalTreinoEsquecido');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modalTreinoEsquecido';
+    modal.className = 'modal-overlay';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML = `
+    <div class="modal-card-finish" style="border-top-color:var(--mark); text-align:center;">
+      <div style="font-size:40px; margin-bottom:6px;">⏰</div>
+      <h2 style="font-family:var(--font-display); font-weight:400; font-size:28px; letter-spacing:.5px; color:var(--ink);">Você esqueceu de finalizar o treino</h2>
+      <p style="font-size:13.5px; color:var(--ink-dim); margin-top:8px; line-height:1.55;">
+        <b style="color:var(--ink);">${escapeHtml(day.title || 'Treino')}</b><br>
+        ${escapeHtml(dataTexto)} • ${minutos} min • ${feitos}/${total} exercícios marcados
+      </p>
+      <p style="font-size:12.5px; color:var(--ink-dim); margin-top:10px; line-height:1.5;">Finalize para salvar esse treino no seu histórico e liberar o próximo.</p>
+      <button type="button" class="btn-login btn-gold" style="margin-top:16px;" id="btnEsquecidoFinalizar">✅ Finalizar e salvar esse treino</button>
+      <button type="button" class="btn-login" style="background:transparent; border:1px solid var(--line); color:var(--ink-dim); margin-top:8px;" id="btnEsquecidoDescartar">Descartar e começar do zero</button>
+    </div>`;
+  modal.classList.remove('hidden');
+
+  document.getElementById('btnEsquecidoFinalizar').onclick = async () => {
+    modal.classList.add('hidden');
+    if (currentTreinoDayIdx !== dayIdx) selectTreinoDay(dayIdx);
+    await concluirTreinoDoDia({ dataSessao: new Date(ultima) });
+    avisoEsquecidoAberto = false;
+  };
+  document.getElementById('btnEsquecidoDescartar').onclick = async () => {
+    if (!confirm('Descartar esse treino? As marcações e o tempo serão apagados (as cargas já registradas no seu histórico continuam).')) return;
+    modal.classList.add('hidden');
+    localStorage.removeItem(keyStart);
+    localStorage.removeItem(keyElapsed);
+    localStorage.removeItem(chaveTreinoLocal('last_activity'));
+    localStorage.removeItem(chaveTreinoLocal('day_idx'));
+    limparRegistrosDoDia(dayIdx);
+    try {
+      await fetch(`${BACKEND_URL}/api/aluno/salvar`, { method: 'POST', headers: authHeaders(), cache: 'no-cache', body: JSON.stringify({ codigo: loggedUserCode, payload: currentData }) });
+    } catch (e) {}
+    avisoEsquecidoAberto = false;
+    renderClockTime(0);
+    if (btnTimer) { btnTimer.textContent = "▶ INICIAR TREINO"; btnTimer.style.background = "var(--good)"; }
+    selectTreinoDay(dayIdx);
+  };
+}
 
 async function enviarArquivoParaGoogleDrive(nomeAluno, file, customFileName) {
   return new Promise((resolve, reject) => {
@@ -380,6 +492,7 @@ function updateTimerDisplay() {
 }
 
 function checkAndRestoreWorkoutTimer() {
+  verificarTreinoEsquecido();
   const keyElapsed = `workout_elapsed_${loggedUserCode}`;
   const keyStart = `workout_start_time_${loggedUserCode}`;
   
@@ -434,6 +547,8 @@ function toggleWorkoutTimer() {
   if (!workoutTimerRunning) {
     workoutTimerRunning = true;
     localStorage.setItem(keyStart, Date.now().toString());
+    localStorage.setItem(chaveTreinoLocal('day_idx'), String(currentTreinoDayIdx));
+    registrarAtividadeTreino(true);
 
     if (btn) {
       btn.textContent = "⏹️ PAUSAR";
@@ -451,7 +566,7 @@ function toggleWorkoutTimer() {
     
     const startTimeStr = localStorage.getItem(keyStart);
     if (startTimeStr) {
-      const currentRun = Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+      const currentRun = Math.max(0, Math.floor((fimEfetivoTreino() - parseInt(startTimeStr)) / 1000));
       const prevElapsed = parseInt(localStorage.getItem(keyElapsed) || "0");
       localStorage.setItem(keyElapsed, (prevElapsed + currentRun).toString());
     }
@@ -886,7 +1001,11 @@ function loadStudentData(data) {
 
   currentData = data;
 
-  if (currentData.logs) {
+  // Mantém as marcações de "Concluído" se há um treino em andamento neste celular
+  // (ex.: o app recarregou no meio do treino). Sem treino em andamento, começa limpo.
+  const treinoEmAndamento = !!(loggedUserCode && (localStorage.getItem(`workout_start_time_${loggedUserCode}`) || parseInt(localStorage.getItem(`workout_elapsed_${loggedUserCode}`) || '0', 10) > 0));
+
+  if (currentData.logs && !treinoEmAndamento) {
     Object.keys(currentData.logs).forEach(k => {
       if (k.startsWith('ex_done_')) delete currentData.logs[k];
     });
@@ -897,7 +1016,7 @@ function loadStudentData(data) {
     try {
       const parsed = JSON.parse(localLogs);
       Object.keys(parsed).forEach(k => {
-        if (k.startsWith('ex_done_')) delete parsed[k];
+        if (k.startsWith('ex_done_') && !treinoEmAndamento) delete parsed[k];
       });
       currentData.logs = Object.assign({}, currentData.logs || {}, parsed);
     } catch(e) {}
@@ -982,7 +1101,8 @@ function atualizarProgressoTreino() {
   box.classList.remove('hidden');
   box.innerHTML = `
     <div class="treino-progresso-topo"><span>${feitos === total ? '🏆 Treino completo!' : 'Progresso do treino'}</span><b>${feitos}/${total} exercícios</b></div>
-    <div class="treino-progresso-barra"><div style="width:${pct}%"></div></div>`;
+    <div class="treino-progresso-barra"><div style="width:${pct}%"></div></div>
+    ${feitos === total ? `<button type="button" class="btn-login btn-gold" style="margin-top:12px; min-height:44px;" onclick="concluirTreinoDoDia()">✅ Finalizar treino agora</button>` : ''}`;
 }
 
 function toggleCheckExercise(btn, dayIdx, exIdx) {
@@ -1454,8 +1574,50 @@ function toggleCheckSerie(btn) {
   }
 }
 
-async function concluirTreinoDoDia() {
+// Apaga marcações e campos do treino do dia (o histórico de cargas em weekly_logs continua)
+function limparRegistrosDoDia(dayIdxLimpar) {
+  const day = currentData.days?.[dayIdxLimpar];
+  if (!currentData.logs) currentData.logs = {};
+
+  Object.keys(currentData.logs).forEach(key => {
+    if (key.startsWith('ex_done_')) delete currentData.logs[key];
+  });
+
+  if (day && day.exercicios) {
+    day.exercicios.forEach((ex, exIdx) => {
+      const exKeySanitized = sanitizeExKey(ex.nome);
+      delete currentData.logs[`ex_done_${dayIdxLimpar}_${exIdx}`];
+      
+      for (let s = 1; s <= 5; s++) {
+        delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
+        delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
+        delete currentData.logs[`log_c_${dayIdxLimpar}_${exIdx}_s${s}`];
+        delete currentData.logs[`log_r_${dayIdxLimpar}_${exIdx}_s${s}`];
+      }
+      delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
+      delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
+      delete currentData.logs[`log_b_${exKeySanitized}_myo_blocos`];
+      delete currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`];
+      delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
+      delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
+      delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
+      delete currentData.logs[`log_c_${exKeySanitized}_bo`];
+      delete currentData.logs[`log_r_${exKeySanitized}_bo`];
+    });
+  }
+  
+  delete currentData.logs[`obs_day_${dayIdxLimpar}`];
+
+  if (loggedUserCode) {
+    localStorage.removeItem(`draft_obs_${loggedUserCode}_${dayIdxLimpar}`);
+    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
+  }
+
+}
+
+async function concluirTreinoDoDia(opcoes = {}) {
   if (!currentData) return;
+  if (opcoes instanceof Event) opcoes = {};
 
   const keyStart = `workout_start_time_${loggedUserCode}`;
   const keyElapsed = `workout_elapsed_${loggedUserCode}`;
@@ -1465,11 +1627,13 @@ async function concluirTreinoDoDia() {
   let durationSeconds = prevElapsed;
 
   if (startTimeStr) {
-    durationSeconds += Math.floor((Date.now() - parseInt(startTimeStr)) / 1000);
+    durationSeconds += Math.max(0, Math.floor((fimEfetivoTreino() - parseInt(startTimeStr)) / 1000));
   }
 
   localStorage.removeItem(keyStart);
   localStorage.removeItem(keyElapsed);
+  localStorage.removeItem(chaveTreinoLocal('last_activity'));
+  localStorage.removeItem(chaveTreinoLocal('day_idx'));
 
   if (workoutTimerInterval) clearInterval(workoutTimerInterval);
   if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -1599,7 +1763,7 @@ async function concluirTreinoDoDia() {
   const obsAtualSessao = obsEl ? obsEl.value.trim() : "";
 
   currentData.historico_sessoes.push({
-    data: new Date().toISOString(),
+    data: (opcoes.dataSessao instanceof Date ? opcoes.dataSessao : new Date()).toISOString(),
     treinoTitulo: day ? day.title : "Treino",
     duracaoMinutos: m,
     observacoes: obsAtualSessao ? [obsAtualSessao] : []
@@ -1609,41 +1773,7 @@ async function concluirTreinoDoDia() {
     currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
   }
 
-  if (!currentData.logs) currentData.logs = {};
-
-  Object.keys(currentData.logs).forEach(key => {
-    if (key.startsWith('ex_done_')) delete currentData.logs[key];
-  });
-
-  if (day && day.exercicios) {
-    day.exercicios.forEach((ex, exIdx) => {
-      const exKeySanitized = sanitizeExKey(ex.nome);
-      delete currentData.logs[`ex_done_${currentTreinoDayIdx}_${exIdx}`];
-      
-      for (let s = 1; s <= 5; s++) {
-        delete currentData.logs[`log_c_${exKeySanitized}_s${s}`];
-        delete currentData.logs[`log_r_${exKeySanitized}_s${s}`];
-        delete currentData.logs[`log_c_${currentTreinoDayIdx}_${exIdx}_s${s}`];
-        delete currentData.logs[`log_r_${currentTreinoDayIdx}_${exIdx}_s${s}`];
-      }
-      delete currentData.logs[`log_c_${exKeySanitized}_ativ`];
-      delete currentData.logs[`log_r_${exKeySanitized}_ativ`];
-      delete currentData.logs[`log_b_${exKeySanitized}_myo_blocos`];
-      delete currentData.logs[`log_r_${exKeySanitized}_myo_repsbloco`];
-      delete currentData.logs[`log_c_${exKeySanitized}_cl_peso`];
-      delete currentData.logs[`log_r_${exKeySanitized}_cl_lastreps`];
-      delete currentData.logs[`log_b_${exKeySanitized}_cl_blocos`];
-      delete currentData.logs[`log_c_${exKeySanitized}_bo`];
-      delete currentData.logs[`log_r_${exKeySanitized}_bo`];
-    });
-  }
-  
-  delete currentData.logs[`obs_day_${currentTreinoDayIdx}`];
-
-  if (loggedUserCode) {
-    localStorage.removeItem(`draft_obs_${loggedUserCode}_${currentTreinoDayIdx}`);
-    localStorage.setItem(`draft_student_logs_${loggedUserCode}`, JSON.stringify(currentData.logs));
-  }
+  limparRegistrosDoDia(currentTreinoDayIdx);
 
   const totalDays = (currentData.days || []).length;
   let proximoTreino = currentTreinoDayIdx;
