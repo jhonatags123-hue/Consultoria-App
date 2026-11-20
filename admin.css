@@ -999,3 +999,9 @@ textarea {
 .evo-geral-lista small { display: block; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
 .evo-geral-lista div { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 .evo-nota { font-size: 10.5px; color: var(--muted); margin-top: 8px; }
+
+/* Busca de fotos com IA */
+.ia-busca-status { font-size: 12px; padding: 7px 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); background: var(--card-inner); color: var(--muted); }
+.ia-busca-status.buscando { border-color: var(--gold); color: var(--gold); }
+.ia-busca-status.ok { border-color: var(--green); color: var(--green); }
+.ia-busca-status.aviso { border-color: var(--accent); color: #ff9aaa; }

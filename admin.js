@@ -519,10 +519,20 @@ function aplicarMidiaExercicio(valor) {
   } else {
     overrides[key] = valor;
     aprenderMidia(midiaModalExNome, valor); // próximos alunos recebem essa mídia automaticamente
+    if (valor) salvarMidiaNoServidor(midiaModalExNome, valor);
   }
   renderMidiaAtualModal();
   atualizarPreviewAoVivo();
   showToast("Mídia atualizada. Clique em salvar o treino para enviar ao aluno.", "info");
+}
+
+// Guarda a escolha no servidor: vale em qualquer aparelho e para todos os alunos
+function salvarMidiaNoServidor(nomeEx, url) {
+  gifsDatabase = [{ nome: nomeEx, url }, ...gifsDatabase.filter(g => sanitizeExKey(g.nome) !== sanitizeExKey(nomeEx))];
+  fetch(`${BACKEND_URL}/api/exercicios/midias`, {
+    method: 'POST', headers: authHeaders(), cache: 'no-cache',
+    body: JSON.stringify({ nome: nomeEx, url })
+  }).catch(() => {});
 }
 
 window.selecionarMidiaRepositorio = function(idx) {
