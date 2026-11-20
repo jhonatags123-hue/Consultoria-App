@@ -10,6 +10,8 @@ let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
 let gifsDatabase = [];
+const GOOGLE_APPS_SCRIPT_URL = 'https://' + 'script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec';
+let midiaModalExNome = '';     // Exercício cuja mídia está sendo escolhida no modal
 let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
 let pendentesExpanded = false; // Controle de abertura da sanfona dos pendentes
 let cardioSessoesAdmin = [];   // Lista dinâmica de sessões de cardio (Treino + Dia)
@@ -189,8 +191,11 @@ function carregarGifsAdmin() {
   fetch(`${BACKEND_URL}/api/exercicios/gifs`, { headers: authHeaders() })
     .then(res => res.json())
     .then(data => {
-      gifsDatabase = data || [];
+      gifsDatabase = Array.isArray(data) ? data : [];
       renderGifsAdmin(gifsDatabase);
+      if (currentStudentData) atualizarPreviewAoVivo();
+      const modal = document.getElementById('midiaModal');
+      if (modal && !modal.classList.contains('hidden')) { renderMidiaAtualModal(); filtrarMidiaModal(); }
     })
     .catch(() => {
       const gallery = document.getElementById('gifGalleryList');
@@ -229,9 +234,216 @@ function filtrarGifsAdmin() {
 function buscarGifExercicio(nomeEx) {
   if (!nomeEx || !gifsDatabase.length) return null;
   const key = sanitizeExKey(nomeEx);
-  const ex = gifsDatabase.find(g => sanitizeExKey(g.nome) === key || key.includes(sanitizeExKey(g.nome)) || sanitizeExKey(g.nome).includes(key));
-  return ex ? ex.url : null;
+  // 1º: nome idêntico
+  const exato = gifsDatabase.find(g => sanitizeExKey(g.nome) === key);
+  if (exato) return exato.url;
+  // 2º: correspondência parcial, priorizando o nome mais parecido em tamanho
+  let melhor = null;
+  let melhorDiff = Infinity;
+  gifsDatabase.forEach(g => {
+    const gk = sanitizeExKey(g.nome);
+    if (!gk) return;
+    if (key.includes(gk) || gk.includes(key)) {
+      const diff = Math.abs(gk.length - key.length);
+      if (diff < melhorDiff) { melhor = g; melhorDiff = diff; }
+    }
+  });
+  return melhor ? melhor.url : null;
 }
+
+/* -------------------------------------------------------------
+   MÍDIA DOS EXERCÍCIOS (GIF / FOTO / VÍDEO DO EQUIPAMENTO)
+------------------------------------------------------------- */
+// Converte links de compartilhamento do Google Drive em link direto de imagem
+function normalizarUrlMidia(url) {
+  if (!url) return '';
+  const u = String(url).trim();
+  if (/drive\.google\.com|docs\.google\.com/i.test(u)) {
+    const m = u.match(/\/d\/([a-zA-Z0-9_-]{10,})/) || u.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
+    if (m) return `https://lh3.googleusercontent.com/d/${m[1]}`;
+  }
+  return u;
+}
+
+function isVideoUrl(url) {
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || ''));
+}
+
+function midiaHtml(url, estilo = '') {
+  const safe = escapeHtml(url);
+  if (isVideoUrl(url)) {
+    return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
+  }
+  return `<img src="${safe}" alt="Mídia do exercício" loading="lazy" style="${estilo}">`;
+}
+
+// Mapa de mídias escolhidas manualmente pelo treinador, por aluno (chave = nome sanitizado)
+// Valor '' significa "sem mídia" (desativa o GIF automático).
+function obterMidiaOverrides() {
+  if (!currentStudentData) return null;
+  if (!currentStudentData.midia_exercicios || typeof currentStudentData.midia_exercicios !== 'object') {
+    currentStudentData.midia_exercicios = {};
+  }
+  return currentStudentData.midia_exercicios;
+}
+
+// Mídias já salvas na ficha atual (evita perder GIFs se o repositório não carregar)
+function obterMidiasAnteriores() {
+  const mapa = {};
+  if (!currentStudentData || !Array.isArray(currentStudentData.days)) return mapa;
+  currentStudentData.days.forEach(d => (d.exercicios || []).forEach(ex => {
+    if (ex && ex.gifUrl) mapa[sanitizeExKey(ex.nome)] = ex.gifUrl;
+  }));
+  return mapa;
+}
+
+function midiaAtualDoExercicio(nomeEx) {
+  const key = sanitizeExKey(nomeEx);
+  const overrides = obterMidiaOverrides() || {};
+  if (Object.prototype.hasOwnProperty.call(overrides, key)) return { url: overrides[key], origem: 'manual' };
+  const auto = buscarGifExercicio(nomeEx);
+  if (auto) return { url: auto, origem: 'auto' };
+  const anterior = obterMidiasAnteriores()[key];
+  if (anterior) return { url: anterior, origem: 'salva' };
+  return { url: '', origem: 'nenhuma' };
+}
+
+window.abrirSeletorMidia = function(nomeEx) {
+  if (!currentStudentData) return showToast("Selecione um aluno primeiro.", "error");
+  const modal = document.getElementById('midiaModal');
+  if (!modal) return;
+  midiaModalExNome = nomeEx;
+  document.getElementById('midiaModalExName').textContent = nomeEx;
+  document.getElementById('midiaUrlInput').value = '';
+  document.getElementById('midiaSearchInput').value = nomeEx;
+  const fileInput = document.getElementById('midiaFileInput');
+  if (fileInput) fileInput.value = '';
+  if (!gifsDatabase.length) carregarGifsAdmin();
+  renderMidiaAtualModal();
+  filtrarMidiaModal();
+  modal.classList.remove('hidden');
+};
+
+window.fecharSeletorMidia = function() {
+  const modal = document.getElementById('midiaModal');
+  if (modal) modal.classList.add('hidden');
+  midiaModalExNome = '';
+};
+
+function renderMidiaAtualModal() {
+  const box = document.getElementById('midiaAtualPreview');
+  if (!box) return;
+  const { url, origem } = midiaAtualDoExercicio(midiaModalExNome);
+  const rotulos = {
+    manual: '✅ Escolhida por você',
+    auto: '🤖 Automática (repositório)',
+    salva: '💾 Salva anteriormente',
+    nenhuma: ''
+  };
+  if (!url) {
+    box.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:14px; text-align:center;">${origem === 'manual' ? '🚫 Sem mídia (desativada para este exercício)' : 'Nenhuma mídia para este exercício.'}</div>`;
+    return;
+  }
+  box.innerHTML = `
+    ${midiaHtml(url, 'width:100%; max-height:220px; object-fit:contain; border-radius:8px; background:#000;')}
+    <div style="font-size:11px; color:var(--gold); margin-top:6px; font-weight:700;">${rotulos[origem]}</div>
+  `;
+}
+
+function aplicarMidiaExercicio(valor) {
+  const overrides = obterMidiaOverrides();
+  if (!overrides || !midiaModalExNome) return;
+  const key = sanitizeExKey(midiaModalExNome);
+  if (valor === null) {
+    delete overrides[key]; // volta para o automático
+  } else {
+    overrides[key] = valor;
+  }
+  renderMidiaAtualModal();
+  atualizarPreviewAoVivo();
+  showToast("Mídia atualizada. Clique em salvar o treino para enviar ao aluno.", "info");
+}
+
+window.selecionarMidiaRepositorio = function(idx) {
+  const item = gifsDatabase[idx];
+  if (item) aplicarMidiaExercicio(item.url);
+};
+
+window.usarLinkMidia = function() {
+  const input = document.getElementById('midiaUrlInput');
+  const url = normalizarUrlMidia(input ? input.value : '');
+  if (!/^https?:\/\//i.test(url)) return showToast("Cole um link válido (começando com http).", "error");
+  aplicarMidiaExercicio(url);
+  input.value = '';
+};
+
+window.removerMidiaExercicio = function() { aplicarMidiaExercicio(''); };
+window.midiaAutomaticaExercicio = function() { aplicarMidiaExercicio(null); };
+
+window.filtrarMidiaModal = function() {
+  const grid = document.getElementById('midiaGrid');
+  if (!grid) return;
+  const termo = sanitizeExKey(document.getElementById('midiaSearchInput').value || '');
+  const lista = gifsDatabase
+    .map((g, idx) => ({ ...g, idx }))
+    .filter(g => !termo || termo === 'ex' || sanitizeExKey(g.nome).includes(termo) || termo.includes(sanitizeExKey(g.nome)))
+    .slice(0, 60);
+
+  if (!gifsDatabase.length) {
+    grid.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column:1/-1;">Carregando repositório... (se não carregar, use um link ou envie uma foto)</div>`;
+    return;
+  }
+  if (!lista.length) {
+    grid.innerHTML = `<div style="color:var(--muted); font-size:12px; grid-column:1/-1;">Nenhum GIF encontrado. Tente outro termo, cole um link ou envie uma foto.</div>`;
+    return;
+  }
+  grid.innerHTML = lista.map(g => `
+    <div class="gif-card" style="cursor:pointer;" onclick="selecionarMidiaRepositorio(${g.idx})">
+      <img src="${escapeHtml(g.url)}" alt="${escapeHtml(g.nome)}" loading="lazy">
+      <span>${escapeHtml(g.nome)}</span>
+    </div>
+  `).join('');
+};
+
+window.enviarFotoMidia = async function(inputEl) {
+  const file = inputEl && inputEl.files && inputEl.files[0];
+  if (!file) return;
+  if (file.size > 15 * 1024 * 1024) {
+    inputEl.value = '';
+    return showToast("Arquivo muito grande (máx. 15 MB).", "error");
+  }
+  const status = document.getElementById('midiaUploadStatus');
+  if (status) status.textContent = '⏳ Enviando para o Google Drive...';
+
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const res = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        nome: 'EQUIPAMENTOS',
+        fileName: `Equip_${sanitizeExKey(midiaModalExNome)}_${Date.now()}.${ext}`,
+        mimeType: file.type,
+        fileData: base64
+      })
+    });
+    const result = await res.json();
+    if (!result.success || !result.url) throw new Error(result.error || 'sem URL');
+    aplicarMidiaExercicio(normalizarUrlMidia(result.url));
+    if (status) status.textContent = '✅ Foto enviada! Confira se aparece na prévia acima.';
+  } catch (e) {
+    console.error('Erro ao enviar mídia:', e);
+    if (status) status.textContent = '❌ Falha ao enviar. Tente colar um link da imagem.';
+    showToast("Falha ao enviar a foto.", "error");
+  } finally {
+    inputEl.value = '';
+  }
+};
 
 function atualizarCampoNotasMemoria() {
   if (currentStudentData) {
@@ -1785,7 +1997,8 @@ function salvarTreinoEditado() {
   const raw = document.getElementById('liveWorkoutText').value;
   const guidelinesText = document.getElementById('editTrainerGuidelines').value.trim();
 
-  currentStudentData.days = parseWorkoutText(raw);
+  const midiaCtx = { overrides: obterMidiaOverrides(), anteriores: obterMidiasAnteriores() };
+  currentStudentData.days = parseWorkoutText(raw, midiaCtx);
   currentStudentData.trainer_guidelines = guidelinesText;
 
   salvarAlteracoes('workout');
@@ -2231,7 +2444,8 @@ function atualizarPreviewAoVivo() {
   if (!tx || !container) return;
 
   const raw = tx.value;
-  const parsedDays = parseWorkoutText(raw);
+  const midiaCtx = currentStudentData ? { overrides: obterMidiaOverrides(), anteriores: obterMidiasAnteriores() } : null;
+  const parsedDays = parseWorkoutText(raw, midiaCtx);
 
   container.innerHTML = "";
   if (parsedDays.length === 0) {
@@ -2254,7 +2468,12 @@ function atualizarPreviewAoVivo() {
         html += `<div style="font-size:12px; margin-top:4px; color:#fff;">• ${escapeHtml(ex.nome)}</div>`;
       } else {
         const isTecnico = ex.isTecnico ? `<span style="color:var(--accent); font-weight:700;"> [${escapeHtml(ex.tecnicaTipo)}]</span>` : '';
-        const gifBadge = ex.gifUrl ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 GIF</span>` : '';
+        const midiaBtn = `
+          <button type="button" data-ex="${escapeHtml(ex.nome)}" onclick="event.stopPropagation(); abrirSeletorMidia(this.dataset.ex)"
+                  title="${ex.gifUrl ? 'Trocar GIF/foto do equipamento' : 'Adicionar GIF/foto do equipamento'}"
+                  style="flex-shrink:0; width:34px; height:34px; padding:0; border-radius:6px; overflow:hidden; cursor:pointer; background:#0d0204; border:1px solid ${ex.gifUrl ? 'var(--green)' : 'var(--border)'}; color:var(--muted); font-size:14px;">
+            ${ex.gifUrl ? midiaHtml(ex.gifUrl, 'width:100%; height:100%; object-fit:cover;') : '➕'}
+          </button>`;
         
         const safeNome = escapeHtml(ex.nome).replace(/'/g, "\\'");
         const safeSeries = escapeHtml(ex.series).replace(/'/g, "\\'");
@@ -2264,8 +2483,8 @@ function atualizarPreviewAoVivo() {
           <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
                style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
                title="Clique para ver evolução de cargas">
-            <span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${gifBadge}</span>
-            <span style="color:var(--muted); font-weight:700;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
+            <span style="display:flex; align-items:center; gap:8px; min-width:0;">${midiaBtn}<span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}</span></span>
+            <span style="color:var(--muted); font-weight:700; text-align:right;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
           </div>
         `;
       }
@@ -2834,7 +3053,8 @@ async function salvarAlteracoes(tipoLimpezaRascunho = null) {
   }
 }
 
-function parseWorkoutText(rawText) {
+function parseWorkoutText(rawText, midiaCtx = null) {
+  // midiaCtx = { overrides, anteriores } — mídias escolhidas/salvas do aluno atual
   if (!rawText || !rawText.trim()) return [];
 
   const lines = rawText.split('\n');
@@ -3010,8 +3230,14 @@ function parseWorkoutText(rawText) {
         }
       }
 
-      const foundGifUrl = buscarGifExercicio(exObj.nome);
-      if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+      const keyMidia = sanitizeExKey(exObj.nome);
+      const overrides = (midiaCtx && midiaCtx.overrides) || {};
+      if (Object.prototype.hasOwnProperty.call(overrides, keyMidia)) {
+        if (overrides[keyMidia]) exObj.gifUrl = overrides[keyMidia];
+      } else {
+        const foundGifUrl = buscarGifExercicio(exObj.nome) || (midiaCtx && midiaCtx.anteriores && midiaCtx.anteriores[keyMidia]);
+        if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+      }
 
       currentDay.exercicios.push(exObj);
     }

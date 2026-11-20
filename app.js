@@ -189,6 +189,35 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+/* -------------------------------------------------------------
+   MÍDIA DO EXERCÍCIO (GIF / FOTO / VÍDEO DO EQUIPAMENTO)
+------------------------------------------------------------- */
+function isVideoUrl(url) {
+  return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || ''));
+}
+
+function midiaExercicioHtml(url) {
+  const safe = escapeHtml(url);
+  const estilo = 'display:block; width:100%; max-height:300px; object-fit:contain; border-radius:10px; background:#000;';
+  if (isVideoUrl(url)) {
+    return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
+  }
+  return `<img src="${safe}" alt="Execução / equipamento" style="${estilo}" onerror="this.outerHTML='<div style=&quot;font-size:12px; color:var(--ink-dim); padding:12px; text-align:center;&quot;>Não foi possível carregar a mídia. Avise seu treinador.</div>'">`;
+}
+
+// Abre/fecha a mídia sob demanda (só baixa o GIF quando o aluno pedir, economizando dados)
+window.toggleMidiaExercicio = function(btn) {
+  const box = btn.parentElement.querySelector('.ex-midia-box');
+  if (!box) return;
+  const abrir = box.classList.contains('hidden');
+  if (abrir && !box.dataset.loaded) {
+    box.innerHTML = midiaExercicioHtml(btn.dataset.url);
+    box.dataset.loaded = '1';
+  }
+  box.classList.toggle('hidden', !abrir);
+  btn.textContent = abrir ? '🙈 Ocultar execução / equipamento' : '🎥 Ver execução / equipamento';
+};
+
 function obterDiaSemanaNormalizado() {
   const dias = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
   return dias[new Date().getDay()];
@@ -1930,6 +1959,14 @@ function renderExercisesForDay(day, dayIdx, container) {
       prevBadgeHtml = `<div class="previous-log-badge">📈 Último treino: Sem registro prévio</div>`;
     }
 
+    const midiaUrl = typeof ex.gifUrl === 'string' && /^https?:\/\//i.test(ex.gifUrl) ? ex.gifUrl : '';
+    const midiaBlocoHtml = midiaUrl ? `
+      <div class="ex-midia-wrap" style="margin:2px 0 8px;">
+        <button type="button" class="btn-midia-exercicio" data-url="${escapeHtml(midiaUrl)}" onclick="toggleMidiaExercicio(this)"
+          style="width:100%; padding:7px 10px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:var(--panel-2); color:var(--ink); border:1px solid var(--line);">🎥 Ver execução / equipamento</button>
+        <div class="ex-midia-box hidden" style="margin-top:6px;"></div>
+      </div>` : '';
+
     let html = `
       <div class="item-header">
         <div class="item-title">${escapeHtml(cleanName)}</div>
@@ -1941,6 +1978,7 @@ function renderExercisesForDay(day, dayIdx, container) {
           </button>
         </div>
       </div>
+      ${midiaBlocoHtml}
       ${prevBadgeHtml}
       <div class="series-container">
     `;
