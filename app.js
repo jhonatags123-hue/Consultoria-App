@@ -1,24 +1,27 @@
 const BACKEND_URL = 'https://' + 'consultoria-backend-kbqi.onrender.com';
 const GOOGLE_APPS_SCRIPT_URL = 'https://' + 'script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec';
 
-// Links de Checkout Asaas
-const CHECKOUT_LINKS = {
-  COMPLETA_TRIMESTRAL: { cartao: 'https://' + 'www.asaas.com/000/c/lvfk6qle0ufq0t57', pix: 'https://' + 'www.asaas.com/000/c/k9pnu5cry59ts60b' },
-  COMPLETA_SEMESTRAL: { cartao: 'https://' + 'www.asaas.com/000/c/oky8it88u28d4vat', pix: 'https://' + 'www.asaas.com/000/c/vmplvn41acefxh6q' },
-  COMPLETA_ANUAL: { cartao: 'https://' + 'www.asaas.com/000/c/5gd9tb7c0szjdwbd', pix: 'https://' + 'www.asaas.com/000/c/d3g2zgxzvigjnpam' },
-  TREINO_ANUAL: { cartao: 'https://' + 'www.asaas.com/000/c/v36oz63i4jg0cg2u', pix: 'https://' + 'www.asaas.com/000/c/3rzicld44lby9g6b' },
-  COMPLETA_DUPLA: { cartao: 'https://' + 'www.asaas.com/000/c/z4zlsoe009fz8tgu', pix: 'https://' + 'www.asaas.com/000/c/52mqr2awi4hzl61n' },
-  TREINO_DUPLA: { cartao: 'https://' + 'www.asaas.com/000/c/omsltaq25btnizvo', pix: 'https://' + 'www.asaas.com/000/c/ke2r2emle6sfnmif' }
-};
+// Planos, preços e links de pagamento ficam em planos.js (arquivo único)
+const PLANO_PADRAO = 'TREINO_ANUAL';
 
-const DETALHES_PLANOS = {
-  'COMPLETA_ANUAL': { valor: 'R$ 85,00/mês no Cartão Recorrente ou R$ 900,00 no PIX', sub: 'Acompanhamento completo individual com treino + dieta.' },
-  'COMPLETA_SEMESTRAL': { valor: 'R$ 110,00/mês no Cartão Recorrente ou R$ 600,00 no PIX', sub: 'Protocolo completo semestral com suporte contínuo.' },
-  'COMPLETA_TRIMESTRAL': { valor: 'R$ 120,00/mês no Cartão Recorrente ou R$ 330,00 no PIX', sub: 'Acompanhamento trimestral focado em metas rápidas.' },
-  'COMPLETA_DUPLA': { valor: 'R$ 140,00/mês no Cartão Recorrente ou R$ 1.560,00 no PIX', sub: 'Plano em Dupla: apenas R$ 70,00 por mês para cada pessoa.' },
-  'TREINO_ANUAL': { valor: 'R$ 55,00/mês no Cartão Recorrente ou R$ 540,00 no PIX', sub: 'Ficha de treino contínua individual com ajuste de cargas.' },
-  'TREINO_DUPLA': { valor: 'R$ 90,00/mês no Cartão Recorrente ou R$ 960,00 no PIX', sub: 'Apenas R$ 45,00 por mês por pessoa para treinar em dupla.' }
-};
+function textoResumoPlano(plano) {
+  if (!plano) return { valor: 'Consulte o plano', sub: '' };
+  const partes = [];
+  if (plano.cartao) partes.push(`${plano.cartao.parcelas}x de ${formatarReais(valorParcela(plano))}`);
+  if (plano.pix) partes.push(`${formatarReais(plano.pix)} no PIX`);
+  if (plano.recorrente) partes.push(`${formatarReais(plano.recorrente)}/mês recorrente`);
+  const sub = plano.tipo === 'completa'
+    ? (plano.dupla ? 'Treino + plano alimentar individuais para as duas pessoas.' : 'Treino + plano alimentar individualizados, com acompanhamento.')
+    : (plano.dupla ? 'Treino individual para cada um da dupla, com acompanhamento.' : 'Treino individualizado com acompanhamento e ajustes de progressão.');
+  return { valor: partes.join(' • '), sub };
+}
+
+function opcoesPlanosHtml(filtroTipo, selecionado) {
+  return Object.entries(PLANOS)
+    .filter(([, p]) => !filtroTipo || p.tipo === filtroTipo)
+    .map(([id, p]) => `<option value="${id}" ${id === selecionado ? 'selected' : ''}>${p.nome}</option>`)
+    .join('');
+}
 
 let currentData = null;
 let loggedUserCode = "";
@@ -142,7 +145,7 @@ function atualizarResumoPrecoAnamnese() {
     return;
   }
 
-  const info = DETALHES_PLANOS[plano] || { valor: 'Consulte o plano', sub: '' };
+  const info = textoResumoPlano(PLANOS[plano]);
   if (elValor) elValor.textContent = info.valor;
   if (elSub) elSub.textContent = info.sub;
 }
@@ -567,11 +570,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           selectPlano.innerHTML = `<option value="AMIGOS_COMPLETA" selected>Consultoria Completa — Indicação / Amigos (Valor a Combinar)</option>`;
         }
         selectPlano.disabled = true;
-      } else if (isApenasTreinoMode) {
-        selectPlano.innerHTML = `
-          <option value="TREINO_ANUAL" selected>Consultoria de Treino Anual — R$ 55/mês ou R$ 540 no PIX</option>
-          <option value="TREINO_DUPLA">Promocional Treino em Dupla (Anual) — R$ 90/mês ou R$ 960 no PIX</option>
-        `;
+      } else {
+        // Plano escolhido no site já vem selecionado (?plano=TREINO_ANUAL)
+        const planoUrl = String(params.get('plano') || '').toUpperCase();
+        const planoEscolhido = PLANOS[planoUrl] ? planoUrl : (isApenasTreinoMode ? 'TREINO_ANUAL' : PLANO_PADRAO);
+        selectPlano.innerHTML = opcoesPlanosHtml(isApenasTreinoMode ? 'treino' : null, planoEscolhido);
       }
     }
 
@@ -732,33 +735,38 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
     `;
   }
 
-  const checkoutInfo = CHECKOUT_LINKS[tipoConsultoria] || CHECKOUT_LINKS.COMPLETA_SEMESTRAL;
+  const plano = PLANOS[tipoConsultoria] || PLANOS[PLANO_PADRAO];
+  const formaUrl = new URLSearchParams(location.search).get('forma');
+  const estilos = {
+    pix: 'background:#dcaa3a; color:#1a0b02;',
+    cartao: 'background:linear-gradient(135deg,#c4324f,#841628); color:#fff;',
+    recorrente: 'background:transparent; color:var(--ink,#fff); border:1px solid var(--line,rgba(220,170,58,.4)) !important;'
+  };
+  const botoes = formasPagamentoPlano(plano).map(f => {
+    const destino = f.link || `${wppBase}${encodeURIComponent(`Olá Jhonata! Preenchi minha avaliação e quero pagar o plano ${plano.nome} (${f.titulo}).`)}`;
+    const marcado = formaUrl === f.id ? ' outline:2px solid #f3d489; outline-offset:2px;' : '';
+    return `
+        <a href="${destino}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; ${estilos[f.id]} text-decoration:none; padding:14px; border-radius:12px; margin-bottom:10px; font-weight:800; border:0;${marcado}">
+          <span>${f.icone} ${f.titulo}</span>
+          <small style="font-size:11px; opacity:.9; font-weight:400;">${f.detalhe}</small>
+        </a>`;
+  }).join('');
 
   return `
     <div style="text-align:center; padding:24px 10px;">
       <div style="font-size:48px; margin-bottom:12px;">✅</div>
       <h2 style="font-size:24px; font-weight:700; color:var(--ink,#fff); font-family:var(--font-display);">
-        Anamnese Concluída com Sucesso!
+        Avaliação concluída!
       </h2>
       <p style="font-size:13.5px; color:var(--ink-dim,#e0d0d3); margin-top:8px; line-height:1.6;">
-        Escolha abaixo como deseja realizar o pagamento da sua assinatura:
+        Plano escolhido: <b style="color:var(--ink,#fff);">${plano.nome}</b><br>Escolha como prefere pagar:
       </p>
 
-      <div style="background:var(--panel-2,#150508); border:1px solid var(--line,rgba(220,170,58,.25)); border-radius:18px; padding:20px; margin-top:20px; text-align:center;">
-        
-        <a href="${checkoutInfo.cartao}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:linear-gradient(135deg,#c4324f,#841628); color:#fff; text-decoration:none; padding:14px; border-radius:12px; margin-bottom:12px; font-weight:800; border:0;">
-          <span>💳 Pagar no Cartão Recorrente</span>
-          <small style="font-size:11px; opacity:.9; font-weight:400;">✓ Débito mensal sem ocupar o limite total do cartão</small>
-        </a>
-
-        <a href="${checkoutInfo.pix}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; background:#dcaa3a; color:#1a0b02; text-decoration:none; padding:14px; border-radius:12px; font-weight:800; border:0;">
-          <span>⚡ Pagar via PIX À Vista</span>
-          <small style="font-size:11px; opacity:.9; font-weight:400;">✓ Liberação e início imediato do seu acompanhamento</small>
-        </a>
-
+      <div style="background:var(--panel-2,#150508); border:1px solid var(--line,rgba(220,170,58,.25)); border-radius:18px; padding:18px 16px 8px; margin-top:18px; text-align:center;">
+        ${botoes}
       </div>
 
-      <a href="${wppBase}${encodeURIComponent('Olá Jhonata! Acabei de preencher minha Anamnese!')}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
+      <a href="${wppBase}${encodeURIComponent(`Olá Jhonata! Acabei de preencher minha avaliação (${plano.nome}).`)}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
           Falar com o personal no WhatsApp
       </a>
     </div>
@@ -773,7 +781,7 @@ async function sendAnamneseAppDirect() {
   const cpf = document.getElementById('anamCpf').value.trim();
   const telefone = document.getElementById('anamTelefone').value.trim();
   const selectConsultoria = document.getElementById('anamTipoConsultoria');
-  const tipoConsultoria = selectConsultoria ? selectConsultoria.value : 'COMPLETA_SEMESTRAL';
+  const tipoConsultoria = selectConsultoria ? selectConsultoria.value : PLANO_PADRAO;
   const btn = document.getElementById('btnSubmitAnam');
 
   if (!nome || !nascimento || !idade || !email || !cpf || !telefone) {
@@ -893,10 +901,17 @@ function loadStudentData(data) {
   const btnDieta = document.getElementById('btnDieta');
   const btnErgogenicos = document.getElementById('btnErgogenicos');
 
-  if (data.apenasTreino === true || data.liberarDieta === false) {
+  const noDietBanner = document.getElementById('noDietBanner');
+  if (data.apenasTreino === true) {
+    // Plano só de treino: aba Dieta aparece com cadeado e convite para o upgrade
+    if (btnDieta) { btnDieta.classList.remove('hidden'); btnDieta.textContent = 'Dieta 🔒'; }
+    if (noDietBanner) noDietBanner.classList.remove('hidden');
+  } else if (data.liberarDieta === false) {
     if (btnDieta) btnDieta.classList.add('hidden');
+    if (noDietBanner) noDietBanner.classList.add('hidden');
   } else {
-    if (btnDieta) btnDieta.classList.remove('hidden');
+    if (btnDieta) { btnDieta.classList.remove('hidden'); btnDieta.textContent = 'Dieta'; }
+    if (noDietBanner) noDietBanner.classList.add('hidden');
     renderDietaAluno(data.refeicoes || data.dieta || []);
   }
 

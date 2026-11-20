@@ -284,19 +284,12 @@
 
     <div id="anamStep10" class="hidden">
       <label class="label-fdb">23. Plano Selecionado:</label>
-      <select id="anamTipoConsultoria" class="input-field" onchange="atualizarResumoPrecoAnamnese()" required>
-        <option value="COMPLETA_TRIMESTRAL">Consultoria Completa Trimestral</option>
-        <option value="COMPLETA_SEMESTRAL" selected>Consultoria Completa Semestral</option>
-        <option value="COMPLETA_ANUAL">Consultoria Completa Anual</option>
-        <option value="TREINO_ANUAL">Apenas Treino (Anual)</option>
-        <option value="COMPLETA_DUPLA">Consultoria Completa em Dupla (Anual)</option>
-        <option value="TREINO_DUPLA">Apenas Treino em Dupla (Anual)</option>
-      </select>
+      <select id="anamTipoConsultoria" class="input-field" onchange="atualizarResumoPrecoAnamnese()" required></select>
 
       <div id="resumoPlanoBox" style="background:var(--panel-2); border:1px solid var(--mark); border-radius:10px; padding:14px; margin-top:12px; text-align:center;">
         <div style="font-size:11px; color:var(--ink-dim); font-weight:700; text-transform:uppercase;">💳 Resumo do Investimento:</div>
-        <div id="resumoPlanoValor" style="font-size:20px; font-weight:800; color:var(--mark); margin-top:4px;">R$ 110,00/mês no Cartão ou R$ 600,00 no PIX</div>
-        <div id="resumoPlanoSub" style="font-size:11.5px; color:var(--ink-dim); margin-top:2px;">Protocolo completo semestral com suporte contínuo.</div>
+        <div id="resumoPlanoValor" style="font-size:16px; font-weight:800; color:var(--mark); margin-top:4px;"></div>
+        <div id="resumoPlanoSub" style="font-size:11.5px; color:var(--ink-dim); margin-top:2px;"></div>
       </div>
 
       <div style="display:flex; gap:8px; margin-top:16px;">
@@ -423,13 +416,14 @@
     <div id="tabDieta" class="hidden">
       <div id="noDietBanner" class="card hidden" style="text-align:center; border-color:var(--mark);">
         <div style="font-size:24px; margin-bottom:6px;">🥗</div>
-        <div style="font-weight:700; color:var(--ink); font-size:15px;">Seu plano atual é focado em Treino</div>
-        <p style="font-size:12px; color:var(--ink-dim); margin-top:6px; line-height:1.5;">
-          Quer acelerar seus resultados combinando uma dieta ajustada ao seu objetivo?
+        <div style="font-weight:700; color:var(--ink); font-size:15px;">Plano alimentar não incluso no seu plano</div>
+        <p style="font-size:12.5px; color:var(--ink-dim); margin-top:6px; line-height:1.55;">
+          Seu treino já está no caminho certo. Com a <b style="color:var(--ink);">Consultoria Completa</b> você recebe também um plano alimentar montado para o seu objetivo e a sua rotina — e os resultados aparecem mais rápido.
         </p>
-        <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Gostaria%20de%20adicionar%20o%20plano%20alimentar%20%C3%A0%20minha%20consultoria." target="_blank" class="btn-login btn-gold" style="margin-top:12px; display:inline-block; text-decoration:none;">
-          Adicionar Dieta com o Personal
+        <a href="https://wa.me/5551990169026?text=Ol%C3%A1%20Jhonata!%20Quero%20fazer%20o%20upgrade%20para%20a%20Consultoria%20Completa%20(incluir%20o%20plano%20alimentar)." target="_blank" class="btn-login btn-gold" style="margin-top:12px; display:inline-block; text-decoration:none;">
+          Quero fazer o upgrade
         </a>
+        <p style="font-size:11px; color:var(--ink-dim); margin-top:8px;">As condições do upgrade são combinadas direto comigo.</p>
       </div>
 
       <div id="dietListView">
@@ -522,6 +516,7 @@
   </div>
 </div>
 
+<script src="planos.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

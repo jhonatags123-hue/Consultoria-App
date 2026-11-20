@@ -3,73 +3,136 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Jhonata Cavalcante | Personal Trainer e Consultoria Esportiva</title>
-<meta name="description" content="Treino e plano alimentar ajustados à sua rotina, com acompanhamento direto no WhatsApp.">
-<meta property="og:title" content="Jhonata Cavalcante | Consultoria Esportiva">
-<meta property="og:description" content="Treino e plano alimentar ajustados à sua rotina, com acompanhamento direto no WhatsApp.">
-<meta property="og:image" content="https://github.com/jhonatags123-hue/Consultoria-App/blob/main/minhafoto.jpg?raw=true">
-<meta property="og:url" content="https://consultoria-backend-kbqi.onrender.com/">
+<title>Jhonata Cavalcante | Consultoria de Treino</title>
+<meta name="description" content="Consultoria de treino com acompanhamento pessoal, focado só no seu resultado e na sua progressão. Feedback toda semana e app próprio.">
+<meta property="og:title" content="Jhonata Cavalcante | Consultoria de Treino">
+<meta property="og:description" content="Acompanhamento pessoal, focado só no seu resultado e na sua progressão. Feedback toda semana e app próprio.">
+<meta property="og:image" content="https://jhonataconsultoria.com.br/minhafoto.jpg">
+<meta property="og:url" content="https://jhonataconsultoria.com.br/">
 <meta property="og:type" content="website">
+<meta name="theme-color" content="#070103">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
-:root{--card:#150508;--line:rgba(220,170,58,.25);--soft:rgba(255,255,255,.08);--accent:#c4324f;--accent2:#841628;--gold:#dcaa3a;--gold2:#f3d489;--text:#f8efec;--muted:#bba5ab;--green:#25d366}
+:root{--card:#150508;--card2:#1c070c;--line:rgba(220,170,58,.25);--soft:rgba(255,255,255,.08);--accent:#c4324f;--accent2:#841628;--gold:#dcaa3a;--gold2:#f3d489;--text:#f8efec;--muted:#bba5ab;--green:#25d366}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:radial-gradient(900px 560px at 50% -8%,#300713,#070103 70%) no-repeat #070103;color:var(--text);font:400 15px/1.6 'Inter',system-ui,sans-serif;max-width:480px;margin:0 auto;padding:28px 16px calc(96px + env(safe-area-inset-bottom,0px));overflow-x:hidden}
+body{background:radial-gradient(900px 560px at 50% -8%,#300713,#070103 70%) no-repeat #070103;color:var(--text);font:400 15px/1.6 'Inter',system-ui,sans-serif;max-width:480px;margin:0 auto;padding:24px 16px calc(96px + env(safe-area-inset-bottom,0px));overflow-x:hidden}
 h1,h2{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:1px;line-height:1.05}
-h2{font-size:30px;text-align:center;margin:44px 0 6px}
+h2{font-size:32px;text-align:center;margin:48px 0 6px}
 .sub{text-align:center;color:var(--muted);font-size:14px;margin-bottom:18px}
+.kicker{display:block;text-align:center;font:800 11px 'Inter';letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-top:48px}
+.kicker+h2{margin-top:6px}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
-.btn{display:flex;justify-content:center;align-items:center;gap:8px;min-height:50px;padding:0 18px;border-radius:14px;font:800 15px 'Inter',sans-serif;text-decoration:none;border:0;cursor:pointer;width:100%;color:#fff}
+.btn{display:flex;justify-content:center;align-items:center;gap:8px;min-height:52px;padding:0 18px;border-radius:14px;font:800 15px 'Inter',sans-serif;text-decoration:none;border:0;cursor:pointer;width:100%;color:#fff}
 .btn-main{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 22px rgba(196,50,79,.35)}
 .btn-gold{background:var(--gold);color:#1a0b02}
 .btn-wa{background:transparent;border:1px solid var(--green);color:var(--green)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.lnk-wa{display:block;text-align:center;color:var(--green);font:700 13px 'Inter';text-decoration:none;margin-top:12px}
+
+/* PERFIL + HERO */
 .profile{text-align:center}
-.avatar{width:92px;height:92px;border-radius:50%;border:2px solid var(--gold);margin:0 auto 12px;overflow:hidden;background:var(--card);display:grid;place-items:center;font:28px 'Bebas Neue';color:var(--gold)}
+.avatar{width:96px;height:96px;border-radius:50%;border:2px solid var(--gold);margin:0 auto 12px;overflow:hidden;background:var(--card);display:grid;place-items:center;font:28px 'Bebas Neue';color:var(--gold);box-shadow:0 0 0 6px rgba(220,170,58,.08)}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.profile h1{font-size:42px}
-.profile p{color:var(--gold);font-weight:700;font-size:13px;margin-top:4px}
-.hero{background:rgba(21,5,8,.75);border:1px solid var(--line);border-radius:24px;padding:24px 20px;text-align:center;margin-top:20px;box-shadow:0 16px 40px rgba(0,0,0,.6)}
-.hero h2{margin:0 0 12px;font-size:34px}
+.profile h1{font-size:40px}
+.profile p{color:var(--gold);font-weight:700;font-size:13px;margin-top:2px}
+.hero{background:rgba(21,5,8,.78);border:1px solid var(--line);border-radius:24px;padding:26px 20px 22px;text-align:center;margin-top:20px;box-shadow:0 16px 40px rgba(0,0,0,.6)}
+.pill{display:inline-block;font:800 11px 'Inter';letter-spacing:1.5px;text-transform:uppercase;color:#1a0b02;background:var(--gold);border-radius:999px;padding:4px 12px;margin-bottom:14px}
+.hero h2{margin:0 0 12px;font-size:38px}
+.hero h2 em{font-style:normal;color:var(--gold2)}
 .hero p{color:#e4d5d8;font-size:15px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0}
-.stats div{background:rgba(10,2,5,.7);border:1px solid var(--soft);border-radius:12px;padding:10px 4px;font-size:12.5px;line-height:1.3;color:#eadadd}
-.stats b{display:block;font:28px 'Bebas Neue';color:var(--gold2);letter-spacing:1px}
+.checks{list-style:none;text-align:left;margin:16px 0 18px;display:grid;gap:8px}
+.checks li{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:#eadadd}
+.checks li::before{content:'✓';flex:0 0 22px;height:22px;border-radius:50%;background:rgba(220,170,58,.15);color:var(--gold2);font:800 12px/22px 'Inter';text-align:center}
 .hero .btn+.btn{margin-top:10px}
-.carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;-webkit-overflow-scrolling:touch}
+
+/* DIFERENCIAIS */
+.diffs{display:grid;gap:10px}
+.diff{display:flex;gap:14px;background:var(--card);border:1px solid var(--soft);border-radius:18px;padding:16px}
+.diff .ic{flex:0 0 44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(196,50,79,.25),rgba(220,170,58,.15));display:grid;place-items:center;font-size:22px}
+.diff b{display:block;font-size:15.5px;margin-bottom:2px}
+.diff span{font-size:13.5px;color:var(--muted);line-height:1.5}
+
+/* MOCKUP DO APP */
+.phone{width:250px;margin:6px auto 0;border-radius:34px;padding:10px;background:#000;border:1px solid rgba(255,255,255,.12);box-shadow:0 24px 50px rgba(0,0,0,.7),0 0 0 6px rgba(220,170,58,.06)}
+.screen{background:#111317;border-radius:26px;padding:16px 12px 14px;overflow:hidden;font-size:11px}
+.screen .bar-top{display:flex;justify-content:space-between;color:#8a8f99;font:700 9.5px 'Inter';margin-bottom:10px}
+.screen .tabs-m{display:flex;gap:5px;margin-bottom:10px}
+.screen .tabs-m span{flex:1;text-align:center;padding:5px 0;border-radius:7px;background:#1b1e24;color:#8a8f99;font-weight:700;font-size:9.5px}
+.screen .tabs-m span.on{background:var(--gold);color:#1a0b02}
+.ex{background:#181b21;border:1px solid #262a32;border-radius:12px;padding:10px;margin-bottom:8px}
+.ex .t1{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:12px;color:#fff}
+.ex .t1 small{font-size:9px;color:var(--gold);border:1px solid rgba(220,170,58,.4);border-radius:5px;padding:1px 5px;font-weight:700}
+.ex .foto{display:inline-block;margin:6px 0;font-size:9.5px;font-weight:700;color:var(--gold);border:1px solid rgba(220,170,58,.35);border-radius:999px;padding:2px 8px}
+.ex .ult{background:rgba(220,170,58,.1);color:var(--gold2);border-radius:6px;padding:4px 6px;font:700 9.5px ui-monospace,monospace;margin-bottom:6px}
+.ex .row{display:flex;align-items:center;gap:5px;margin-top:4px;color:#8a8f99;font-size:9.5px}
+.ex .row i{font-style:normal;background:#22262d;border-radius:5px;padding:3px 6px;color:#cfd3da;font-weight:700}
+.ex .row b{background:#0d0f12;border:1px solid #2a2e36;border-radius:5px;padding:3px 7px;color:#fff;min-width:30px;text-align:center}
+.ex .row .ok{margin-left:auto;color:#22c55e;font-weight:800}
+.app-cap{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+
+/* DEPOIMENTOS */
+.carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:2px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.carousel::-webkit-scrollbar{display:none}
 .t{flex:0 0 86%;scroll-snap-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.t .stars{color:var(--gold2);letter-spacing:2px;font-size:13px}
 .t .q{font-size:15.5px;line-height:1.55;color:#fff}
 .t .q2{font-size:14px;color:#d9c8cc}
 .t footer{margin-top:auto;display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--soft);padding-top:10px;font-size:13px}
 .t footer span{color:var(--gold2)}
 .lnk{background:none;border:0;color:var(--muted);font:600 13px 'Inter';text-decoration:underline;cursor:pointer;text-align:left;padding:4px 0;min-height:32px}
 .hint{text-align:center;font-size:12.5px;color:var(--muted)}
+
+/* COMO FUNCIONA */
 .steps{display:grid;gap:10px}
 .step{display:flex;gap:14px;align-items:flex-start;background:var(--card);border:1px solid var(--soft);border-radius:16px;padding:14px 16px}
 .step i{flex:0 0 34px;height:34px;border-radius:50%;background:var(--gold);color:#1a0b02;font:700 15px/34px 'Inter';text-align:center;font-style:normal}
 .step b{display:block;font-size:15px}
 .step span{font-size:14px;color:var(--muted)}
-.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--card);border:1px solid var(--soft);border-radius:14px;padding:4px;margin-bottom:14px}
-.tabs button{min-height:44px;border:0;border-radius:10px;background:none;color:var(--muted);font:700 12px 'Inter';cursor:pointer;padding:0 4px}
-.tabs button[aria-selected=true]{background:var(--gold);color:#1a0b02}
-.plan{background:var(--card);border:1px solid var(--soft);border-radius:18px;padding:18px;margin-bottom:12px}
-.plan.rec{border:1px solid var(--gold);box-shadow:0 10px 30px rgba(220,170,58,.15);background:linear-gradient(160deg,rgba(220,170,58,.1),var(--card))}
-.tag{display:inline-block;background:var(--gold);color:#1a0b02;font:800 12px 'Inter';padding:2px 8px;border-radius:6px;margin-bottom:8px}
-.tag-no-limit{display:inline-block;background:rgba(37,211,102,.15);color:var(--green);border:1px solid var(--green);font:700 11px 'Inter';padding:2px 8px;border-radius:6px;margin-top:6px}
-.plan h3{font-size:17px}
-.plan .d{font-size:14px;color:var(--muted);margin:2px 0 10px}
-.price{font:34px 'Bebas Neue';letter-spacing:1px;color:var(--gold2);line-height:1}
-.price small{font:500 13px 'Inter';color:var(--muted);letter-spacing:0;margin-left:4px}
-.plan .btn{margin-top:10px}
-.lead{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
-.lead h2{margin-top:0;font-size:26px}
+
+/* PLANOS */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--card);border:1px solid var(--soft);border-radius:14px;padding:4px;margin-bottom:14px}
+.seg button{min-height:44px;border:0;border-radius:10px;background:none;color:var(--muted);font:700 13.5px 'Inter';cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--gold);color:#1a0b02}
+.plan{position:relative;background:var(--card);border:1px solid var(--soft);border-radius:22px;padding:22px 18px 18px;margin-bottom:14px}
+.plan.main{border:1px solid var(--gold);background:linear-gradient(165deg,rgba(220,170,58,.12),var(--card) 45%);box-shadow:0 14px 36px rgba(220,170,58,.13)}
+.plan .tag{position:absolute;top:-12px;left:18px;background:var(--gold);color:#1a0b02;font:800 11px 'Inter';letter-spacing:1px;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.plan .tag.alt{background:var(--accent);color:#fff}
+.plan h3{font:400 30px 'Bebas Neue';letter-spacing:1px;line-height:1}
+.plan .who{font-size:13.5px;color:var(--muted);margin:4px 0 14px}
+.dur{display:flex;gap:6px;margin-bottom:14px}
+.dur button{flex:1;min-height:38px;border-radius:10px;border:1px solid var(--soft);background:rgba(0,0,0,.25);color:var(--muted);font:700 12.5px 'Inter';cursor:pointer;padding:0 4px}
+.dur button[aria-pressed=true]{border-color:var(--gold);color:var(--gold2);background:rgba(220,170,58,.1)}
+.dur-note{font-size:12px;color:var(--muted);margin:-6px 0 14px}
+.price{font:400 46px 'Bebas Neue';letter-spacing:1px;color:var(--gold2);line-height:1}
+.price small{font:600 14px 'Inter';color:var(--muted);letter-spacing:0;margin-left:2px}
+.price-sub{font-size:13px;color:var(--muted);margin:4px 0 12px}
+.pays{list-style:none;display:grid;gap:6px;margin-bottom:14px}
+.pays li{display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.28);border:1px solid var(--soft);border-radius:12px;padding:9px 12px;font-size:13.5px}
+.pays li .i{font-size:16px}
+.pays li b{display:block;color:#fff;font-size:13.5px}
+.pays li small{color:var(--muted);font-size:12px}
+.incl{list-style:none;display:grid;gap:6px;margin:0 0 16px;padding-top:12px;border-top:1px solid var(--soft)}
+.incl li{font-size:13.5px;color:#eadadd;display:flex;gap:8px}
+.incl li::before{content:'✓';color:var(--gold2);font-weight:800}
+.incl li.plus::before{content:'+';color:var(--accent)}
+.upsell-head{text-align:center;margin:26px 0 24px}
+.upsell-head b{font:400 26px 'Bebas Neue';letter-spacing:1px;display:block}
+.upsell-head span{font-size:13.5px;color:var(--muted)}
+
+/* LEAD, FAQ, FINAL */
+.lead{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-top:40px}
+.lead h2{margin-top:0;font-size:28px}
 .lead label{display:block;font-size:13px;font-weight:600;margin:12px 0 4px;color:#eadadd}
 .lead input,.lead select{width:100%;min-height:48px;border-radius:12px;border:1px solid var(--soft);background:#0a0104;color:var(--text);padding:0 14px;font:16px 'Inter'}
 .lead .btn{margin-top:16px}
 .faq details{background:var(--card);border:1px solid var(--soft);border-radius:14px;margin-bottom:8px}
 .faq summary{padding:15px 16px;font-weight:700;font-size:14.5px;cursor:pointer}
 .faq p{padding:0 16px 15px;font-size:14px;color:#d9c8cc}
-.final{text-align:center;margin-top:36px}
+.final{text-align:center;margin-top:40px;background:linear-gradient(160deg,rgba(196,50,79,.18),rgba(21,5,8,.8));border:1px solid var(--line);border-radius:22px;padding:24px 18px}
+.final h2{margin-top:0}
 .final .btn+.btn{margin-top:10px}
 footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 .bar{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(7,1,3,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;gap:10px;transform:translateY(110%);transition:transform .25s;z-index:5}
@@ -86,70 +149,120 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <body>
 
 <header class="profile">
-  <div class="avatar"><img src="https://github.com/jhonatags123-hue/Consultoria-App/blob/main/minhafoto.jpg?raw=true" alt="Jhonata Cavalcante" onerror="this.style.display='none';this.parentNode.textContent='JC'"></div>
+  <div class="avatar"><img src="minhafoto.jpg" alt="Jhonata Cavalcante" onerror="this.style.display='none';this.parentNode.textContent='JC'"></div>
   <h1>JHONATA CAVALCANTE</h1>
-  <p>Personal Trainer | Consultoria Esportiva</p>
+  <p>Personal Trainer | Consultoria de Treino Online</p>
 </header>
 
 <!-- HERO -->
 <section class="hero">
-  <h2>Treino e plano alimentar ajustados à sua rotina</h2>
-  <p>Para quem quer ganhar massa, perder gordura ou voltar a treinar direito, sem planilha genérica. Eu acompanho de perto e ajusto o plano conforme você evolui.</p>
-  <div class="stats">
-    <div><b>+100</b>alunos acompanhados</div>
-    <div><b>1:1</b>direto comigo no WhatsApp</div>
-    <div><b>App</b>para acompanhar sua evolução</div>
-  </div>
-  <a href="#planos" class="btn btn-main" id="heroCta" data-ev="hero_cta">Ver planos disponíveis</a>
+  <span class="pill">Consultoria de Treino</span>
+  <h2>Acompanhamento pessoal, focado só no <em>seu resultado</em></h2>
+  <p>Nada de ficha pronta e esquecida. Eu monto seu treino, acompanho sua progressão de perto e ajusto o plano toda vez que você evolui.</p>
+  <ul class="checks">
+    <li>Feedback toda semana: eu parabenizo quando você evolui e cobro quando precisa</li>
+    <li>Avaliação do físico por fotos, para ajustar o que realmente importa</li>
+    <li>App próprio com seu treino, suas cargas e a foto de cada exercício</li>
+  </ul>
+  <a href="#planos" class="btn btn-main" id="heroCta" data-ev="hero_cta">Quero começar meu acompanhamento</a>
   <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Vim pelo seu link e quero tirar dúvidas sobre a consultoria." data-ev="whatsapp_hero">Tirar dúvidas no WhatsApp</a>
 </section>
 
+<!-- DIFERENCIAIS -->
+<span class="kicker">Meu diferencial</span>
+<h2>Por que meus alunos evoluem</h2>
+<p class="sub">Não é só o treino, é o acompanhamento que faz você progredir.</p>
+<div class="diffs">
+  <div class="diff"><div class="ic">🤝</div><div><b>Acompanhamento pessoal, comigo</b><span>Você fala direto comigo, não com uma equipe ou um robô. Eu conheço sua rotina, seu histórico e seu objetivo.</span></div></div>
+  <div class="diff"><div class="ic">📅</div><div><b>Feedback toda semana</b><span>Toda semana eu analiso seus treinos: parabenizo quando você evolui e cobro quando você sai do plano. Ninguém fica largado.</span></div></div>
+  <div class="diff"><div class="ic">📸</div><div><b>Avaliação do físico por fotos</b><span>Você me envia fotos com frequência e eu avalio sua evolução para ajustar o treino onde você mais precisa.</span></div></div>
+  <div class="diff"><div class="ic">📈</div><div><b>Foco total em progressão</b><span>Cargas, repetições e técnicas planejadas para você sempre evoluir, e não repetir o mesmo treino por meses.</span></div></div>
+</div>
+
+<!-- APP -->
+<span class="kicker">Seu treino no celular</span>
+<h2>Um app feito para você evoluir</h2>
+<p class="sub">Tudo o que você precisa durante o treino, num lugar só.</p>
+<div class="phone" aria-hidden="true">
+  <div class="screen">
+    <div class="bar-top"><span>TREINO A • PEITO</span><span>Semana 4</span></div>
+    <div class="tabs-m"><span class="on">Treino</span><span>Cardio</span><span>Feedback</span></div>
+    <div class="ex">
+      <div class="t1">Supino Inclinado <small>3x 8-10</small></div>
+      <span class="foto">📷 Ver foto do exercício</span>
+      <div class="ult">📈 Último treino: 32kg • 9 reps</div>
+      <div class="row"><i>Série 1</i><b>34</b>kg<b>9</b>reps<span class="ok">✓</span></div>
+      <div class="row"><i>Série 2</i><b>34</b>kg<b>8</b>reps<span class="ok">✓</span></div>
+    </div>
+    <div class="ex">
+      <div class="t1">Crucifixo Máquina <small>3x 10-12</small></div>
+      <span class="foto">📷 Ver foto do exercício</span>
+      <div class="ult">📈 Último treino: 45kg • 11 reps</div>
+    </div>
+  </div>
+</div>
+<p class="app-cap">Registre cargas, veja sua evolução semana a semana<br>e confira a execução de cada exercício.</p>
+
 <!-- PROVA SOCIAL -->
+<span class="kicker">Resultados reais</span>
 <h2>O que dizem meus alunos</h2>
 <p class="sub">Mensagens reais, enviadas por eles.</p>
 <div class="carousel" aria-label="Depoimentos de alunos">
   <article class="t">
+    <span class="stars">★★★★★</span>
     <p class="q">“Sinto que tô ganhando massa magra e ao mesmo tempo diminuindo o percentual de gordura. Mesmo aumentando o carboidrato pra ter mais energia nas corridas, os resultados continuam aparecendo.”</p>
     <p class="q2">“O acompanhamento também tem sido muito bom, principalmente por ter esse suporte e ajuste conforme vou evoluindo.”</p>
     <footer><b>Aluno</b><span>Mais massa magra, menos gordura</span></footer>
-    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-App/blob/main/depoimento1.jpg?raw=true">Ver print original</button>
+    <button class="lnk" data-print="depoimento1.jpg">Ver print original</button>
   </article>
   <article class="t">
+    <span class="stars">★★★★★</span>
     <p class="q">“Minha vida melhorou bastante desde que voltei a treinar direito e me alimentar corretamente.”</p>
     <p class="q2">“Meu peso abaixou, a recomposição corporal foi bem notória depois de quase 6 meses sem atividade física, e tive um ganho de força absurdo.”</p>
     <footer><b>Aluno</b><span>3 meses de acompanhamento</span></footer>
-    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-App/blob/main/depoimento2.jpg?raw=true">Ver print original</button>
+    <button class="lnk" data-print="depoimento2.jpg">Ver print original</button>
   </article>
   <article class="t">
+    <span class="stars">★★★★★</span>
     <p class="q">“Treinava de qualquer forma, sem foco em aprender a execução com excelência.”</p>
     <p class="q2">“Esse método que tu me passou … começou a fazer meus treinos renderem mais, tanto em progressão das cargas quanto em focar nos meus pontos fracos.”</p>
     <footer><b>Otávio</b><span>Aluno desde agosto</span></footer>
-    <button class="lnk" data-print="https://github.com/jhonatags123-hue/Consultoria-App/blob/main/depoimento3.jpg?raw=true">Ver print original</button>
+    <button class="lnk" data-print="depoimento3.jpg">Ver print original</button>
   </article>
 </div>
-<p class="hint">Deslize para ver mais</p>
+<p class="hint">Deslize para ver mais →</p>
 
 <!-- COMO FUNCIONA -->
+<span class="kicker">Simples assim</span>
 <h2>Como funciona</h2>
-<p class="sub">Do cadastro inicial ao acompanhamento diário.</p>
+<p class="sub">Da avaliação ao acompanhamento semanal.</p>
 <div class="steps">
-  <div class="step"><i>1</i><div><b>Escolha seu plano ou fale comigo</b><span>Compre direto pelo site ou me chame no WhatsApp para tirar dúvidas.</span></div></div>
-  <div class="step"><i>2</i><div><b>Preencha sua avaliação</b><span>Informa seu objetivo, rotina, local de treino e preferências.</span></div></div>
-  <div class="step"><i>3</i><div><b>Recebe seu plano no App</b><span>Treino e plano alimentar personalizados direto na sua conta.</span></div></div>
+  <div class="step"><i>1</i><div><b>Escolha seu plano</b><span>Selecione o plano abaixo e preencha sua avaliação: objetivo, rotina, local de treino e histórico.</span></div></div>
+  <div class="step"><i>2</i><div><b>Receba seu treino no app</b><span>Eu monto seu treino individualizado e libero o acesso no app.</span></div></div>
+  <div class="step"><i>3</i><div><b>Treine e registre</b><span>Anote cargas e repetições no app. Eu acompanho tudo.</span></div></div>
+  <div class="step"><i>4</i><div><b>Feedback e ajustes toda semana</b><span>Analiso sua evolução e suas fotos, e ajusto o que for preciso para você continuar progredindo.</span></div></div>
 </div>
 
 <!-- PLANOS -->
-<h2 id="planos">Escolha seu plano</h2>
-<p class="sub">Selecione a opção ideal para o seu objetivo:</p>
-<div class="tabs" role="tablist">
-  <button role="tab" id="tab-completa" aria-selected="true" data-g="completa">Consultoria Completa</button>
-  <button role="tab" id="tab-treino" aria-selected="false" data-g="treino">Só Treino</button>
-  <button role="tab" id="tab-dupla" aria-selected="false" data-g="dupla">Planos em Dupla</button>
+<span class="kicker" id="planos">Planos</span>
+<h2>Escolha seu plano</h2>
+<p class="sub">Comece pelo treino. Se quiser, inclua a dieta.</p>
+
+<div class="seg" role="group" aria-label="Para quantas pessoas">
+  <button type="button" data-modo="individual" aria-pressed="true">👤 Individual</button>
+  <button type="button" data-modo="dupla" aria-pressed="false">👥 Em dupla</button>
 </div>
-<div id="planList" role="tabpanel"></div>
+
+<div id="planoTreino"></div>
+
+<div class="upsell-head">
+  <b>Quer o plano alimentar também?</b>
+  <span>Treino + dieta montados juntos para o seu objetivo.</span>
+</div>
+<div id="planoCompleta"></div>
 
 <!-- CAPTURA DE LEAD -->
-<section class="lead" style="margin-top:34px">
+<section class="lead">
   <h2>Ainda com dúvida? Me avise!</h2>
   <p class="sub" style="margin-bottom:0">Deixe seu nome e WhatsApp que eu te chamo pessoalmente para conversar.</p>
   <form id="leadForm">
@@ -165,7 +278,7 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
       <option>Melhorar performance e corrida</option>
       <option>Voltar a treinar e ter mais saúde</option>
     </select>
-    <button class="btn btn-main" type="submit">Enviar dados para contato</button>
+    <button class="btn btn-main" type="submit">Quero que você me chame</button>
     <div id="leadSuccess" class="alert-success">✓ Recebido! Entrarei em contato no seu WhatsApp em breve.</div>
   </form>
 </section>
@@ -173,21 +286,24 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 <!-- FAQ -->
 <h2>Perguntas frequentes</h2>
 <div class="faq" style="margin-top:14px">
-  <details><summary>O que inclui a Consultoria Completa?</summary><p>A Consultoria Completa inclui o treino 100% individualizado para o seu local de treino + o seu plano alimentar personalizado ajustado à sua rotina, além de acompanhamento no aplicativo.</p></details>
-  <details><summary>A cobrança no cartão consome meu limite total?</summary><p>Não! A assinatura funciona de forma recorrente (mês a mês). Você só precisa ter liberado o valor da mensalidade do mês, sem comprometer o limite total do seu cartão.</p></details>
-  <details><summary>Já tentei antes e não deu certo. Vai funcionar?</summary><p>O plano é feito para a sua rotina e revisado conforme você evolui, em vez de repetir uma ficha pronta. Quando algo não encaixa, a gente ajusta.</p></details>
-  <details><summary>Como funcionam os planos em dupla?</summary><p>Cada um da dupla recebe seu próprio plano individualizado no app, porém com um desconto especial no valor total do pacote!</p></details>
+  <details><summary>O que inclui a Consultoria de Treino?</summary><p>Treino 100% individualizado para o seu objetivo, rotina e local de treino; acesso ao app com registro de cargas e foto de cada exercício; feedback semanal comigo; avaliação do físico por fotos; e ajustes do treino conforme você evolui.</p></details>
+  <details><summary>Qual a diferença para a Consultoria Completa?</summary><p>A Completa tem tudo da Consultoria de Treino e mais o plano alimentar, montado para o seu objetivo e a sua rotina e ajustado durante o acompanhamento.</p></details>
+  <details><summary>Posso começar só com o treino e depois incluir a dieta?</summary><p>Pode! Você começa pela Consultoria de Treino e, quando quiser, faz o upgrade para a Completa direto pelo app. As condições do upgrade são combinadas comigo.</p></details>
+  <details><summary>Como funciona o feedback semanal?</summary><p>Toda semana eu analiso o que você registrou no app e te dou um retorno: parabenizo quando você evolui e cobro quando algo sai do plano. Também peço fotos periodicamente para avaliar seu físico e ajustar o treino.</p></details>
+  <details><summary>Como funcionam os planos em dupla?</summary><p>Cada pessoa tem o seu próprio acesso e acompanhamento. No treino em dupla, os treinos podem ser iguais (para treinarem juntos) ou separados. Na Completa em dupla, cada um tem o seu protocolo de treino e dieta.</p></details>
+  <details><summary>O cartão recorrente ocupa meu limite?</summary><p>Não. No recorrente é cobrada só a mensalidade de cada mês, sem ocupar o limite total do cartão. Se preferir, também dá para parcelar ou pagar à vista no PIX com desconto.</p></details>
+  <details><summary>Já tentei antes e não deu certo. Vai funcionar?</summary><p>O que costuma faltar é acompanhamento. Aqui eu acompanho você toda semana, ajusto o que não estiver funcionando e cobro quando for preciso. Você não fica sozinho com uma ficha.</p></details>
 </div>
 
 <!-- CTA FINAL -->
 <section class="final">
-  <h2 style="margin-top:0">Pronto para começar?</h2>
-  <p class="sub">Escolha seu plano ou me chame no WhatsApp.</p>
+  <h2>Pronto para evoluir de verdade?</h2>
+  <p class="sub">Comece hoje com acompanhamento pessoal e foco no seu resultado.</p>
   <a href="#planos" class="btn btn-main" data-ev="final_cta">Escolher meu plano</a>
   <a class="btn btn-wa js-wa" data-msg="Olá Jhonata! Quero tirar umas dúvidas no WhatsApp antes de fechar a consultoria." data-ev="whatsapp_final">Falar no WhatsApp</a>
 </section>
 
-<footer class="f">© Jhonata Cavalcante | Consultoria Esportiva<br>Os resultados variam de pessoa para pessoa.</footer>
+<footer class="f">© Jhonata Cavalcante | Consultoria de Treino Online<br>Os resultados variam de pessoa para pessoa.</footer>
 
 <!-- BARRA FIXA -->
 <div class="bar" id="bar">
@@ -197,91 +313,117 @@ footer.f{text-align:center;font-size:12px;color:var(--muted);margin-top:30px}
 
 <div id="lb" role="dialog" aria-label="Print do depoimento"><img alt="Print original do depoimento"></div>
 
+<!-- Preços e links de pagamento: edite em planos.js -->
+<script src="planos.js"></script>
 <script>
-/* ===== CONFIGURAÇÃO DE PREÇOS E DESTINO ===== */
-const CFG = {
-  whats: "5551990169026",
-  leadEndpoint: "https://consultoria-backend-kbqi.onrender.com/api/leads",
-  destino: "app.html",
-  planos: {
-    completa: [
-      { id: "COMPLETA_TRIMESTRAL", nome: "Trimestral (Completa)", pix: 330, pixEquiv: 110, cartao: 120, desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 120/mês Recorrente ou R$ 330 total no PIX (R$ 110/mês)", destaque: false },
-      { id: "COMPLETA_SEMESTRAL",  nome: "Semestral (Completa)",  pix: 600, pixEquiv: 100, cartao: 110, desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 110/mês Recorrente ou R$ 600 total no PIX (R$ 100/mês)", destaque: true },
-      { id: "COMPLETA_ANUAL",      nome: "Anual (Completa)",      pix: 900, pixEquiv: 75,  cartao: 85,  desc: "Incluso: Treino Personalizado + Plano Alimentar | Cartão: R$ 85/mês Recorrente ou R$ 900 total no PIX (R$ 75/mês)", destaque: false }
-    ],
-    treino: [
-      { id: "TREINO_ANUAL", nome: "Anual (Apenas Treino)", pix: 540, pixEquiv: 45, cartao: 55, desc: "Incluso: Ficha de Treino Personalizada | Cartão: R$ 55/mês Recorrente ou R$ 540 total no PIX (R$ 45/mês)", destaque: true, tipo: "treino" }
-    ],
-    dupla: [
-      { id: "COMPLETA_DUPLA", nome: "Anual em Dupla (Completa)", pix: 1560, pixEquiv: 130, cartao: 140, desc: "Treino + Plano Alimentar para os dois | Cartão: R$ 140/mês Recorrente ou R$ 1.560 total no PIX (R$ 130/mês)", destaque: true, dupla: true },
-      { id: "TREINO_DUPLA",   nome: "Anual em Dupla (Só Treino)", pix: 960,  pixEquiv: 80,  cartao: 90,  desc: "Ficha de Treino para os dois | Cartão: R$ 90/mês Recorrente ou R$ 960 total no PIX (R$ 80/mês)", dupla: true, tipo: "treino" }
-    ]
-  }
-};
-
-/* ===== WHATSAPP LINK GENERATOR ===== */
-const waLink = msg => `https://wa.me/${CFG.whats}?text=${encodeURIComponent(msg)}`;
-
-/* ===== RENDERIZAÇÃO DE PLANOS (LEVA PARA A ANAMNESE) ===== */
-const brl = n => n.toLocaleString('pt-BR');
+const DESTINO = 'app.html';
+const LEAD_ENDPOINT = 'https://' + 'consultoria-backend-kbqi.onrender.com/api/leads';
 const utm = location.search ? '&' + location.search.slice(1) : '';
 
-const planHTML = p => {
-  const href = `${CFG.destino}?modo=anamnese${p.tipo ? '&tipo=' + p.tipo : ''}&plano=${p.id}${utm}`;
-  const msgWa = `Olá Jhonata! Tenho interesse no plano ${p.nome} e quero conversar com você antes de fechar.`;
-  const rec = p.destaque ? ' rec' : '';
-  const tag = p.destaque ? '<span class="tag">Mais Vendido</span>' : p.dupla ? '<span class="tag">Oferta em Dupla</span>' : '';
-  
-  return `<div class="plan${rec}">${tag}<h3>${p.nome}</h3>
-    <div class="price">R$ ${brl(p.cartao)}<small>/mês no Cartão Recorrente</small></div>
-    <div><span class="tag-no-limit">✓ Não ocupa o limite total do cartão</span></div>
-    <p class="d" style="margin:8px 0 10px">Ou <b>R$ ${brl(p.pix)}</b> no PIX total à vista (equivale a R$ ${brl(p.pixEquiv)}/mês)</p>
-    <a class="btn ${p.destaque ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${p.id}">Preencher Avaliação e Começar</a>
-    <a class="btn btn-wa" href="${waLink(msgWa)}" target="_blank" rel="noopener">Falar sobre esse plano no WhatsApp</a>
-  </div>`;
+const INCLUI = {
+  treino: [
+    'Treino 100% individualizado para você',
+    'Feedback semanal comigo',
+    'Avaliação do físico por fotos',
+    'App com cargas, evolução e foto dos exercícios',
+    'Ajustes de progressão sempre que você evoluir'
+  ],
+  completa: [
+    'Tudo da Consultoria de Treino',
+    '+Plano alimentar individualizado',
+    '+Ajustes da dieta conforme sua evolução'
+  ]
 };
 
-function renderPlans(g) {
-  const list = CFG.planos[g];
-  let html = list.map(planHTML).join('');
-  document.getElementById('planList').innerHTML = html;
-  document.getElementById('planList').setAttribute('aria-labelledby', 'tab-' + g);
+const estado = { modo: 'individual', duracao: { treino: 'ANUAL', completa: 'ANUAL' } };
+
+function idPlano(tipo) {
+  if (estado.modo === 'dupla') return tipo === 'treino' ? 'TREINO_DUPLA' : 'COMPLETA_DUPLA';
+  return `${tipo.toUpperCase()}_${estado.duracao[tipo]}`;
 }
 
-document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
-  renderPlans(b.dataset.g);
-}));
-renderPlans('completa');
+function cardPlano(tipo) {
+  const id = idPlano(tipo);
+  const p = PLANOS[id];
+  const principal = tipo === 'treino';
+  const titulo = principal ? 'Consultoria de Treino' : 'Consultoria Completa';
+  const quem = estado.modo === 'dupla'
+    ? (principal ? 'Para 2 pessoas • treinos iguais ou separados' : 'Para 2 pessoas • cada um com seu protocolo')
+    : (principal ? 'Treino + acompanhamento pessoal' : 'Treino + plano alimentar + acompanhamento');
 
-/* ===== WHATSAPP DIRETO ===== */
+  const duracoes = estado.modo === 'dupla'
+    ? `<p class="dur-note">Plano em dupla com duração anual.</p>`
+    : `<div class="dur" role="group" aria-label="Duração">${['ANUAL', 'SEMESTRAL', 'TRIMESTRAL'].map(d =>
+        `<button type="button" data-tipo="${tipo}" data-dur="${d}" aria-pressed="${estado.duracao[tipo] === d}">${PLANOS[`${tipo.toUpperCase()}_${d}`].duracao}${d === 'ANUAL' ? ' ★' : ''}</button>`).join('')}</div>`;
+
+  const formas = formasPagamentoPlano(p);
+  const pagamentos = formas.map(f => `<li><span class="i">${f.icone}</span><div><b>${f.titulo}</b><small>${f.detalhe}</small></div></li>`).join('');
+  const inclui = INCLUI[tipo].map(t => t.startsWith('+') ? `<li class="plus">${t.slice(1)}</li>` : `<li>${t}</li>`).join('');
+
+  const href = `${DESTINO}?modo=anamnese${tipo === 'treino' ? '&tipo=treino' : ''}&plano=${id}${utm}`;
+  const msgWa = `Olá Jhonata! Tenho interesse no plano ${p.nome} e quero tirar umas dúvidas antes de fechar.`;
+
+  const tag = principal
+    ? `<span class="tag">${estado.modo === 'dupla' ? 'Treinem juntos' : 'Mais escolhido'}</span>`
+    : `<span class="tag alt">Treino + Dieta</span>`;
+
+  return `<div class="plan${principal ? ' main' : ''}">${tag}
+    <h3>${titulo}</h3>
+    <p class="who">${quem}</p>
+    ${duracoes}
+    <div class="price">${formatarReais(valorParcela(p))}<small>/mês em ${p.cartao.parcelas}x</small></div>
+    <p class="price-sub">ou escolha a forma de pagamento que preferir:</p>
+    <ul class="pays">${pagamentos}</ul>
+    <ul class="incl">${inclui}</ul>
+    <a class="btn ${principal ? 'btn-main' : 'btn-gold'}" href="${href}" data-plan="${id}">${principal ? 'Começar meu acompanhamento' : 'Quero treino + dieta'}</a>
+    <a class="lnk-wa" href="${linkWhatsApp(msgWa)}" target="_blank" rel="noopener">💬 Tirar dúvidas sobre esse plano</a>
+  </div>`;
+}
+
+function renderPlanos() {
+  document.getElementById('planoTreino').innerHTML = cardPlano('treino');
+  document.getElementById('planoCompleta').innerHTML = cardPlano('completa');
+}
+
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  estado.modo = b.dataset.modo;
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  renderPlanos();
+}));
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.dur button');
+  if (!b) return;
+  estado.duracao[b.dataset.tipo] = b.dataset.dur;
+  renderPlanos();
+});
+
+renderPlanos();
+
+/* WhatsApp */
 document.querySelectorAll('.js-wa').forEach(a => {
-  a.href = waLink(a.dataset.msg);
+  a.href = linkWhatsApp(a.dataset.msg);
   a.target = '_blank';
   a.rel = 'noopener';
 });
 
-/* ===== CAPTURA DE LEAD AUTOMÁTICA ===== */
+/* Captura de lead */
 document.getElementById('leadForm').addEventListener('submit', async e => {
   e.preventDefault();
   const form = e.target;
   const data = Object.fromEntries(new FormData(form));
-  
   try {
-    if (CFG.leadEndpoint) {
-      await fetch(CFG.leadEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, origem: 'funil_landing_page', data: new Date().toISOString() })
-      });
-    }
+    await fetch(LEAD_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, origem: 'funil_landing_page', data: new Date().toISOString() })
+    });
   } catch (_) {}
-
   document.getElementById('leadSuccess').style.display = 'block';
   form.reset();
 });
 
-/* ===== INTERACTION OBSERVER & LIGHTBOX ===== */
+/* Barra fixa e prints dos depoimentos */
 new IntersectionObserver(([en]) => document.getElementById('bar').classList.toggle('on', !en.isIntersecting && en.boundingClientRect.top < 0))
   .observe(document.getElementById('heroCta'));
 const lb = document.getElementById('lb');
