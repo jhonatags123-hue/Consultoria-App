@@ -239,11 +239,14 @@ function filtrarGifsAdmin() {
 /* -------------------------------------------------------------
    RECONHECIMENTO AUTOMÁTICO DO EXERCÍCIO (nome → GIF)
 ------------------------------------------------------------- */
-const MIDIA_STOPWORDS = new Set(['com', 'de', 'da', 'do', 'das', 'dos', 'na', 'no', 'nas', 'nos', 'em', 'a', 'o', 'as', 'os', 'e', 'para', 'pra', 'c', 'p', 'ou', 'tipo', 'estilo', 'exercicio', 'variacao']);
+const MIDIA_STOPWORDS = new Set(['serie', 'series', 'set', 'sets', 'rep', 'reps', 'repeticoes', 'x', 'cada', 'perna', 'lado', 'com', 'de', 'da', 'do', 'das', 'dos', 'na', 'no', 'nas', 'nos', 'em', 'a', 'o', 'as', 'os', 'e', 'para', 'pra', 'c', 'p', 'ou', 'tipo', 'estilo', 'exercicio', 'variacao']);
 
 // Expressões de várias palavras que viram um termo só (aplicadas antes de separar as palavras)
 const MIDIA_FRASES = [
   [/leg\s*press/g, 'legpress'],
+  [/push\s*down/g, 'triceps pulley'],
+  [/(?:diamond\s*|diamante\s*)?push[\s-]*ups?|flexao\s*de\s*braco|flexoes/g, 'flexao braco'],
+  [/\bbike\b|bicicleta\s*ergometrica|ergometrica/g, 'bicicleta ergometrica'],
   [/peck\s*deck|pec\s*deck|peckdeck|voador|fly\s*maquina|crucifixo\s*maquina|crucifixo\s*no\s*voador/g, 'crucifixo maquina'],
   [/cross\s*over/g, 'crossover'],
   [/pull\s*down/g, 'puxada'],
@@ -318,7 +321,7 @@ function tokensExercicio(nome) {
   MIDIA_FRASES.forEach(([re, rep]) => { t = t.replace(re, ` ${rep} `); });
   const tokens = new Set();
   t.split(/[^a-z0-9]+/).forEach(w => {
-    if (!w || MIDIA_STOPWORDS.has(w)) return;
+    if (!w || MIDIA_STOPWORDS.has(w) || /^\d+$/.test(w)) return; // números não identificam o exercício
     let termo = MIDIA_SINONIMOS[w];
     if (!termo) {
       // plural simples: "remadas" → "remada"
@@ -2562,6 +2565,27 @@ async function renovarUmMesAluno() {
   }
 }
 
+// Gera a linha do editor no mesmo formato que você digita (ex.: "Supino Reto 3x8-10"),
+// para que reabrir e salvar o treino nunca perca séries, reps ou técnicas.
+function linhaTextoExercicio(ex, isDescanso = false) {
+  if (isDescanso) return ex.nome;
+  const n = parseInt(String(ex.series || '').match(/\d+/)?.[0] || '', 10);
+  const tec = String(ex.tecnica || '').toLowerCase();
+  if (tec === 'cluster_backoff') return `${ex.nome} 2x+cluster+backoff`;
+  if (tec === 'backoff_2x') return `${ex.nome} 2x+backoff`;
+  if (tec === 'cluster') return `${ex.nome} ${n || 2}x+cluster`;
+  if (tec === 'myoreps') return `${ex.nome} myo`;
+  const reps = String(ex.reps || '').trim();
+  if (!n) return reps ? `${ex.nome} (${reps})` : ex.nome;
+  if (/^at[ée] a falha$/i.test(reps)) return `${ex.nome} ${n}x até a falha`;
+  const cada = reps.match(/^(.*?)\s*\((cada [^)]+)\)$/i);
+  if (cada) return `${ex.nome} ${n}x${cada[1].replace(/\s+/g, '')} ${cada[2]}`;
+  if (/^[\d\/\-]+$/.test(reps) || /^\d+(?:\.\d+)?\s*(min|s|seg|segundos?|minutos?)$/i.test(reps)) {
+    return `${ex.nome} ${n}x${reps.replace(/\s+/g, '')}`;
+  }
+  return `${ex.nome} ${n} séries de ${reps}`;
+}
+
 function carregarTreinoNoEditorAoVivo() {
   const tx = document.getElementById('liveWorkoutText');
   if (!tx) return;
@@ -2583,11 +2607,7 @@ function carregarTreinoNoEditorAoVivo() {
   currentStudentData.days.forEach(day => {
     text += `${day.title}\n`;
     (day.exercicios || []).forEach(ex => {
-      if (day.isDescanso) {
-        text += `${ex.nome}\n`;
-      } else {
-        text += `${ex.nome} ${ex.series} (${ex.reps})\n`;
-      }
+      text += `${linhaTextoExercicio(ex, day.isDescanso)}\n`;
     });
     text += "\n";
   });
@@ -3223,6 +3243,71 @@ async function salvarAlteracoes(tipoLimpezaRascunho = null) {
   }
 }
 
+/* -------------------------------------------------------------
+   LEITURA INTELIGENTE DE SÉRIES E REPETIÇÕES
+   Entende: 3x8-10 | 3 x 8 a 10 | 3 séries de 8-10 | 3 series 10 reps |
+            10 reps x 3 séries | 3 Séries (8-10) | 4x até a falha |
+            3x30s | 3 séries de 1 min | 3x12 cada perna
+------------------------------------------------------------- */
+function extrairSeriesReps(linha) {
+  let t = ' ' + String(linha || '') + ' ';
+  // "8 a 10", "8 até 10", "8–10" → "8-10"
+  t = t.replace(/(\d+)\s*(?:a|à|ate|até|–|—|-)\s*(\d+)(?!\s*(?:x|×))/gi, '$1-$2');
+
+  const SERIE = '(?:s[ée]ries?|sets?)';
+  const REPS = '(\\d+(?:\\s*[-\\/]\\s*\\d+)*)';
+  const TEMPO = '(\\d+(?:[.,]\\d+)?\\s*(?:min(?:utos?)?|seg(?:undos?)?|s|")(?![a-zà-ú]))';
+  const FALHA = '(at[ée]\\s+a\\s+falha|falha)';
+  const SEP = '\\s*(?:de|com|x|×|:|-)?\\s*\\(?\\s*';
+  const REPWORD = '\\s*\\)?\\s*(?:(?:repeti[çc][õo]es|repeti[çc][ãa]o|reps|rep)(?![a-zà-ú])\\.?)?';
+
+  const padroes = [
+    { re: new RegExp(`(\\d+)\\s*[x×]\\s*${TEMPO}`, 'i'), tipo: 'tempo' },
+    { re: new RegExp(`(\\d+)\\s*[x×]\\s*${FALHA}`, 'i'), tipo: 'falha' },
+    { re: new RegExp(`(\\d+)\\s*[x×]\\s*${REPS}${REPWORD}`, 'i'), tipo: 'reps' },
+    { re: new RegExp(`(\\d+)\\s*${SERIE}${SEP}${TEMPO}\\s*\\)?`, 'i'), tipo: 'tempo' },
+    { re: new RegExp(`(\\d+)\\s*${SERIE}${SEP}${FALHA}\\s*\\)?`, 'i'), tipo: 'falha' },
+    { re: new RegExp(`(\\d+)\\s*${SERIE}${SEP}${REPS}${REPWORD}`, 'i'), tipo: 'reps' },
+    { re: new RegExp(`${REPS}\\s*(?:reps?|repeti[çc][õo]es)\\s*(?:x|×|de|em|,|-)?\\s*(\\d+)\\s*${SERIE}`, 'i'), tipo: 'repsAntes' },
+    { re: new RegExp(`(\\d+)\\s*[x×](?![a-zà-ú])`, 'i'), tipo: 'soSeries' },
+    { re: new RegExp(`(\\d+)\\s*${SERIE}`, 'i'), tipo: 'soSeries' }
+  ];
+
+  let series = null, reps = null, nome = t;
+  for (const { re, tipo } of padroes) {
+    const m = t.match(re);
+    if (!m) continue;
+    if (tipo === 'repsAntes') { reps = m[1]; series = m[2]; }
+    else if (tipo === 'soSeries') { series = m[1]; }
+    else if (tipo === 'falha') { series = m[1]; reps = 'Até a falha'; }
+    else { series = m[1]; reps = m[2]; }
+    nome = t.replace(m[0], ' ');
+    break;
+  }
+
+  if (reps && /^\d/.test(reps)) reps = reps.replace(/\s+/g, '').replace(/,/g, '.').replace(/(\d)(min|seg|s)/i, '$1 $2');
+  if (reps && /^\d+(?:\.\d+)?\s*"$/.test(reps)) reps = reps.replace('"', 's');
+  if (reps) {
+    reps = reps.replace(/^(\d+(?:\.\d+)?)\s*(?:s|seg|segundos?)$/i, '$1s')
+               .replace(/^(\d+(?:\.\d+)?)\s*(?:min|minutos?)$/i, '$1 min');
+  }
+
+  // "cada perna / cada lado / cada braço" vai junto com as repetições
+  const cada = nome.match(/\(?\s*(cada\s+(?:perna|lado|bra[çc]o|m[ãa]o))\s*\)?/i);
+  if (cada) {
+    nome = nome.replace(cada[0], ' ');
+    if (reps) reps = `${reps} (${cada[1].toLowerCase()})`;
+  }
+
+  nome = nome
+    .replace(/\(\s*\)/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/^[\s\-–—:|,;]+|[\s\-–—:|,;]+$/g, '')
+    .trim();
+
+  return { nome, series: series ? parseInt(series, 10) : null, reps };
+}
+
 function parseWorkoutText(rawText, midiaCtx = null) {
   // midiaCtx = { overrides, anteriores } — mídias escolhidas/salvas do aluno atual
   if (!rawText || !rawText.trim()) return [];
@@ -3243,19 +3328,19 @@ function parseWorkoutText(rawText, midiaCtx = null) {
     const lowerLine = cleanLine.toLowerCase();
 
     if (lowerLine.includes('global') || lowerLine.startsWith('series') || lowerLine.startsWith('séries')) {
-      const matchGlobal = cleanLine.match(/(\d+)\s*x\s*([\d\-\+]+)/i);
-      if (matchGlobal) {
-        globalSeries = matchGlobal[1];
-        globalReps = matchGlobal[2];
-      }
+      const g = extrairSeriesReps(cleanLine);
+      if (g.series) globalSeries = String(g.series);
+      if (g.reps) globalReps = g.reps;
       return;
     }
 
     let isDayHeader = false;
     const cleanLowerNoBullets = lowerLine.replace(/^[•\-\*\d\.\s]+/, '');
 
-    const hasDivKeyword = divKeywords.some(kw => cleanLowerNoBullets.startsWith(kw) || cleanLowerNoBullets === kw);
-    const isShortHeader = /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z]\b|descanso|off|recovery)/i.test(cleanLowerNoBullets) && !/(x|×|\d+x)/i.test(cleanLine);
+    // Linha com séries/reps nunca é título de treino (evita "Pushdown 3x12" virar título)
+    const temPrescricao = extrairSeriesReps(cleanLine).series !== null;
+    const hasDivKeyword = !temPrescricao && divKeywords.some(kw => new RegExp(`^${kw}(?![a-zà-ú])`, 'i').test(cleanLowerNoBullets));
+    const isShortHeader = !temPrescricao && /^(treino\s*[a-z0-9]+|dia\s*[a-z0-9]+|[a-z](?![a-zà-ú0-9])|descanso|off|recovery)/i.test(cleanLowerNoBullets);
 
     if (hasDivKeyword || isShortHeader) isDayHeader = true;
 
@@ -3273,9 +3358,13 @@ function parseWorkoutText(rawText, midiaCtx = null) {
         days.push(currentDay);
       }
 
-      let name = cleanLine.replace(/^[•\-\*\d\.\s]+/, '').trim();
+      // remove marcadores de lista ("•", "-", "1.", "1)") sem apagar "3x10" do começo
+      const semMarcador = cleanLine.replace(/^\s*(?:[•\-\*]+\s*|\d+\s*[\.\)]\s+)/, '').trim();
+      const prescricao = extrairSeriesReps(semMarcador);
+      let name = prescricao.nome || semMarcador;
 
       if (currentDay.isDescanso) {
+        name = semMarcador;
         currentDay.exercicios.push({
           nome: name,
           series: "",
@@ -3290,8 +3379,7 @@ function parseWorkoutText(rawText, midiaCtx = null) {
       const hasBackoff = lowerLine.includes('backoff') || lowerLine.includes('back-off') || lowerLine.includes('back off');
       const hasCluster = lowerLine.includes('cluster');
 
-      const matchX = cleanLine.match(/^(\d+)\s*[xX×]\s*/i);
-      let numSeriesDigitado = matchX ? parseInt(matchX[1]) : null;
+      let numSeriesDigitado = prescricao.series;
 
       let exObj = {};
 
@@ -3357,47 +3445,15 @@ function parseWorkoutText(rawText, midiaCtx = null) {
         };
       } 
       else {
-        const matchTempo = cleanLine.match(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/i);
-
-        if (matchTempo) {
-          let series = matchTempo[1];
-          let tempoStr = matchTempo[2];
-          name = name.replace(/(\d+)\s*[xX×]\s*(\d+\s*(?:min|minuto|minutos|seg|s)\b)/gi, '').trim();
-
-          exObj = { 
-            nome: name, 
-            series: `${series} Séries`, 
-            reps: tempoStr, 
-            tecnica: 'convencional', 
-            tecnicaObrigatoria: false 
-          };
-        } else {
-          const matchFull = cleanLine.match(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/i);
-
-          if (matchFull) {
-            let series = matchFull[1];
-            let reps = matchFull[2] || globalReps;
-            name = name.replace(/(\d+)\s*[xX×]\s*([\d\-\+]+)?/gi, '').trim();
-
-            exObj = { 
-              nome: name, 
-              series: `${series} Séries`, 
-              reps: reps, 
-              tecnica: 'convencional', 
-              tecnicaObrigatoria: false,
-              baseSeriesNum: parseInt(series) || 3
-            };
-          } else {
-            exObj = { 
-              nome: name, 
-              series: `${globalSeries} Séries`, 
-              reps: globalReps, 
-              tecnica: 'convencional', 
-              tecnicaObrigatoria: false,
-              baseSeriesNum: parseInt(globalSeries) || 3
-            };
-          }
-        }
+        const seriesFinal = prescricao.series || parseInt(globalSeries, 10) || 3;
+        exObj = {
+          nome: name,
+          series: `${seriesFinal} ${seriesFinal === 1 ? 'Série' : 'Séries'}`,
+          reps: prescricao.reps || globalReps,
+          tecnica: 'convencional',
+          tecnicaObrigatoria: false,
+          baseSeriesNum: seriesFinal
+        };
       }
 
       const keyMidia = sanitizeExKey(exObj.nome);
