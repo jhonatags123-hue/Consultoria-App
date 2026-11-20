@@ -442,3 +442,17 @@ h1 { font-weight: 400; letter-spacing: 1px; }
 .select-card { border-radius: 14px; border-left-color: var(--mark); background: var(--panel); }
 .select-card:hover { border-color: var(--mark); }
 .quick-switch-chip.active { background: var(--mark-dim); border-color: var(--mark); color: var(--mark); }
+
+/* Vencimento do plano (cabeçalho do aluno) */
+#billingInfo { width: 100%; }
+.venc-box { margin-top: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: left; }
+.venc-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); font-weight: 600; }
+.venc-topo b { color: var(--mark); }
+.venc-topo small { color: var(--ink-dim); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.venc-barra { height: 6px; background: var(--panel-2); border-radius: 999px; overflow: hidden; margin-top: 8px; }
+.venc-barra div { height: 100%; background: linear-gradient(90deg, var(--mark), #f3d489); border-radius: 999px; }
+.venc-plano { font-size: 11.5px; color: var(--ink-dim); margin-top: 6px; }
+.venc-alerta { border-color: rgba(245,158,11,.7); background: rgba(245,158,11,.08); }
+.venc-alerta .venc-barra div { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.venc-vencido { border-color: var(--signal-light); background: var(--signal-dim); }
+.venc-renovar { display: block; margin-top: 10px; text-align: center; background: var(--mark); color: #1a0b02; font-weight: 800; font-size: 13px; padding: 10px; border-radius: 10px; text-decoration: none; }
