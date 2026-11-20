@@ -181,6 +181,7 @@ const CATALOGO_EXERCICIOS_PT = [
   ['Roda Abdominal', 'Ab_Roller'],
 
   // NOMES GENÉRICOS (quando você não especifica o equipamento, usa a variação mais comum)
+  ['Supino', 'Barbell_Bench_Press_-_Medium_Grip'],
   ['Supino Reto', 'Barbell_Bench_Press_-_Medium_Grip'],
   ['Supino Inclinado', 'Barbell_Incline_Bench_Press_-_Medium_Grip'],
   ['Supino Declinado', 'Decline_Barbell_Bench_Press'],
