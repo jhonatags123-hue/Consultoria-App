@@ -1262,25 +1262,23 @@ function abrirModalTrocaCardioNaHora(diaKey) {
   }
 
   modal.innerHTML = `
-    <div class="modal-card-finish" style="max-width:400px; background:#100305; border:1px solid var(--gold); border-radius:12px; padding:18px;">
-      <h3 style="color:var(--gold); font-size:15px; margin-bottom:8px;">🔄 Substituir Cardio Agora</h3>
-      <p style="color:var(--muted); font-size:12px; margin-bottom:12px;">Escolha a nova opção. O cardio será atualizado na hora para você e um aviso será enviado ao seu personal.</p>
+    <div class="modal-card-finish" style="max-width:400px; border-top-color:var(--mark); padding:20px;">
+      <h3 style="font-family:var(--font-display); font-weight:400; font-size:26px; letter-spacing:.5px; color:var(--mark); margin-bottom:6px;">🔄 Substituir Cardio</h3>
+      <p style="color:var(--ink-dim); font-size:13px; line-height:1.5; margin-bottom:14px;">Escolha a nova opção. O cardio é atualizado na hora e o seu personal recebe um aviso.</p>
 
-      <label style="font-size:12px; color:#fff; display:block; margin-bottom:4px;">Novo Exercício:</label>
-      <select id="selectNovoCardio" style="width:100%; padding:8px; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:6px; margin-bottom:10px;">
+      <label class="label-fdb" for="selectNovoCardio">Novo exercício</label>
+      <select id="selectNovoCardio" class="input-field" style="margin-bottom:12px;">
         <option value="Bicicleta Ergométrica">🚴‍♂️ Bicicleta Ergométrica (Bike)</option>
         <option value="Elíptico">🏃‍♂️ Elíptico</option>
         <option value="Escada">🪜 Escada</option>
         <option value="Caminhada Leve">🚶‍♂️ Caminhada Leve</option>
       </select>
 
-      <label style="font-size:12px; color:#fff; display:block; margin-bottom:4px;">Motivo / Recado (Ex: Dor no joelho):</label>
-      <input type="text" id="motivoTrocaRapida" placeholder="Ex: Tive que trocar pq tava com dor no joelho" style="width:100%; padding:8px; background:#0d0204; border:1px solid var(--border); color:#fff; border-radius:6px; margin-bottom:14px;">
+      <label class="label-fdb" for="motivoTrocaRapida">Motivo / recado para o personal</label>
+      <input type="text" id="motivoTrocaRapida" class="input-field" placeholder="Ex: troquei porque estava com dor no joelho" style="margin-bottom:16px;">
 
-      <div style="display:flex; gap:8px;">
-        <button onclick="confirmarTrocaCardioNaHora('${diaKey}')" class="btn-login" style="flex:1; background:var(--gold); color:#000; font-weight:800; padding:8px;">Aplicar e Avisar</button>
-        <button onclick="document.getElementById('modalTrocaCardioInstante').classList.add('hidden')" class="btn-login" style="flex:1; background:transparent; border:1px solid var(--border); color:#fff; padding:8px;">Cancelar</button>
-      </div>
+      <button type="button" onclick="confirmarTrocaCardioNaHora('${diaKey}')" class="btn-login btn-gold" style="margin-top:0;">✅ Aplicar e avisar o personal</button>
+      <button type="button" onclick="document.getElementById('modalTrocaCardioInstante').classList.add('hidden')" class="btn-login" style="background:transparent; border:1px solid var(--line); color:var(--ink-dim);">Cancelar</button>
     </div>
   `;
   modal.classList.remove('hidden');
@@ -1438,7 +1436,7 @@ function setupCorrida(data) {
           <div class="run-day-title">${d.nome}</div>
           ${ehHoje ? `<span style="background:var(--mark); color:#1a0b02; font-size:9.5px; font-weight:900; padding:2px 6px; border-radius:4px;">📌 HOJE</span>` : ''}
         </div>
-        <button type="button" onclick="abrirModalTrocaCardioNaHora('${d.key}')" style="background:none; border:1px solid var(--gold); color:var(--gold); font-size:10.5px; padding:2px 7px; border-radius:4px; cursor:pointer;">🔄 Substituir</button>
+        <button type="button" onclick="abrirModalTrocaCardioNaHora('${d.key}')" style="background:var(--mark-dim); border:1px solid var(--mark); color:var(--mark); font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:999px; cursor:pointer;">🔄 Substituir</button>
       </div>
 
       ${(pillsMeta.length > 0 || badgeIntensidade) ? `
