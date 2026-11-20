@@ -993,6 +993,79 @@ async function sendAnamneseAppDirect() {
   enviarComRetentativa(2);
 }
 
+/* -------------------------------------------------------------
+   VENCIMENTO DO PLANO (mesma conta do painel admin)
+------------------------------------------------------------- */
+function calcularDiasRestantes(dataExpiracaoStr, diaVencimentoFallback = 7, isento = false, statusPagamento = '') {
+  if (isento === true || statusPagamento === 'isento') return { dias: 9999, dataFormatada: 'Livre (VIP)', data: null };
+
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  let targetDate = null;
+
+  if (dataExpiracaoStr) {
+    const partes = String(dataExpiracaoStr).split('T')[0].split('-');
+    if (partes.length === 3) {
+      targetDate = new Date(parseInt(partes[0], 10), parseInt(partes[1], 10) - 1, parseInt(partes[2], 10), 23, 59, 59);
+    }
+  }
+  if (!targetDate || isNaN(targetDate.getTime())) {
+    const dia = parseInt(diaVencimentoFallback) || 7;
+    targetDate = new Date(hoje.getFullYear(), hoje.getMonth(), dia, 23, 59, 59);
+    if (targetDate < hoje) targetDate = new Date(hoje.getFullYear(), hoje.getMonth() + 1, dia, 23, 59, 59);
+  }
+
+  const dias = Math.ceil((targetDate.getTime() - hoje.getTime()) / (1000 * 3600 * 24));
+  const dataFormatada = `${String(targetDate.getDate()).padStart(2, '0')}/${String(targetDate.getMonth() + 1).padStart(2, '0')}/${targetDate.getFullYear()}`;
+  return { dias, dataFormatada, data: targetDate };
+}
+
+function renderVencimentoPlano(data) {
+  const box = document.getElementById('billingInfo');
+  if (!box) return;
+
+  const info = calcularDiasRestantes(data.data_expiracao, data.dia_vencimento, data.isento, data.status_pagamento);
+  const plano = (typeof PLANOS !== 'undefined' && PLANOS[String(data.tipoConsultoria || '').toUpperCase()]) || null;
+  const nomePlano = plano ? plano.nome : (data.apenasTreino ? 'Consultoria de Treino' : 'Consultoria');
+
+  if (info.dias >= 9999) {
+    box.innerHTML = `<div class="venc-box venc-ok"><div class="venc-topo"><span>⭐ Acesso livre</span></div></div>`;
+    return;
+  }
+
+  // Barra: quanto do plano já passou (do início até o vencimento)
+  let pct = null;
+  const inicioStr = String(data.data_inicio || '').split('T')[0];
+  const pi = inicioStr.split('-');
+  if (pi.length === 3 && info.data) {
+    const inicio = new Date(parseInt(pi[0], 10), parseInt(pi[1], 10) - 1, parseInt(pi[2], 10));
+    const total = info.data.getTime() - inicio.getTime();
+    if (total > 0) pct = Math.min(100, Math.max(0, Math.round(((Date.now() - inicio.getTime()) / total) * 100)));
+  }
+
+  const msgRenovar = `Olá Jhonata! Quero renovar meu plano (${nomePlano}), que vence em ${info.dataFormatada}.`;
+  const linkRenovar = typeof linkWhatsApp === 'function' ? linkWhatsApp(msgRenovar) : `https://wa.me/5551990169026?text=${encodeURIComponent(msgRenovar)}`;
+
+  let classe = 'venc-ok', texto = '';
+  if (info.dias <= 0) {
+    classe = 'venc-vencido';
+    texto = `⚠️ Seu plano venceu em ${info.dataFormatada}`;
+  } else if (info.dias <= 7) {
+    classe = 'venc-alerta';
+    texto = info.dias === 1 ? '⏳ Seu plano vence amanhã' : `⏳ Seu plano vence em ${info.dias} dias`;
+  } else {
+    texto = `📅 Faltam <b>${info.dias} dias</b> para o vencimento`;
+  }
+
+  box.innerHTML = `
+    <div class="venc-box ${classe}">
+      <div class="venc-topo"><span>${texto}</span><small>${info.dias > 0 ? info.dataFormatada : ''}</small></div>
+      ${pct !== null && info.dias > 0 ? `<div class="venc-barra"><div style="width:${pct}%"></div></div>` : ''}
+      <div class="venc-plano">${escapeHtml(nomePlano)}</div>
+      ${info.dias <= 7 ? `<a class="venc-renovar" href="${linkRenovar}" target="_blank" rel="noopener">🔄 Renovar meu plano</a>` : ''}
+    </div>`;
+}
+
 function loadStudentData(data) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('anamneseScreen').classList.add('hidden');
@@ -1026,6 +1099,7 @@ function loadStudentData(data) {
   const elNome = document.getElementById('clientName');
   elNome.textContent = `Olá, ${nomeCompleto.split(/\s+/)[0]}`;
   elNome.title = nomeCompleto;
+  renderVencimentoPlano(data);
 
   const btnDieta = document.getElementById('btnDieta');
   const btnErgogenicos = document.getElementById('btnErgogenicos');
