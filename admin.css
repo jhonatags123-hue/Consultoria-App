@@ -908,3 +908,55 @@ textarea {
 .midia-anim img { display:block; }
 .midia-anim .midia-anim-2 { position:absolute; inset:0; animation: midiaAlterna 1.6s steps(1, end) infinite; }
 @keyframes midiaAlterna { 0% { opacity:0; } 50% { opacity:1; } }
+
+/* ==========================================================================
+   CENTRAL DA SEMANA, FEEDBACK RÁPIDO, ATALHOS DO TREINO (admin-central.js)
+   ========================================================================== */
+#tabCentral { font-weight: 800; }
+#tabCentral:not(.active) { color: var(--gold); }
+.central-sidebar-btn { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; border: 0; margin-bottom: 8px; font-weight: 800; }
+.central-hoje { color: var(--muted); font-size: 13px; margin: -4px 0 14px; }
+.central-hoje b { color: var(--gold); }
+.central-resumo { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; }
+.central-resumo a { background: var(--card-inner); border: 1px solid var(--border); border-radius: 12px; padding: 10px 6px; text-align: center; text-decoration: none; color: var(--text); }
+.central-resumo a:hover { border-color: var(--gold); }
+.central-resumo b { display: block; font-size: 22px; color: var(--gold); line-height: 1.1; }
+.central-resumo span { font-size: 11px; color: var(--muted); }
+.central-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.central-bloco { background: var(--card-inner); border: 1px solid var(--border); border-radius: 14px; padding: 14px; scroll-margin-top: 12px; }
+.central-bloco-topo { display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 14px; color: var(--text); }
+.central-bloco-topo b { background: var(--border); color: var(--muted); border-radius: 999px; padding: 1px 10px; font-size: 12px; }
+.central-bloco-topo b.tem { background: var(--accent); color: #fff; }
+.central-desc { font-size: 11.5px; color: var(--muted); margin: 4px 0 10px; }
+.central-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--border); margin-bottom: 6px; }
+.central-item-info { min-width: 0; }
+.central-item-info b { display: block; font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.central-item-info small { font-size: 11px; color: var(--muted); }
+.central-item-acoes { display: flex; gap: 6px; flex-shrink: 0; }
+.central-item-acoes .btn { width: auto; white-space: nowrap; text-decoration: none; }
+.central-vazio { font-size: 12px; color: var(--muted); padding: 8px 2px; }
+.central-rodape { font-size: 11px; color: var(--muted); margin-top: 12px; }
+@media (max-width: 700px) { .central-resumo { grid-template-columns: repeat(3, 1fr); } .central-item { flex-wrap: wrap; } }
+
+.feedback-resumo { background: var(--card-inner); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.feedback-resumo:empty { display: none; }
+.feedback-resumo-topo { font-size: 12px; font-weight: 800; color: var(--gold); margin-bottom: 8px; }
+.feedback-resumo-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.feedback-resumo-nums div { text-align: center; background: var(--card); border-radius: 10px; padding: 8px 4px; }
+.feedback-resumo-nums b { display: block; color: var(--text); font-size: 16px; }
+.feedback-resumo-nums span { font-size: 10.5px; color: var(--muted); }
+.feedback-resumo-lista { font-size: 12px; color: var(--text); margin-top: 8px; line-height: 1.6; }
+.feedback-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0; }
+.feedback-chips span { font-size: 11.5px; color: var(--muted); margin-right: 2px; }
+.feedback-chips button { background: var(--card-inner); border: 1px solid var(--gold); color: var(--gold); border-radius: 999px; padding: 6px 11px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.feedback-chips button:hover { background: var(--gold); color: #1a0b02; }
+
+.treino-atalhos { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; background: var(--card-inner); border: 1px dashed var(--border); border-radius: 12px; padding: 10px; }
+.treino-atalho-linha { display: flex; gap: 6px; flex-wrap: wrap; }
+.treino-atalho-linha select { flex: 1 1 200px; min-width: 0; background: var(--card); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 8px; font-size: 12.5px; }
+.treino-atalho-linha .btn { width: auto; }
+
+.nav-alunos { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+.nav-alunos span { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; min-width: 160px; }
+.nav-alunos button { background: var(--card-inner); border: 1px solid var(--border); color: var(--gold); border-radius: 999px; width: 36px; height: 32px; cursor: pointer; font-size: 13px; }
+.nav-alunos button:hover { border-color: var(--gold); }

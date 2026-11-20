@@ -1,0 +1,563 @@
+/* =============================================================
+   ADMIN-CENTRAL.js — Central da Semana, feedback em 1 clique,
+   atalhos do editor de treino, navegação entre alunos e links.
+   Tudo aqui é extra: para desligar, basta remover o <script>
+   deste arquivo no admin.html.
+============================================================= */
+(function () {
+  // ---------------- AJUSTES (mude aqui se quiser) ----------------
+  const DIAS_SUMIDO = 5;        // sem treinar há X dias = aluno sumido
+  const DIAS_FOTOS = 30;        // pedir fotos a cada X dias
+  const DIAS_FEEDBACK = 7;      // feedback semanal
+  const DIAS_VENCIMENTO = 7;    // avisar renovação X dias antes
+  const DIAS_OCULTAR_FEITO = 3; // depois de agir, some da lista por X dias
+
+  const DIA_MS = 24 * 60 * 60 * 1000;
+  const SITE = 'https://' + 'jhonataconsultoria.com.br';
+
+  /* ---------------- UTILITÁRIOS ---------------- */
+  const agora = () => Date.now();
+  const esc = (v) => (typeof escapeHtml === 'function' ? escapeHtml(v) : String(v ?? ''));
+
+  function dataValida(v) {
+    if (!v) return null;
+    const t = new Date(v).getTime();
+    return isNaN(t) ? null : t;
+  }
+  function maisRecente(...valores) {
+    const ts = valores.map(dataValida).filter(Boolean);
+    return ts.length ? Math.max(...ts) : null;
+  }
+  function diasDesde(ts) { return ts ? Math.floor((agora() - ts) / DIA_MS) : null; }
+  function textoHaDias(d) {
+    if (d === null) return 'nunca';
+    if (d <= 0) return 'hoje';
+    if (d === 1) return 'ontem';
+    return `há ${d} dias`;
+  }
+  function primeiroNome(n) { return String(n || '').trim().split(/\s+/)[0] || 'tudo bem'; }
+
+  function dadosDoAluno(a) {
+    // A listagem traz campos resumidos + "payload" com os dados completos
+    return Object.assign({}, a.payload || {}, a);
+  }
+
+  function telefoneDoAluno(d) {
+    const bruto = String((d.dadosAnamnese && (d.dadosAnamnese.telefone || d.dadosAnamnese.whatsapp)) || d.telefone || d.whatsapp || '').replace(/\D/g, '');
+    if (!bruto) return '';
+    return (bruto.length === 10 || bruto.length === 11) ? '55' + bruto : bruto;
+  }
+  function linkWhats(fone, msg) {
+    return 'https://' + 'wa.me/' + (fone || '') + '?text=' + encodeURIComponent(msg);
+  }
+
+  function ehIsento(d) {
+    const st = String(d.status_pagamento || '').toLowerCase();
+    return d.isento === true || d.isento === 'true' || st === 'isento' || st === 'vip';
+  }
+  function temTreino(d) {
+    return Array.isArray(d.days) && d.days.some(x => x && Array.isArray(x.exercicios) && x.exercicios.length > 0);
+  }
+  function msgTemFotos(f) {
+    return (Array.isArray(f.fotos) && f.fotos.length > 0) || f.qtdFotos > 0 || /Fotos no Drive|foto\(s\) anexada|drive\.google\.com/i.test(String(f.mensagem || ''));
+  }
+  function ehDoPersonal(f) { return /^(PERSONAL|TREINADOR)$/i.test(String(f.autor || '')); }
+
+  function sessoesRecentes(d, dias) {
+    const limite = agora() - dias * DIA_MS;
+    return (d.historico_sessoes || []).filter(s => (dataValida(s.data) || 0) >= limite);
+  }
+
+  // Evoluções de carga: compara o último registro com o anterior em cada exercício
+  function evolucoesDeCarga(d) {
+    const nomes = {};
+    (d.days || []).forEach(day => (day.exercicios || []).forEach(ex => {
+      if (ex && ex.nome && typeof sanitizeExKey === 'function') nomes[sanitizeExKey(ex.nome)] = ex.nome;
+    }));
+    const lista = [];
+    Object.entries(d.weekly_logs || {}).forEach(([chave, hist]) => {
+      if (/^\d+_\d+$/.test(chave) || !Array.isArray(hist) || hist.length < 2) return;
+      const ult = hist[hist.length - 1], ant = hist[hist.length - 2];
+      const c1 = parseFloat(ult.cargaMax), c0 = parseFloat(ant.cargaMax);
+      const r1 = parseFloat(ult.repsMed), r0 = parseFloat(ant.repsMed);
+      const nome = nomes[chave] || chave;
+      if (!isNaN(c1) && !isNaN(c0) && c1 > c0) lista.push({ nome, texto: `+${+(c1 - c0).toFixed(1)} kg (${c0} → ${c1} kg)` });
+      else if (!isNaN(c1) && c1 === c0 && !isNaN(r1) && !isNaN(r0) && r1 > r0) lista.push({ nome, texto: `+${r1 - r0} reps com ${c1} kg` });
+    });
+    return lista;
+  }
+
+  /* ---------------- "JÁ FIZ" (some da lista por alguns dias) ---------------- */
+  function chaveFeito(lista, codigo) { return `central_feito_${lista}_${codigo}`; }
+  function marcarFeito(lista, codigo) {
+    try { localStorage.setItem(chaveFeito(lista, codigo), String(agora())); } catch (e) {}
+  }
+  function estaFeito(lista, codigo) {
+    try {
+      const t = parseInt(localStorage.getItem(chaveFeito(lista, codigo)) || '0', 10);
+      return t && agora() - t < DIAS_OCULTAR_FEITO * DIA_MS;
+    } catch (e) { return false; }
+  }
+
+  /* ---------------- MONTA AS LISTAS ---------------- */
+  function montarListas() {
+    const listas = { feedback: [], sumidos: [], fotos: [], vencimento: [], semTreino: [] };
+    (allStudentsList || []).forEach(a => {
+      const d = dadosDoAluno(a);
+      const codigo = a.codigo;
+      const nome = d.clientName || d.nome || codigo;
+      const isento = ehIsento(d);
+      const venc = calcularDiasRestantes(d.data_expiracao, d.dia_vencimento, isento, d.status_pagamento);
+      const ativo = isento || venc.dias > 0;
+      const comTreino = temTreino(d);
+      const inicio = dataValida(d.data_inicio || d.created_at);
+
+      const ultimaSessao = maisRecente(...(d.historico_sessoes || []).map(s => s.data));
+      const feedbacks = Array.isArray(d.feedbacks) ? d.feedbacks : [];
+      const ultimoFeedback = maisRecente(d.ultimo_feedback_personal_em, ...feedbacks.filter(ehDoPersonal).map(f => f.data));
+      const ultimasFotos = maisRecente(d.ultimas_fotos_em, ...feedbacks.filter(f => !ehDoPersonal(f) && msgTemFotos(f)).map(f => f.data));
+      const treinosSemana = sessoesRecentes(d, DIAS_FEEDBACK).length;
+      const base = { codigo, nome, fone: telefoneDoAluno(d) };
+
+      if (!comTreino) {
+        if (ativo) listas.semTreino.push({ ...base, detalhe: inicio ? `Cadastrado ${textoHaDias(diasDesde(inicio))}` : 'Treino ainda não montado' });
+        return;
+      }
+
+      if (ativo && ultimaSessao && agora() - ultimaSessao <= DIAS_FEEDBACK * DIA_MS &&
+          (!ultimoFeedback || agora() - ultimoFeedback > DIAS_FEEDBACK * DIA_MS)) {
+        listas.feedback.push({ ...base, ordem: -treinosSemana, detalhe: `${treinosSemana} treino${treinosSemana !== 1 ? 's' : ''} nos últimos 7 dias • seu último feedback: ${textoHaDias(diasDesde(ultimoFeedback))}` });
+      }
+
+      const refSumido = ultimaSessao || inicio;
+      if (ativo && refSumido && agora() - refSumido > DIAS_SUMIDO * DIA_MS && !estaFeito('sumidos', codigo)) {
+        listas.sumidos.push({ ...base, ordem: -diasDesde(refSumido), detalhe: ultimaSessao ? `Último treino ${textoHaDias(diasDesde(ultimaSessao))}` : 'Nenhum treino registrado ainda' });
+      }
+
+      const refFotos = ultimasFotos || inicio;
+      if (ativo && (!refFotos || agora() - refFotos > DIAS_FOTOS * DIA_MS) && !estaFeito('fotos', codigo)) {
+        listas.fotos.push({ ...base, ordem: -(diasDesde(refFotos) || 9999), detalhe: ultimasFotos ? `Últimas fotos ${textoHaDias(diasDesde(ultimasFotos))}` : 'Nenhuma foto recebida ainda' });
+      }
+
+      if (!isento && venc.dias <= DIAS_VENCIMENTO && venc.dias > -30 && !estaFeito('vencimento', codigo)) {
+        listas.vencimento.push({ ...base, ordem: venc.dias, dias: venc.dias, data: venc.dataFormatada,
+          detalhe: venc.dias > 0 ? `Vence em ${venc.dias} dia${venc.dias !== 1 ? 's' : ''} (${venc.dataFormatada})` : `Venceu em ${venc.dataFormatada}` });
+      }
+    });
+    Object.values(listas).forEach(l => l.sort((x, y) => (x.ordem || 0) - (y.ordem || 0)));
+    return listas;
+  }
+
+  /* ---------------- MENSAGENS PRONTAS ---------------- */
+  const MSG = {
+    sumido: (n) => `Fala ${primeiroNome(n)}, tudo certo? Vi que você não registrou treino nos últimos dias. Aconteceu alguma coisa? Me conta pra gente ajustar o que for preciso — o resultado vem da constância! 💪`,
+    fotos: (n) => `Fala ${primeiroNome(n)}! 📸 Chegou a hora de atualizar suas fotos pra eu avaliar sua evolução. Manda pelo app, na aba Feedback: frente, costas e lado, com a mesma luz e de preferência pela manhã.`,
+    vencimento: (n, it) => it.dias > 0
+      ? `Fala ${primeiroNome(n)}! Passando pra avisar que seu plano vence em ${it.dias} dia${it.dias !== 1 ? 's' : ''} (${it.data}). Bora renovar pra não perder o ritmo? Te mando as opções por aqui. 💪`
+      : `Fala ${primeiroNome(n)}! Seu plano venceu em ${it.data}. Quer renovar pra gente continuar sua evolução? Te mando as opções por aqui. 💪`
+  };
+
+  /* ---------------- TELA: CENTRAL DA SEMANA ---------------- */
+  function garantirSecaoCentral() {
+    if (document.getElementById('secCentral')) return;
+    const main = document.querySelector('main.admin-content');
+    const nav = document.querySelector('nav.admin-tabs');
+    if (!main || !nav) return;
+
+    const sec = document.createElement('section');
+    sec.id = 'secCentral';
+    sec.className = 'tab-section panel-card hidden';
+    nav.insertAdjacentElement('afterend', sec);
+
+    const btn = document.createElement('button');
+    btn.id = 'tabCentral';
+    btn.className = 'tab-btn';
+    btn.type = 'button';
+    btn.innerHTML = '🏠 Central da Semana';
+    btn.onclick = () => switchTab('central');
+    nav.insertBefore(btn, nav.firstChild);
+
+    // Atalho também na barra lateral
+    const ferramentas = [...document.querySelectorAll('#sidebarConsultoria .panel-title')].find(el => /Ferramentas/.test(el.textContent));
+    if (ferramentas) {
+      const b2 = document.createElement('button');
+      b2.className = 'btn btn-md full-width central-sidebar-btn';
+      b2.innerHTML = '🏠 Central da Semana';
+      b2.onclick = () => switchTab('central');
+      ferramentas.insertAdjacentElement('afterend', b2);
+    }
+  }
+
+  function cardItem(lista, it, acoes) {
+    return `<div class="central-item" data-lista="${lista}" data-codigo="${esc(it.codigo)}">
+      <div class="central-item-info"><b>${esc(it.nome)}</b><small>${esc(it.detalhe)}</small></div>
+      <div class="central-item-acoes">${acoes}</div>
+    </div>`;
+  }
+
+  function bloco(id, icone, titulo, descricao, itens, renderAcoes, vazio) {
+    const corpo = itens.length
+      ? itens.map(it => cardItem(id, it, renderAcoes(it))).join('')
+      : `<div class="central-vazio">${vazio}</div>`;
+    return `<div class="central-bloco" id="central_${id}">
+      <div class="central-bloco-topo"><span>${icone} ${titulo}</span><b class="${itens.length ? 'tem' : ''}">${itens.length}</b></div>
+      <p class="central-desc">${descricao}</p>
+      ${corpo}
+    </div>`;
+  }
+
+  function renderCentralSemana() {
+    garantirSecaoCentral();
+    const sec = document.getElementById('secCentral');
+    if (!sec) return;
+    const L = montarListas();
+    const total = L.feedback.length + L.sumidos.length + L.fotos.length + L.vencimento.length + L.semTreino.length;
+    const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+
+    const bAbrir = (it, aba, rotulo) => `<button type="button" class="btn btn-soft sm" data-acao="abrir" data-aba="${aba}">${rotulo}</button>`;
+    const bWhats = (it, tipo, rotulo) => `<a class="btn btn-wpp sm" data-acao="whats" data-tipo="${tipo}" target="_blank" rel="noopener" href="${linkWhats(it.fone, MSG[tipo](it.nome, it))}">${rotulo}</a>`;
+
+    sec.innerHTML = `
+      <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <span>🏠 Central da Semana</span>
+        <button type="button" class="btn btn-soft sm" onclick="fetchAlunos()">🔄 Atualizar</button>
+      </div>
+      <p class="central-hoje">${esc(hoje.charAt(0).toUpperCase() + hoje.slice(1))} • ${total ? `<b>${total}</b> ${total === 1 ? 'tarefa' : 'tarefas'} para hoje` : 'Tudo em dia! 🎉'}</p>
+      <div class="central-resumo">
+        <a href="#central_feedback"><b>${L.feedback.length}</b><span>Feedbacks</span></a>
+        <a href="#central_sumidos"><b>${L.sumidos.length}</b><span>Sumidos</span></a>
+        <a href="#central_fotos"><b>${L.fotos.length}</b><span>Fotos</span></a>
+        <a href="#central_vencimento"><b>${L.vencimento.length}</b><span>Renovações</span></a>
+        <a href="#central_semTreino"><b>${L.semTreino.length}</b><span>Sem treino</span></a>
+      </div>
+      <div class="central-grid">
+        ${bloco('feedback', '💬', 'Feedback pendente', `Treinaram nos últimos ${DIAS_FEEDBACK} dias e ainda não receberam seu feedback.`, L.feedback,
+          it => bAbrir(it, 'feedbackAdmin', '💬 Dar feedback'), 'Nenhum feedback pendente.')}
+        ${bloco('sumidos', '👻', 'Alunos sumidos', `Sem registrar treino há mais de ${DIAS_SUMIDO} dias.`, L.sumidos,
+          it => bWhats(it, 'sumido', '📲 Cobrar') + bAbrir(it, 'resumo', 'Abrir'), 'Ninguém sumido. 💪')}
+        ${bloco('fotos', '📸', 'Hora das fotos', `Sem enviar fotos há mais de ${DIAS_FOTOS} dias.`, L.fotos,
+          it => bWhats(it, 'fotos', '📲 Pedir no WhatsApp') + `<button type="button" class="btn btn-soft sm" data-acao="fotosApp">📱 Pedir no app</button>`, 'Fotos em dia.')}
+        ${bloco('vencimento', '📅', 'Renovações', `Vencem nos próximos ${DIAS_VENCIMENTO} dias ou já venceram.`, L.vencimento,
+          it => bWhats(it, 'vencimento', '📲 Mandar renovação') + bAbrir(it, 'cadastro', 'Abrir'), 'Nenhuma renovação próxima.')}
+        ${bloco('semTreino', '🆕', 'Sem treino montado', 'Alunos ativos com o treino ainda vazio.', L.semTreino,
+          it => bAbrir(it, 'treino', '🏋️ Montar treino'), 'Todos com treino. ✅')}
+      </div>
+      <p class="central-rodape">Depois que você age (WhatsApp ou app), o aluno sai da lista por ${DIAS_OCULTAR_FEITO} dias. Feedbacks saem sozinhos quando você responde.</p>
+    `;
+  }
+
+  // Cliques nas ações da Central
+  document.addEventListener('click', async (e) => {
+    const alvo = e.target.closest('#secCentral [data-acao]');
+    if (!alvo) return;
+    const item = alvo.closest('.central-item');
+    if (!item) return;
+    const codigo = item.dataset.codigo;
+    const lista = item.dataset.lista;
+    const acao = alvo.dataset.acao;
+
+    if (acao === 'abrir') {
+      e.preventDefault();
+      await carregarAluno(codigo);
+      switchTab(alvo.dataset.aba || 'resumo');
+      return;
+    }
+    if (acao === 'whats') {
+      marcarFeito(lista, codigo);
+      setTimeout(renderCentralSemana, 300);
+      return;
+    }
+    if (acao === 'fotosApp') {
+      e.preventDefault();
+      const aluno = (allStudentsList || []).find(a => a.codigo === codigo);
+      const nome = aluno ? (aluno.clientName || aluno.nome) : codigo;
+      alvo.disabled = true;
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/feedback/enviar`, {
+          method: 'POST', headers: authHeaders(), cache: 'no-cache',
+          body: JSON.stringify({ codigo, autor: 'PERSONAL', mensagem: MSG.fotos(nome) })
+        });
+        if (!res.ok) throw new Error('falha');
+        marcarFeito('fotos', codigo);
+        showToast(`Pedido de fotos enviado para ${primeiroNome(nome)} no app.`, 'success');
+        renderCentralSemana();
+      } catch (err) {
+        alvo.disabled = false;
+        showToast('Não foi possível enviar pelo app. Tente pelo WhatsApp.', 'error');
+      }
+    }
+  });
+
+  /* ---------------- FEEDBACK EM 1 CLIQUE ---------------- */
+  function resumoSemanaAluno(d) {
+    const sessoes = sessoesRecentes(d, DIAS_FEEDBACK);
+    const minutos = sessoes.map(s => parseInt(s.duracaoMinutos, 10)).filter(n => n > 0);
+    const media = minutos.length ? Math.round(minutos.reduce((a, b) => a + b, 0) / minutos.length) : null;
+    const obs = sessoes.flatMap(s => (s.observacoes || []).map(o => `${new Date(s.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}: ${o}`));
+    return { n: sessoes.length, media, evolucoes: evolucoesDeCarga(d), obs, titulos: sessoes.map(s => s.treinoTitulo) };
+  }
+
+  const MODELOS_FEEDBACK = {
+    parabens: (d, r) => {
+      let t = `Fala ${primeiroNome(d.clientName)}! 💪 Feedback da semana:\n\n✅ ${r.n} treino${r.n !== 1 ? 's' : ''} registrado${r.n !== 1 ? 's' : ''} nos últimos 7 dias`;
+      if (r.evolucoes.length) t += `\n\n📈 Evoluções:\n${r.evolucoes.slice(0, 6).map(e => `• ${e.nome}: ${e.texto}`).join('\n')}`;
+      t += `\n\nMandou muito bem! Segue nesse ritmo que o resultado aparece. Qualquer coisa me chama.`;
+      return t;
+    },
+    cobranca: (d, r) => `Fala ${primeiroNome(d.clientName)}, tudo certo? ${r.n === 0 ? 'Essa semana não teve nenhum treino registrado no app' : `Essa semana teve só ${r.n} treino registrado no app`}. O que aconteceu? Me conta pra gente ajustar o que for preciso — sem constância não tem resultado, e eu quero ver você evoluindo! 💪`,
+    fotos: (d) => MSG.fotos(d.clientName),
+    ajuste: (d) => `Fala ${primeiroNome(d.clientName)}! Fiz alguns ajustes no seu treino com base na sua evolução. Dá uma olhada no app e me conta como foi no primeiro treino com as mudanças. 💪`
+  };
+
+  function garantirFerramentasFeedback() {
+    const sec = document.getElementById('secFeedbackAdmin');
+    const input = document.getElementById('adminFeedbackInput');
+    if (!sec || !input || document.getElementById('feedbackRapido')) return;
+    const box = document.createElement('div');
+    box.id = 'feedbackRapido';
+    box.innerHTML = `
+      <div id="feedbackResumoSemana" class="feedback-resumo"></div>
+      <div class="feedback-chips">
+        <span>Mensagens prontas:</span>
+        <button type="button" data-modelo="parabens">🏆 Parabéns + evolução</button>
+        <button type="button" data-modelo="cobranca">⚠️ Cobrança</button>
+        <button type="button" data-modelo="fotos">📸 Pedir fotos</button>
+        <button type="button" data-modelo="ajuste">🔧 Avisar ajuste no treino</button>
+      </div>`;
+    input.parentElement.insertBefore(box, input);
+    box.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-modelo]');
+      if (!b || !currentStudentData) return;
+      const d = currentStudentData;
+      input.value = MODELOS_FEEDBACK[b.dataset.modelo](d, resumoSemanaAluno(d));
+      input.focus();
+      showToast('Mensagem pronta! Revise e clique em ENVIAR RESPOSTA.', 'info');
+    });
+  }
+
+  function renderResumoFeedback() {
+    garantirFerramentasFeedback();
+    const box = document.getElementById('feedbackResumoSemana');
+    if (!box || !currentStudentData) return;
+    const r = resumoSemanaAluno(currentStudentData);
+    box.innerHTML = `
+      <div class="feedback-resumo-topo">📊 Últimos 7 dias</div>
+      <div class="feedback-resumo-nums">
+        <div><b>${r.n}</b><span>treinos</span></div>
+        <div><b>${r.media ? r.media + ' min' : '—'}</b><span>duração média</span></div>
+        <div><b>${r.evolucoes.length}</b><span>evoluções</span></div>
+      </div>
+      ${r.evolucoes.length ? `<div class="feedback-resumo-lista">${r.evolucoes.slice(0, 6).map(e => `📈 <b>${esc(e.nome)}</b>: ${esc(e.texto)}`).join('<br>')}</div>` : ''}
+      ${r.obs.length ? `<div class="feedback-resumo-lista">${r.obs.slice(-4).map(o => `📝 ${esc(o)}`).join('<br>')}</div>` : ''}`;
+  }
+
+  /* ---------------- EDITOR DE TREINO: COPIAR E MODELOS ---------------- */
+  const CHAVE_MODELOS = 'modelos_treino_admin';
+  function lerModelos() { try { return JSON.parse(localStorage.getItem(CHAVE_MODELOS) || '[]'); } catch (e) { return []; } }
+  function gravarModelos(l) { try { localStorage.setItem(CHAVE_MODELOS, JSON.stringify(l)); } catch (e) {} }
+
+  function textoDosDias(days) {
+    return (days || []).map(day => {
+      const linhas = (day.exercicios || []).map(ex => (typeof linhaTextoExercicio === 'function' ? linhaTextoExercicio(ex, day.isDescanso) : ex.nome));
+      return [day.title, ...linhas].join('\n');
+    }).join('\n\n');
+  }
+
+  function colocarNoEditor(texto) {
+    const tx = document.getElementById('liveWorkoutText');
+    if (!tx) return;
+    if (tx.value.trim() && !confirm('Isso vai substituir o texto atual do editor. Continuar?')) return;
+    tx.value = texto;
+    tx.dispatchEvent(new Event('input', { bubbles: true }));
+    if (typeof atualizarPreviewAoVivo === 'function') atualizarPreviewAoVivo();
+    showToast('Treino colocado no editor. Ajuste e clique em salvar.', 'info');
+  }
+
+  function garantirFerramentasTreino() {
+    const tx = document.getElementById('liveWorkoutText');
+    if (!tx || document.getElementById('treinoAtalhos')) return;
+    const box = document.createElement('div');
+    box.id = 'treinoAtalhos';
+    box.className = 'treino-atalhos';
+    box.innerHTML = `
+      <div class="treino-atalho-linha">
+        <select id="copiarTreinoDe"><option value="">📋 Copiar treino de outro aluno...</option></select>
+        <button type="button" class="btn btn-soft sm" id="btnCopiarTreino">Copiar</button>
+      </div>
+      <div class="treino-atalho-linha">
+        <select id="usarModeloTreino"><option value="">📂 Usar um modelo de treino...</option></select>
+        <button type="button" class="btn btn-soft sm" id="btnUsarModelo">Usar</button>
+        <button type="button" class="btn btn-soft sm" id="btnApagarModelo" title="Apagar modelo">🗑</button>
+        <button type="button" class="btn btn-gold sm" id="btnSalvarModelo">💾 Salvar como modelo</button>
+      </div>`;
+    const label = tx.previousElementSibling && tx.previousElementSibling.tagName === 'LABEL' ? tx.previousElementSibling : tx;
+    label.parentElement.insertBefore(box, label);
+
+    document.getElementById('btnCopiarTreino').onclick = () => {
+      const cod = document.getElementById('copiarTreinoDe').value;
+      const a = (allStudentsList || []).find(x => x.codigo === cod);
+      if (!a) return showToast('Escolha um aluno.', 'error');
+      const d = dadosDoAluno(a);
+      if (!temTreino(d)) return showToast('Esse aluno ainda não tem treino.', 'error');
+      colocarNoEditor(textoDosDias(d.days));
+    };
+    document.getElementById('btnSalvarModelo').onclick = () => {
+      const texto = tx.value.trim();
+      if (!texto) return showToast('O editor está vazio.', 'error');
+      const nome = (prompt('Nome do modelo (ex.: Hipertrofia ABC iniciante):') || '').trim();
+      if (!nome) return;
+      const modelos = lerModelos().filter(m => m.nome !== nome);
+      modelos.push({ nome, texto, criado: new Date().toISOString() });
+      gravarModelos(modelos);
+      atualizarSelectsTreino();
+      showToast(`Modelo "${nome}" salvo.`, 'success');
+    };
+    document.getElementById('btnUsarModelo').onclick = () => {
+      const m = lerModelos().find(x => x.nome === document.getElementById('usarModeloTreino').value);
+      if (!m) return showToast('Escolha um modelo.', 'error');
+      colocarNoEditor(m.texto);
+    };
+    document.getElementById('btnApagarModelo').onclick = () => {
+      const nome = document.getElementById('usarModeloTreino').value;
+      if (!nome || !confirm(`Apagar o modelo "${nome}"?`)) return;
+      gravarModelos(lerModelos().filter(m => m.nome !== nome));
+      atualizarSelectsTreino();
+    };
+    atualizarSelectsTreino();
+  }
+
+  function atualizarSelectsTreino() {
+    const selAluno = document.getElementById('copiarTreinoDe');
+    const selModelo = document.getElementById('usarModeloTreino');
+    if (selAluno) {
+      const outros = (allStudentsList || []).filter(a => a.codigo !== currentStudentCode && temTreino(dadosDoAluno(a)))
+        .sort((x, y) => String(x.clientName || '').localeCompare(String(y.clientName || ''), 'pt-BR'));
+      selAluno.innerHTML = '<option value="">📋 Copiar treino de outro aluno...</option>' +
+        outros.map(a => `<option value="${esc(a.codigo)}">${esc(a.clientName || a.codigo)}</option>`).join('');
+    }
+    if (selModelo) {
+      const modelos = lerModelos();
+      selModelo.innerHTML = `<option value="">📂 ${modelos.length ? 'Usar um modelo de treino...' : 'Nenhum modelo salvo ainda'}</option>` +
+        modelos.map(m => `<option value="${esc(m.nome)}">${esc(m.nome)}</option>`).join('');
+    }
+  }
+
+  /* ---------------- PRÓXIMO / ANTERIOR ALUNO ---------------- */
+  let ultimaAbaAluno = 'resumo';
+  const ABAS_DE_ALUNO = ['resumo', 'treino', 'dieta', 'corrida', 'ergogenicos', 'anamnese', 'feedbackAdmin', 'cadastro'];
+
+  function listaOrdenada() {
+    return [...(allStudentsList || [])].sort((x, y) => String(x.clientName || x.codigo).localeCompare(String(y.clientName || y.codigo), 'pt-BR'));
+  }
+
+  function garantirNavegacaoAlunos() {
+    const nav = document.querySelector('nav.admin-tabs');
+    if (!nav || document.getElementById('navAlunos')) return;
+    const bar = document.createElement('div');
+    bar.id = 'navAlunos';
+    bar.className = 'nav-alunos hidden';
+    bar.innerHTML = `
+      <button type="button" id="btnAlunoAnterior" title="Aluno anterior">◀</button>
+      <span id="navAlunoNome"></span>
+      <button type="button" id="btnAlunoProximo" title="Próximo aluno">▶</button>`;
+    nav.insertAdjacentElement('beforebegin', bar);
+    const ir = async (passo) => {
+      const l = listaOrdenada();
+      if (!l.length) return;
+      let i = l.findIndex(a => a.codigo === currentStudentCode);
+      i = (i + passo + l.length) % l.length;
+      await carregarAluno(l[i].codigo);
+      switchTab(ultimaAbaAluno);
+    };
+    document.getElementById('btnAlunoAnterior').onclick = () => ir(-1);
+    document.getElementById('btnAlunoProximo').onclick = () => ir(1);
+  }
+
+  function atualizarNavegacaoAlunos() {
+    garantirNavegacaoAlunos();
+    const bar = document.getElementById('navAlunos');
+    if (!bar) return;
+    const l = listaOrdenada();
+    const i = l.findIndex(a => a.codigo === currentStudentCode);
+    if (i === -1) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    document.getElementById('navAlunoNome').textContent = `${l[i].clientName || l[i].codigo}  (${i + 1}/${l.length})`;
+  }
+
+  /* ---------------- LINKS DE VENDA (a partir de planos.js) ---------------- */
+  function atualizarLinksVenda() {
+    const box = document.getElementById('conteudoLinksAdmin');
+    if (!box || typeof PLANOS === 'undefined') return;
+    const linhas = Object.entries(PLANOS).map(([id, p]) => {
+      const link = `${SITE}/app.html?modo=anamnese${p.tipo === 'treino' ? '&tipo=treino' : ''}&plano=${id}`;
+      return `<div class="link-item-row"><span class="link-nome">${esc(p.nome)}</span><button class="btn-link-copy" data-link="${esc(link)}">📋 Copiar</button></div>`;
+    }).join('');
+    const extras = [
+      ['Página de vendas (site)', `${SITE}/`],
+      ['Amigos — Treino (valor a combinar)', LINKS_ANAMNESE_GERADOR.amigos_treino],
+      ['Amigos — Completa (valor a combinar)', LINKS_ANAMNESE_GERADOR.amigos_completa],
+      ['2ª pessoa da dupla — Treino', LINKS_ANAMNESE_GERADOR.dupla_treino],
+      ['2ª pessoa da dupla — Completa', LINKS_ANAMNESE_GERADOR.dupla_completa]
+    ].map(([nome, link]) => `<div class="link-item-row"><span class="link-nome">${esc(nome)}</span><button class="btn-link-copy" data-link="${esc(link)}">📋 Copiar</button></div>`).join('');
+    box.innerHTML = `
+      <small style="color:var(--muted); font-size:11px; display:block; margin-bottom:8px;">Avaliação já com o plano travado (a pessoa vai direto para o pagamento certo):</small>
+      ${linhas}
+      <div style="margin-top:8px; border-top:1px dashed var(--border); padding-top:8px;"></div>
+      ${extras}`;
+    box.onclick = (e) => {
+      const b = e.target.closest('[data-link]');
+      if (b) copiarLinkVenda(b.dataset.link);
+    };
+  }
+
+  /* ---------------- LIGAÇÃO COM O ADMIN EXISTENTE ---------------- */
+  const switchTabOriginal = window.switchTab;
+  window.switchTab = function (tab) {
+    const sec = document.getElementById('secCentral');
+    if (tab === 'central') {
+      switchTabOriginal('central'); // esconde as outras seções
+      garantirSecaoCentral();
+      renderCentralSemana();
+      document.getElementById('secCentral').classList.remove('hidden');
+      const b = document.getElementById('tabCentral');
+      if (b) b.classList.add('active');
+      return;
+    }
+    if (sec) sec.classList.add('hidden');
+    switchTabOriginal(tab);
+    if (ABAS_DE_ALUNO.includes(tab)) ultimaAbaAluno = tab;
+    if (tab === 'feedbackAdmin') renderResumoFeedback();
+    if (tab === 'treino') { garantirFerramentasTreino(); atualizarSelectsTreino(); }
+  };
+
+  let primeiraCarga = true;
+  const fetchAlunosOriginal = window.fetchAlunos;
+  window.fetchAlunos = async function (...args) {
+    const r = await fetchAlunosOriginal.apply(this, args);
+    renderCentralSemana();
+    atualizarNavegacaoAlunos();
+    atualizarSelectsTreino();
+    if (primeiraCarga) { primeiraCarga = false; switchTab('central'); }
+    return r;
+  };
+
+  const carregarAlunoOriginal = window.carregarAluno;
+  window.carregarAluno = async function (...args) {
+    const r = await carregarAlunoOriginal.apply(this, args);
+    atualizarNavegacaoAlunos();
+    atualizarSelectsTreino();
+    const fb = document.getElementById('secFeedbackAdmin');
+    if (fb && !fb.classList.contains('hidden')) renderResumoFeedback();
+    return r;
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    garantirSecaoCentral();
+    garantirNavegacaoAlunos();
+    garantirFerramentasFeedback();
+    garantirFerramentasTreino();
+    atualizarLinksVenda();
+  });
+
+  window.renderCentralSemana = renderCentralSemana;
+})();
