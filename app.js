@@ -903,7 +903,10 @@ function loadStudentData(data) {
     } catch(e) {}
   }
 
-  document.getElementById('clientName').textContent = data.clientName || 'Aluno';
+  const nomeCompleto = String(data.clientName || 'Aluno').trim();
+  const elNome = document.getElementById('clientName');
+  elNome.textContent = `Olá, ${nomeCompleto.split(/\s+/)[0]}`;
+  elNome.title = nomeCompleto;
 
   const btnDieta = document.getElementById('btnDieta');
   const btnErgogenicos = document.getElementById('btnErgogenicos');
@@ -967,6 +970,21 @@ function renderErgogenicosAluno(payloadData) {
   }
 }
 
+// Barra "X de Y exercícios concluídos" no topo do treino do dia
+function atualizarProgressoTreino() {
+  const box = document.getElementById('treinoProgresso');
+  const lista = document.getElementById('exercisesList');
+  if (!box || !lista) return;
+  const total = lista.querySelectorAll('.btn-check-exercise').length;
+  if (!total) { box.classList.add('hidden'); return; }
+  const feitos = lista.querySelectorAll('.btn-check-exercise.done').length;
+  const pct = Math.round((feitos / total) * 100);
+  box.classList.remove('hidden');
+  box.innerHTML = `
+    <div class="treino-progresso-topo"><span>${feitos === total ? '🏆 Treino completo!' : 'Progresso do treino'}</span><b>${feitos}/${total} exercícios</b></div>
+    <div class="treino-progresso-barra"><div style="width:${pct}%"></div></div>`;
+}
+
 function toggleCheckExercise(btn, dayIdx, exIdx) {
   const card = btn.closest('.item');
   const isDone = btn.classList.toggle('done');
@@ -988,6 +1006,7 @@ function toggleCheckExercise(btn, dayIdx, exIdx) {
 
   const keyExDone = `ex_done_${dayIdx}_${exIdx}`;
   scheduleAutoSave(keyExDone, isDone ? 'true' : 'false', undefined, undefined, isFree);
+  atualizarProgressoTreino();
 }
 
 function verificarNotificacaoFeedback(alunoData) {
@@ -1870,6 +1889,7 @@ function renderTreinoDetail() {
     if (timerBox) timerBox.classList.remove('hidden');
 
     renderExercisesForDay(day, currentTreinoDayIdx, exercisesContainer);
+    atualizarProgressoTreino();
   }
 
   const keyObs = `obs_day_${currentTreinoDayIdx}`;
@@ -1931,6 +1951,7 @@ function changeExerciseMode(dayIdx, exIdx, selectedMode) {
   if (exercisesContainer) {
     exercisesContainer.innerHTML = '';
     renderExercisesForDay(currentData.days[dayIdx], dayIdx, exercisesContainer);
+    atualizarProgressoTreino();
     scheduleAutoSave(`mode_${dayIdx}_${exIdx}`, selectedMode);
     setInputsLockState(!workoutTimerRunning);
   }

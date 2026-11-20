@@ -353,3 +353,92 @@ textarea.input-field { resize:none; font-family:var(--font-body); }
 .midia-anim img { display:block; }
 .midia-anim .midia-anim-2 { position:absolute; inset:0; animation: midiaAlterna 1.6s steps(1, end) infinite; }
 @keyframes midiaAlterna { 0% { opacity:0; } 50% { opacity:1; } }
+
+
+/* =========================================================================
+   IDENTIDADE VISUAL (mesmas cores e fontes da página de vendas)
+   ========================================================================= */
+:root {
+  --bg: #0a0204;
+  --panel: #150508;
+  --panel-2: #1c090e;
+  --line: #34161d;
+  --line-soft: #241015;
+  --ink: #f8efec;
+  --ink-dim: #b29ea4;
+  --signal: #a3233c;
+  --signal-light: #c4324f;
+  --signal-dim: rgba(196,50,79,0.18);
+  --mark: #dcaa3a;
+  --mark-dim: rgba(220,170,58,0.14);
+  --font-display: 'Bebas Neue', 'Big Shoulders Display', sans-serif;
+}
+body { background: radial-gradient(900px 520px at 50% -10%, #2a0711, var(--bg) 70%) no-repeat var(--bg); }
+h1 { font-weight: 400; letter-spacing: 1px; }
+.card { border-radius: 16px; }
+.btn-login { border-radius: 12px; font-weight: 800; background: linear-gradient(135deg, var(--signal-light), #841628); }
+.btn-login:hover { background: linear-gradient(135deg, #d4405d, #941a30); }
+.btn-gold { background: var(--mark); color: #1a0b02; }
+.btn-wpp { background: #25d366; color: #062012; }
+.input-field { border-radius: 10px; }
+.input-field:focus { border-color: var(--mark); }
+
+/* Login */
+.login-card { text-align: center; padding-top: 28px; }
+.login-avatar { width: 84px; height: 84px; border-radius: 50%; border: 2px solid var(--mark); overflow: hidden; margin: 0 auto 12px; box-shadow: 0 0 0 6px rgba(220,170,58,.08); }
+.login-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.login-card h1 { font-size: 36px; }
+
+/* Cabeçalho do aluno */
+.header-app { gap: 10px; flex-wrap: wrap; }
+.header-app h1 { font-size: 32px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1 1 100%; }
+.header-actions { flex-shrink: 0; }
+.btn-header { border-radius: 999px; padding: 6px 11px; }
+
+/* Abas */
+.menu { border-bottom-color: var(--line); }
+.menu-btn { font-size: 13px; }
+.menu-btn.active { color: var(--mark); border-bottom-color: var(--mark); }
+.swipe-hint { display: none; }
+
+/* Topo do treino */
+.btn-back { border-radius: 10px; }
+.detail-title { font-family: var(--font-display); font-weight: 400; font-size: 24px; letter-spacing: .5px; line-height: 1.05; }
+.workout-timer-card { border-radius: 14px; background: linear-gradient(135deg, rgba(220,170,58,.10), var(--panel-2) 60%); }
+.trainer-goals-card { border-radius: 14px; border-color: rgba(196,50,79,.6); background: linear-gradient(135deg, rgba(196,50,79,.16), var(--panel) 70%); }
+
+/* Progresso do treino */
+.treino-progresso { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 4px 0 14px; }
+.treino-progresso-topo { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: var(--ink-dim); font-weight: 600; margin-bottom: 8px; }
+.treino-progresso-topo b { color: var(--mark); font-weight: 800; }
+.treino-progresso-barra { height: 8px; background: var(--bg); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.treino-progresso-barra div { height: 100%; background: linear-gradient(90deg, var(--mark), #f3d489); border-radius: 999px; transition: width .35s ease; }
+
+/* Cartão do exercício: nome em cima, ações embaixo */
+.item { background: var(--panel); border-radius: 16px; padding: 16px 14px; }
+.item-header { flex-wrap: wrap; align-items: flex-start; row-gap: 10px; margin-bottom: 10px; }
+.item-header .item-title { flex: 1 1 100%; font-size: 17px; font-weight: 800; line-height: 1.25; }
+.item-header > div:last-child { width: 100%; justify-content: space-between; }
+.btn-check-exercise { border-radius: 999px; padding: 8px 14px; font-size: 12px; color: var(--ink); border-color: var(--line); background: var(--panel-2); }
+.btn-check-exercise.done { background: rgba(37,211,102,.14); border-color: #25d366; color: #25d366; }
+.item.exercise-done { border-color: #25d366 !important; background: rgba(37,211,102,.05) !important; }
+.previous-log-badge { border-radius: 10px; font-family: var(--font-body); font-size: 12px; }
+.mode-select { border-radius: 8px; }
+
+/* Séries */
+.series-row { background: var(--bg); border-radius: 12px; padding: 8px 10px; }
+.btn-check-serie { color: var(--ink); background: var(--panel-2); border-radius: 8px; min-width: 64px; }
+.btn-check-serie.done { background: rgba(37,211,102,.14); border-color: #25d366; color: #25d366; }
+.input-log { background: var(--panel-2) !important; border-color: var(--line) !important; border-radius: 10px !important; font-size: 15px; }
+.input-log:focus { border-color: var(--mark) !important; }
+.input-log::placeholder { color: rgba(248,239,236,.22); font-weight: 600; }
+
+/* Cronômetro de descanso fixo no rodapé */
+.rest-timer-widget { background: rgba(10,2,4,.95); border-top-color: var(--line); }
+.rest-timer-btn { border-radius: 999px; background: var(--panel-2); }
+.rest-timer-btn:active { background: var(--mark); color: #1a0b02; }
+
+/* Lista de treinos */
+.select-card { border-radius: 14px; border-left-color: var(--mark); background: var(--panel); }
+.select-card:hover { border-color: var(--mark); }
+.quick-switch-chip.active { background: var(--mark-dim); border-color: var(--mark); color: var(--mark); }

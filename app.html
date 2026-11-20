@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Área do Aluno — Jhonata Personal</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Big+Shoulders+Display:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Bebas+Neue&family=Big+Shoulders+Display:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -301,7 +301,8 @@
 </div>
 
 <!-- TELA DE LOGIN -->
-<div id="loginScreen" class="card">
+<div id="loginScreen" class="card login-card">
+  <div class="login-avatar"><img src="minhafoto.jpg" alt="Jhonata Cavalcante" onerror="this.parentNode.style.display='none'"></div>
   <h1>Jhonata Consultoria</h1>
   <div class="sub">Acesse sua área exclusiva de aluno</div>
   
@@ -323,7 +324,7 @@
     <div class="header-app">
       <h1 id="clientName">Consultoria</h1>
       <div class="header-actions">
-        <button class="btn-header btn-indique-header" type="button" onclick="abrirModalIndique()">🎁 Indique & Ganhe</button>
+        <button class="btn-header btn-indique-header" type="button" onclick="abrirModalIndique()">🎁 Indique</button>
         <button class="btn-header" type="button" onclick="abrirModalSenha()">🔑 Senha</button>
         <button class="btn-header" type="button" onclick="logout()">Sair</button>
       </div>
@@ -387,23 +388,8 @@
           <div class="trainer-goals-body collapsed" id="trainerGoalsBody"></div>
         </div>
 
-        <!-- NOVO: CARD DE CRONÔMETRO DE DESCANSO ENTRE SÉRIES (DENTRO DA ABA DE TREINO) -->
-        <div class="trainer-goals-card" style="margin-top: 10px; background: var(--panel-2); border: 1px solid var(--line);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <div style="font-size:12px; font-weight:800; color:var(--mark); text-transform:uppercase; display:flex; align-items:center; gap:6px;">
-              <span>⏱️ Cronômetro de Descanso entre Séries</span>
-            </div>
-          </div>
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <div style="display:flex; gap:6px; flex:1;">
-              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(60)">⏱ 60s</button>
-              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(90)">⏱ 90s</button>
-              <button type="button" class="rest-timer-btn" style="flex:1; padding:8px 4px; font-size:11px;" onclick="startRestTimer(120)">⏱ 120s</button>
-            </div>
-          </div>
-        </div>
-
         <div id="treinoQuickSwitch" class="quick-switch-row hidden"></div>
+        <div id="treinoProgresso" class="treino-progresso hidden"></div>
         <div id="exercisesList"></div>
 
         <button type="button" class="btn-login btn-gold" style="margin-top:18px; margin-bottom:24px;" onclick="concluirTreinoDoDia()">
