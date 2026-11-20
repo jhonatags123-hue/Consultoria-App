@@ -960,3 +960,42 @@ textarea {
 .nav-alunos span { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; min-width: 160px; }
 .nav-alunos button { background: var(--card-inner); border: 1px solid var(--border); color: var(--gold); border-radius: 999px; width: 36px; height: 32px; cursor: pointer; font-size: 13px; }
 .nav-alunos button:hover { border-color: var(--gold); }
+
+/* Mensagens não lidas / marcar como lido / análise por IA */
+.feedback-barra { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.feedback-barra-botoes { display: flex; gap: 6px; flex-wrap: wrap; }
+.feedback-barra .btn { width: auto; }
+.fb-status-novo { color: #ff6b7f; font-weight: 800; font-size: 12.5px; }
+.fb-status-ok { color: var(--green); font-weight: 700; font-size: 12.5px; }
+.feedback-ia { background: linear-gradient(160deg, rgba(220,170,58,.10), var(--card-inner) 50%); border: 1px solid var(--gold); border-radius: 12px; padding: 12px; margin-bottom: 8px; }
+.feedback-ia-carregando { font-size: 12.5px; color: var(--muted); }
+.feedback-ia-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--gold); font-size: 13px; }
+.ia-humor { font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 999px; background: var(--card); color: var(--text); }
+.ia-positivo { color: var(--green); } .ia-preocupante { color: #ff6b7f; }
+.feedback-ia-resumo { font-size: 13px; color: var(--text); margin: 8px 0; line-height: 1.5; }
+.feedback-ia-pontos { display: grid; gap: 6px; margin-bottom: 8px; }
+.ia-ponto { display: flex; gap: 8px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; color: var(--text); }
+.ia-ponto small { display: block; color: var(--gold-soft); margin-top: 3px; }
+.ia-tipo { flex-shrink: 0; font-weight: 800; font-size: 11.5px; color: var(--muted); min-width: 92px; }
+.feedback-ia-resposta, .feedback-ia-ajustes { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; font-size: 12.5px; color: var(--text); line-height: 1.5; }
+.feedback-ia-resposta small, .feedback-ia-ajustes small { display: block; color: var(--muted); font-weight: 700; margin-bottom: 4px; }
+.feedback-ia-resposta .btn { width: auto; margin-top: 8px; }
+.ia-ajuste { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px dashed var(--border); }
+.ia-ajuste .btn { width: auto; flex-shrink: 0; }
+
+/* Evolução em % */
+.evo-badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 1px 7px; border-radius: 999px; margin-right: 6px; vertical-align: middle; cursor: help; }
+.evo-up { background: rgba(37,211,102,.15); color: var(--green); border: 1px solid rgba(37,211,102,.5); }
+.evo-down { background: rgba(196,50,79,.15); color: #ff6b7f; border: 1px solid rgba(196,50,79,.5); }
+.evo-flat { background: rgba(220,170,58,.12); color: var(--gold); border: 1px solid rgba(220,170,58,.4); }
+.evo-sem { background: transparent; color: var(--muted); border: 1px dashed var(--border); font-weight: 600; }
+.evo-geral { background: var(--card); border: 1px solid var(--gold); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+.evo-geral-topo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.evo-geral-topo div { background: var(--card-inner); border-radius: 10px; padding: 8px; text-align: center; }
+.evo-geral-topo span { display: block; font-size: 11px; color: var(--muted); }
+.evo-geral-topo b { font-size: 22px; color: var(--text); }
+.evo-up-t { color: var(--green) !important; } .evo-down-t { color: #ff6b7f !important; }
+.evo-geral-lista { margin-top: 8px; font-size: 12.5px; color: var(--text); }
+.evo-geral-lista small { display: block; color: var(--muted); font-weight: 700; margin-bottom: 2px; }
+.evo-geral-lista div { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+.evo-nota { font-size: 10.5px; color: var(--muted); margin-top: 8px; }

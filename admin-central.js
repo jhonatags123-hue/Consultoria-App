@@ -87,6 +87,99 @@
     return lista;
   }
 
+  /* ---------------- MENSAGENS NÃO LIDAS ---------------- */
+  // Não lida = a última mensagem é do aluno e chegou depois do "marcar como lido"
+  function mensagemNaoLida(d) {
+    const fbs = Array.isArray(d.feedbacks) ? d.feedbacks : [];
+    const ultima = fbs[fbs.length - 1];
+    if (!ultima || ehDoPersonal(ultima)) return null;
+    const lido = dataValida(d.feedback_lido_em);
+    if (lido && (dataValida(ultima.data) || 0) <= lido) return null;
+    return ultima;
+  }
+
+  // Substitui a regra do aviso vermelho do admin: some ao responder OU ao marcar como lido
+  window.alunoTemFeedbackPendente = function (aluno) {
+    if (!aluno) return false;
+    const d = dadosDoAluno(aluno);
+    if (mensagemNaoLida(d)) return true;
+    const lido = dataValida(d.feedback_lido_em);
+    return d.solicitarFeedback === true && !(lido && agora() - lido < DIAS_FEEDBACK * DIA_MS);
+  };
+
+  async function marcarComoLido(codigo) {
+    const res = await fetch(`${BACKEND_URL}/api/feedback/lido`, {
+      method: 'POST', headers: authHeaders(), cache: 'no-cache', body: JSON.stringify({ codigo })
+    });
+    if (!res.ok) throw new Error('falha');
+    const { feedback_lido_em } = await res.json();
+    const a = (allStudentsList || []).find(x => x.codigo === codigo);
+    if (a) { a.feedback_lido_em = feedback_lido_em; if (a.payload) a.payload.feedback_lido_em = feedback_lido_em; }
+    if (currentStudentData && currentStudentCode === codigo) currentStudentData.feedback_lido_em = feedback_lido_em;
+    if (typeof renderStudentsList === 'function') renderStudentsList(allStudentsList);
+    const badge = document.getElementById('tabFeedbackBadge');
+    if (badge && currentStudentCode === codigo) badge.classList.toggle('hidden', !window.alunoTemFeedbackPendente(currentStudentData));
+    renderCentralSemana();
+    renderBarraFeedback();
+  }
+
+  /* ---------------- EVOLUÇÃO EM % POR EXERCÍCIO ---------------- */
+  // Usa "força estimada" (carga x reps, fórmula de Epley) para contar também ganho de repetições
+  function forcaEstimada(reg) {
+    const c = parseFloat(reg && reg.cargaMax), r = parseFloat(reg && reg.repsMed);
+    if (isNaN(c) || c <= 0) return null;
+    return isNaN(r) || r <= 0 ? c : c * (1 + r / 30);
+  }
+  function evolucaoExercicio(d, nome) {
+    if (!d || !nome || typeof sanitizeExKey !== 'function') return null;
+    const hist = (d.weekly_logs || {})[sanitizeExKey(nome)];
+    if (!Array.isArray(hist) || hist.length < 2) return null;
+    const ini = hist[0], fim = hist[hist.length - 1];
+    const a = forcaEstimada(ini), b = forcaEstimada(fim);
+    if (!a || !b) return null;
+    return { pct: ((b - a) / a) * 100, de: `${ini.cargaMax}kg × ${ini.repsMed}`, para: `${fim.cargaMax}kg × ${fim.repsMed}`, n: hist.length };
+  }
+  function badgeEvolucao(ev) {
+    if (!ev) return `<span class="evo-badge evo-sem" title="Precisa de pelo menos 2 treinos registrados">sem dados</span>`;
+    const p = Math.round(ev.pct);
+    const cls = p > 0 ? 'evo-up' : p < 0 ? 'evo-down' : 'evo-flat';
+    const txt = p > 0 ? `▲ ${p}%` : p < 0 ? `▼ ${Math.abs(p)}%` : '= 0%';
+    return `<span class="evo-badge ${cls}" title="${esc(ev.de)} → ${esc(ev.para)} (últimos ${ev.n} registros)">${txt}</span>`;
+  }
+  function aplicarBadgesEvolucao(container, d) {
+    if (!container || !d) return;
+    container.querySelectorAll('[onclick^="verEvolucaoSemanal"]').forEach(row => {
+      if (row.querySelector('.evo-badge')) return;
+      const nomeEl = row.querySelector('b');
+      if (!nomeEl) return;
+      const alvo = row.lastElementChild || row;
+      alvo.insertAdjacentHTML('afterbegin', badgeEvolucao(evolucaoExercicio(d, nomeEl.textContent.trim())) + ' ');
+    });
+  }
+  function resumoEvolucaoGeral(d) {
+    const vistos = new Set(); const lista = [];
+    (d.days || []).forEach(day => (day.exercicios || []).forEach(ex => {
+      const k = ex && ex.nome && sanitizeExKey(ex.nome);
+      if (!k || vistos.has(k)) return; vistos.add(k);
+      const ev = evolucaoExercicio(d, ex.nome);
+      if (ev) lista.push({ nome: ex.nome, ...ev });
+    }));
+    if (!lista.length) return '';
+    const media = lista.reduce((s, x) => s + x.pct, 0) / lista.length;
+    const subindo = lista.filter(x => Math.round(x.pct) > 0).sort((a, b) => b.pct - a.pct);
+    const parados = lista.filter(x => Math.round(x.pct) <= 0).sort((a, b) => a.pct - b.pct);
+    const m = Math.round(media);
+    return `<div class="evo-geral">
+      <div class="evo-geral-topo">
+        <div><span>Evolução média de força</span><b class="${m > 0 ? 'evo-up-t' : m < 0 ? 'evo-down-t' : ''}">${m > 0 ? '+' : ''}${m}%</b></div>
+        <div><span>Exercícios evoluindo</span><b>${subindo.length}/${lista.length}</b></div>
+      </div>
+      ${subindo.length ? `<div class="evo-geral-lista"><small>🔥 Mais evoluíram</small>${subindo.slice(0, 3).map(x => `<div>${esc(x.nome)} ${badgeEvolucao(x)}</div>`).join('')}</div>` : ''}
+      ${parados.length ? `<div class="evo-geral-lista"><small>⚠️ Parados ou caindo — revisar</small>${parados.slice(0, 3).map(x => `<div>${esc(x.nome)} ${badgeEvolucao(x)}</div>`).join('')}</div>` : ''}
+      <p class="evo-nota">Compara o primeiro e o último dos registros guardados de cada exercício, contando carga e repetições.</p>
+    </div>`;
+  }
+
   /* ---------------- "JÁ FIZ" (some da lista por alguns dias) ---------------- */
   function chaveFeito(lista, codigo) { return `central_feito_${lista}_${codigo}`; }
   function marcarFeito(lista, codigo) {
@@ -101,7 +194,7 @@
 
   /* ---------------- MONTA AS LISTAS ---------------- */
   function montarListas() {
-    const listas = { feedback: [], sumidos: [], fotos: [], vencimento: [], semTreino: [] };
+    const listas = { mensagens: [], feedback: [], sumidos: [], fotos: [], vencimento: [], semTreino: [] };
     (allStudentsList || []).forEach(a => {
       const d = dadosDoAluno(a);
       const codigo = a.codigo;
@@ -118,6 +211,13 @@
       const ultimasFotos = maisRecente(d.ultimas_fotos_em, ...feedbacks.filter(f => !ehDoPersonal(f) && msgTemFotos(f)).map(f => f.data));
       const treinosSemana = sessoesRecentes(d, DIAS_FEEDBACK).length;
       const base = { codigo, nome, fone: telefoneDoAluno(d) };
+
+      const naoLida = mensagemNaoLida(d);
+      if (naoLida) {
+        const txt = String(naoLida.mensagem || '').replace(/\s+/g, ' ').trim();
+        listas.mensagens.push({ ...base, ordem: -(dataValida(naoLida.data) || 0),
+          detalhe: `${textoHaDias(diasDesde(dataValida(naoLida.data)))}: “${txt.length > 140 ? txt.slice(0, 140) + '…' : txt}”` });
+      }
 
       if (!comTreino) {
         if (ativo) listas.semTreino.push({ ...base, detalhe: inicio ? `Cadastrado ${textoHaDias(diasDesde(inicio))}` : 'Treino ainda não montado' });
@@ -211,7 +311,7 @@
     const sec = document.getElementById('secCentral');
     if (!sec) return;
     const L = montarListas();
-    const total = L.feedback.length + L.sumidos.length + L.fotos.length + L.vencimento.length + L.semTreino.length;
+    const total = L.mensagens.length + L.feedback.length + L.sumidos.length + L.fotos.length + L.vencimento.length + L.semTreino.length;
     const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 
     const bAbrir = (it, aba, rotulo) => `<button type="button" class="btn btn-soft sm" data-acao="abrir" data-aba="${aba}">${rotulo}</button>`;
@@ -224,6 +324,7 @@
       </div>
       <p class="central-hoje">${esc(hoje.charAt(0).toUpperCase() + hoje.slice(1))} • ${total ? `<b>${total}</b> ${total === 1 ? 'tarefa' : 'tarefas'} para hoje` : 'Tudo em dia! 🎉'}</p>
       <div class="central-resumo">
+        <a href="#central_mensagens"><b>${L.mensagens.length}</b><span>Mensagens</span></a>
         <a href="#central_feedback"><b>${L.feedback.length}</b><span>Feedbacks</span></a>
         <a href="#central_sumidos"><b>${L.sumidos.length}</b><span>Sumidos</span></a>
         <a href="#central_fotos"><b>${L.fotos.length}</b><span>Fotos</span></a>
@@ -231,6 +332,8 @@
         <a href="#central_semTreino"><b>${L.semTreino.length}</b><span>Sem treino</span></a>
       </div>
       <div class="central-grid">
+        ${bloco('mensagens', '📨', 'Mensagens não lidas', 'O que os alunos te escreveram e você ainda não viu.', L.mensagens,
+          it => `<button type="button" class="btn btn-gold sm" data-acao="abrir" data-aba="feedbackAdmin">Responder</button><button type="button" class="btn btn-soft sm" data-acao="lido">✓ Lido</button>`, 'Nenhuma mensagem nova. ✅')}
         ${bloco('feedback', '💬', 'Feedback pendente', `Treinaram nos últimos ${DIAS_FEEDBACK} dias e ainda não receberam seu feedback.`, L.feedback,
           it => bAbrir(it, 'feedbackAdmin', '💬 Dar feedback'), 'Nenhum feedback pendente.')}
         ${bloco('sumidos', '👻', 'Alunos sumidos', `Sem registrar treino há mais de ${DIAS_SUMIDO} dias.`, L.sumidos,
@@ -260,6 +363,13 @@
       e.preventDefault();
       await carregarAluno(codigo);
       switchTab(alvo.dataset.aba || 'resumo');
+      return;
+    }
+    if (acao === 'lido') {
+      e.preventDefault();
+      alvo.disabled = true;
+      try { await marcarComoLido(codigo); showToast('Marcado como lido.', 'success'); }
+      catch (err) { alvo.disabled = false; showToast('Não foi possível marcar como lido.', 'error'); }
       return;
     }
     if (acao === 'whats') {
@@ -316,6 +426,8 @@
     const box = document.createElement('div');
     box.id = 'feedbackRapido';
     box.innerHTML = `
+      <div id="feedbackBarra" class="feedback-barra"></div>
+      <div id="feedbackAnaliseIA" class="feedback-ia hidden"></div>
       <div id="feedbackResumoSemana" class="feedback-resumo"></div>
       <div class="feedback-chips">
         <span>Mensagens prontas:</span>
@@ -335,8 +447,81 @@
     });
   }
 
+  function renderBarraFeedback() {
+    const bar = document.getElementById('feedbackBarra');
+    if (!bar || !currentStudentData) return;
+    const naoLida = mensagemNaoLida(currentStudentData);
+    bar.innerHTML = `
+      <span class="${naoLida ? 'fb-status-novo' : 'fb-status-ok'}">${naoLida ? '🔴 Mensagem nova do aluno' : '✅ Nada pendente para ler'}</span>
+      <div class="feedback-barra-botoes">
+        ${naoLida ? '<button type="button" class="btn btn-soft sm" id="btnMarcarLido">✓ Marcar como lido</button>' : ''}
+        <button type="button" class="btn btn-gold sm" id="btnAnalisarIA">🧠 Analisar feedback com IA</button>
+      </div>`;
+    const bl = document.getElementById('btnMarcarLido');
+    if (bl) bl.onclick = async () => {
+      bl.disabled = true;
+      try { await marcarComoLido(currentStudentCode); showToast('Marcado como lido.', 'success'); }
+      catch (err) { bl.disabled = false; showToast('Não foi possível marcar como lido.', 'error'); }
+    };
+    document.getElementById('btnAnalisarIA').onclick = analisarFeedbackIA;
+  }
+
+  const ROTULO_PONTO = { dor: '🩹 Dor', duvida: '❓ Dúvida', pedido: '🙋 Pedido', dificuldade: '😓 Dificuldade', elogio: '🙌 Elogio', outro: '💬 Outro' };
+
+  async function analisarFeedbackIA() {
+    const box = document.getElementById('feedbackAnaliseIA');
+    const btn = document.getElementById('btnAnalisarIA');
+    if (!box || !currentStudentCode) return;
+    const codigoAnalisado = currentStudentCode;
+    box.classList.remove('hidden');
+    box.innerHTML = '<div class="feedback-ia-carregando">🧠 Lendo as mensagens e as observações dos treinos...</div>';
+    if (btn) btn.disabled = true;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/analisar-feedback-ia`, {
+        method: 'POST', headers: authHeaders(), cache: 'no-cache', body: JSON.stringify({ codigo: codigoAnalisado })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.analise) throw new Error(data.error || 'Falha na análise.');
+      if (codigoAnalisado !== currentStudentCode) return;
+      const a = data.analise;
+      box.innerHTML = `
+        <div class="feedback-ia-topo">
+          <b>🧠 Análise do feedback</b>
+          <span class="ia-humor ia-${esc(a.humor)}">${a.urgente ? '🚨 Atenção' : a.humor === 'positivo' ? '😀 Positivo' : a.humor === 'preocupante' ? '⚠️ Preocupante' : '😐 Neutro'}</span>
+        </div>
+        <p class="feedback-ia-resumo">${esc(a.resumo)}</p>
+        ${a.pontos.length ? `<div class="feedback-ia-pontos">${a.pontos.map(p => `
+          <div class="ia-ponto"><span class="ia-tipo">${ROTULO_PONTO[p.tipo] || ROTULO_PONTO.outro}</span>
+          <div><div>${esc(p.texto)}</div>${p.acao ? `<small>👉 ${esc(p.acao)}</small>` : ''}</div></div>`).join('')}</div>` : ''}
+        ${a.resposta_sugerida ? `<div class="feedback-ia-resposta"><small>Resposta sugerida</small><div>${esc(a.resposta_sugerida).replace(/\n/g, '<br>')}</div>
+          <button type="button" class="btn btn-gold sm" id="btnUsarRespostaIA">✍️ Usar essa resposta</button></div>` : ''}
+        ${a.ajustes_treino.length ? `<div class="feedback-ia-ajustes"><small>Ajustes sugeridos no treino</small>${a.ajustes_treino.map((t, i) => `
+          <div class="ia-ajuste"><span>${esc(t)}</span><button type="button" class="btn btn-soft sm" data-ajuste="${i}">🏋️ Levar para o treino</button></div>`).join('')}</div>` : ''}
+        <p class="evo-nota">Sugestões da IA: revise antes de enviar ou aplicar.</p>`;
+      const usar = document.getElementById('btnUsarRespostaIA');
+      if (usar) usar.onclick = () => {
+        const input = document.getElementById('adminFeedbackInput');
+        input.value = a.resposta_sugerida; input.focus();
+        showToast('Resposta colocada no campo. Revise e clique em ENVIAR RESPOSTA.', 'info');
+      };
+      box.querySelectorAll('[data-ajuste]').forEach(b => b.onclick = () => {
+        switchTab('treino');
+        const cmd = document.getElementById('aiWorkoutCommand');
+        if (cmd) { cmd.value = a.ajustes_treino[parseInt(b.dataset.ajuste, 10)]; cmd.focus(); cmd.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        showToast('Ajuste colocado no "Comando para a ficha". Confira e clique em APLICAR VIA AUXILIAR.', 'info');
+      });
+    } catch (err) {
+      box.innerHTML = `<div class="feedback-ia-carregando">❌ ${esc(err.message || 'Não foi possível analisar agora.')}</div>`;
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function renderResumoFeedback() {
     garantirFerramentasFeedback();
+    renderBarraFeedback();
+    const ia = document.getElementById('feedbackAnaliseIA');
+    if (ia && ia.dataset.aluno !== currentStudentCode) { ia.classList.add('hidden'); ia.innerHTML = ''; ia.dataset.aluno = currentStudentCode; }
     const box = document.getElementById('feedbackResumoSemana');
     if (!box || !currentStudentData) return;
     const r = resumoSemanaAluno(currentStudentData);
@@ -529,6 +714,28 @@
     if (tab === 'feedbackAdmin') renderResumoFeedback();
     if (tab === 'treino') { garantirFerramentasTreino(); atualizarSelectsTreino(); }
   };
+
+  if (typeof window.atualizarPreviewAoVivo === 'function') {
+    const previewOriginal = window.atualizarPreviewAoVivo;
+    window.atualizarPreviewAoVivo = function (...args) {
+      const r = previewOriginal.apply(this, args);
+      aplicarBadgesEvolucao(document.getElementById('liveWorkoutPreview'), currentStudentData);
+      return r;
+    };
+  }
+  if (typeof window.renderResumoVisaoGeral === 'function') {
+    const resumoOriginal = window.renderResumoVisaoGeral;
+    window.renderResumoVisaoGeral = function (...args) {
+      const r = resumoOriginal.apply(this, args);
+      const c = document.getElementById('summaryOverviewContainer');
+      if (c && currentStudentData) {
+        aplicarBadgesEvolucao(c, currentStudentData);
+        const geral = resumoEvolucaoGeral(currentStudentData);
+        if (geral) c.insertAdjacentHTML('afterbegin', geral);
+      }
+      return r;
+    };
+  }
 
   let primeiraCarga = true;
   const fetchAlunosOriginal = window.fetchAlunos;
