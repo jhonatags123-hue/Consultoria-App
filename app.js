@@ -199,6 +199,14 @@ function isVideoUrl(url) {
 function midiaExercicioHtml(url) {
   const safe = escapeHtml(url);
   const estilo = 'display:block; width:100%; max-height:300px; object-fit:contain; border-radius:10px; background:#000;';
+  // Imagens do catálogo: alterna foto de início e fim do movimento
+  if (/free-exercise-db.*\/0\.jpg$/i.test(url)) {
+    const foto2 = escapeHtml(url.replace(/0\.jpg$/i, '1.jpg'));
+    return `<span class="midia-anim" style="display:block; position:relative; border-radius:10px;">
+      <img src="${safe}" alt="Início do movimento" style="${estilo}">
+      <img src="${foto2}" alt="Fim do movimento" class="midia-anim-2" style="${estilo}">
+    </span>`;
+  }
   if (isVideoUrl(url)) {
     return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
   }
@@ -211,7 +219,17 @@ window.toggleMidiaExercicio = function(btn) {
   if (!box) return;
   const abrir = box.classList.contains('hidden');
   if (abrir && !box.dataset.loaded) {
-    box.innerHTML = midiaExercicioHtml(btn.dataset.url);
+    let opcoes = [];
+    try { opcoes = JSON.parse(btn.dataset.opcoes || '[]'); } catch (e) {}
+    if (Array.isArray(opcoes) && opcoes.length > 1) {
+      box.innerHTML = opcoes.map((o, i) => `
+        <div style="margin-bottom:8px;">
+          <div style="font-size:12px; font-weight:700; color:var(--mark); margin-bottom:4px;">Opção ${i + 1}: ${escapeHtml(String(o.rotulo || ''))}</div>
+          ${midiaExercicioHtml(String(o.url || ''))}
+        </div>`).join('');
+    } else {
+      box.innerHTML = midiaExercicioHtml(btn.dataset.url);
+    }
     box.dataset.loaded = '1';
   }
   box.classList.toggle('hidden', !abrir);
@@ -1962,7 +1980,7 @@ function renderExercisesForDay(day, dayIdx, container) {
     const midiaUrl = typeof ex.gifUrl === 'string' && /^https?:\/\//i.test(ex.gifUrl) ? ex.gifUrl : '';
     const midiaBlocoHtml = midiaUrl ? `
       <div class="ex-midia-wrap" style="margin:2px 0 8px;">
-        <button type="button" class="btn-midia-exercicio" data-url="${escapeHtml(midiaUrl)}" onclick="toggleMidiaExercicio(this)"
+        <button type="button" class="btn-midia-exercicio" data-url="${escapeHtml(midiaUrl)}" data-opcoes="${escapeHtml(JSON.stringify((Array.isArray(ex.midias) ? ex.midias : []).filter(o => o && /^https?:\/\//i.test(String(o.url || '')))))}" onclick="toggleMidiaExercicio(this)"
           style="width:100%; padding:7px 10px; font-size:12px; font-weight:700; border-radius:8px; cursor:pointer; background:var(--panel-2); color:var(--ink); border:1px solid var(--line);">🎥 Ver execução / equipamento</button>
         <div class="ex-midia-box hidden" style="margin-top:6px;"></div>
       </div>` : '';

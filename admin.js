@@ -9,7 +9,7 @@ let lastGeneratedPassword = "123456";
 let allStudentsList = [];
 let chartInstance = null;
 let activeDietAbaIndex = 0;
-let gifsDatabase = [];
+let gifsDatabase = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS.slice() : [];
 const GOOGLE_APPS_SCRIPT_URL = 'https://' + 'script.google.com/macros/s/AKfycbxR_uk51E_dUevVLAKiu1bF7jZ2SSG3aIQXksjY_a_V5sy9qnO0NqLzJA78Lz_GrGIU/exec';
 let midiaModalExNome = '';     // Exercício cuja mídia está sendo escolhida no modal
 let isentosExpanded = false;   // Controle de abertura da sanfona dos isentos
@@ -191,15 +191,20 @@ function carregarGifsAdmin() {
   fetch(`${BACKEND_URL}/api/exercicios/gifs`, { headers: authHeaders() })
     .then(res => res.json())
     .then(data => {
-      gifsDatabase = Array.isArray(data) ? data : [];
+      const doServidor = (Array.isArray(data) ? data : [])
+        .filter(g => g && g.nome && typeof g.url === 'string' && /^https?:\/\//i.test(g.url) && !g.url.includes('...'));
+      const catalogo = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS : [];
+      // GIFs do servidor (seus) têm prioridade sobre o catálogo padrão
+      gifsDatabase = [...doServidor, ...catalogo];
       renderGifsAdmin(gifsDatabase);
       if (currentStudentData) atualizarPreviewAoVivo();
       const modal = document.getElementById('midiaModal');
       if (modal && !modal.classList.contains('hidden')) { renderMidiaAtualModal(); filtrarMidiaModal(); }
     })
     .catch(() => {
-      const gallery = document.getElementById('gifGalleryList');
-      if (gallery) gallery.innerHTML = `<div style="color:var(--accent); font-size:12px; grid-column: 1/-1;">Não foi possível carregar a lista de GIFs.</div>`;
+      // Sem servidor: continua funcionando só com o catálogo padrão
+      gifsDatabase = (typeof CATALOGO_GIFS !== 'undefined') ? CATALOGO_GIFS.slice() : [];
+      renderGifsAdmin(gifsDatabase);
     });
 }
 
@@ -259,7 +264,8 @@ const MIDIA_FRASES = [
   [/remada\s*cavalinho|cavalinho|t\s*bar/g, 'cavalinho remada'],
   [/barra\s*fixa|pull\s*up|chin\s*up/g, 'barrafixa'],
   [/paralelas?|dips?/g, 'paralela'],
-  [/w\s*\/?\s*ez|barra\s*w|barra\s*ez/g, 'barraw']
+  [/w\s*\/?\s*ez|barra\s*w\b|barra\s*ez\b|\bw\b|\bez\b/g, 'barraw'],
+  [/serrote/g, 'remada unilateral halter serrote']
 ];
 
 // Sinônimos de uma palavra → termo padrão
@@ -284,6 +290,27 @@ const MIDIA_SINONIMOS = {
   aberto: 'aberto', aberta: 'aberto', fechado: 'fechado', fechada: 'fechado',
   corda: 'corda', banco: 'banco', sentado: 'sentado', sentada: 'sentado', pe: 'pe', deitado: 'deitado', deitada: 'deitado'
 };
+
+// "Supino Inclinado Máquina/Halter" → ["Supino Inclinado Máquina", "Supino Inclinado Halter"]
+function alternativasDoExercicio(nome) {
+  const limpo = String(nome || '').replace(/\b([cspCSP])\//g, '$1 '); // ignora "c/", "s/", "p/"
+  if (!limpo.includes('/')) return [];
+  const partes = limpo.split('/').map(p => p.trim()).filter(Boolean);
+  if (partes.length < 2) return [];
+  const base = partes[0].split(/\s+/);
+  const lista = [{ nome: partes[0], rotulo: '' }];
+  partes.slice(1).forEach(p => {
+    const palavras = p.split(/\s+/);
+    if (palavras.length < base.length) {
+      lista.push({ nome: base.slice(0, base.length - palavras.length).concat(palavras).join(' '), rotulo: p });
+      if (!lista[0].rotulo) lista[0].rotulo = base.slice(base.length - palavras.length).join(' ');
+    } else {
+      lista.push({ nome: p, rotulo: p });
+    }
+  });
+  if (!lista[0].rotulo) lista[0].rotulo = partes[0];
+  return lista;
+}
 
 function tokensExercicio(nome) {
   let t = String(nome || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -316,7 +343,7 @@ function similaridadeExercicio(tokA, tokB) {
 function obterMidiaAprendida() {
   const mapa = {};
   (allStudentsList || []).forEach(a => {
-    const m = a && a.midia_exercicios;
+    const m = a && (a.midia_exercicios || (a.payload && a.payload.midia_exercicios));
     if (m && typeof m === 'object') Object.keys(m).forEach(k => { if (m[k]) mapa[k] = m[k]; });
   });
   try {
@@ -383,8 +410,21 @@ function isVideoUrl(url) {
   return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(url || ''));
 }
 
-function midiaHtml(url, estilo = '') {
+// Imagens do catálogo têm 2 fotos (início/fim): .../0.jpg e .../1.jpg
+function segundaFotoCatalogo(url) {
+  const u = String(url || '');
+  return /free-exercise-db.*\/0\.jpg$/i.test(u) ? u.replace(/0\.jpg$/i, '1.jpg') : '';
+}
+
+function midiaHtml(url, estilo = '', animar = false) {
   const safe = escapeHtml(url);
+  const foto2 = animar ? segundaFotoCatalogo(url) : '';
+  if (foto2) {
+    return `<span class="midia-anim" style="display:block; position:relative; ${estilo}">
+      <img src="${safe}" alt="Início do movimento" loading="lazy" style="${estilo}">
+      <img src="${escapeHtml(foto2)}" alt="Fim do movimento" loading="lazy" class="midia-anim-2" style="${estilo}">
+    </span>`;
+  }
   if (isVideoUrl(url)) {
     return `<video src="${safe}" autoplay loop muted playsinline style="${estilo}"></video>`;
   }
@@ -462,7 +502,7 @@ function renderMidiaAtualModal() {
     return;
   }
   box.innerHTML = `
-    ${midiaHtml(url, 'width:100%; max-height:220px; object-fit:contain; border-radius:8px; background:#000;')}
+    ${midiaHtml(url, 'width:100%; max-height:220px; object-fit:contain; border-radius:8px; background:#000;', true)}
     <div style="font-size:11px; color:var(--gold); margin-top:6px; font-weight:700;">${rotulos[origem]}</div>
   `;
 }
@@ -2613,7 +2653,7 @@ function atualizarPreviewAoVivo() {
           <div onclick="verEvolucaoSemanal('${safeNome}', '${safeSeries}', '${safeReps}')" 
                style="cursor:pointer; font-size:12px; margin-top:4px; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.02); display:flex; justify-content:space-between; align-items:center;"
                title="Clique para ver evolução de cargas">
-            <span style="display:flex; align-items:center; gap:8px; min-width:0;">${midiaBtn}<span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}</span></span>
+            <span style="display:flex; align-items:center; gap:8px; min-width:0;">${midiaBtn}<span>📈 <b>${escapeHtml(ex.nome)}</b>${isTecnico}${ex.midias && ex.midias.length > 1 ? ` <span style="font-size:10px; color:var(--green); font-weight:700;">🎥 ${ex.midias.length} opções</span>` : ''}</span></span>
             <span style="color:var(--muted); font-weight:700; text-align:right;">${escapeHtml(ex.series)} (${escapeHtml(ex.reps)})</span>
           </div>
         `;
@@ -3365,8 +3405,20 @@ function parseWorkoutText(rawText, midiaCtx = null) {
       if (Object.prototype.hasOwnProperty.call(overrides, keyMidia)) {
         if (overrides[keyMidia]) exObj.gifUrl = overrides[keyMidia];
       } else {
-        const foundGifUrl = buscarGifExercicio(exObj.nome) || (midiaCtx && midiaCtx.anteriores && midiaCtx.anteriores[keyMidia]);
-        if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+        // Exercício com opções ("Máquina/Halter"): uma mídia para cada opção
+        const alternativas = alternativasDoExercicio(exObj.nome);
+        const opcoes = [];
+        alternativas.forEach(alt => {
+          const url = buscarGifExercicio(alt.nome);
+          if (url && !opcoes.some(o => o.url === url)) opcoes.push({ rotulo: alt.rotulo, url });
+        });
+        if (opcoes.length >= 2) {
+          exObj.midias = opcoes;
+          exObj.gifUrl = opcoes[0].url;
+        } else {
+          const foundGifUrl = (opcoes[0] && opcoes[0].url) || buscarGifExercicio(exObj.nome) || (midiaCtx && midiaCtx.anteriores && midiaCtx.anteriores[keyMidia]);
+          if (foundGifUrl) exObj.gifUrl = foundGifUrl;
+        }
       }
 
       currentDay.exercicios.push(exObj);

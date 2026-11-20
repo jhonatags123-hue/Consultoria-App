@@ -902,3 +902,9 @@ textarea {
 
 .toast.success { border-left-color: var(--green); }
 .toast.error { border-left-color: var(--accent); }
+
+/* Animação das imagens de execução (alterna foto de início e fim do movimento) */
+.midia-anim { overflow:hidden; }
+.midia-anim img { display:block; }
+.midia-anim .midia-anim-2 { position:absolute; inset:0; animation: midiaAlterna 1.6s steps(1, end) infinite; }
+@keyframes midiaAlterna { 0% { opacity:0; } 50% { opacity:1; } }
