@@ -132,9 +132,12 @@
   }
   function evolucaoExercicio(d, nome) {
     if (!d || !nome || typeof sanitizeExKey !== 'function') return null;
-    const hist = (d.weekly_logs || {})[sanitizeExKey(nome)];
-    if (!Array.isArray(hist) || hist.length < 2) return null;
-    const ini = hist[0], fim = hist[hist.length - 1];
+    // O app salva o histórico pelo nome sem o que está entre parênteses/colchetes
+    const k = sanitizeExKey(String(nome).replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim());
+    const hist = (d.weekly_logs || {})[k];
+    if (!Array.isArray(hist) || !hist.length) return null;
+    const ini = (d.logs_iniciais || {})[k] || hist[0], fim = hist[hist.length - 1];
+    if (ini === fim) return null;
     const a = forcaEstimada(ini), b = forcaEstimada(fim);
     if (!a || !b) return null;
     return { pct: ((b - a) / a) * 100, de: `${ini.cargaMax}kg × ${ini.repsMed}`, para: `${fim.cargaMax}kg × ${fim.repsMed}`, n: hist.length };

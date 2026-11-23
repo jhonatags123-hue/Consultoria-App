@@ -1066,6 +1066,144 @@ function renderVencimentoPlano(data) {
     </div>`;
 }
 
+/* -------------------------------------------------------------
+   FEEDBACK DE TREINO (relatório de evolução perto do vencimento)
+------------------------------------------------------------- */
+const DIAS_ANTES_RELATORIO = 5;
+
+const GRUPOS_EXERCICIO = [
+  ['ombros', /desenvolvimento|elevacao ?(lateral|frontal)|face ?pull|arnold|crucifixo inverso|voador inverso|remada alta|deltoide|ombro/],
+  ['bracos', /rosca|biceps|triceps|martelo|scott|testa|frances|kickback|coice(?!.*gluteo)/],
+  ['pernas', /agach|leg ?press|extensora|flexora|stiff|terra|afundo|passada|bulgaro|hack|pelvica|hip ?thrust|gluteo|abdutora|adutora|panturrilha|gemeos|step|sumo|recuo|cadeira|mesa|bom dia|good morning|perna/],
+  ['peito', /supino|crucifixo|voador|peck|crossover|flexao|paralela|peito|chest/],
+  ['costas', /remada|puxada|pulldown|barra fixa|serrote|pullover|hiperextensao|lombar|encolhimento|cavalinho|costas/],
+  ['core', /abdominal|prancha|abdomen|infra|supra|obliquo|roda abdominal/]
+];
+const NOMES_GRUPO = { peito: 'Peito', costas: 'Costas', ombros: 'Ombros', bracos: 'Braços', pernas: 'Pernas', core: 'Abdômen', outros: 'Outros' };
+
+function grupoDoExercicio(nome) {
+  const n = String(nome || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const g = GRUPOS_EXERCICIO.find(([, re]) => re.test(n));
+  return g ? g[0] : 'outros';
+}
+
+function forcaEstimadaAluno(reg) {
+  const c = parseFloat(reg && reg.cargaMax), r = parseFloat(reg && reg.repsMed);
+  if (isNaN(c) || c <= 0) return null;
+  return isNaN(r) || r <= 0 ? c : c * (1 + r / 30);
+}
+
+function montarRelatorioEvolucao(d) {
+  const vistos = new Set();
+  const exercicios = [];
+  (d.days || []).forEach(day => (day.exercicios || []).forEach(ex => {
+    const nomeLimpo = String((ex && ex.nome) || '').replace(/\(.*?\)/g, '').replace(/\[.*?\]/g, '').trim();
+    const k = sanitizeExKey(nomeLimpo);
+    if (!nomeLimpo || vistos.has(k)) return;
+    vistos.add(k);
+    const hist = (d.weekly_logs || {})[k];
+    if (!Array.isArray(hist) || !hist.length) return;
+    const inicio = (d.logs_iniciais || {})[k] || hist[0];
+    const atual = hist[hist.length - 1];
+    if (inicio === atual || (hist.length < 2 && !(d.logs_iniciais || {})[k])) return;
+    const a = forcaEstimadaAluno(inicio), b = forcaEstimadaAluno(atual);
+    if (!a || !b) return;
+    exercicios.push({ nome: nomeLimpo, grupo: grupoDoExercicio(nomeLimpo), pct: ((b - a) / a) * 100,
+      de: `${inicio.cargaMax}kg × ${inicio.repsMed}`, para: `${atual.cargaMax}kg × ${atual.repsMed}` });
+  }));
+
+  const media = (lista) => lista.length ? lista.reduce((s, x) => s + x.pct, 0) / lista.length : null;
+  const porGrupo = {};
+  exercicios.forEach(e => { (porGrupo[e.grupo] = porGrupo[e.grupo] || []).push(e); });
+  const superiores = exercicios.filter(e => ['peito', 'costas', 'ombros', 'bracos'].includes(e.grupo));
+  const inferiores = exercicios.filter(e => e.grupo === 'pernas');
+
+  // Treinos: últimos 30 dias
+  const limite = Date.now() - 30 * 864e5;
+  const sessoes30 = (d.historico_sessoes || []).filter(s => new Date(s.data).getTime() >= limite);
+
+  // Cardio: compara o pace (min/km) dos primeiros e dos últimos registros
+  let cardio = null;
+  const regs = (d.historico_cardio || []).map(h => ({ km: parseFloat(String(h.km).replace(',', '.')), min: parseTempoCardioMinutos(h.min) }))
+    .filter(h => h.km > 0 && h.min > 0).map(h => h.min / h.km);
+  if (regs.length >= 2) {
+    const n = Math.min(3, Math.floor(regs.length / 2)) || 1;
+    const ini = regs.slice(0, n).reduce((a, b) => a + b, 0) / n;
+    const fim = regs.slice(-n).reduce((a, b) => a + b, 0) / n;
+    cardio = ((ini - fim) / ini) * 100; // pace menor = melhor
+  }
+  const minutosCardio30 = (d.historico_cardio || []).filter(h => new Date(h.data).getTime() >= limite)
+    .reduce((s, h) => s + (parseTempoCardioMinutos(h.min) || 0), 0);
+
+  return {
+    exercicios: exercicios.sort((x, y) => y.pct - x.pct),
+    porGrupo, geral: media(exercicios), superiores: media(superiores), inferiores: media(inferiores),
+    bracos: media(porGrupo.bracos || []), treinos30: sessoes30.length,
+    evoluindo: exercicios.filter(e => Math.round(e.pct) > 0).length,
+    cardio, minutosCardio30: Math.round(minutosCardio30)
+  };
+}
+
+function textoPct(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  const r = Math.round(v);
+  return `${r > 0 ? '+' : ''}${r}%`;
+}
+function classePct(v) {
+  if (v === null || v === undefined || isNaN(v)) return '';
+  const r = Math.round(v);
+  return r > 0 ? 'rel-up' : r < 0 ? 'rel-down' : '';
+}
+
+function renderRelatorioEvolucao(d) {
+  let box = document.getElementById('relatorioEvolucao');
+  const info = calcularDiasRestantes(d.data_expiracao, d.dia_vencimento, d.isento, d.status_pagamento);
+  const mostrar = info.dias < 9999 && info.dias <= DIAS_ANTES_RELATORIO && info.dias > -15;
+  if (!mostrar) { if (box) box.remove(); return; }
+
+  const tabTreino = document.getElementById('tabTreino');
+  if (!tabTreino) return;
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'relatorioEvolucao';
+    box.className = 'rel-card';
+    tabTreino.insertBefore(box, tabTreino.firstChild);
+  }
+
+  const R = montarRelatorioEvolucao(d);
+  const mediaSemana = R.treinos30 ? (R.treinos30 / (30 / 7)).toFixed(1).replace('.', ',') : '0';
+  const tile = (rotulo, valor, cls = '', sub = '') => `<div class="rel-tile"><span>${rotulo}</span><b class="${cls}">${valor}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+
+  const ordemGrupos = ['peito', 'costas', 'ombros', 'bracos', 'pernas', 'core', 'outros'];
+  const listaPorGrupo = ordemGrupos.filter(g => R.porGrupo[g]).map(g => `
+    <div class="rel-grupo"><div class="rel-grupo-topo"><span>${NOMES_GRUPO[g]}</span><b class="${classePct(R.porGrupo[g].reduce((s, x) => s + x.pct, 0) / R.porGrupo[g].length)}">${textoPct(R.porGrupo[g].reduce((s, x) => s + x.pct, 0) / R.porGrupo[g].length)}</b></div>
+      ${R.porGrupo[g].map(e => `<div class="rel-ex"><span>${escapeHtml(e.nome)}<small>${escapeHtml(e.de)} → ${escapeHtml(e.para)}</small></span><b class="${classePct(e.pct)}">${textoPct(e.pct)}</b></div>`).join('')}
+    </div>`).join('');
+
+  const nomePlano = (typeof PLANOS !== 'undefined' && PLANOS[String(d.tipoConsultoria || '').toUpperCase()]) ? PLANOS[String(d.tipoConsultoria).toUpperCase()].nome : 'meu plano';
+  const msgRenovar = `Olá Jhonata! Vi meu feedback de treino no app e quero renovar (${nomePlano}) para continuar evoluindo!`;
+  const linkRenovar = typeof linkWhatsApp === 'function' ? linkWhatsApp(msgRenovar) : `https://wa.me/5551990169026?text=${encodeURIComponent(msgRenovar)}`;
+
+  box.innerHTML = `
+    <div class="rel-topo">
+      <div><b>📊 Seu feedback de treino</b><small>${info.dias > 0 ? `Seu plano vence em ${info.dias} dia${info.dias !== 1 ? 's' : ''}. Veja o quanto você evoluiu:` : 'Seu plano venceu. Veja o quanto você evoluiu:'}</small></div>
+    </div>
+    ${R.exercicios.length ? `<div class="rel-destaque"><span>Evolução geral de força</span><b class="${classePct(R.geral)}">${textoPct(R.geral)}</b><small>${R.evoluindo} de ${R.exercicios.length} exercícios evoluíram</small></div>` : ''}
+    <div class="rel-grid">
+      ${tile('💪 Superiores', textoPct(R.superiores), classePct(R.superiores))}
+      ${tile('🦵 Pernas', textoPct(R.inferiores), classePct(R.inferiores))}
+      ${tile('💪 Braços', textoPct(R.bracos), classePct(R.bracos))}
+      ${tile('🏃 Cardio', R.cardio !== null ? textoPct(R.cardio) : (R.minutosCardio30 ? `${R.minutosCardio30} min` : '—'), R.cardio !== null ? classePct(R.cardio) : '', R.cardio !== null ? 'melhora no pace' : (R.minutosCardio30 ? 'nos últimos 30 dias' : 'sem registros'))}
+      ${tile('🗓️ Treinos', String(R.treinos30), '', `últimos 30 dias • ${mediaSemana}/semana`)}
+      ${tile('🏋️ Exercícios', String(R.exercicios.length), '', 'com evolução medida')}
+    </div>
+    ${R.exercicios.length ? `
+      <button type="button" class="rel-btn-ver" onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '📈 Ver evolução por exercício' : '🙈 Esconder exercícios';">📈 Ver evolução por exercício</button>
+      <div class="rel-lista hidden">${listaPorGrupo}</div>` : `<p class="rel-vazio">Registre suas cargas nos treinos para ver sua evolução por exercício aqui.</p>`}
+    <a class="rel-renovar" href="${linkRenovar}" target="_blank" rel="noopener">🔄 Renovar e continuar evoluindo</a>
+    <p class="rel-nota">A evolução de força considera a carga e as repetições, do seu primeiro registro até o último.</p>`;
+}
+
 function loadStudentData(data) {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('anamneseScreen').classList.add('hidden');
@@ -1100,6 +1238,7 @@ function loadStudentData(data) {
   elNome.textContent = `Olá, ${nomeCompleto.split(/\s+/)[0]}`;
   elNome.title = nomeCompleto;
   renderVencimentoPlano(data);
+  renderRelatorioEvolucao(data);
 
   const btnDieta = document.getElementById('btnDieta');
   const btnErgogenicos = document.getElementById('btnErgogenicos');
@@ -1118,7 +1257,10 @@ function loadStudentData(data) {
     renderDietaAluno(data.refeicoes || data.dieta || []);
   }
 
-  const temErgogenicos = data.liberarErgogenicos === true || data.ergogenicos || data.protocolo_ergogenico || data.protocoloErgogenicos || data.ergogenicos_texto;
+  // Aparece se o personal liberou; se ele desmarcou "liberar", fica escondida mesmo com texto salvo
+  const textoErgo = [data.protocoloErgogenicos, data.ergogenicos_texto, data.protocolo_ergogenico, data.ergogenicos]
+    .find(v => typeof v === 'string' && v.trim());
+  const temErgogenicos = data.liberarErgogenicos === true || (data.liberarErgogenicos !== false && (!!textoErgo || data.ergogenicos === true));
   if (temErgogenicos) {
     if (btnErgogenicos) btnErgogenicos.classList.remove('hidden');
     renderErgogenicosAluno(data);
@@ -1150,10 +1292,8 @@ function renderErgogenicosAluno(payloadData) {
   if (typeof payloadData === 'string') {
     textoProtocolo = payloadData;
   } else if (payloadData && typeof payloadData === 'object') {
-    textoProtocolo = payloadData.ergogenicos || 
-                     payloadData.protocolo_ergogenico || 
-                     payloadData.protocoloErgogenicos || 
-                     payloadData.ergogenicos_texto || "";
+    textoProtocolo = [payloadData.protocoloErgogenicos, payloadData.ergogenicos_texto, payloadData.protocolo_ergogenico, payloadData.ergogenicos]
+      .find(v => typeof v === 'string' && v.trim()) || "";
   }
 
   if (textoProtocolo && textoProtocolo.trim()) {
@@ -1280,6 +1420,12 @@ async function salvarRunDia(diaKey) {
       km: kmVal,
       min: minVal
     }];
+    // Histórico permanente de cardio (os registros do dia são apagados toda semana)
+    if (!Array.isArray(currentData.historico_cardio)) currentData.historico_cardio = [];
+    const hojeIso = new Date().toISOString().slice(0, 10);
+    currentData.historico_cardio = currentData.historico_cardio.filter(h => !(h.dia === diaKey && h.data === hojeIso));
+    currentData.historico_cardio.push({ data: hojeIso, dia: diaKey, km: kmVal, min: minVal });
+    if (currentData.historico_cardio.length > 80) currentData.historico_cardio = currentData.historico_cardio.slice(-80);
   } else {
     delete currentData.registros_corrida[diaKey];
   }
@@ -1841,8 +1987,8 @@ async function concluirTreinoDoDia(opcoes = {}) {
     observacoes: obsAtualSessao ? [obsAtualSessao] : []
   });
 
-  if (currentData.historico_sessoes.length > 15) {
-    currentData.historico_sessoes = currentData.historico_sessoes.slice(-15);
+  if (currentData.historico_sessoes.length > 60) {
+    currentData.historico_sessoes = currentData.historico_sessoes.slice(-60);
   }
 
   limparRegistrosDoDia(currentTreinoDayIdx);
@@ -2615,6 +2761,10 @@ function calculateAndStoreWeeklyLog(dayIdx, exIdx) {
     } else {
       hist.push({ data: dataHoje, cargaMax: maxCarga, repsMed: mediaReps, tecnica: tecnicaUsada });
     }
+
+    // Primeiro registro de cada exercício fica guardado para medir a evolução desde o início
+    if (!currentData.logs_iniciais) currentData.logs_iniciais = {};
+    if (!currentData.logs_iniciais[exKeySanitized]) currentData.logs_iniciais[exKeySanitized] = hist[0];
 
     if (hist.length > 4) hist = hist.slice(-4);
     currentData.weekly_logs[exKeySanitized] = hist;
