@@ -863,15 +863,42 @@
     }
   }
 
+  function blocoAsaas(asaas, alunos) {
+    if (!asaas) return `<div class="central-bloco" style="margin-top:12px;"><div class="central-bloco-topo"><span>💳 Asaas automático</span></div><p class="central-desc">Não foi possível verificar a integração (servidor ainda não atualizado?).</p></div>`;
+    const c = asaas.configurado || {};
+    const ativo = c.apiKey && c.webhookToken;
+    const motivos = { sem_aluno: 'Nenhum aluno com esse CPF, e-mail ou telefone', ambiguo: 'Mais de um aluno possível', erro: 'Erro ao confirmar' };
+    const ordenados = [...alunos].sort((x, y) => (Number(y.aguardando) - Number(x.aguardando)) || String(x.nome).localeCompare(String(y.nome), 'pt-BR'));
+    const opcoes = '<option value="">Escolha o aluno...</option>' + ordenados.map(a => `<option value="${esc(a.codigo)}">${a.aguardando ? '⏳ ' : ''}${esc(a.nome)} (@${esc(a.codigo)})</option>`).join('');
+    const lista = (asaas.pagamentos || []).map(p => `
+      <div class="central-item" style="flex-wrap:wrap;">
+        <div class="central-item-info"><b>${esc(p.cliente_nome || 'Cliente sem nome')} — ${formatarReais(parseFloat(p.valor) || 0)} (${NOMES_FORMA[p.forma] || p.forma})</b>
+          <small>${new Date(p.criado_em).toLocaleDateString('pt-BR')} • ${esc(motivos[p.status] || p.status)}${p.cliente_cpf ? ' • CPF ' + esc(p.cliente_cpf) : ''}${p.cliente_email ? ' • ' + esc(p.cliente_email) : ''}${p.cliente_telefone ? ' • ' + esc(p.cliente_telefone) : ''}</small></div>
+        <div class="central-item-acoes" style="flex-wrap:wrap;">
+          <select data-asaas-aluno="${esc(p.payment_id)}" style="max-width:220px; background:var(--card-inner); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px;">${opcoes}</select>
+          <button type="button" class="btn btn-gold sm" data-asaas-ligar="${esc(p.payment_id)}">Ligar e liberar</button>
+          <button type="button" class="btn btn-soft sm" data-asaas-ignorar="${esc(p.payment_id)}">Ignorar</button>
+        </div>
+      </div>`).join('');
+    return `<div class="central-bloco" style="margin-top:12px;">
+      <div class="central-bloco-topo"><span>💳 Asaas automático</span><b class="${(asaas.pagamentos || []).length ? 'tem' : ''}">${(asaas.pagamentos || []).length}</b></div>
+      <p class="central-desc">${ativo
+        ? '✅ Integração ativa: pagamentos aprovados no Asaas liberam o aluno sozinhos. Abaixo, os que o sistema não conseguiu identificar.'
+        : `⚠️ Falta configurar no Render: ${[!c.apiKey && 'ASAAS_API_KEY', !c.webhookToken && 'ASAAS_WEBHOOK_TOKEN'].filter(Boolean).join(' e ')}.`}</p>
+      ${lista || (ativo ? '<div class="central-vazio">Nenhum pagamento para resolver. 🎉</div>' : '')}
+    </div>`;
+  }
+
   async function renderVendas() {
     garantirSecaoVendas();
     const sec = document.getElementById('secVendas');
     sec.innerHTML = '<div class="panel-title">💼 Vendas & Vendedor</div><p class="central-hoje">Carregando...</p>';
     try {
       const mesSel = sec.dataset.mes || new Date().toISOString().slice(0, 7);
-      const [r, vends] = await Promise.all([
+      const [r, vends, asaas] = await Promise.all([
         fetch(`${BACKEND_URL}/api/equipe/painel?mes=${mesSel}`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.json()),
-        carregarVendedores()
+        carregarVendedores(),
+        fetch(`${BACKEND_URL}/api/admin/asaas/pendentes`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.ok ? x.json() : null).catch(() => null)
       ]);
       const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); return d.toISOString().slice(0, 7); });
       const tipos = { nova: 'Venda nova', renovacao: 'Renovação', mensalidade: 'Mensalidade' };
@@ -895,6 +922,7 @@
             ${aguardando.length ? aguardando.map(a => `<div class="central-item"><div class="central-item-info"><b>${esc(a.nome)}</b><small>${esc((PLANOS[a.plano] || {}).nome || a.plano || '')}${a.forma_escolhida ? ' • escolheu ' + NOMES_FORMA[a.forma_escolhida] : ''}${a.vendedor ? ' • ' + esc(a.vendedor) : ''}</small></div><div class="central-item-acoes"><button type="button" class="btn btn-gold sm" data-pag="${esc(a.codigo)}">💳 Confirmar</button></div></div>`).join('') : '<div class="central-vazio">Ninguém aguardando.</div>'}
           </div>
         </div>
+        ${blocoAsaas(asaas, r.alunos || [])}
         <div class="central-bloco" style="margin-top:12px;">
           <div class="central-bloco-topo"><span>🧾 Pagamentos confirmados no mês</span><b>${(r.vendas || []).length}</b></div>
           ${(r.vendas || []).length ? r.vendas.map(v => `<div class="central-item"><div class="central-item-info"><b>${esc(v.aluno_nome)}</b><small>${new Date(v.criado_em).toLocaleDateString('pt-BR')} • ${tipos[v.tipo] || v.tipo} • ${NOMES_FORMA[v.forma] || v.forma} • ${v.vendedor ? 'vend.: ' + esc(v.vendedor) : 'sem vendedor'} • por ${esc(String(v.confirmado_por || '').replace('vendedor:', ''))}${v.observacao ? ' • ' + esc(v.observacao) : ''}</small></div><div class="central-item-acoes"><b>${reais(v.valor)}</b></div></div>`).join('') : '<div class="central-vazio">Nenhum pagamento confirmado neste mês.</div>'}
@@ -913,6 +941,23 @@
       sec.dataset.mes = mesSel;
       document.getElementById('vendasMes').onchange = (e) => { sec.dataset.mes = e.target.value; renderVendas(); };
       sec.querySelectorAll('[data-pag]').forEach(b => b.onclick = () => abrirConfirmarPagamento(b.dataset.pag));
+      sec.querySelectorAll('[data-asaas-ligar]').forEach(b => b.onclick = async () => {
+        const id = b.dataset.asaasLigar;
+        const cod = sec.querySelector(`[data-asaas-aluno="${id}"]`).value;
+        if (!cod) return showToast('Escolha o aluno desse pagamento.', 'error');
+        const pg = (asaas.pagamentos || []).find(x => x.payment_id === id);
+        b.disabled = true;
+        const res = await fetch(`${BACKEND_URL}/api/equipe/pagamentos/confirmar`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ codigo: cod, forma: pg.forma, valor: parseFloat(pg.valor) || 0, asaasPagamentoId: id, observacao: `Asaas ${id} (ligado pelo admin)` }) });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) { b.disabled = false; return showToast(j.error || 'Erro ao confirmar.', 'error'); }
+        showToast('Pagamento ligado ao aluno e acesso liberado.', 'success');
+        await fetchAlunos(); renderVendas();
+      });
+      sec.querySelectorAll('[data-asaas-ignorar]').forEach(b => b.onclick = async () => {
+        b.disabled = true;
+        await fetch(`${BACKEND_URL}/api/admin/asaas/ignorar`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ paymentId: b.dataset.asaasIgnorar }) });
+        renderVendas();
+      });
       document.getElementById('vendSalvar').onclick = async () => {
         const corpo = { codigo: document.getElementById('vendCodigo').value, nome: document.getElementById('vendNome').value, senha: document.getElementById('vendSenha').value };
         const res = await fetch(`${BACKEND_URL}/api/admin/vendedores`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(corpo) });
