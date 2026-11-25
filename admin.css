@@ -1005,3 +1005,10 @@ textarea {
 .ia-busca-status.buscando { border-color: var(--gold); color: var(--gold); }
 .ia-busca-status.ok { border-color: var(--green); color: var(--green); }
 .ia-busca-status.aviso { border-color: var(--accent); color: #ff9aaa; }
+
+/* Vendas & vendedor */
+.mp-campos label { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin: 8px 0 3px; }
+.mp-campos select, .mp-campos input, .vend-form input, #vendasMes { width: 100%; background: var(--card-inner); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13px; }
+.vend-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; margin-top: 8px; }
+.vend-form .btn { width: auto; }
+#studentConfirmarPag { cursor: pointer; }

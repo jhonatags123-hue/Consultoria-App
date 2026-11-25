@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel do Vendedor | Jhonata Consultoria</title>
+<meta name="theme-color" content="#0b0204">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0204;--card:#150508;--card2:#1c090e;--line:#34161d;--ink:#f8efec;--muted:#b29ea4;--wine:#c4324f;--wine2:#841628;--gold:#dcaa3a;--gold2:#f3d489;--ok:#25d366;--warn:#f59e0b;--bad:#ff6b7f}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(900px 520px at 50% -10%,#2a0711,var(--bg) 70%) no-repeat var(--bg);color:var(--ink);font:400 14.5px/1.5 'Inter',system-ui,sans-serif;min-height:100vh;padding:20px max(16px,env(safe-area-inset-left,0px)) 60px max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
+h1,h2{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:1px;line-height:1.05}
+.hidden{display:none!important}
+button,input,select,textarea{font:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:10px;padding:8px 12px;font-weight:700;font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--card2);color:var(--ink);text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--gold)}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:#1a0b02}
+.btn-wine{background:linear-gradient(135deg,var(--wine),var(--wine2));border:0;color:#fff}
+.btn-wpp{background:var(--ok);border-color:var(--ok);color:#062012}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+input,select,textarea{width:100%;background:#0d0204;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 12px}
+label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 4px}
+
+/* login */
+.login{max-width:380px;margin:12vh auto 0;background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:18px;padding:26px 22px;text-align:center}
+.login h1{font-size:34px}.login p{color:var(--muted);font-size:13px;margin-top:4px}
+.login form{text-align:left;margin-top:14px}.login .btn{width:100%;margin-top:16px;padding:12px}
+.erro{color:var(--bad);font-size:13px;margin-top:10px;text-align:center;min-height:18px}
+
+/* topo */
+.topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.topo h1{font-size:32px}.topo small{display:block;color:var(--muted);font-size:12.5px}
+.topo-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.topo-acoes select{width:auto}
+
+/* comissão */
+.comissao{background:linear-gradient(160deg,rgba(220,170,58,.13),var(--card) 55%);border:1px solid var(--gold);border-radius:18px;padding:16px;display:grid;gap:12px}
+.com-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.com-nums div{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;min-width:0}
+.com-nums span{display:block;font-size:11px;color:var(--muted);font-weight:700}
+.com-nums b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.com-nums b.gold{color:var(--gold2)}
+.faixa{height:10px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.faixa div{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:999px}
+.faixa-txt{font-size:12.5px;color:var(--muted)}.faixa-txt b{color:var(--gold2)}
+
+/* abas */
+.abas{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.abas::-webkit-scrollbar{display:none}
+.aba{flex-shrink:0;border:1px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:8px 13px;font-weight:700;font-size:13px;cursor:pointer}
+.aba b{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:999px;background:var(--line);color:var(--ink);font-size:11.5px}
+.aba.tem b{background:var(--wine);color:#fff}
+.aba.on{background:var(--gold);border-color:var(--gold);color:#1a0b02}
+.aba.on b{background:rgba(0,0,0,.2);color:#1a0b02}
+.painel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;display:grid;gap:8px}
+.painel>h2{font-size:24px}
+.desc{font-size:12.5px;color:var(--muted);margin-top:-4px}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.item .info{min-width:0}
+.item .info b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .info small{display:block;font-size:12px;color:var(--muted)}
+.item .acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0}
+.pill{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin-right:4px}
+.pill.ok{color:var(--ok);border-color:rgba(37,211,102,.5)}.pill.warn{color:var(--warn);border-color:rgba(245,158,11,.5)}.pill.bad{color:var(--bad);border-color:rgba(255,107,127,.5)}.pill.gold{color:var(--gold2);border-color:rgba(220,170,58,.5)}
+.vazio{font-size:13px;color:var(--muted);padding:10px 2px}
+.lead-ctrl{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.lead-ctrl select{width:auto;padding:6px 8px;font-size:12.5px}
+.lead-ctrl input{flex:1 1 160px;padding:6px 8px;font-size:12.5px}
+.link-row{display:grid;gap:6px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.link-row code{font-size:11.5px;color:var(--muted);overflow-wrap:anywhere}
+.link-row .acoes{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:640px){.com-nums{grid-template-columns:repeat(2,1fr)}.item{flex-wrap:wrap}.item .acoes{justify-content:flex-start}}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;z-index:50}
+.modal-card{width:100%;max-width:420px;max-height:90vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-top:2px solid var(--gold);border-radius:16px;padding:18px}
+.modal-card h2{font-size:26px}.modal-card p{font-size:13px;color:var(--muted)}
+.modal-botoes{display:grid;gap:8px;margin-top:16px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--card2);border:1px solid var(--gold);color:var(--ink);padding:10px 16px;border-radius:12px;font-weight:700;font-size:13px;z-index:60;max-width:90vw;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="telaLogin" class="login">
+  <h1>Painel do Vendedor</h1>
+  <p>Jhonata Consultoria</p>
+  <form id="formLogin">
+    <label for="loginUser">Usuário</label>
+    <input id="loginUser" autocomplete="username" required>
+    <label for="loginPass">Senha</label>
+    <input id="loginPass" type="password" autocomplete="current-password" required>
+    <button class="btn btn-wine" type="submit" id="btnEntrar">Entrar</button>
+    <div class="erro" id="loginErro"></div>
+  </form>
+</div>
+
+<div id="telaPainel" class="wrap hidden">
+  <div class="topo">
+    <div><h1 id="olaVendedor">Olá!</h1><small id="atualizadoEm">Carregando...</small></div>
+    <div class="topo-acoes">
+      <select id="selMes" aria-label="Mês"></select>
+      <button class="btn" id="btnAtualizar" type="button">🔄 Atualizar</button>
+      <button class="btn" id="btnSair" type="button">Sair</button>
+    </div>
+  </div>
+
+  <div class="comissao" id="boxComissao"></div>
+
+  <div class="abas" role="tablist" id="abas"></div>
+  <div id="conteudo"></div>
+</div>
+
+<div id="modalConfirmar" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="mcTitulo">
+  <div class="modal-card">
+    <h2 id="mcTitulo">Confirmar pagamento</h2>
+    <p id="mcAluno"></p>
+    <label for="mcPlano">Plano</label>
+    <select id="mcPlano"></select>
+    <label for="mcForma">Forma de pagamento</label>
+    <select id="mcForma"></select>
+    <label for="mcValor">Valor recebido (R$)</label>
+    <input id="mcValor" type="number" min="0" step="0.01" inputmode="decimal">
+    <label for="mcObs">Comprovante / observação</label>
+    <input id="mcObs" placeholder="Ex.: comprovante PIX recebido 14:32 ou pago no Asaas">
+    <p style="margin-top:10px">Confira o pagamento no Asaas ou o comprovante do PIX antes de confirmar. O aluno é liberado na hora.</p>
+    <div class="modal-botoes">
+      <button class="btn btn-gold" id="mcConfirmar" type="button">✅ Confirmar e liberar acesso</button>
+      <button class="btn" id="mcCancelar" type="button">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="planos.js"></script>
+<script src="vendedor.js"></script>
+</body>
+</html>

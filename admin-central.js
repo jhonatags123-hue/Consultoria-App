@@ -197,7 +197,7 @@
 
   /* ---------------- MONTA AS LISTAS ---------------- */
   function montarListas() {
-    const listas = { mensagens: [], feedback: [], sumidos: [], fotos: [], vencimento: [], semTreino: [] };
+    const listas = { aguardando: [], mensagens: [], feedback: [], sumidos: [], fotos: [], vencimento: [], semTreino: [] };
     (allStudentsList || []).forEach(a => {
       const d = dadosDoAluno(a);
       const codigo = a.codigo;
@@ -214,6 +214,13 @@
       const ultimasFotos = maisRecente(d.ultimas_fotos_em, ...feedbacks.filter(f => !ehDoPersonal(f) && msgTemFotos(f)).map(f => f.data));
       const treinosSemana = sessoesRecentes(d, DIAS_FEEDBACK).length;
       const base = { codigo, nome, fone: telefoneDoAluno(d) };
+
+      if (d.aguardando_primeiro_pagamento === true) {
+        const formaTxt = { pix: 'PIX', cartao: 'cartão parcelado', recorrente: 'recorrente' }[d.forma_escolhida];
+        listas.aguardando.push({ ...base, ordem: -(dataValida(d.created_at || d.data_inicio) || 0),
+          detalhe: `${(typeof PLANOS !== 'undefined' && PLANOS[d.tipoConsultoria]) ? PLANOS[d.tipoConsultoria].nome : (d.tipoConsultoria || 'plano não informado')} • ${formaTxt ? 'escolheu ' + formaTxt : 'forma ainda não escolhida'}${d.vendedor ? ' • vendedor: ' + d.vendedor : ''}` });
+        return; // ainda não é aluno ativo: não entra nas outras listas
+      }
 
       const naoLida = mensagemNaoLida(d);
       if (naoLida) {
@@ -314,7 +321,7 @@
     const sec = document.getElementById('secCentral');
     if (!sec) return;
     const L = montarListas();
-    const total = L.mensagens.length + L.feedback.length + L.sumidos.length + L.fotos.length + L.vencimento.length + L.semTreino.length;
+    const total = L.aguardando.length + L.mensagens.length + L.feedback.length + L.sumidos.length + L.fotos.length + L.vencimento.length + L.semTreino.length;
     const hoje = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 
     const bAbrir = (it, aba, rotulo) => `<button type="button" class="btn btn-soft sm" data-acao="abrir" data-aba="${aba}">${rotulo}</button>`;
@@ -327,6 +334,7 @@
       </div>
       <p class="central-hoje">${esc(hoje.charAt(0).toUpperCase() + hoje.slice(1))} • ${total ? `<b>${total}</b> ${total === 1 ? 'tarefa' : 'tarefas'} para hoje` : 'Tudo em dia! 🎉'}</p>
       <div class="central-resumo">
+        <a href="#central_aguardando"><b>${L.aguardando.length}</b><span>A confirmar</span></a>
         <a href="#central_mensagens"><b>${L.mensagens.length}</b><span>Mensagens</span></a>
         <a href="#central_feedback"><b>${L.feedback.length}</b><span>Feedbacks</span></a>
         <a href="#central_sumidos"><b>${L.sumidos.length}</b><span>Sumidos</span></a>
@@ -335,6 +343,8 @@
         <a href="#central_semTreino"><b>${L.semTreino.length}</b><span>Sem treino</span></a>
       </div>
       <div class="central-grid">
+        ${bloco('aguardando', '⏳', 'Aguardando pagamento', 'Preencheram a avaliação e ainda não tiveram o pagamento confirmado (Asaas ou comprovante do PIX).', L.aguardando,
+          it => `<button type="button" class="btn btn-gold sm" data-acao="confirmarPag">💳 Confirmar pagamento</button>`, 'Ninguém aguardando confirmação.')}
         ${bloco('mensagens', '📨', 'Mensagens não lidas', 'O que os alunos te escreveram e você ainda não viu.', L.mensagens,
           it => `<button type="button" class="btn btn-gold sm" data-acao="abrir" data-aba="feedbackAdmin">Responder</button><button type="button" class="btn btn-soft sm" data-acao="lido">✓ Lido</button>`, 'Nenhuma mensagem nova. ✅')}
         ${bloco('feedback', '💬', 'Feedback pendente', `Treinaram nos últimos ${DIAS_FEEDBACK} dias e ainda não receberam seu feedback.`, L.feedback,
@@ -366,6 +376,11 @@
       e.preventDefault();
       await carregarAluno(codigo);
       switchTab(alvo.dataset.aba || 'resumo');
+      return;
+    }
+    if (acao === 'confirmarPag') {
+      e.preventDefault();
+      abrirConfirmarPagamento(codigo);
       return;
     }
     if (acao === 'lido') {
@@ -698,10 +713,233 @@
     };
   }
 
+  /* ---------------- VENDAS: CONFIRMAR PAGAMENTO, COMISSÃO E VENDEDOR ---------------- */
+  const NOMES_FORMA = { pix: '⚡ PIX à vista', cartao: '💳 Cartão parcelado', recorrente: '🔁 Recorrente' };
+  let vendedoresCache = null;
+
+  async function carregarVendedores() {
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/admin/vendedores`, { headers: authHeaders(), cache: 'no-cache' });
+      vendedoresCache = r.ok ? await r.json() : [];
+    } catch (e) { vendedoresCache = []; }
+    return vendedoresCache;
+  }
+
+  function garantirModalPagamento() {
+    if (document.getElementById('modalPagamento')) return;
+    const m = document.createElement('div');
+    m.id = 'modalPagamento';
+    m.className = 'modal-overlay hidden';
+    m.innerHTML = `
+      <div class="modal-chart" style="max-width:440px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="color:var(--gold); font-size:16px;">💳 Confirmar pagamento</h3>
+          <button type="button" id="mpFechar" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+        </div>
+        <p id="mpAluno" style="font-size:13px; color:var(--text); margin-bottom:8px;"></p>
+        <div class="mp-campos">
+          <label for="mpPlano">Plano</label><select id="mpPlano"></select>
+          <label for="mpForma">Forma de pagamento</label><select id="mpForma"></select>
+          <label for="mpValor">Valor recebido (R$)</label><input id="mpValor" type="number" min="0" step="0.01">
+          <label for="mpVendedor">Vendedor (comissão)</label><select id="mpVendedor"></select>
+          <label for="mpObs">Comprovante / observação</label><input id="mpObs" placeholder="Ex.: pago no Asaas / comprovante PIX">
+        </div>
+        <p style="font-size:11.5px; color:var(--muted); margin-top:8px;">PIX à vista e cartão parcelado liberam o período inteiro do plano. Recorrente libera mês a mês.</p>
+        <button type="button" class="btn btn-gold btn-lg full-width" id="mpConfirmar" style="margin-top:12px;">✅ Confirmar e liberar acesso</button>
+      </div>`;
+    document.body.appendChild(m);
+    const fechar = () => m.classList.add('hidden');
+    document.getElementById('mpFechar').onclick = fechar;
+    m.addEventListener('click', (e) => { if (e.target === m) fechar(); });
+    document.getElementById('mpPlano').onchange = preencherFormasPag;
+    document.getElementById('mpForma').onchange = preencherValorPag;
+    document.getElementById('mpConfirmar').onclick = confirmarPagamento;
+  }
+
+  function preencherFormasPag() {
+    const p = PLANOS[document.getElementById('mpPlano').value];
+    const sel = document.getElementById('mpForma');
+    const atual = sel.value;
+    const formas = p ? formasPagamentoPlano(p) : [];
+    sel.innerHTML = formas.map(f => `<option value="${f.id}">${f.icone} ${esc(f.titulo)}</option>`).join('');
+    if (formas.some(f => f.id === atual)) sel.value = atual;
+    preencherValorPag();
+  }
+  function preencherValorPag() {
+    const p = PLANOS[document.getElementById('mpPlano').value];
+    const f = document.getElementById('mpForma').value;
+    if (p) document.getElementById('mpValor').value = f === 'pix' ? p.pix : f === 'cartao' ? p.cartao.total : f === 'recorrente' ? p.recorrente : '';
+  }
+
+  let codigoPagamento = null;
+  async function abrirConfirmarPagamento(codigo) {
+    if (typeof PLANOS === 'undefined') return showToast('planos.js não carregou.', 'error');
+    garantirModalPagamento();
+    codigoPagamento = codigo;
+    const a = (allStudentsList || []).find(x => x.codigo === codigo);
+    const d = a ? dadosDoAluno(a) : (currentStudentCode === codigo ? currentStudentData : {}) || {};
+    document.getElementById('mpAluno').textContent = `${d.clientName || codigo} (@${codigo})`;
+    const selPlano = document.getElementById('mpPlano');
+    selPlano.innerHTML = Object.entries(PLANOS).map(([id, p]) => `<option value="${id}">${esc(p.nome)}</option>`).join('');
+    if (PLANOS[d.tipoConsultoria]) selPlano.value = d.tipoConsultoria;
+    document.getElementById('mpForma').innerHTML = '';
+    preencherFormasPag();
+    const forma = d.aguardando_primeiro_pagamento ? d.forma_escolhida : d.forma_pagamento;
+    if (forma && [...document.getElementById('mpForma').options].some(o => o.value === forma)) { document.getElementById('mpForma').value = forma; preencherValorPag(); }
+    const vends = vendedoresCache || await carregarVendedores();
+    const selV = document.getElementById('mpVendedor');
+    selV.innerHTML = '<option value="">Sem vendedor (venda sua)</option>' + vends.map(v => `<option value="${esc(v.codigo)}">${esc(v.nome)}</option>`).join('');
+    selV.value = d.vendedor || '';
+    document.getElementById('mpObs').value = '';
+    document.getElementById('modalPagamento').classList.remove('hidden');
+  }
+  window.abrirConfirmarPagamento = abrirConfirmarPagamento;
+
+  async function confirmarPagamento() {
+    const b = document.getElementById('mpConfirmar');
+    b.disabled = true;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/equipe/pagamentos/confirmar`, {
+        method: 'POST', headers: authHeaders(), cache: 'no-cache',
+        body: JSON.stringify({
+          codigo: codigoPagamento, plano: document.getElementById('mpPlano').value, forma: document.getElementById('mpForma').value,
+          valor: parseFloat(document.getElementById('mpValor').value) || 0, vendedor: document.getElementById('mpVendedor').value,
+          observacao: document.getElementById('mpObs').value
+        })
+      });
+      const r = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(r.error || 'Erro ao confirmar.');
+      document.getElementById('modalPagamento').classList.add('hidden');
+      const tipos = { nova: 'Venda confirmada', renovacao: 'Renovação confirmada', mensalidade: 'Mensalidade confirmada' };
+      showToast(`${tipos[r.tipo] || 'Pagamento confirmado'}! Acesso liberado até ${new Date(r.data_expiracao + 'T12:00:00').toLocaleDateString('pt-BR')}.`, 'success');
+      await fetchAlunos();
+      if (currentStudentCode === codigoPagamento) await carregarAluno(codigoPagamento);
+      const sec = document.getElementById('secVendas');
+      if (sec && !sec.classList.contains('hidden')) renderVendas();
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally { b.disabled = false; }
+  }
+
+  // Forma de pagamento e botão de confirmar no topo do aluno
+  function atualizarTopoPagamento() {
+    const dias = document.getElementById('studentDaysPill');
+    if (!dias || !currentStudentData) return;
+    let pill = document.getElementById('studentFormaPill');
+    if (!pill) {
+      pill = document.createElement('button'); pill.id = 'studentFormaPill'; pill.type = 'button'; pill.className = 'btn-badge status-info';
+      dias.insertAdjacentElement('afterend', pill);
+      const btn = document.createElement('button'); btn.id = 'studentConfirmarPag'; btn.type = 'button'; btn.className = 'btn-badge status-alerta';
+      btn.textContent = '💳 Confirmar pagamento';
+      btn.onclick = () => abrirConfirmarPagamento(currentStudentCode);
+      pill.insertAdjacentElement('afterend', btn);
+    }
+    const d = currentStudentData;
+    const forma = d.forma_pagamento;
+    let txt = forma ? NOMES_FORMA[forma] : (d.aguardando_primeiro_pagamento ? `⏳ Aguardando${d.forma_escolhida ? ' • escolheu ' + NOMES_FORMA[d.forma_escolhida].replace(/^\S+ /, '') : ''}` : '💳 Forma não registrada');
+    if (forma === 'recorrente' && d.proxima_cobranca) txt += ` • próx. ${new Date(d.proxima_cobranca + 'T12:00:00').toLocaleDateString('pt-BR')}`;
+    if (d.vendedor) txt += ` • vend.: ${d.vendedor}`;
+    pill.textContent = txt;
+    const btn = document.getElementById('studentConfirmarPag');
+    btn.textContent = d.aguardando_primeiro_pagamento ? '💳 Confirmar pagamento' : (forma === 'recorrente' ? '💳 Registrar mensalidade/renovação' : '💳 Registrar renovação');
+  }
+
+  // Aba Vendas
+  function garantirSecaoVendas() {
+    if (document.getElementById('secVendas')) return;
+    const central = document.getElementById('secCentral');
+    if (!central) return;
+    const sec = document.createElement('section');
+    sec.id = 'secVendas';
+    sec.className = 'tab-section panel-card hidden';
+    central.insertAdjacentElement('afterend', sec);
+    const ferramentas = document.querySelector('.central-sidebar-btn');
+    if (ferramentas) {
+      const b = document.createElement('button');
+      b.className = 'btn btn-md full-width central-sidebar-btn'; b.style.background = 'linear-gradient(135deg,#a87a14,#dcaa3a)'; b.style.color = '#1a0b02';
+      b.innerHTML = '💼 Vendas & Vendedor';
+      b.onclick = () => switchTab('vendas');
+      ferramentas.insertAdjacentElement('afterend', b);
+    }
+  }
+
+  async function renderVendas() {
+    garantirSecaoVendas();
+    const sec = document.getElementById('secVendas');
+    sec.innerHTML = '<div class="panel-title">💼 Vendas & Vendedor</div><p class="central-hoje">Carregando...</p>';
+    try {
+      const mesSel = sec.dataset.mes || new Date().toISOString().slice(0, 7);
+      const [r, vends] = await Promise.all([
+        fetch(`${BACKEND_URL}/api/equipe/painel?mes=${mesSel}`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.json()),
+        carregarVendedores()
+      ]);
+      const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); return d.toISOString().slice(0, 7); });
+      const tipos = { nova: 'Venda nova', renovacao: 'Renovação', mensalidade: 'Mensalidade' };
+      const reais = (v) => formatarReais(Number(v) || 0);
+      const aguardando = (r.alunos || []).filter(a => a.aguardando);
+      const comissoes = Object.entries(r.comissoes || {});
+      sec.innerHTML = `
+        <div class="panel-title" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span>💼 Vendas & Vendedor</span>
+          <select id="vendasMes" style="width:auto;">${meses.map(m => `<option value="${m}" ${m === mesSel ? 'selected' : ''}>${new Date(m + '-15').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</option>`).join('')}</select>
+        </div>
+        <div class="central-grid">
+          <div class="central-bloco">
+            <div class="central-bloco-topo"><span>🏆 Comissão do mês</span></div>
+            <p class="central-desc">Até 5 vendas: 10%. A partir da 6ª: 15% em tudo. Mensalidades entram no total, mas não contam como venda nova.</p>
+            ${comissoes.length ? comissoes.map(([cod, c]) => `<div class="central-item"><div class="central-item-info"><b>${esc((vends.find(v => v.codigo === cod) || {}).nome || cod)}</b><small>${c.vendas} venda${c.vendas !== 1 ? 's' : ''} • faixa ${c.pct}% • vendido ${reais(c.total)}</small></div><div class="central-item-acoes"><b style="color:var(--gold); font-size:15px;">${reais(c.comissao)}</b></div></div>`).join('') : '<div class="central-vazio">Nenhuma venda com vendedor neste mês.</div>'}
+          </div>
+          <div class="central-bloco">
+            <div class="central-bloco-topo"><span>⏳ Aguardando pagamento</span><b class="${aguardando.length ? 'tem' : ''}">${aguardando.length}</b></div>
+            <p class="central-desc">Confirme quando o Asaas aprovar ou o comprovante do PIX chegar.</p>
+            ${aguardando.length ? aguardando.map(a => `<div class="central-item"><div class="central-item-info"><b>${esc(a.nome)}</b><small>${esc((PLANOS[a.plano] || {}).nome || a.plano || '')}${a.forma_escolhida ? ' • escolheu ' + NOMES_FORMA[a.forma_escolhida] : ''}${a.vendedor ? ' • ' + esc(a.vendedor) : ''}</small></div><div class="central-item-acoes"><button type="button" class="btn btn-gold sm" data-pag="${esc(a.codigo)}">💳 Confirmar</button></div></div>`).join('') : '<div class="central-vazio">Ninguém aguardando.</div>'}
+          </div>
+        </div>
+        <div class="central-bloco" style="margin-top:12px;">
+          <div class="central-bloco-topo"><span>🧾 Pagamentos confirmados no mês</span><b>${(r.vendas || []).length}</b></div>
+          ${(r.vendas || []).length ? r.vendas.map(v => `<div class="central-item"><div class="central-item-info"><b>${esc(v.aluno_nome)}</b><small>${new Date(v.criado_em).toLocaleDateString('pt-BR')} • ${tipos[v.tipo] || v.tipo} • ${NOMES_FORMA[v.forma] || v.forma} • ${v.vendedor ? 'vend.: ' + esc(v.vendedor) : 'sem vendedor'} • por ${esc(String(v.confirmado_por || '').replace('vendedor:', ''))}${v.observacao ? ' • ' + esc(v.observacao) : ''}</small></div><div class="central-item-acoes"><b>${reais(v.valor)}</b></div></div>`).join('') : '<div class="central-vazio">Nenhum pagamento confirmado neste mês.</div>'}
+        </div>
+        <div class="central-bloco" style="margin-top:12px;">
+          <div class="central-bloco-topo"><span>👤 Acesso do vendedor</span></div>
+          <p class="central-desc">Painel do vendedor: <a href="${SITE}/vendedor.html" target="_blank" rel="noopener" style="color:var(--gold);">${SITE.replace('https://', '')}/vendedor.html</a>. Ele vê só nome, WhatsApp, plano e datas dos alunos (nada de treino, dieta ou saúde).</p>
+          ${vends.map(v => `<div class="central-item"><div class="central-item-info"><b>${esc(v.nome)}</b><small>usuário: ${esc(v.codigo)} • ${v.ativo ? 'ativo' : 'desativado'}</small></div></div>`).join('')}
+          <div class="vend-form">
+            <input id="vendCodigo" placeholder="Usuário (ex.: misael)" value="${vends[0] ? esc(vends[0].codigo) : 'misael'}">
+            <input id="vendNome" placeholder="Nome" value="${vends[0] ? esc(vends[0].nome) : 'Misael'}">
+            <input id="vendSenha" type="password" placeholder="${vends.length ? 'Nova senha (deixe vazio para manter)' : 'Senha (mín. 6 caracteres)'}" autocomplete="new-password">
+            <button type="button" class="btn btn-gold sm" id="vendSalvar">${vends.length ? 'Salvar alterações' : 'Criar acesso'}</button>
+          </div>
+        </div>`;
+      sec.dataset.mes = mesSel;
+      document.getElementById('vendasMes').onchange = (e) => { sec.dataset.mes = e.target.value; renderVendas(); };
+      sec.querySelectorAll('[data-pag]').forEach(b => b.onclick = () => abrirConfirmarPagamento(b.dataset.pag));
+      document.getElementById('vendSalvar').onclick = async () => {
+        const corpo = { codigo: document.getElementById('vendCodigo').value, nome: document.getElementById('vendNome').value, senha: document.getElementById('vendSenha').value };
+        const res = await fetch(`${BACKEND_URL}/api/admin/vendedores`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(corpo) });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) return showToast(j.error || 'Erro ao salvar vendedor.', 'error');
+        showToast('Acesso do vendedor salvo.', 'success');
+        vendedoresCache = null; renderVendas();
+      };
+    } catch (err) {
+      sec.innerHTML = '<div class="panel-title">💼 Vendas & Vendedor</div><p class="central-hoje">Não foi possível carregar. Verifique se o servidor foi atualizado.</p>';
+    }
+  }
+
   /* ---------------- LIGAÇÃO COM O ADMIN EXISTENTE ---------------- */
   const switchTabOriginal = window.switchTab;
   window.switchTab = function (tab) {
     const sec = document.getElementById('secCentral');
+    const secV = document.getElementById('secVendas');
+    if (secV) secV.classList.add('hidden');
+    if (tab === 'vendas') {
+      switchTabOriginal('vendas');
+      if (sec) sec.classList.add('hidden');
+      garantirSecaoVendas();
+      document.getElementById('secVendas').classList.remove('hidden');
+      renderVendas();
+      return;
+    }
     if (tab === 'central') {
       switchTabOriginal('central'); // esconde as outras seções
       garantirSecaoCentral();
@@ -844,6 +1082,7 @@
   window.carregarAluno = async function (...args) {
     const r = await carregarAlunoOriginal.apply(this, args);
     atualizarNavegacaoAlunos();
+    atualizarTopoPagamento();
     atualizarSelectsTreino();
     const fb = document.getElementById('secFeedbackAdmin');
     if (fb && !fb.classList.contains('hidden')) renderResumoFeedback();
@@ -857,6 +1096,7 @@
     garantirFerramentasTreino();
     atualizarLinksVenda();
     garantirBotaoIAModal();
+    garantirSecaoVendas();
   });
 
   window.renderCentralSemana = renderCentralSemana;
