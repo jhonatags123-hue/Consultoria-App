@@ -156,7 +156,14 @@ function renderComissao() {
     <div class="faixa-txt">${c.faltam_para_15 > 0
       ? `Faltam <b>${c.faltam_para_15} venda${c.faltam_para_15 > 1 ? 's' : ''}</b> para subir para <b>15% em tudo</b> o que você vendeu no mês.`
       : `🔥 Você está na faixa de <b>15%</b>: vale para todas as vendas do mês.`}
-      Mensalidades do recorrente entram no total, mas não contam como venda nova.</div>`;
+      Mensalidades do recorrente entram no total, mas não contam como venda nova.</div>
+    ${painel.saldo ? `<div class="saldo">
+      <div><span>Saldo disponível para resgate</span><b>${reais(painel.saldo.disponivel)}</b>
+        <small>${painel.saldo.pendente ? `${reais(painel.saldo.pendente)} em análise • ` : ''}${reais(painel.saldo.pago)} já recebido</small></div>
+      <button type="button" class="btn btn-gold" id="btnResgatar" ${painel.saldo.disponivel >= 1 ? '' : 'disabled'}>💸 Solicitar resgate</button>
+    </div>` : ''}`;
+  const br = $('btnResgatar');
+  if (br) br.onclick = abrirResgate;
 }
 
 const ABAS = [
@@ -165,17 +172,18 @@ const ABAS = [
   ['novos', '✅ Novos alunos'],
   ['leads', '🆕 Contatos do site'],
   ['vendas', '💰 Minhas vendas'],
-  ['links', '🔗 Meus links']
+  ['resgates', '🏦 Resgates'],
+  ['links', '🔗 Links e planos']
 ];
 
 function render() {
   renderComissao();
   const L = listas();
-  const contagem = { pendentes: L.pendentes.length, cobrancas: L.cobrancas.length, novos: L.novos.length, leads: L.leads.length, vendas: (painel.vendas || []).length, links: null };
+  const contagem = { pendentes: L.pendentes.length, cobrancas: L.cobrancas.length, novos: L.novos.length, leads: L.leads.length, vendas: (painel.vendas || []).length, resgates: (painel.saques || []).filter(x => x.status === 'pendente').length, links: null };
   $('abas').innerHTML = ABAS.map(([id, nome]) => `<button type="button" role="tab" class="aba ${abaAtual === id ? 'on' : ''} ${contagem[id] ? 'tem' : ''}" data-aba="${id}" aria-selected="${abaAtual === id}">${nome}${contagem[id] !== null ? ` <b>${contagem[id]}</b>` : ''}</button>`).join('');
   $('abas').querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { abaAtual = b.dataset.aba; render(); });
 
-  const telas = { pendentes: telaPendentes, cobrancas: telaCobrancas, novos: telaNovos, leads: telaLeads, vendas: telaVendas, links: telaLinks };
+  const telas = { pendentes: telaPendentes, cobrancas: telaCobrancas, novos: telaNovos, leads: telaLeads, vendas: telaVendas, resgates: telaResgates, links: telaLinks };
   $('conteudo').innerHTML = telas[abaAtual](L);
   ligarAcoes();
 }
@@ -310,17 +318,118 @@ function telaVendas() {
 function telaLinks() {
   const cod = painel.vendedor ? painel.vendedor.codigo : '';
   const vend = cod ? `&vend=${encodeURIComponent(cod)}` : '';
-  const linhas = (typeof PLANOS !== 'undefined' ? Object.entries(PLANOS) : []).map(([id, p]) => {
-    const link = `${SITE}/app.html?modo=anamnese${p.tipo === 'treino' ? '&tipo=treino' : ''}&plano=${id}${vend}`;
-    const formas = formasPagamentoPlano(p).map(f => `• ${f.titulo}`).join('\n');
-    const msg = `Perfeito! Segue o link do seu plano *${p.nome}*:\n${link}\n\nÉ só preencher a avaliação com calma e, no final, escolher como pagar:\n${formas}\n\nDepois de pagar, me manda o comprovante que eu libero seu acesso! 💪`;
-    return `<div class="link-row"><b>${esc(p.nome)}</b><small style="color:var(--muted)">${formasPagamentoPlano(p).map(f => esc(f.titulo)).join(' • ')}</small>
-      <code>${esc(link)}</code>
-      <div class="acoes"><button type="button" class="btn btn-gold" data-copiar="${esc(msg)}">Copiar mensagem</button><button type="button" class="btn" data-copiar="${esc(link)}">Copiar link</button></div></div>`;
-  });
-  const site = `${SITE}/?vend=${encodeURIComponent(cod)}`;
-  linhas.push(`<div class="link-row"><b>Site com todos os planos</b><code>${esc(site)}</code><div class="acoes"><button type="button" class="btn" data-copiar="${esc(site)}">Copiar link</button></div></div>`);
-  return painelHtml('🔗 Meus links', 'Seus links já levam o seu código: toda venda feita por eles entra na sua comissão automaticamente.', linhas, '');
+  const planos = typeof PLANOS !== 'undefined' ? Object.entries(PLANOS) : [];
+  const ordem = (p) => ['Anual', 'Semestral', 'Trimestral'].indexOf(p.duracao) + (p.dupla ? 10 : 0);
+  const rotuloForma = { pix: 'PIX à vista', cartao: 'Cartão parcelado', recorrente: 'Mensal no cartão (recorrente)' };
+  const precos = (p) => formasPagamentoPlano(p).map(f => `<li><span>${f.icone} ${rotuloForma[f.id]}</span><b>${esc(f.titulo.replace(/ no PIX à vista| no cartão recorrente| no cartão/, ''))}</b></li>`).join('');
+  const botoes = (msg, link) => `<div class="acoes"><button type="button" class="btn btn-gold" data-copiar="${esc(msg)}">Copiar mensagem</button><button type="button" class="btn" data-copiar="${esc(link)}">Copiar link</button></div>`;
+
+  // 1) Links da avaliação (o aluno preenche e paga no final)
+  const blocoAvaliacao = (tipo, titulo, sub) => {
+    const lista = planos.filter(([, p]) => p.tipo === tipo).sort((a, b) => ordem(a[1]) - ordem(b[1]));
+    return `<div class="links-grupo"><h3>${titulo}</h3><p class="desc">${sub}</p>${lista.map(([id, p]) => {
+      const link = `${SITE}/app.html?modo=anamnese${p.tipo === 'treino' ? '&tipo=treino' : ''}&plano=${id}${vend}`;
+      const formas = formasPagamentoPlano(p).map(f => `• ${f.titulo}`).join('\n');
+      const msg = `Perfeito! Segue o link do seu plano *${p.nome}*:\n${link}\n\nÉ só preencher a avaliação com calma (ela é usada para montar seu treino) e, no final, escolher como pagar:\n${formas}\n\n${p.dupla ? 'Depois de pagar, me avisa que eu mando o link da sua dupla.\n\n' : ''}Qualquer dúvida, me chama! 💪`;
+      return `<div class="link-row"><div class="link-topo"><b>${p.dupla ? '👥 Dupla (anual)' : esc(p.duracao)}</b>${p.duracao === 'Anual' && !p.dupla ? '<span class="pill gold">mais vendido</span>' : ''}</div>
+        <ul class="precos">${precos(p)}</ul>
+        <code>${esc(link)}</code>${botoes(msg, link)}</div>`;
+    }).join('')}</div>`;
+  };
+
+  // 2) Links especiais
+  const especiais = [
+    ['👥 2ª pessoa da dupla — Treino', `${SITE}/app.html?modo=anamnese_convidado&tipo=treino&origem=dupla`, 'Mande depois que o titular pagou o Treino em Dupla. Não cobra de novo.'],
+    ['👥 2ª pessoa da dupla — Completa', `${SITE}/app.html?modo=anamnese_convidado&origem=dupla`, 'Mande depois que o titular pagou a Completa em Dupla. Não cobra de novo.'],
+    ['🌐 Site com todos os planos', `${SITE}/?vend=${encodeURIComponent(cod)}`, 'Para quem ainda quer ver os planos antes de decidir.']
+  ].map(([nome, link, nota]) => `<div class="link-row"><b>${nome}</b><small class="desc" style="margin:0">${nota}</small><code>${esc(link)}</code><div class="acoes"><button type="button" class="btn" data-copiar="${esc(link)}">Copiar link</button></div></div>`).join('');
+
+  // 3) Links de pagamento do Asaas (sem avaliação)
+  const pagamentos = planos.sort((a, b) => (a[1].tipo === b[1].tipo ? 0 : a[1].tipo === 'treino' ? -1 : 1) || ordem(a[1]) - ordem(b[1])).map(([, p]) => {
+    const linhas = formasPagamentoPlano(p).filter(f => f.link).map(f => `
+      <div class="pag-linha"><span>${f.icone} ${rotuloForma[f.id]} — <b>${esc(f.titulo.replace(/ no PIX à vista| no cartão recorrente| no cartão/, ''))}</b></span>
+        <button type="button" class="btn" data-copiar="${esc(f.link)}">Copiar</button></div>`).join('');
+    return `<div class="link-row"><b>${esc(p.nome)}</b>${linhas}</div>`;
+  }).join('');
+
+  return `
+    <div class="painel">
+      <h2>📝 Links da avaliação</h2>
+      <p class="desc">Use na venda nova: o aluno preenche a avaliação com o plano já escolhido e paga no final. Os links levam o seu código, então a venda entra na sua comissão.</p>
+      ${blocoAvaliacao('treino', '🏋️ Consultoria de Treino', 'Treino individualizado + acompanhamento.')}
+      ${blocoAvaliacao('completa', '🥗 Consultoria Completa', 'Treino + plano alimentar + acompanhamento.')}
+    </div>
+    <div class="painel">
+      <h2>👥 Links especiais</h2>
+      ${especiais}
+    </div>
+    <div class="painel">
+      <h2>💳 Links de pagamento do Asaas</h2>
+      <p class="desc">Pagamento direto, sem avaliação. Use para <b>renovação</b> de quem já é aluno ou para quem já preencheu a avaliação. Peça para pagar com o mesmo CPF do cadastro.</p>
+      ${pagamentos}
+    </div>`;
+}
+
+function telaResgates() {
+  const sd = painel.saldo || { disponivel: 0, pendente: 0, pago: 0, ganho: 0 };
+  const st = { pendente: ['warn', '⏳ em análise'], pago: ['ok', '✅ pago'], recusado: ['bad', '✖ recusado'] };
+  const lista = (painel.saques || []).map(x => item(
+    `<b>${reais(x.valor)}</b><small>Pedido em ${dataBR(x.criado_em)}${x.resolvido_em ? ` • resolvido em ${dataBR(x.resolvido_em)}` : ''} • PIX: ${esc(x.chave_pix || '')}</small>
+     ${x.resposta ? `<small>Resposta: ${esc(x.resposta)}</small>` : ''}`,
+    `<span class="pill ${st[x.status] ? st[x.status][0] : ''}">${st[x.status] ? st[x.status][1] : esc(x.status)}</span>`));
+  return `<div class="painel">
+    <h2>🏦 Resgates</h2>
+    <p class="desc">A comissão de cada mês soma no seu saldo. Peça o resgate quando quiser: o pedido vai para o Jhonata, que faz o PIX e marca como pago.</p>
+    <div class="com-nums">
+      <div><span>Comissão acumulada</span><b>${reais(sd.ganho)}</b></div>
+      <div><span>Já recebido</span><b>${reais(sd.pago)}</b></div>
+      <div><span>Em análise</span><b>${reais(sd.pendente)}</b></div>
+      <div><span>Disponível</span><b class="gold">${reais(sd.disponivel)}</b></div>
+    </div>
+    <button type="button" class="btn btn-gold" id="btnResgatar2" ${sd.disponivel >= 1 ? '' : 'disabled'}>💸 Solicitar resgate</button>
+    ${lista.length ? lista.join('') : '<div class="vazio">Você ainda não pediu nenhum resgate.</div>'}
+  </div>`;
+}
+
+function abrirResgate() {
+  let m = $('modalResgate');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'modalResgate'; m.className = 'modal hidden'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true');
+    m.innerHTML = `<div class="modal-card">
+      <h2>Solicitar resgate</h2>
+      <p id="rgSaldo"></p>
+      <label for="rgValor">Valor (R$)</label><input id="rgValor" type="number" min="1" step="0.01" inputmode="decimal">
+      <label for="rgChave">Sua chave PIX</label><input id="rgChave" placeholder="CPF, e-mail, telefone ou chave aleatória" autocomplete="off">
+      <label for="rgObs">Observação (opcional)</label><input id="rgObs" placeholder="Ex.: preciso até sexta">
+      <div class="modal-botoes">
+        <button class="btn btn-gold" id="rgEnviar" type="button">Enviar pedido</button>
+        <button class="btn" id="rgCancelar" type="button">Cancelar</button>
+      </div></div>`;
+    document.body.appendChild(m);
+    $('rgCancelar').onclick = () => m.classList.add('hidden');
+    m.addEventListener('click', (e) => { if (e.target === m) m.classList.add('hidden'); });
+    $('rgEnviar').onclick = async () => {
+      const b = $('rgEnviar'); b.disabled = true;
+      try {
+        const chave = $('rgChave').value.trim();
+        try { localStorage.setItem('vendedor_chave_pix', chave); } catch (e) {}
+        await api('POST', '/api/vendedor/saques', { valor: parseFloat($('rgValor').value) || 0, chave_pix: chave, observacao: $('rgObs').value });
+        m.classList.add('hidden');
+        toast('Pedido de resgate enviado! O Jhonata vai fazer o PIX.');
+        abaAtual = 'resgates';
+        await carregar();
+      } catch (err) { toast(err.message); }
+      finally { b.disabled = false; }
+    };
+  }
+  const disp = (painel.saldo && painel.saldo.disponivel) || 0;
+  $('rgSaldo').textContent = `Disponível: ${reais(disp)}`;
+  $('rgValor').value = disp ? disp.toFixed(2) : '';
+  $('rgValor').max = disp;
+  try { $('rgChave').value = localStorage.getItem('vendedor_chave_pix') || ''; } catch (e) {}
+  $('rgObs').value = '';
+  m.classList.remove('hidden');
 }
 
 /* ---------------- ações ---------------- */
@@ -334,6 +443,7 @@ async function registrarCobranca(codigo, tipo) {
 }
 
 function ligarAcoes() {
+  const br2 = $('btnResgatar2'); if (br2) br2.onclick = abrirResgate;
   document.querySelectorAll('[data-cobrar]').forEach(b => b.addEventListener('click', () => registrarCobranca(b.dataset.cobrar, b.dataset.tipo)));
   document.querySelectorAll('[data-confirmar]').forEach(b => b.onclick = () => abrirConfirmar(b.dataset.confirmar));
   document.querySelectorAll('[data-copiar]').forEach(b => b.onclick = () => copiar(b, b.dataset.copiar));

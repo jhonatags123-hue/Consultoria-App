@@ -1012,3 +1012,4 @@ textarea {
 .vend-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; margin-top: 8px; }
 .vend-form .btn { width: auto; }
 #studentConfirmarPag { cursor: pointer; }
+.badge-saque { display: inline-block; margin-left: 6px; background: var(--accent); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11px; }
