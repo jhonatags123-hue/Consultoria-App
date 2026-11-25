@@ -952,7 +952,8 @@ async function sendAnamneseAppDirect() {
     suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
     fimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
     apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO'),
-    vendedor: (new URLSearchParams(location.search).get('vend') || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50)
+    vendedor: (new URLSearchParams(location.search).get('vend') || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50),
+    indicado_por: (new URLSearchParams(location.search).get('ind') || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50)
   };
 
   if (btn) {

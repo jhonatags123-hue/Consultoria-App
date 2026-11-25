@@ -13,6 +13,9 @@ const DIA = 864e5;
 let painel = null;
 let abaAtual = 'cobrancas';
 let alunoConfirmando = null;
+let mostrarTodosIndicacao = false;
+const DESCONTO_INDICADOR = 20;
+const DESCONTO_INDICADO = 10;
 
 /* ---------------- utilitários ---------------- */
 const $ = (id) => document.getElementById(id);
@@ -138,7 +141,12 @@ function listas() {
   const novos = alunos.filter(a => !a.aguardando && a.status === 'pago' && diasDesde(a.data_inicio) !== null && diasDesde(a.data_inicio) <= 30)
     .sort((x, y) => String(y.data_inicio).localeCompare(String(x.data_inicio)));
   const leads = (painel.leads || []).filter(l => l.status !== 'fechou' && l.status !== 'perdido');
-  return { pendentes, cobrancas, novos, leads };
+  // Indicações: quem fechou nos últimos 30 dias (momento de maior empolgação) e, opcionalmente, todos os ativos
+  const ativos = alunos.filter(a => !a.aguardando && a.status === 'pago');
+  const indicacao = (mostrarTodosIndicacao ? ativos : ativos.filter(a => diasDesde(a.data_inicio) !== null && diasDesde(a.data_inicio) <= 30))
+    .sort((x, y) => String(y.data_inicio).localeCompare(String(x.data_inicio)));
+  const creditosPend = (painel.creditos || []).filter(c => c.status === 'pendente');
+  return { pendentes, cobrancas, novos, leads, indicacao, creditosPend };
 }
 
 /* ---------------- telas ---------------- */
@@ -170,7 +178,8 @@ const ABAS = [
   ['pendentes', '⏳ Aguardando pagamento'],
   ['cobrancas', '💸 Cobranças'],
   ['novos', '✅ Novos alunos'],
-  ['leads', '🆕 Contatos do site'],
+  ['indicacoes', '🤝 Indicações'],
+  ['leads', '🆕 Contatos'],
   ['vendas', '💰 Minhas vendas'],
   ['resgates', '🏦 Resgates'],
   ['links', '🔗 Links e planos']
@@ -179,11 +188,11 @@ const ABAS = [
 function render() {
   renderComissao();
   const L = listas();
-  const contagem = { pendentes: L.pendentes.length, cobrancas: L.cobrancas.length, novos: L.novos.length, leads: L.leads.length, vendas: (painel.vendas || []).length, resgates: (painel.saques || []).filter(x => x.status === 'pendente').length, links: null };
+  const contagem = { pendentes: L.pendentes.length, cobrancas: L.cobrancas.length, novos: L.novos.length, indicacoes: L.creditosPend.length || null, leads: L.leads.length, vendas: (painel.vendas || []).length, resgates: (painel.saques || []).filter(x => x.status === 'pendente').length, links: null };
   $('abas').innerHTML = ABAS.map(([id, nome]) => `<button type="button" role="tab" class="aba ${abaAtual === id ? 'on' : ''} ${contagem[id] ? 'tem' : ''}" data-aba="${id}" aria-selected="${abaAtual === id}">${nome}${contagem[id] !== null ? ` <b>${contagem[id]}</b>` : ''}</button>`).join('');
   $('abas').querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { abaAtual = b.dataset.aba; render(); });
 
-  const telas = { pendentes: telaPendentes, cobrancas: telaCobrancas, novos: telaNovos, leads: telaLeads, vendas: telaVendas, resgates: telaResgates, links: telaLinks };
+  const telas = { pendentes: telaPendentes, cobrancas: telaCobrancas, novos: telaNovos, indicacoes: telaIndicacoes, leads: telaLeads, vendas: telaVendas, resgates: telaResgates, links: telaLinks };
   $('conteudo').innerHTML = telas[abaAtual](L);
   ligarAcoes();
 }
@@ -242,6 +251,13 @@ function mensagemCobranca(a) {
     const abertura = a.dias >= 0
       ? `Oi ${nome}, tudo bem? Seu plano ${p.nome} ${quandoTexto(a.dias, 'termina')} (${data}). Pra continuar evoluindo sem parar, é só renovar por um dos links:`
       : `Oi ${nome}, tudo bem? Seu plano ${p.nome} terminou em ${data}. Renova por um dos links e volta a treinar hoje mesmo:`;
+    const desconto = (painel.creditos || []).filter(c => c.status === 'pendente' && c.aluno_codigo === a.codigo).reduce((t, c) => t + (parseFloat(c.valor) || 0), 0);
+    if (desconto) {
+      const inicio = a.dias >= 0
+        ? `Oi ${nome}, tudo bem? Seu plano ${p.nome} ${quandoTexto(a.dias, 'termina')} (${data}).`
+        : `Oi ${nome}, tudo bem? Seu plano ${p.nome} terminou em ${data}.`;
+      return `${inicio}\n\n🎁 E tem novidade: você tem *${reais(desconto)} de desconto* pelas suas indicações! Me diz como prefere pagar (PIX, cartão parcelado ou mensal no cartão) que eu te mando o valor já com o desconto. ${rodape}`;
+    }
     return `${abertura}\n\n${linhas}\n\nUse o mesmo CPF do seu cadastro que o acesso renova sozinho. ${rodape}`;
   }
 
@@ -288,14 +304,80 @@ function telaNovos(L) {
     )), 'Nenhum aluno novo nos últimos 30 dias.');
 }
 
+function nomeAluno(codigo) {
+  const a = (painel.alunos || []).find(x => x.codigo === codigo);
+  return a ? a.nome : codigo;
+}
+function mensagemContato(l) {
+  if (l.indicado_por) {
+    const quem = primeiro(nomeAluno(l.indicado_por));
+    return `Oi ${primeiro(l.nome)}, tudo bem? Aqui é da equipe do Jhonata! Quem me passou seu contato foi ${quem}, que treina com a gente e achou que você ia curtir treinar com acompanhamento de perto 💪\n\nPor ter vindo por indicação, você ganha R$ ${DESCONTO_INDICADO} de desconto pra começar. Posso te explicar como funciona a consultoria?`;
+  }
+  return `Oi ${primeiro(l.nome)}, tudo bem? Aqui é da equipe do Jhonata! Vi que você deixou seu contato no site${l.objetivo ? ` e que seu objetivo é ${l.objetivo.toLowerCase()}` : ''}. Posso te explicar como funciona a consultoria? 💪`;
+}
+
+function mensagemPedirIndicacao(a) {
+  const cod = painel.vendedor ? painel.vendedor.codigo : '';
+  const link = `${SITE}/?ind=${encodeURIComponent(a.codigo)}${cod ? `&vend=${encodeURIComponent(cod)}` : ''}`;
+  return `Oi ${primeiro(a.nome)}, tudo bem? Que bom ter você treinando com a gente! 💪\n\nTem alguém que você queria que treinasse junto? Amigo, namorado(a), parente, colega de trabalho...\n\n🎁 Funciona assim: se a pessoa fechar a consultoria, *você ganha R$ ${DESCONTO_INDICADOR} de desconto* na sua próxima renovação e *ela ganha R$ ${DESCONTO_INDICADO} de desconto* pra começar.\n\nÉ só me mandar o nome e o WhatsApp de quem você quer indicar, ou enviar pra pessoa o seu link de indicação:\n${link}\n\nQuanto mais gente você indicar, mais desconto você acumula! 🔥`;
+}
+
+function telaIndicacoes(L) {
+  const pedido = (a) => {
+    const p = a.ultimo_pedido_indicacao;
+    if (!p) return '<span class="pill">ainda não pedido</span>';
+    const dd = diasDesde(p.data);
+    return `<span class="pill ${dd === 0 ? 'ok' : ''}">pedido ${dd === 0 ? 'hoje' : dd === 1 ? 'ontem' : `há ${dd} dias`}</span>`;
+  };
+  const lista = L.indicacao.map(a => {
+    const msg = mensagemPedirIndicacao(a);
+    const n = fone(a);
+    const acao = n
+      ? `<a class="btn btn-wpp" target="_blank" rel="noopener" href="${whats(n, msg)}" data-cobrar="${esc(a.codigo)}" data-tipo="indicacao">📲 Pedir indicação</a>`
+      : `<button type="button" class="btn" data-copiar="${esc(msg)}" data-cobrar="${esc(a.codigo)}" data-tipo="indicacao">📋 Copiar mensagem</button>`;
+    return item(
+      `<b>${esc(a.nome)}</b><small>começou ${textoDias(-diasDesde(a.data_inicio)) || '—'} • ${esc(nomePlano(a.plano))}</small>
+       <small>${pedido(a)}${a.indicacoes_recebidas ? `<span class="pill gold">${a.indicacoes_recebidas} ${a.indicacoes_recebidas > 1 ? 'indicações' : 'indicação'}</span>` : ''}</small>`,
+      acao + `<button type="button" class="btn" data-copiar="${esc(`${SITE}/?ind=${a.codigo}${painel.vendedor ? '&vend=' + painel.vendedor.codigo : ''}`)}">🔗 Link dele</button>`);
+  });
+
+  const opcoesAlunos = (painel.alunos || []).filter(a => !a.aguardando).sort((x, y) => String(x.nome).localeCompare(String(y.nome), 'pt-BR'))
+    .map(a => `<option value="${esc(a.codigo)}">${esc(a.nome)}</option>`).join('');
+
+  const creditos = L.creditosPend.map(c => item(
+    `<b>${esc(nomeAluno(c.aluno_codigo))} — ${reais(c.valor)} de desconto</b><small>${esc(c.motivo || '')} • ${dataBR(c.criado_em)}</small>`,
+    `<button type="button" class="btn" data-credito="${c.id}">✓ Desconto aplicado</button>`));
+
+  return `
+    <div class="painel">
+      <h2>🤝 Pedir indicação</h2>
+      <p class="desc">Quem fechou há pouco está empolgado: é a melhor hora de pedir indicação. Quem indica ganha <b>R$ ${DESCONTO_INDICADOR}</b> de desconto e quem é indicado ganha <b>R$ ${DESCONTO_INDICADO}</b>, quando fechar.</p>
+      <label style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted);margin:0"><input type="checkbox" id="chkTodosInd" style="width:auto" ${mostrarTodosIndicacao ? 'checked' : ''}> Mostrar todos os alunos ativos (não só os últimos 30 dias)</label>
+      ${lista.length ? lista.join('') : '<div class="vazio">Ninguém fechou nos últimos 30 dias. Marque a opção acima para ver todos os alunos.</div>'}
+    </div>
+    <div class="painel">
+      <h2>➕ Cadastrar contato indicado</h2>
+      <p class="desc">O aluno te mandou o contato de alguém? Cadastre aqui: ele vai para a aba Contatos com mensagem pronta, e se a pessoa fechar, os descontos são gerados sozinhos.</p>
+      <label for="indNome">Nome da pessoa indicada</label><input id="indNome" placeholder="Ex.: Carla">
+      <label for="indZap">WhatsApp</label><input id="indZap" type="tel" inputmode="tel" placeholder="(51) 90000-0000">
+      <label for="indQuem">Quem indicou</label><select id="indQuem"><option value="">Escolha o aluno...</option>${opcoesAlunos}</select>
+      <button type="button" class="btn btn-gold" id="btnSalvarIndicado" style="margin-top:12px">Salvar contato</button>
+    </div>
+    <div class="painel">
+      <h2>🎁 Descontos de indicação a aplicar</h2>
+      <p class="desc">Gerados quando um indicado fecha. Aplique na renovação ou no pagamento do aluno e dê baixa aqui.</p>
+      ${creditos.length ? creditos.join('') : '<div class="vazio">Nenhum desconto pendente.</div>'}
+    </div>`;
+}
+
 function telaLeads(L) {
   const opcoes = [['novo', 'Novo'], ['contatado', 'Contatado'], ['negociando', 'Negociando'], ['fechou', 'Fechou ✅'], ['perdido', 'Não quis']];
-  return painelHtml('🆕 Contatos do site', 'Pessoas que deixaram nome e WhatsApp no site. Chame rápido: quanto antes, maior a chance de fechar.',
+  return painelHtml('🆕 Contatos', 'Pessoas que deixaram o contato no site ou foram indicadas por alunos. Chame rápido: quanto antes, maior a chance de fechar.',
     L.leads.map(l => `
       <div class="item" style="display:block">
         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-          <div class="info"><b>${esc(l.nome)}</b><small>${esc(l.objetivo || 'objetivo não informado')} • ${textoDias(-diasDesde(l.criado_em))}</small></div>
-          <div class="acoes">${botaoWhats({ telefone: l.whatsapp }, `Oi ${primeiro(l.nome)}, tudo bem? Aqui é da equipe do Jhonata! Vi que você deixou seu contato no site${l.objetivo ? ` e que seu objetivo é ${l.objetivo.toLowerCase()}` : ''}. Posso te explicar como funciona a consultoria? 💪`, '📲 Chamar')}</div>
+          <div class="info"><b>${esc(l.nome)}</b><small>${l.indicado_por ? `<span class="pill gold">indicado por ${esc(primeiro(nomeAluno(l.indicado_por)))}</span>` : ''}${esc(l.objetivo || (l.indicado_por ? '' : 'objetivo não informado'))} • ${textoDias(-diasDesde(l.criado_em))}</small></div>
+          <div class="acoes">${botaoWhats({ telefone: l.whatsapp }, mensagemContato(l), '📲 Chamar')}</div>
         </div>
         <div class="lead-ctrl">
           <select data-lead-status="${l.id}" aria-label="Situação do contato">${opcoes.map(([v, t]) => `<option value="${v}" ${l.status === v ? 'selected' : ''}>${t}</option>`).join('')}</select>
@@ -437,12 +519,28 @@ async function registrarCobranca(codigo, tipo) {
   try {
     const r = await api('POST', '/api/equipe/cobranca', { codigo, tipo });
     const a = (painel.alunos || []).find(x => x.codigo === codigo);
-    if (a) a.ultima_cobranca = { data: r.data, por: r.por, vezes: ((a.ultima_cobranca && a.ultima_cobranca.vezes) || 0) + 1 };
+    if (a && tipo === 'indicacao') a.ultimo_pedido_indicacao = { data: r.data, por: r.por };
+    else if (a) a.ultima_cobranca = { data: r.data, por: r.por, vezes: ((a.ultima_cobranca && a.ultima_cobranca.vezes) || 0) + 1 };
     setTimeout(render, 400);
   } catch (e) {}
 }
 
 function ligarAcoes() {
+  const chk = $('chkTodosInd'); if (chk) chk.onchange = () => { mostrarTodosIndicacao = chk.checked; render(); };
+  const bInd = $('btnSalvarIndicado');
+  if (bInd) bInd.onclick = async () => {
+    bInd.disabled = true;
+    try {
+      await api('POST', '/api/equipe/leads', { nome: $('indNome').value, whatsapp: $('indZap').value, indicado_por: $('indQuem').value });
+      toast('Contato salvo! Ele está na aba Contatos com a mensagem pronta.');
+      await carregar();
+    } catch (err) { toast(err.message); bInd.disabled = false; }
+  };
+  document.querySelectorAll('[data-credito]').forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    try { await api('POST', `/api/equipe/creditos/${b.dataset.credito}`, { status: 'usado' }); toast('Desconto marcado como aplicado.'); await carregar(); }
+    catch (err) { toast(err.message); b.disabled = false; }
+  });
   const br2 = $('btnResgatar2'); if (br2) br2.onclick = abrirResgate;
   document.querySelectorAll('[data-cobrar]').forEach(b => b.addEventListener('click', () => registrarCobranca(b.dataset.cobrar, b.dataset.tipo)));
   document.querySelectorAll('[data-confirmar]').forEach(b => b.onclick = () => abrirConfirmar(b.dataset.confirmar));
