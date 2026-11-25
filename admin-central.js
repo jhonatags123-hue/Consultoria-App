@@ -863,6 +863,42 @@
     }
   }
 
+  function atualizarBadgeSaques(dados) {
+    const pend = dados ? (dados.saques || []).filter(x => x.status === 'pendente').length : 0;
+    document.querySelectorAll('.central-sidebar-btn').forEach(b => {
+      if (/Vendas & Vendedor/.test(b.textContent)) b.innerHTML = `💼 Vendas & Vendedor${pend ? ` <span class="badge-saque">${pend} resgate${pend > 1 ? 's' : ''}</span>` : ''}`;
+    });
+  }
+  async function verificarSaquesPendentes() {
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/admin/saques`, { headers: authHeaders(), cache: 'no-cache' });
+      if (r.ok) atualizarBadgeSaques(await r.json());
+    } catch (e) {}
+  }
+
+  function blocoSaques(dados) {
+    if (!dados) return '';
+    const pend = (dados.saques || []).filter(x => x.status === 'pendente');
+    const resolvidos = (dados.saques || []).filter(x => x.status !== 'pendente').slice(0, 8);
+    const saldos = Object.entries(dados.saldos || {});
+    return `<div class="central-bloco" style="margin-top:12px;">
+      <div class="central-bloco-topo"><span>🏦 Resgates de comissão</span><b class="${pend.length ? 'tem' : ''}">${pend.length}</b></div>
+      <p class="central-desc">O vendedor pede o resgate pelo painel dele. Faça o PIX para a chave informada e marque como pago.</p>
+      ${saldos.map(([cod, sd]) => `<div class="central-item"><div class="central-item-info"><b>${esc(sd.nome || cod)}</b><small>comissão acumulada ${formatarReais(sd.ganho)} • já pago ${formatarReais(sd.pago)} • em análise ${formatarReais(sd.pendente)}</small></div><div class="central-item-acoes"><b style="color:var(--gold);">saldo ${formatarReais(sd.disponivel)}</b></div></div>`).join('')}
+      ${pend.map(x => `<div class="central-item" style="flex-wrap:wrap; border-color:var(--gold);">
+        <div class="central-item-info"><b>${esc(x.vendedor_nome || x.vendedor)} pediu ${formatarReais(parseFloat(x.valor) || 0)}</b>
+          <small>${new Date(x.criado_em).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} • PIX: <b>${esc(x.chave_pix || '')}</b>${x.observacao ? ' • ' + esc(x.observacao) : ''}</small></div>
+        <div class="central-item-acoes" style="flex-wrap:wrap;">
+          <button type="button" class="btn btn-soft sm" data-copiar-pix="${esc(x.chave_pix || '')}">📋 Copiar chave</button>
+          <input data-saque-resp="${x.id}" placeholder="Recado (opcional)" style="max-width:180px; background:var(--card-inner); border:1px solid var(--border); color:var(--text); border-radius:8px; padding:6px 8px; font-size:12px;">
+          <button type="button" class="btn btn-gold sm" data-saque="${x.id}" data-status="pago">✅ Marcar como pago</button>
+          <button type="button" class="btn btn-soft sm" data-saque="${x.id}" data-status="recusado">Recusar</button>
+        </div></div>`).join('')}
+      ${resolvidos.length ? `<details style="margin-top:6px;"><summary style="font-size:12px; color:var(--muted); cursor:pointer;">Histórico de resgates</summary>${resolvidos.map(x => `<div class="central-item"><div class="central-item-info"><b>${esc(x.vendedor_nome || x.vendedor)} • ${formatarReais(parseFloat(x.valor) || 0)}</b><small>${x.status === 'pago' ? '✅ pago' : '✖ recusado'} em ${x.resolvido_em ? new Date(x.resolvido_em).toLocaleDateString('pt-BR') : '—'}${x.resposta ? ' • ' + esc(x.resposta) : ''}</small></div></div>`).join('')}</details>` : ''}
+      ${!pend.length && !saldos.length ? '<div class="central-vazio">Nenhum vendedor cadastrado ainda.</div>' : (!pend.length ? '<div class="central-vazio">Nenhum resgate esperando.</div>' : '')}
+    </div>`;
+  }
+
   function blocoAsaas(asaas, alunos) {
     if (!asaas) return `<div class="central-bloco" style="margin-top:12px;"><div class="central-bloco-topo"><span>💳 Asaas automático</span></div><p class="central-desc">Não foi possível verificar a integração (servidor ainda não atualizado?).</p></div>`;
     const c = asaas.configurado || {};
@@ -895,11 +931,13 @@
     sec.innerHTML = '<div class="panel-title">💼 Vendas & Vendedor</div><p class="central-hoje">Carregando...</p>';
     try {
       const mesSel = sec.dataset.mes || new Date().toISOString().slice(0, 7);
-      const [r, vends, asaas] = await Promise.all([
+      const [r, vends, asaas, saques] = await Promise.all([
         fetch(`${BACKEND_URL}/api/equipe/painel?mes=${mesSel}`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.json()),
         carregarVendedores(),
-        fetch(`${BACKEND_URL}/api/admin/asaas/pendentes`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.ok ? x.json() : null).catch(() => null)
+        fetch(`${BACKEND_URL}/api/admin/asaas/pendentes`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.ok ? x.json() : null).catch(() => null),
+        fetch(`${BACKEND_URL}/api/admin/saques`, { headers: authHeaders(), cache: 'no-cache' }).then(x => x.ok ? x.json() : null).catch(() => null)
       ]);
+      atualizarBadgeSaques(saques);
       const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i); return d.toISOString().slice(0, 7); });
       const tipos = { nova: 'Venda nova', renovacao: 'Renovação', mensalidade: 'Mensalidade' };
       const reais = (v) => formatarReais(Number(v) || 0);
@@ -922,6 +960,7 @@
             ${aguardando.length ? aguardando.map(a => `<div class="central-item"><div class="central-item-info"><b>${esc(a.nome)}</b><small>${esc((PLANOS[a.plano] || {}).nome || a.plano || '')}${a.forma_escolhida ? ' • escolheu ' + NOMES_FORMA[a.forma_escolhida] : ''}${a.vendedor ? ' • ' + esc(a.vendedor) : ''}</small></div><div class="central-item-acoes"><button type="button" class="btn btn-gold sm" data-pag="${esc(a.codigo)}">💳 Confirmar</button></div></div>`).join('') : '<div class="central-vazio">Ninguém aguardando.</div>'}
           </div>
         </div>
+        ${blocoSaques(saques)}
         ${blocoAsaas(asaas, r.alunos || [])}
         <div class="central-bloco" style="margin-top:12px;">
           <div class="central-bloco-topo"><span>🧾 Pagamentos confirmados no mês</span><b>${(r.vendas || []).length}</b></div>
@@ -941,6 +980,18 @@
       sec.dataset.mes = mesSel;
       document.getElementById('vendasMes').onchange = (e) => { sec.dataset.mes = e.target.value; renderVendas(); };
       sec.querySelectorAll('[data-pag]').forEach(b => b.onclick = () => abrirConfirmarPagamento(b.dataset.pag));
+      sec.querySelectorAll('[data-saque]').forEach(b => b.onclick = async () => {
+        const id = b.dataset.saque; const status = b.dataset.status;
+        const resposta = (sec.querySelector(`[data-saque-resp="${id}"]`) || {}).value || '';
+        if (status === 'recusado' && !resposta.trim()) return showToast('Escreva o motivo da recusa para o vendedor.', 'error');
+        b.disabled = true;
+        const res = await fetch(`${BACKEND_URL}/api/admin/saques/${id}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ status, resposta }) });
+        const j = await res.json().catch(() => ({}));
+        if (!res.ok) { b.disabled = false; return showToast(j.error || 'Erro ao atualizar resgate.', 'error'); }
+        showToast(status === 'pago' ? 'Resgate marcado como pago.' : 'Resgate recusado.', 'success');
+        renderVendas();
+      });
+      sec.querySelectorAll('[data-copiar-pix]').forEach(b => b.onclick = () => copiarLinkVenda(b.dataset.copiarPix));
       sec.querySelectorAll('[data-asaas-ligar]').forEach(b => b.onclick = async () => {
         const id = b.dataset.asaasLigar;
         const cod = sec.querySelector(`[data-asaas-aluno="${id}"]`).value;
@@ -1119,7 +1170,7 @@
     renderCentralSemana();
     atualizarNavegacaoAlunos();
     atualizarSelectsTreino();
-    if (primeiraCarga) { primeiraCarga = false; switchTab('central'); }
+    if (primeiraCarga) { primeiraCarga = false; switchTab('central'); verificarSaquesPendentes(); }
     return r;
   };
 
