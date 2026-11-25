@@ -11,7 +11,7 @@ const DIAS_MENSALIDADE = 5; // mostra mensalidades do recorrente com até 5 dias
 const DIA = 864e5;
 
 let painel = null;
-let abaAtual = 'pendentes';
+let abaAtual = 'cobrancas';
 let alunoConfirmando = null;
 
 /* ---------------- utilitários ---------------- */
@@ -59,7 +59,12 @@ function fone(a) {
 }
 function whats(numero, msg) { return 'https://' + 'wa.me/' + numero + '?text=' + encodeURIComponent(msg); }
 function primeiro(n) { return String(n || '').trim().split(/\s+/)[0] || ''; }
-function nomePlano(id) { return (typeof PLANOS !== 'undefined' && PLANOS[id]) ? PLANOS[id].nome : (id || 'Plano não informado'); }
+function nomePlano(id) {
+  if (typeof PLANOS !== 'undefined' && PLANOS[id]) return PLANOS[id].nome;
+  if (!id) return 'Plano não informado';
+  const tipo = /^TREINO/i.test(id) ? 'Treino' : 'Completa';
+  return `${tipo} — plano antigo (mensalidade)`;
+}
 const NOMES_FORMA = { pix: '⚡ PIX à vista', cartao: '💳 Cartão parcelado', recorrente: '🔁 Recorrente' };
 
 /* ---------------- login ---------------- */
@@ -115,18 +120,25 @@ async function carregar() {
 function listas() {
   const alunos = (painel.alunos || []).filter(a => !a.isento);
   const pendentes = alunos.filter(a => a.aguardando).sort((x, y) => String(y.criado_em).localeCompare(String(x.criado_em)));
-  const mensalidades = alunos.filter(a => !a.aguardando && a.forma_pagamento === 'recorrente' && a.proxima_cobranca && diasAte(a.proxima_cobranca) <= DIAS_MENSALIDADE)
-    .sort((x, y) => diasAte(x.proxima_cobranca) - diasAte(y.proxima_cobranca));
-  const renovacoes = alunos.filter(a => {
-    if (a.aguardando) return false;
-    const ref = a.forma_pagamento === 'recorrente' ? a.fim_contrato : a.data_expiracao;
+  // Cobranças: renovações (até 15 dias), mensalidades do recorrente (até 5 dias) e atrasados (até 60 dias)
+  const cobrancas = [];
+  alunos.filter(a => !a.aguardando && a.status !== 'isento').forEach(a => {
+    let tipo = null, ref = null;
+    const fimContrato = a.forma_pagamento === 'recorrente' ? diasAte(a.fim_contrato) : null;
+    if (a.forma_pagamento === 'recorrente' && fimContrato !== null && fimContrato <= DIAS_RENOVACAO) { tipo = 'renovacao'; ref = a.fim_contrato; }
+    else if (a.forma_pagamento === 'recorrente' && a.proxima_cobranca && diasAte(a.proxima_cobranca) <= DIAS_MENSALIDADE) { tipo = 'mensalidade'; ref = a.proxima_cobranca; }
+    else if (a.forma_pagamento !== 'recorrente' && a.data_expiracao && diasAte(a.data_expiracao) <= DIAS_RENOVACAO) { tipo = 'renovacao'; ref = a.data_expiracao; }
+    if (!tipo) return;
     const d = diasAte(ref);
-    return d !== null && d <= DIAS_RENOVACAO && d >= -30;
-  }).sort((x, y) => diasAte(x.forma_pagamento === 'recorrente' ? x.fim_contrato : x.data_expiracao) - diasAte(y.forma_pagamento === 'recorrente' ? y.fim_contrato : y.data_expiracao));
+    if (d < -60) return;
+    cobrancas.push({ ...a, tipoCobranca: tipo, ref, dias: d });
+  });
+  // Atrasados primeiro (o mais recente antes), depois os que vencem antes
+  cobrancas.sort((x, y) => (x.dias < 0) !== (y.dias < 0) ? (x.dias < 0 ? -1 : 1) : (x.dias < 0 ? y.dias - x.dias : x.dias - y.dias));
   const novos = alunos.filter(a => !a.aguardando && a.status === 'pago' && diasDesde(a.data_inicio) !== null && diasDesde(a.data_inicio) <= 30)
     .sort((x, y) => String(y.data_inicio).localeCompare(String(x.data_inicio)));
   const leads = (painel.leads || []).filter(l => l.status !== 'fechou' && l.status !== 'perdido');
-  return { pendentes, mensalidades, renovacoes, novos, leads };
+  return { pendentes, cobrancas, novos, leads };
 }
 
 /* ---------------- telas ---------------- */
@@ -149,8 +161,7 @@ function renderComissao() {
 
 const ABAS = [
   ['pendentes', '⏳ Aguardando pagamento'],
-  ['mensalidades', '🔁 Mensalidades'],
-  ['renovacoes', '📅 Renovações'],
+  ['cobrancas', '💸 Cobranças'],
   ['novos', '✅ Novos alunos'],
   ['leads', '🆕 Contatos do site'],
   ['vendas', '💰 Minhas vendas'],
@@ -160,11 +171,11 @@ const ABAS = [
 function render() {
   renderComissao();
   const L = listas();
-  const contagem = { pendentes: L.pendentes.length, mensalidades: L.mensalidades.length, renovacoes: L.renovacoes.length, novos: L.novos.length, leads: L.leads.length, vendas: (painel.vendas || []).length, links: null };
+  const contagem = { pendentes: L.pendentes.length, cobrancas: L.cobrancas.length, novos: L.novos.length, leads: L.leads.length, vendas: (painel.vendas || []).length, links: null };
   $('abas').innerHTML = ABAS.map(([id, nome]) => `<button type="button" role="tab" class="aba ${abaAtual === id ? 'on' : ''} ${contagem[id] ? 'tem' : ''}" data-aba="${id}" aria-selected="${abaAtual === id}">${nome}${contagem[id] !== null ? ` <b>${contagem[id]}</b>` : ''}</button>`).join('');
   $('abas').querySelectorAll('[data-aba]').forEach(b => b.onclick = () => { abaAtual = b.dataset.aba; render(); });
 
-  const telas = { pendentes: telaPendentes, mensalidades: telaMensalidades, renovacoes: telaRenovacoes, novos: telaNovos, leads: telaLeads, vendas: telaVendas, links: telaLinks };
+  const telas = { pendentes: telaPendentes, cobrancas: telaCobrancas, novos: telaNovos, leads: telaLeads, vendas: telaVendas, links: telaLinks };
   $('conteudo').innerHTML = telas[abaAtual](L);
   ligarAcoes();
 }
@@ -188,31 +199,76 @@ function telaPendentes(L) {
     )), 'Ninguém aguardando pagamento agora. 🎉');
 }
 
-function telaMensalidades(L) {
-  return painelHtml('🔁 Mensalidades do recorrente', `Alunos no cartão recorrente com a mensalidade vencendo em até ${DIAS_MENSALIDADE} dias ou atrasada. Confira no Asaas se a cobrança passou e confirme.`,
-    L.mensalidades.map(a => {
-      const d = diasAte(a.proxima_cobranca);
-      return item(
-        `<b>${esc(a.nome)}</b><small>${esc(nomePlano(a.plano))} • mensalidade ${textoDias(d)} (${dataBR(a.proxima_cobranca)})</small>
-         <small><span class="pill ${d < 0 ? 'bad' : 'warn'}">${d < 0 ? 'atrasada' : 'a vencer'}</span></small>`,
-        botaoWhats(a, d < 0
-          ? `Oi ${primeiro(a.nome)}, tudo bem? A mensalidade da sua consultoria venceu em ${dataBR(a.proxima_cobranca)} e não passou no cartão. Consegue verificar? Assim seu acesso continua liberado. 💪`
-          : `Oi ${primeiro(a.nome)}! Só lembrando que a mensalidade da sua consultoria vence ${textoDias(d)} (${dataBR(a.proxima_cobranca)}), no cartão recorrente. Qualquer coisa me chama! 💪`) + botaoConfirmar(a, '✅ Mensalidade paga'));
-    }), 'Nenhuma mensalidade para acompanhar agora.');
+function valorCobranca(a) {
+  const p = PLANOS[a.plano];
+  if (p) {
+    if (a.tipoCobranca === 'mensalidade' && p.recorrente) return reais(p.recorrente) + '/mês';
+    if (a.forma_pagamento === 'cartao' && p.cartao) return `${p.cartao.parcelas}x de ${reais(valorParcela(p))}`;
+    if (a.forma_pagamento === 'recorrente' && p.recorrente) return reais(p.recorrente) + '/mês';
+    return reais(p.pix) + ' no PIX';
+  }
+  return a.valor_mensalidade ? reais(a.valor_mensalidade) : 'valor a combinar';
 }
 
-function telaRenovacoes(L) {
-  return painelHtml('📅 Renovações', `Planos terminando em até ${DIAS_RENOVACAO} dias ou que terminaram há pouco. Ofereça a renovação para o aluno não parar.`,
-    L.renovacoes.map(a => {
-      const ref = a.forma_pagamento === 'recorrente' ? a.fim_contrato : a.data_expiracao;
-      const d = diasAte(ref);
+function quandoTexto(d, verbo = 'vence') {
+  if (d === 0) return `${verbo} hoje`;
+  if (d === 1) return `${verbo} amanhã`;
+  if (d > 1) return `${verbo} em ${d} dias`;
+  return verbo === 'vence' ? `venceu há ${-d} dia${d === -1 ? '' : 's'}` : `terminou há ${-d} dia${d === -1 ? '' : 's'}`;
+}
+
+function mensagemCobranca(a) {
+  const nome = primeiro(a.nome);
+  const data = dataBR(a.ref);
+  const p = PLANOS[a.plano];
+  const rodape = 'Qualquer dúvida, me chama aqui! 💪';
+
+  if (a.tipoCobranca === 'mensalidade') {
+    return a.dias >= 0
+      ? `Oi ${nome}, tudo bem? Passando pra lembrar que a mensalidade da sua consultoria (${valorCobranca(a)}) ${quandoTexto(a.dias)} (${data}), no cartão recorrente. É só deixar o cartão com limite que a cobrança passa sozinha. ${rodape}`
+      : `Oi ${nome}, tudo bem? A mensalidade da sua consultoria venceu em ${data} e não passou no cartão. Consegue verificar o cartão cadastrado? Seu acesso continua liberado até ${dataBR(a.data_expiracao)}. Se preferir, te mando outra forma de pagamento. ${rodape}`;
+  }
+
+  if (p) {
+    const linhas = formasPagamentoPlano(p).filter(f => f.link).map(f => `${f.icone} ${f.titulo}\n${f.link}`).join('\n\n');
+    const abertura = a.dias >= 0
+      ? `Oi ${nome}, tudo bem? Seu plano ${p.nome} ${quandoTexto(a.dias, 'termina')} (${data}). Pra continuar evoluindo sem parar, é só renovar por um dos links:`
+      : `Oi ${nome}, tudo bem? Seu plano ${p.nome} terminou em ${data}. Renova por um dos links e volta a treinar hoje mesmo:`;
+    return `${abertura}\n\n${linhas}\n\nUse o mesmo CPF do seu cadastro que o acesso renova sozinho. ${rodape}`;
+  }
+
+  // Aluno antigo (mensalidade fora dos planos do site): cobrança por PIX
+  const chave = typeof CHAVE_PIX !== 'undefined' ? CHAVE_PIX : '';
+  return `Oi ${nome}, tudo bem? Sua mensalidade da consultoria ${a.dias >= 0 ? `${quandoTexto(a.dias)} (${data})` : `venceu em ${data}`}.\n\n💰 Valor: ${valorCobranca(a)}${chave ? `\n🔑 Chave PIX: ${chave}` : ''}\n\nDepois de pagar, me manda o comprovante por aqui que eu confirmo seu acesso. ${rodape}`;
+}
+
+function textoUltimaCobranca(a) {
+  const c = a.ultima_cobranca;
+  if (!c) return '<span class="pill">ainda não cobrado</span>';
+  const dd = diasDesde(c.data);
+  const quando = dd === 0 ? 'hoje' : dd === 1 ? 'ontem' : `há ${dd} dias`;
+  const quem = c.por === 'admin' ? 'Jhonata' : c.por;
+  return `<span class="pill ${dd === 0 ? 'ok' : ''}">cobrado ${quando} (${esc(quem)})${c.vezes > 1 ? ` • ${c.vezes}x` : ''}</span>`;
+}
+
+function telaCobrancas(L) {
+  const atrasados = L.cobrancas.filter(a => a.dias < 0).length;
+  return painelHtml('💸 Cobranças', `Alunos com o plano terminando em até ${DIAS_RENOVACAO} dias, mensalidade do recorrente em até ${DIAS_MENSALIDADE} dias e quem está atrasado${atrasados ? ` (<b style="color:var(--bad)">${atrasados} atrasado${atrasados > 1 ? 's' : ''}</b>)` : ''}. A mensagem já vai com o link de pagamento.`,
+    L.cobrancas.map(a => {
+      const urg = a.dias < 0 ? 'bad' : a.dias <= 3 ? 'warn' : 'gold';
+      const rotulo = a.tipoCobranca === 'mensalidade' ? 'mensalidade' : (PLANOS[a.plano] ? 'renovação' : 'mensalidade');
+      const msg = mensagemCobranca(a);
+      const n = fone(a);
+      const acaoWhats = n
+        ? `<a class="btn btn-wpp" target="_blank" rel="noopener" href="${whats(n, msg)}" data-cobrar="${esc(a.codigo)}" data-tipo="${a.dias < 0 ? 'atraso' : a.tipoCobranca}">📲 Cobrar</a>`
+        : `<button type="button" class="btn" data-copiar="${esc(msg)}" data-cobrar="${esc(a.codigo)}" data-tipo="${a.dias < 0 ? 'atraso' : a.tipoCobranca}">📋 Copiar cobrança</button>`;
       return item(
-        `<b>${esc(a.nome)}</b><small>${esc(nomePlano(a.plano))} • ${d >= 0 ? `termina ${textoDias(d)}` : `terminou ${textoDias(d)}`} (${dataBR(ref)})</small>
-         <small>${a.forma_pagamento ? `<span class="pill">${NOMES_FORMA[a.forma_pagamento]}</span>` : ''}<span class="pill ${d < 0 ? 'bad' : 'warn'}">${d < 0 ? 'vencido' : 'renovar'}</span></small>`,
-        botaoWhats(a, d >= 0
-          ? `Oi ${primeiro(a.nome)}, tudo bem? Seu plano com o Jhonata termina ${textoDias(d)} (${dataBR(ref)}). Bora renovar pra não perder a evolução que você conquistou? Te mando as opções por aqui! 💪`
-          : `Oi ${primeiro(a.nome)}! Seu plano com o Jhonata terminou em ${dataBR(ref)}. Quer renovar pra gente continuar sua evolução? Te mando as opções! 💪`, '📲 Oferecer renovação') + botaoConfirmar(a, '✅ Renovou'));
-    }), 'Nenhuma renovação próxima.');
+        `<b>${esc(a.nome)}</b>
+         <small><span class="pill ${urg}">${quandoTexto(a.dias, a.tipoCobranca === 'renovacao' && PLANOS[a.plano] ? 'termina' : 'vence')}</span> ${rotulo} • ${valorCobranca(a)} • ${dataBR(a.ref)}</small>
+         <small>${esc(nomePlano(a.plano))}${a.forma_pagamento ? ' • ' + NOMES_FORMA[a.forma_pagamento] : ''}</small>
+         <small>${textoUltimaCobranca(a)}${n ? '' : '<span class="pill bad">sem WhatsApp cadastrado</span>'}</small>`,
+        acaoWhats + botaoConfirmar(a, '✅ Pagou'));
+    }), 'Ninguém para cobrar agora. 🎉');
 }
 
 function telaNovos(L) {
@@ -268,7 +324,17 @@ function telaLinks() {
 }
 
 /* ---------------- ações ---------------- */
+async function registrarCobranca(codigo, tipo) {
+  try {
+    const r = await api('POST', '/api/equipe/cobranca', { codigo, tipo });
+    const a = (painel.alunos || []).find(x => x.codigo === codigo);
+    if (a) a.ultima_cobranca = { data: r.data, por: r.por, vezes: ((a.ultima_cobranca && a.ultima_cobranca.vezes) || 0) + 1 };
+    setTimeout(render, 400);
+  } catch (e) {}
+}
+
 function ligarAcoes() {
+  document.querySelectorAll('[data-cobrar]').forEach(b => b.addEventListener('click', () => registrarCobranca(b.dataset.cobrar, b.dataset.tipo)));
   document.querySelectorAll('[data-confirmar]').forEach(b => b.onclick = () => abrirConfirmar(b.dataset.confirmar));
   document.querySelectorAll('[data-copiar]').forEach(b => b.onclick = () => copiar(b, b.dataset.copiar));
   document.querySelectorAll('[data-lead-salvar]').forEach(b => b.onclick = async () => {

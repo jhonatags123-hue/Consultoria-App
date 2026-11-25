@@ -12,6 +12,8 @@
 ============================================================= */
 const ASAAS = 'https://' + 'www.asaas.com/000/c/';
 const WHATSAPP_NUMERO = '5551990169026';
+// Chave PIX usada nas cobranças de alunos antigos (mensalidade fora dos planos do site)
+const CHAVE_PIX = '5551990169026';
 
 const PLANOS = {
   // ---------------- CONSULTORIA DE TREINO (CARRO-CHEFE) ----------------
