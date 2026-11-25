@@ -868,7 +868,7 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
     const destino = f.link || `${wppBase}${encodeURIComponent(`Olá Jhonata! Preenchi minha avaliação e quero pagar o plano ${plano.nome} (${f.titulo}).`)}`;
     const marcado = formaUrl === f.id ? ' outline:2px solid #f3d489; outline-offset:2px;' : '';
     return `
-        <a href="${destino}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; ${estilos[f.id]} text-decoration:none; padding:14px; border-radius:12px; margin-bottom:10px; font-weight:800; border:0;${marcado}">
+        <a href="${destino}" data-forma="${f.id}" target="_blank" rel="noopener" class="btn-login" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; ${estilos[f.id]} text-decoration:none; padding:14px; border-radius:12px; margin-bottom:10px; font-weight:800; border:0;${marcado}">
           <span>${f.icone} ${f.titulo}</span>
           <small style="font-size:11px; opacity:.9; font-weight:400;">${f.detalhe}</small>
         </a>`;
@@ -888,8 +888,12 @@ function renderizarCheckoutFinalPlano(tipoConsultoria) {
         ${botoes}
       </div>
 
-      <a href="${wppBase}${encodeURIComponent(`Olá Jhonata! Acabei de preencher minha avaliação (${plano.nome}).`)}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:20px; text-decoration:none;">
-          Falar com o personal no WhatsApp
+      <p style="font-size:12.5px; color:var(--ink-dim,#e0d0d3); margin-top:16px; line-height:1.55;">
+        ✅ Depois de pagar, seu acesso ao app é liberado assim que o pagamento for confirmado.<br>
+        Pagou no PIX? Envie o comprovante para agilizar.
+      </p>
+      <a href="${wppBase}${encodeURIComponent(`Olá Jhonata! Acabei de preencher minha avaliação (${plano.nome}) e fiz o pagamento. Segue o comprovante:`)}" target="_blank" class="btn-login btn-wpp" style="display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; text-decoration:none;">
+          📎 Enviar comprovante no WhatsApp
       </a>
     </div>
   `;
@@ -947,7 +951,8 @@ async function sendAnamneseAppDirect() {
     orcamento: isApenasTreinoMode ? "" : document.getElementById('anamOrcamento').value.trim(),
     suplementos: isApenasTreinoMode ? "" : document.getElementById('anamSuplementos').value.trim(),
     fimDeSemana: isApenasTreinoMode ? "" : document.getElementById('anamFimDeSemana').value.trim(),
-    apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO')
+    apenasTreino: isApenasTreinoMode || tipoConsultoria.includes('TREINO'),
+    vendedor: (new URLSearchParams(location.search).get('vend') || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 50)
   };
 
   if (btn) {
@@ -975,7 +980,16 @@ async function sendAnamneseAppDirect() {
         return;
       }
 
-      document.getElementById('anamneseScreen').innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
+      const telaFinal = document.getElementById('anamneseScreen');
+      telaFinal.innerHTML = renderizarCheckoutFinalPlano(tipoConsultoria);
+      // Avisa ao servidor qual forma de pagamento o aluno escolheu (ajuda o vendedor a acompanhar)
+      telaFinal.querySelectorAll('[data-forma]').forEach(a => a.addEventListener('click', () => {
+        if (!result.codigo) return;
+        fetch(`${BACKEND_URL}/api/anamnese/forma`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+          body: JSON.stringify({ codigo: result.codigo, forma: a.dataset.forma })
+        }).catch(() => {});
+      }));
     } catch (e) {
       if (tentativasRestantes > 0) {
         if (btn) btn.textContent = "Conectando ao servidor, aguarde...";
