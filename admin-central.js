@@ -963,7 +963,7 @@
         <div class="central-grid">
           <div class="central-bloco">
             <div class="central-bloco-topo"><span>🏆 Comissão do mês</span></div>
-            <p class="central-desc">Até 5 vendas: 10%. A partir da 6ª: 15% em tudo. Mensalidades entram no total, mas não contam como venda nova.</p>
+            <p class="central-desc">Só vendas novas do vendedor (e mensalidades do recorrente dos alunos que ele vendeu). Renovações e seus alunos antigos não geram comissão. Até 5 vendas: 10%; a partir da 6ª: 15% em tudo.</p>
             ${comissoes.length ? comissoes.map(([cod, c]) => `<div class="central-item"><div class="central-item-info"><b>${esc((vends.find(v => v.codigo === cod) || {}).nome || cod)}</b><small>${c.vendas} venda${c.vendas !== 1 ? 's' : ''} • faixa ${c.pct}% • vendido ${reais(c.total)}</small></div><div class="central-item-acoes"><b style="color:var(--gold); font-size:15px;">${reais(c.comissao)}</b></div></div>`).join('') : '<div class="central-vazio">Nenhuma venda com vendedor neste mês.</div>'}
           </div>
           <div class="central-bloco">

@@ -164,7 +164,7 @@ function renderComissao() {
     <div class="faixa-txt">${c.faltam_para_15 > 0
       ? `Faltam <b>${c.faltam_para_15} venda${c.faltam_para_15 > 1 ? 's' : ''}</b> para subir para <b>15% em tudo</b> o que você vendeu no mês.`
       : `🔥 Você está na faixa de <b>15%</b>: vale para todas as vendas do mês.`}
-      Mensalidades do recorrente entram no total, mas não contam como venda nova.</div>
+      A comissão é só sobre as <b>suas vendas novas</b> (e as mensalidades do recorrente dos alunos que você vendeu). Renovações e alunos que já eram do Jhonata não geram comissão.</div>
     ${painel.saldo ? `<div class="saldo">
       <div><span>Saldo disponível para resgate</span><b>${reais(painel.saldo.disponivel)}</b>
         <small>${painel.saldo.pendente ? `${reais(painel.saldo.pendente)} em análise • ` : ''}${reais(painel.saldo.pago)} já recebido</small></div>
@@ -390,11 +390,11 @@ function telaLeads(L) {
 function telaVendas() {
   const tipos = { nova: 'Venda nova', renovacao: 'Renovação', mensalidade: 'Mensalidade' };
   const v = painel.vendas || [];
-  return painelHtml('💰 Vendas do mês', 'Pagamentos confirmados no mês selecionado que contam para a sua comissão.',
+  return painelHtml('💰 Vendas do mês', 'Pagamentos confirmados no mês dos alunos que você vendeu. Renovações aparecem aqui só para acompanhamento: não geram comissão.',
     v.map(x => item(
       `<b>${esc(x.aluno_nome)}</b><small>${esc(nomePlano(x.plano))} • ${NOMES_FORMA[x.forma] || esc(x.forma)} • ${dataBR(x.criado_em)}</small>
-       <small><span class="pill ${x.tipo === 'mensalidade' ? '' : 'gold'}">${tipos[x.tipo] || esc(x.tipo)}</span>${x.observacao ? esc(x.observacao) : ''}</small>`,
-      `<b style="font-variant-numeric:tabular-nums">${reais(x.valor)}</b>`)), 'Nenhuma venda confirmada neste mês ainda.');
+       <small><span class="pill ${x.tipo === 'nova' ? 'gold' : ''}">${tipos[x.tipo] || esc(x.tipo)}</span>${x.tipo === 'renovacao' ? '<span class="pill">sem comissão</span>' : ''}${x.observacao ? esc(x.observacao) : ''}</small>`,
+      `<b style="font-variant-numeric:tabular-nums;${x.tipo === 'renovacao' ? 'opacity:.5;text-decoration:line-through' : ''}">${reais(x.valor)}</b>`)), 'Nenhuma venda confirmada neste mês ainda.');
 }
 
 function telaLinks() {
