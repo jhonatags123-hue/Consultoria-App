@@ -899,6 +899,18 @@
     </div>`;
   }
 
+  function blocoIndicacoes(r) {
+    const nomes = Object.fromEntries((r.alunos || []).map(a => [a.codigo, a.nome]));
+    const pend = (r.creditos || []).filter(c => c.status === 'pendente');
+    const indicados = (r.leads || []).filter(l => l.indicado_por);
+    const fecharam = (r.alunos || []).filter(a => a.indicado_por && !a.aguardando).length;
+    return `<div class="central-bloco" style="margin-top:12px;">
+      <div class="central-bloco-topo"><span>🤝 Indicações</span><b class="${pend.length ? 'tem' : ''}">${pend.length}</b></div>
+      <p class="central-desc">${indicados.length} contato${indicados.length !== 1 ? 's' : ''} indicado${indicados.length !== 1 ? 's' : ''} por alunos • ${fecharam} fecharam. Quem indica ganha R$ 20 e o indicado R$ 10 de desconto quando fecha.</p>
+      ${pend.length ? pend.map(c => `<div class="central-item"><div class="central-item-info"><b>${esc(nomes[c.aluno_codigo] || c.aluno_codigo)} — ${formatarReais(parseFloat(c.valor) || 0)} de desconto</b><small>${esc(c.motivo || '')} • ${new Date(c.criado_em).toLocaleDateString('pt-BR')}</small></div><div class="central-item-acoes"><button type="button" class="btn btn-soft sm" data-credito="${c.id}">✓ Desconto aplicado</button></div></div>`).join('') : '<div class="central-vazio">Nenhum desconto de indicação a aplicar.</div>'}
+    </div>`;
+  }
+
   function blocoAsaas(asaas, alunos) {
     if (!asaas) return `<div class="central-bloco" style="margin-top:12px;"><div class="central-bloco-topo"><span>💳 Asaas automático</span></div><p class="central-desc">Não foi possível verificar a integração (servidor ainda não atualizado?).</p></div>`;
     const c = asaas.configurado || {};
@@ -961,6 +973,7 @@
           </div>
         </div>
         ${blocoSaques(saques)}
+        ${blocoIndicacoes(r)}
         ${blocoAsaas(asaas, r.alunos || [])}
         <div class="central-bloco" style="margin-top:12px;">
           <div class="central-bloco-topo"><span>🧾 Pagamentos confirmados no mês</span><b>${(r.vendas || []).length}</b></div>
@@ -992,6 +1005,12 @@
         renderVendas();
       });
       sec.querySelectorAll('[data-copiar-pix]').forEach(b => b.onclick = () => copiarLinkVenda(b.dataset.copiarPix));
+      sec.querySelectorAll('[data-credito]').forEach(b => b.onclick = async () => {
+        b.disabled = true;
+        const res = await fetch(`${BACKEND_URL}/api/equipe/creditos/${b.dataset.credito}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ status: 'usado' }) });
+        if (!res.ok) { b.disabled = false; return showToast('Erro ao dar baixa.', 'error'); }
+        showToast('Desconto marcado como aplicado.', 'success'); renderVendas();
+      });
       sec.querySelectorAll('[data-asaas-ligar]').forEach(b => b.onclick = async () => {
         const id = b.dataset.asaasLigar;
         const cod = sec.querySelector(`[data-asaas-aluno="${id}"]`).value;

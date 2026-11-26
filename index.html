@@ -416,7 +416,7 @@ document.getElementById('leadForm').addEventListener('submit', async e => {
     await fetch(LEAD_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...data, origem: 'site', vend: new URLSearchParams(location.search).get('vend') || '' })
+      body: JSON.stringify({ ...data, origem: 'site', vend: new URLSearchParams(location.search).get('vend') || '', ind: new URLSearchParams(location.search).get('ind') || '' })
     });
   } catch (_) {}
   document.getElementById('leadSuccess').style.display = 'block';
