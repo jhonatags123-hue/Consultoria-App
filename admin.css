@@ -1013,3 +1013,9 @@ textarea {
 .vend-form .btn { width: auto; }
 #studentConfirmarPag { cursor: pointer; }
 .badge-saque { display: inline-block; margin-left: 6px; background: var(--accent); color: #fff; border-radius: 999px; padding: 1px 8px; font-size: 11px; }
+
+/* Padrão de diretrizes */
+.dir-atalhos { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+.dir-atalhos .btn { width: auto; }
+.dir-status { font-size: 11.5px; color: var(--muted); }
+.mp-campos textarea { width: 100%; background: var(--card-inner); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.5; }
