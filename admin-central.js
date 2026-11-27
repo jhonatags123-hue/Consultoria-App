@@ -1059,6 +1059,16 @@
     return j;
   }
 
+  // {NOME} = nome completo em maiúsculas, {nome} = primeiro nome, {descanso} = descanso do aluno
+  function preencherMarcadores(texto) {
+    const nome = String((currentStudentData && currentStudentData.clientName) || '').trim();
+    const descanso = (currentStudentData && currentStudentData.dadosAnamnese && currentStudentData.dadosAnamnese.tempoDescanso) || '90 segundos a 2 minutos';
+    return String(texto || '')
+      .replace(/\{NOME\}/g, nome.toUpperCase())
+      .replace(/\{nome\}/g, nome.split(/\s+/)[0] || '')
+      .replace(/\{descanso\}/gi, descanso);
+  }
+
   function garantirFerramentasDiretrizes() {
     const btnGerar = document.getElementById('btnGerarApenasDiretrizesIA');
     const tx = document.getElementById('editTrainerGuidelines');
@@ -1084,8 +1094,7 @@
       const pd = padraoDiretrizes || await carregarPadraoDiretrizes();
       if (!pd.modelo.trim()) return abrirModalPadrao();
       if (tx.value.trim() && !confirm('Substituir as diretrizes atuais pelo seu modelo?')) return;
-      const descanso = (currentStudentData && currentStudentData.dadosAnamnese && currentStudentData.dadosAnamnese.tempoDescanso) || '';
-      tx.value = pd.modelo.replace(/\{descanso\}/gi, descanso || '90s a 2min').replace(/\{nome\}/gi, (currentStudentData && String(currentStudentData.clientName || '').split(' ')[0]) || '');
+      tx.value = preencherMarcadores(pd.modelo);
       showToast('Modelo colocado. Ajuste se precisar e salve o treino.', 'info');
     };
     document.getElementById('btnSalvarExemplo').onclick = async () => {
@@ -1120,7 +1129,7 @@
         <div class="mp-campos">
           <label for="mpdModelo">Modelo: escreva as diretrizes exatamente como você sempre faz</label>
           <textarea id="mpdModelo" rows="10" placeholder="Ex.:&#10;1. Aquecimento: 5 min de bike leve + mobilidade da articulação do dia.&#10;2. Série de reconhecimento: 1 série leve de 12-15 reps no primeiro exercício.&#10;3. Séries de trabalho: até a falha técnica, descanso de {descanso}.&#10;..."></textarea>
-          <small style="color:var(--muted); font-size:11.5px;">Pode usar {descanso} e {nome}: são trocados pelo descanso e o primeiro nome do aluno.</small>
+          <small style="color:var(--muted); font-size:11.5px;">Marcadores: {NOME} = nome completo em maiúsculas, {nome} = primeiro nome, {descanso} = tempo de descanso do aluno.</small>
           <label for="mpdRegras">Regras: o que ela sempre deve fazer e o que nunca deve fazer</label>
           <textarea id="mpdRegras" rows="5" placeholder="Ex.:&#10;- Nunca falar de dieta ou suplemento.&#10;- Nunca usar a palavra PAP.&#10;- Sempre citar a técnica do exercício quando houver (cluster, back-off).&#10;- Máximo 8 linhas."></textarea>
         </div>
@@ -1167,7 +1176,7 @@
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Erro ao gerar.');
-      tx.value = j.diretrizes;
+      tx.value = preencherMarcadores(j.diretrizes);
       showToast('Diretrizes geradas no seu padrão. Revise e salve o treino.', 'success');
     } catch (err) { showToast(err.message, 'error'); }
     finally { btn.textContent = original; btn.disabled = false; }
