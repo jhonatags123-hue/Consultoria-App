@@ -1041,6 +1041,138 @@
     }
   }
 
+  /* ---------------- DIRETRIZES NO PADRÃO DO TREINADOR ---------------- */
+  let padraoDiretrizes = null;
+
+  async function carregarPadraoDiretrizes() {
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/admin/padrao-diretrizes`, { headers: authHeaders(), cache: 'no-cache' });
+      padraoDiretrizes = r.ok ? await r.json() : { modelo: '', regras: '', exemplos: [] };
+    } catch (e) { padraoDiretrizes = { modelo: '', regras: '', exemplos: [] }; }
+    return padraoDiretrizes;
+  }
+  async function salvarPadraoDiretrizes(dados) {
+    const r = await fetch(`${BACKEND_URL}/api/admin/padrao-diretrizes`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(dados) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Erro ao salvar.');
+    padraoDiretrizes = j;
+    return j;
+  }
+
+  function garantirFerramentasDiretrizes() {
+    const btnGerar = document.getElementById('btnGerarApenasDiretrizesIA');
+    const tx = document.getElementById('editTrainerGuidelines');
+    if (!btnGerar || !tx || document.getElementById('dirAtalhos')) return;
+    btnGerar.textContent = '⚡ GERAR DIRETRIZES NO MEU PADRÃO (IA)';
+    const caixa = btnGerar.parentElement;
+    const desc = caixa.querySelector('p');
+    if (desc) desc.textContent = 'A IA segue o seu modelo, as suas regras e os exemplos que você aprovou. Ela recebe só a ficha e o tempo de descanso do aluno.';
+    const linha = document.createElement('div');
+    linha.id = 'dirAtalhos'; linha.className = 'dir-atalhos';
+    linha.innerHTML = `
+      <button type="button" class="btn btn-soft sm" id="btnMeuPadrao">⚙️ Meu padrão</button>
+      <button type="button" class="btn btn-soft sm" id="btnUsarModelo">📋 Usar meu modelo (sem IA)</button>
+      <span id="statusPadrao" class="dir-status"></span>`;
+    caixa.appendChild(linha);
+    const ex = document.createElement('div');
+    ex.className = 'dir-atalhos';
+    ex.innerHTML = `<button type="button" class="btn btn-soft sm" id="btnSalvarExemplo">⭐ Ficou do meu jeito: usar como exemplo</button><small class="dir-status">A IA passa a imitar os exemplos que você aprova.</small>`;
+    tx.insertAdjacentElement('afterend', ex);
+
+    document.getElementById('btnMeuPadrao').onclick = abrirModalPadrao;
+    document.getElementById('btnUsarModelo').onclick = async () => {
+      const pd = padraoDiretrizes || await carregarPadraoDiretrizes();
+      if (!pd.modelo.trim()) return abrirModalPadrao();
+      if (tx.value.trim() && !confirm('Substituir as diretrizes atuais pelo seu modelo?')) return;
+      const descanso = (currentStudentData && currentStudentData.dadosAnamnese && currentStudentData.dadosAnamnese.tempoDescanso) || '';
+      tx.value = pd.modelo.replace(/\{descanso\}/gi, descanso || '90s a 2min').replace(/\{nome\}/gi, (currentStudentData && String(currentStudentData.clientName || '').split(' ')[0]) || '');
+      showToast('Modelo colocado. Ajuste se precisar e salve o treino.', 'info');
+    };
+    document.getElementById('btnSalvarExemplo').onclick = async () => {
+      const texto = tx.value.trim();
+      if (!texto) return showToast('Escreva ou gere as diretrizes primeiro.', 'error');
+      try { await salvarPadraoDiretrizes({ novoExemplo: texto }); atualizarStatusPadrao(); showToast('Salvo como exemplo. A IA vai seguir esse estilo.', 'success'); }
+      catch (err) { showToast(err.message, 'error'); }
+    };
+    carregarPadraoDiretrizes().then(atualizarStatusPadrao);
+  }
+
+  function atualizarStatusPadrao() {
+    const el = document.getElementById('statusPadrao');
+    if (!el || !padraoDiretrizes) return;
+    const pd = padraoDiretrizes;
+    el.textContent = pd.modelo.trim() || pd.exemplos.length
+      ? `✅ Padrão salvo${pd.exemplos.length ? ` • ${pd.exemplos.length} exemplo${pd.exemplos.length > 1 ? 's' : ''}` : ''}`
+      : '⚠️ Cadastre o seu padrão para a IA acertar';
+  }
+
+  async function abrirModalPadrao() {
+    const pd = padraoDiretrizes || await carregarPadraoDiretrizes();
+    let m = document.getElementById('modalPadrao');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'modalPadrao'; m.className = 'modal-overlay hidden';
+      m.innerHTML = `<div class="modal-chart" style="max-width:720px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="color:var(--gold); font-size:16px;">⚙️ Meu padrão de diretrizes</h3>
+          <button type="button" id="mpdFechar" style="background:none; border:none; color:var(--accent); font-size:18px; font-weight:800; cursor:pointer;">✕</button>
+        </div>
+        <div class="mp-campos">
+          <label for="mpdModelo">Modelo: escreva as diretrizes exatamente como você sempre faz</label>
+          <textarea id="mpdModelo" rows="10" placeholder="Ex.:&#10;1. Aquecimento: 5 min de bike leve + mobilidade da articulação do dia.&#10;2. Série de reconhecimento: 1 série leve de 12-15 reps no primeiro exercício.&#10;3. Séries de trabalho: até a falha técnica, descanso de {descanso}.&#10;..."></textarea>
+          <small style="color:var(--muted); font-size:11.5px;">Pode usar {descanso} e {nome}: são trocados pelo descanso e o primeiro nome do aluno.</small>
+          <label for="mpdRegras">Regras: o que ela sempre deve fazer e o que nunca deve fazer</label>
+          <textarea id="mpdRegras" rows="5" placeholder="Ex.:&#10;- Nunca falar de dieta ou suplemento.&#10;- Nunca usar a palavra PAP.&#10;- Sempre citar a técnica do exercício quando houver (cluster, back-off).&#10;- Máximo 8 linhas."></textarea>
+        </div>
+        <div style="margin-top:10px;"><b style="font-size:12.5px; color:var(--text);">Exemplos aprovados</b> <small style="color:var(--muted);">(até 5; a IA imita o estilo deles)</small><div id="mpdExemplos"></div></div>
+        <button type="button" class="btn btn-gold btn-lg full-width" id="mpdSalvar" style="margin-top:12px;">💾 Salvar meu padrão</button>
+      </div>`;
+      document.body.appendChild(m);
+      document.getElementById('mpdFechar').onclick = () => m.classList.add('hidden');
+      m.addEventListener('click', (e) => { if (e.target === m) m.classList.add('hidden'); });
+      document.getElementById('mpdSalvar').onclick = async () => {
+        try {
+          await salvarPadraoDiretrizes({ modelo: document.getElementById('mpdModelo').value, regras: document.getElementById('mpdRegras').value, exemplos: padraoDiretrizes.exemplos });
+          m.classList.add('hidden'); atualizarStatusPadrao(); showToast('Padrão salvo! A IA vai seguir esse modelo.', 'success');
+        } catch (err) { showToast(err.message, 'error'); }
+      };
+    }
+    document.getElementById('mpdModelo').value = pd.modelo || '';
+    document.getElementById('mpdRegras').value = pd.regras || '';
+    const renderEx = () => {
+      const box = document.getElementById('mpdExemplos');
+      box.innerHTML = (padraoDiretrizes.exemplos || []).length
+        ? padraoDiretrizes.exemplos.map((e, i) => `<div class="central-item"><div class="central-item-info" style="white-space:pre-line; font-size:12px; color:var(--text);">${esc(e.length > 400 ? e.slice(0, 400) + '…' : e)}</div><div class="central-item-acoes"><button type="button" class="btn btn-soft sm" data-rmex="${i}">Remover</button></div></div>`).join('')
+        : '<div class="central-vazio">Nenhum exemplo ainda. Quando uma diretriz ficar do seu jeito, clique em "⭐ Usar como exemplo" no editor.</div>';
+      box.querySelectorAll('[data-rmex]').forEach(b => b.onclick = () => { padraoDiretrizes.exemplos.splice(parseInt(b.dataset.rmex, 10), 1); renderEx(); });
+    };
+    renderEx();
+    m.classList.remove('hidden');
+  }
+
+  // Substitui o gerador antigo (que mandava o aluno inteiro e uma instrução genérica)
+  window.gerarApenasDiretrizesIA = async function () {
+    if (!currentStudentCode || !currentStudentData) return showToast('Selecione um aluno primeiro.', 'error');
+    const ficha = (document.getElementById('liveWorkoutText').value || '').trim();
+    if (!ficha) return showToast('Monte a ficha de treino antes de gerar as diretrizes.', 'error');
+    const pd = padraoDiretrizes || await carregarPadraoDiretrizes();
+    if (!pd.modelo.trim() && !pd.exemplos.length) { showToast('Cadastre primeiro o seu padrão. Leva 1 minuto.', 'info'); return abrirModalPadrao(); }
+    const tx = document.getElementById('editTrainerGuidelines');
+    const btn = document.getElementById('btnGerarApenasDiretrizesIA');
+    const original = btn.textContent; btn.textContent = '⏳ Gerando no seu padrão...'; btn.disabled = true;
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/admin/gerar-diretrizes`, {
+        method: 'POST', headers: authHeaders(), cache: 'no-cache',
+        body: JSON.stringify({ ficha, descanso: (currentStudentData.dadosAnamnese && currentStudentData.dadosAnamnese.tempoDescanso) || '' })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'Erro ao gerar.');
+      tx.value = j.diretrizes;
+      showToast('Diretrizes geradas no seu padrão. Revise e salve o treino.', 'success');
+    } catch (err) { showToast(err.message, 'error'); }
+    finally { btn.textContent = original; btn.disabled = false; }
+  };
+
   /* ---------------- LIGAÇÃO COM O ADMIN EXISTENTE ---------------- */
   const switchTabOriginal = window.switchTab;
   window.switchTab = function (tab) {
@@ -1068,7 +1200,7 @@
     switchTabOriginal(tab);
     if (ABAS_DE_ALUNO.includes(tab)) ultimaAbaAluno = tab;
     if (tab === 'feedbackAdmin') renderResumoFeedback();
-    if (tab === 'treino') { garantirFerramentasTreino(); atualizarSelectsTreino(); }
+    if (tab === 'treino') { garantirFerramentasTreino(); atualizarSelectsTreino(); garantirFerramentasDiretrizes(); }
   };
 
   /* ---------------- BUSCA AUTOMÁTICA DE FOTOS COM IA ---------------- */
